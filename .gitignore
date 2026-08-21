@@ -4,6 +4,8 @@
 # Common generated folders from example build systems.
 # Leading slashes limit these rules to the repository root.
 /build/
+/build_*/
+/source_*/
 /temp/
 /oldbuilds/
 

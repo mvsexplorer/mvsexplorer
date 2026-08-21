@@ -2,7 +2,7 @@
 :setup
 if not defined app.launch.path set "app.launch.path=%~f0"
 if not defined app.launch.name set "app.launch.name=%~nx0"
-set "app.git_create_repo.version=git-create-repository-v2.7-bootstrap-owned-rename"
+set "app.git_create_repo.version=git-create-repository-v2.8-generated-folder-exclusions"
 set "app.git_create_repo.root="
 set "app.git_create_repo.provider=github"
 set "app.git_create_repo.owner="
@@ -20,7 +20,7 @@ set "app.git_create_repo.browser.request=ask"
 set "app.git_create_repo.identity.mode=defaults"
 set "app.git_create_repo.git.name="
 set "app.git_create_repo.git.email="
-set "app.git_create_repo.source.mode=keep"
+set "app.git_create_repo.source.mode=none"
 set "app.git_create_repo.source.input="
 set "app.git_create_repo.source.slug="
 set "app.git_create_repo.source.url="
@@ -452,6 +452,7 @@ echo   %app.git_create_repo.slug%
 echo.
 echo Visibility:
 echo   %app.git_create_repo.visibility%
+if /I "%app.git_create_repo.visibility%"=="private" echo   ^(private is the default^)
 echo.
 echo Branch:
 echo   %app.git_create_repo.branch%
@@ -466,10 +467,13 @@ echo.
 echo Rename standalone repository name:
 echo   %app.git_create_repo.rename.name%
 echo.
-if /I "%app.git_create_repo.source.mode%"=="keep" (echo Local upstream after creation: & echo   %app.git_create_repo.source.url%) else (echo Local upstream after creation: & echo   none)
+echo Remotes after creation:
+echo   origin: %app.git_create_repo.url%
+if /I "%app.git_create_repo.source.mode%"=="keep" (echo   upstream: %app.git_create_repo.source.url%) else (echo   upstream: none)
 echo.
 echo Files included:
 echo   tracked files and untracked non-ignored files
+echo   excluding generated root folders: build_*, source_*, oldbuilds
 echo.
 echo Reference report:
 echo   %app.git_create_repo.report%
@@ -550,7 +554,8 @@ exit /b 0
 :: Function ApplyReferenceChanges
 :: Purpose
 ::   Applies the reviewed reference migration with byte backups,
-::   stages all non-ignored project files, and checks whitespace.
+::   excludes disposable generated root folders, stages project files,
+::   and checks whitespace.
 :: Usage
 ::   call ApplyReferenceChanges
 :: Returns
@@ -561,8 +566,14 @@ exit /b 0
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%app.git_create_repo.rewrite%" -Mode Apply -Root "%app.git_create_repo.root%" -OldSlug "%app.git_create_repo.old.slug%" -NewSlug "%app.git_create_repo.slug%" -References "%app.git_create_repo.references%" -RenameName "%app.git_create_repo.rename.name%" -Report "%app.git_create_repo.report%" -BackupRoot "%app.git_create_repo.backup%"
 set "gcra_rc=%errorlevel%"
 if not "%gcra_rc%"=="0" (echo ERROR: Repository reference migration failed. & exit /b 1)
-git add --all
-if errorlevel 1 (echo ERROR: git add --all failed. & exit /b 1)
+REM Generated build/source folders are disposable project outputs. Remove any
+REM previously tracked copies from the new HEAD, keep the working-tree files,
+REM and do not stage untracked copies. Directory pathspecs intentionally avoid
+REM matching legitimate root files such as build_config.bat and build_noop.bat.
+git rm -r --cached --ignore-unmatch -- ":(glob)build_*/**" ":(glob)source_*/**" ":(glob)oldbuilds/**" >nul 2>nul
+if errorlevel 1 (echo ERROR: Could not exclude generated project folders from the new repository. & exit /b 1)
+git add --all -- . ":(exclude,glob)build_*/**" ":(exclude,glob)source_*/**" ":(exclude,glob)oldbuilds/**"
+if errorlevel 1 (echo ERROR: git add --all with generated-folder exclusions failed. & exit /b 1)
 git diff --cached --check
 if errorlevel 1 (echo ERROR: Staged whitespace validation failed. & exit /b 1)
 exit /b 0
@@ -1025,12 +1036,13 @@ echo Target:
 echo   provider github
 echo   owner OWNER
 echo   name REPOSITORY
-echo   visibility private^|public^|internal
+echo   visibility private^|public^|internal  ^(default: private^)
 echo   branch NAME
 echo   description "TEXT"
 echo.
 echo Source and references:
-echo   source keep^|none^|OWNER/REPOSITORY^|URL
+echo   source keep^|none^|OWNER/REPOSITORY^|URL  ^(default: none^)
+echo                        keep preserves the old repository as local upstream
 echo   references all^|urls^|none
 echo   rename yes^|no
 echo.
@@ -1062,6 +1074,7 @@ echo.
 echo Safety requirements:
 echo   tracked files must be clean
 echo   untracked non-ignored files are included
+echo   generated root folders build_*, source_*, and oldbuilds are excluded
 echo   binary files containing old repository references stop the run
 echo   the remote repository is created only after local validation
 echo   the new GitHub repository is verified as a non-fork

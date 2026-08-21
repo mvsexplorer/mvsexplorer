@@ -134,9 +134,15 @@ function Get-CandidateFiles {
         throw "git ls-files failed."
     }
 
+    # These are disposable root-level build products created by the project
+    # framework. Requiring a directory separator after the first path component
+    # avoids excluding legitimate files such as build_config.bat.
+    $generatedRootPattern = '^(?:build_[^/\\]+|source_[^/\\]+|oldbuilds)[/\\]'
+
     return @(
         $output |
         Where-Object { $_ -and $_.Trim().Length -gt 0 } |
+        Where-Object { $_ -notmatch $generatedRootPattern } |
         Sort-Object -Unique
     )
 }
@@ -374,6 +380,7 @@ $reportLines.Add("New repository: $NewSlug")
 $reportLines.Add("Reference mode: $References")
 $reportLines.Add("Rename standalone name: $RenameName")
 $reportLines.Add("Candidate files: $($files.Count)")
+$reportLines.Add("Excluded generated root folders: build_*, source_*, oldbuilds")
 $reportLines.Add("")
 
 foreach ($relative in $files) {
