@@ -2,7 +2,7 @@
 :setup
 if not defined app.launch.path set "app.launch.path=%~f0"
 if not defined app.launch.name set "app.launch.name=%~nx0"
-set "app.git_create_repo.version=git-create-repository-v2.8-generated-folder-exclusions"
+set "app.git_create_repo.version=git-create-repository-v2.9-safe-generated-folder-exclusions"
 set "app.git_create_repo.root="
 set "app.git_create_repo.provider=github"
 set "app.git_create_repo.owner="
@@ -566,14 +566,17 @@ exit /b 0
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%app.git_create_repo.rewrite%" -Mode Apply -Root "%app.git_create_repo.root%" -OldSlug "%app.git_create_repo.old.slug%" -NewSlug "%app.git_create_repo.slug%" -References "%app.git_create_repo.references%" -RenameName "%app.git_create_repo.rename.name%" -Report "%app.git_create_repo.report%" -BackupRoot "%app.git_create_repo.backup%"
 set "gcra_rc=%errorlevel%"
 if not "%gcra_rc%"=="0" (echo ERROR: Repository reference migration failed. & exit /b 1)
-REM Generated build/source folders are disposable project outputs. Remove any
-REM previously tracked copies from the new HEAD, keep the working-tree files,
-REM and do not stage untracked copies. Directory pathspecs intentionally avoid
-REM matching legitimate root files such as build_config.bat and build_noop.bat.
-git rm -r --cached --ignore-unmatch -- ":(glob)build_*/**" ":(glob)source_*/**" ":(glob)oldbuilds/**" >nul 2>nul
+REM Stage the normal migration first. Git's ignore rules keep untracked
+REM generated output out of the index. Then explicitly remove any generated
+REM root folders that were already tracked in the template. --cached preserves
+REM the local files while excluding them from the new repository.
+REM
+REM Directory pathspecs intentionally avoid matching legitimate root files
+REM such as build_config.bat and build_noop.bat.
+git add --all
+if errorlevel 1 (echo ERROR: git add --all failed. & exit /b 1)
+git rm -r -f --cached --ignore-unmatch -- ":(glob)build_*/**" ":(glob)source_*/**" ":(glob)oldbuilds/**" >nul 2>nul
 if errorlevel 1 (echo ERROR: Could not exclude generated project folders from the new repository. & exit /b 1)
-git add --all -- . ":(exclude,glob)build_*/**" ":(exclude,glob)source_*/**" ":(exclude,glob)oldbuilds/**"
-if errorlevel 1 (echo ERROR: git add --all with generated-folder exclusions failed. & exit /b 1)
 git diff --cached --check
 if errorlevel 1 (echo ERROR: Staged whitespace validation failed. & exit /b 1)
 exit /b 0
