@@ -9,10 +9,16 @@
 ::   call tools\git_commit_and_push_now.bat message "Refactor helpers"
 ::   call tools\git_commit_and_push_now.bat message "Refactor helpers" fulldiff yes
 ::   call tools\git_commit_and_push_now.bat message "Refactor helpers" PUBLISH COMMIT
+::   call tools\git_commit_and_push_now.bat historyexact yes messagefile "commit-message.txt" PUBLISH COMMIT
 ::
 :: Arguments:
-::   message   Commit message.
-::   fulldiff  yes or no. Default: no.
+::   message      One-line commit message.
+::   messagefile  UTF-8/text commit message file passed to git commit -F.
+::   fulldiff     yes or no. Default: no.
+::   historyexact yes or no. Default: no. When yes, preserves imported
+::                historical bytes by bypassing line/whitespace rejection
+::                and staging with core.autocrlf=false. Requires explicit
+::                PUBLISH and COMMIT confirmations.
 ::   PUBLISH   supplies the staging confirmation.
 ::   COMMIT    supplies the commit-and-push confirmation.
 ::
@@ -40,7 +46,9 @@
 if not defined app.launch.path set "app.launch.path=%~f0"
 if not defined app.launch.name set "app.launch.name=%~nx0"
 set "app.git_commit_push.message="
+set "app.git_commit_push.messagefile="
 set "app.git_commit_push.fulldiff=no"
+set "app.git_commit_push.historyexact=no"
 set "app.git_commit_push.dirty="
 set "app.git_commit_push.staged="
 set "app.git_commit_push.branch="
@@ -81,6 +89,16 @@ if not "%_gcam_rc%"=="0" goto :Main
 if defined app.git_commit_push.help goto :_Main_help
 call :NormalizeYesNo app.git_commit_push.fulldiff
 if errorlevel 1 (echo ERROR: fulldiff must be yes or no. & set "_gcam_rc=2" & goto :Main)
+call :NormalizeYesNo app.git_commit_push.historyexact
+if errorlevel 1 (echo ERROR: historyexact must be yes or no. & set "_gcam_rc=2" & goto :Main)
+if /I not "%app.git_commit_push.historyexact%"=="yes" goto :_Main_historyexact_ready
+if not defined app.git_commit_push.confirm.publish (echo ERROR: historyexact yes requires explicit PUBLISH confirmation. & set "_gcam_rc=2" & goto :Main)
+if not defined app.git_commit_push.confirm.commit (echo ERROR: historyexact yes requires explicit COMMIT confirmation. & set "_gcam_rc=2" & goto :Main)
+if /I not "%HISTORY_IMPORT_EXACT%"=="1" (echo ERROR: historyexact yes is reserved for the history-import tool. & set "_gcam_rc=2" & goto :Main)
+echo.
+echo HISTORY EXACT MODE: archived bytes will be preserved exactly.
+echo Line-ending and whitespace rejection is bypassed for this import commit.
+:_Main_historyexact_ready
 echo.
 echo ============================================================
 echo  Review, commit, and push
@@ -111,6 +129,7 @@ call :PushCurrent
 set "_gcam_rc=%errorlevel%" & goto :Main
 :_Main_checks
 echo.
+if /I "%app.git_commit_push.historyexact%"=="yes" goto :_Main_summary
 echo Checking unstaged whitespace...
 git diff --check
 set "_gcam_check_rc=%errorlevel%"
@@ -167,7 +186,7 @@ echo.
 echo Cancelled. Nothing new was staged, committed, or pushed.
 set "_gcam_rc=0" & goto :Main
 :_Main_stage
-git add --all
+if /I "%app.git_commit_push.historyexact%"=="yes" (git -c core.autocrlf=false add --all) else (git add --all)
 set "_gcam_stage_rc=%errorlevel%"
 if "%_gcam_stage_rc%"=="0" goto :_Main_staged_exists
 echo ERROR: git add --all failed.
@@ -181,6 +200,7 @@ echo Nothing was committed.
 set "_gcam_rc=0" & goto :Main
 :_Main_staged_check
 echo.
+if /I "%app.git_commit_push.historyexact%"=="yes" goto :_Main_staged_review
 echo Checking final staged whitespace...
 git diff --cached --check
 set "_gcam_check_rc=%errorlevel%"
@@ -233,7 +253,12 @@ echo Cancelled before commit.
 echo The reviewed changes remain staged.
 set "_gcam_rc=0" & goto :Main
 :_Main_commit
+if defined app.git_commit_push.messagefile goto :_Main_commit_file
 git commit -m "%app.git_commit_push.message%"
+goto :_Main_commit_done
+:_Main_commit_file
+git commit -F "%app.git_commit_push.messagefile%"
+:_Main_commit_done
 set "_gcam_commit_rc=%errorlevel%"
 if "%_gcam_commit_rc%"=="0" goto :_Main_push
 echo ERROR: git commit failed.
@@ -280,6 +305,12 @@ set "_gcam_rc=%errorlevel%" & goto :Main
 :GetCommitMessage
 for /f "tokens=1 delims==" %%v in ('set gcag_ 2^>nul') do set "%%v="
 if defined _gcag_rc (set "_gcag_rc=" & exit /b %_gcag_rc%)
+if not defined app.git_commit_push.messagefile goto :_GetCommitMessage_no_file
+if exist "%app.git_commit_push.messagefile%" (set "_gcag_rc=0" & goto :GetCommitMessage)
+echo ERROR: Commit message file was not found:
+echo   "%app.git_commit_push.messagefile%"
+set "_gcag_rc=2" & goto :GetCommitMessage
+:_GetCommitMessage_no_file
 if defined app.git_commit_push.message (set "_gcag_rc=0" & goto :GetCommitMessage)
 set /p "app.git_commit_push.message=Commit message, or press Enter for default: "
 if defined app.git_commit_push.message (set "_gcag_rc=0" & goto :GetCommitMessage)
@@ -379,9 +410,9 @@ set "app.git_commit_push.pushed.by.login=1"
 set "_gcauth_rc=0" & goto :EnsureGitHubPushReady
 :: ============================================================
 :: :ParseArgs
-:: Parses an optional commit message, full-diff option, and help.
+:: Parses optional message/messagefile, full-diff, history-exact, and help.
 ::
-:: Usage: call :ParseArgs [message TEXT] [fulldiff yes|no]
+:: Usage: call :ParseArgs [message TEXT] [messagefile PATH] [fulldiff yes|no] [historyexact yes|no]
 ::
 :: Returns: 0 on success
 ::          2 on invalid arguments
@@ -390,7 +421,9 @@ set "_gcauth_rc=0" & goto :EnsureGitHubPushReady
 :ParseArgs
 if "%~1"=="" exit /b 0
 if /I "%~1"=="message" goto :_ParseArgs_message
+if /I "%~1"=="messagefile" goto :_ParseArgs_messagefile
 if /I "%~1"=="fulldiff" goto :_ParseArgs_fulldiff
+if /I "%~1"=="historyexact" goto :_ParseArgs_historyexact
 if "%~1"=="PUBLISH" (set "app.git_commit_push.confirm.publish=1" & shift & goto :ParseArgs)
 if "%~1"=="COMMIT" (set "app.git_commit_push.confirm.commit=1" & shift & goto :ParseArgs)
 if /I "%~1"=="help" goto :_ParseArgs_help
@@ -406,9 +439,21 @@ set "app.git_commit_push.message=%~2"
 shift
 shift
 goto :ParseArgs
+:_ParseArgs_messagefile
+if "%~2"=="" (echo ERROR: messagefile requires a path. & exit /b 2)
+set "app.git_commit_push.messagefile=%~f2"
+shift
+shift
+goto :ParseArgs
 :_ParseArgs_fulldiff
 if "%~2"=="" (echo ERROR: fulldiff requires yes or no. & exit /b 2)
 set "app.git_commit_push.fulldiff=%~2"
+shift
+shift
+goto :ParseArgs
+:_ParseArgs_historyexact
+if "%~2"=="" (echo ERROR: historyexact requires yes or no. & exit /b 2)
+set "app.git_commit_push.historyexact=%~2"
 shift
 shift
 goto :ParseArgs
@@ -461,6 +506,7 @@ echo   git_commit_and_push_now.bat
 echo   git_commit_and_push_now.bat message "Refactor helpers"
 echo   git_commit_and_push_now.bat message "Refactor helpers" fulldiff yes
 echo   git_commit_and_push_now.bat message "Refactor helpers" PUBLISH COMMIT
+echo   git_commit_and_push_now.bat historyexact yes messagefile "commit-message.txt" PUBLISH COMMIT
 echo.
 echo The helper reviews changes, stages everything, validates the
 echo final staged result, commits after confirmation, pushes, and
@@ -471,6 +517,9 @@ echo flooding the console. fulldiff yes prints it without a pager.
 echo.
 echo Exact uppercase PUBLISH and COMMIT tokens may supply the two
 echo confirmations directly from the command line.
+echo.
+echo historyexact yes is reserved for reviewed archive-history replay.
+echo It requires HISTORY_IMPORT_EXACT=1 plus PUBLISH and COMMIT.
 echo.
 exit /b 0
 :: ============================================================

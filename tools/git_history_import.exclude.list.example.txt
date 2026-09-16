@@ -1,0 +1,7 @@
+# One source revision filename/path or glob per line.
+# Blank lines and lines beginning with # are ignored.
+#
+# Examples:
+*.old.zip
+*-live-run.zip
+*-documentation-handoff.zip

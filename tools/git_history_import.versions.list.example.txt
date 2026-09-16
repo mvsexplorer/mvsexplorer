@@ -1,0 +1,10 @@
+# Format:
+# <version> <commit message>
+#
+# The version token is matched against the version encoded in the source
+# archive name. A unique variant can also be named explicitly.
+v0.1.0 feat: introduce the initial project
+v0.2.0 fix: correct parsing and validation behavior
+v0.2.1 perf: reduce repeated work during indexing
+# Example of an explicit variant when two archives share a numeric version:
+# v0.3.0-development-handoff docs: capture the development handoff snapshot
