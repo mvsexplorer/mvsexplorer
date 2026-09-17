@@ -129,7 +129,9 @@ git_history_import rehearse --work-folder D:\temp\history-work
 
 Rehearsal starts immediately. It does not ask for a confirmation because the rehearsal
 repository is disposable and no remote is contacted. The live repository is not
-modified.
+modified. Before each revision is materialized, rehearsal prints the exact commit
+subject that will be used; the complete subject/body is also written to the corresponding
+message file under the rehearsal logs.
 
 ### publish
 

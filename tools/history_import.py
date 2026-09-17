@@ -1027,6 +1027,7 @@ def replay_command(args: argparse.Namespace) -> int:
 
                 progress_index += 1
                 print(f"[{progress_index:02d}/{total_selected:02d}] {rev['version']}  {rev['archive']}", flush=True)
+                print(f"          commit message: {rev['subject']}", flush=True)
                 print("          materialize...", flush=True)
                 cur = archive_snapshot_for_revision(source, rev, moves, include_data=True)
                 action = apply_snapshot(target, prev, cur, managed_paths, replace_unmanaged)

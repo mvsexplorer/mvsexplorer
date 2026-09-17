@@ -23,7 +23,7 @@ from typing import Dict, List, Optional, Tuple
 
 import history_import as engine
 
-TOOL_VERSION = "0.2.0"
+TOOL_VERSION = "0.2.1"
 STATE_SCHEMA = "git-history-import-state/v1"
 POINTER_NAME = "git_history_import_work_folder.txt"
 
@@ -555,7 +555,11 @@ def write_review_files(work_folder: Path, plan: dict) -> None:
 
 def setup_command(args: argparse.Namespace) -> int:
     root = repo_root()
-    wf = resolve_work_folder(root, args.work_folder)
+    # A fresh setup must never inherit a stale work-folder pointer from a copied
+    # repository/bootstrap. Reuse is explicit via --work-folder; subsequent
+    # actions use the pointer written by this setup.
+    wf = (Path(args.work_folder).expanduser().resolve()
+          if args.work_folder else default_work_folder(root))
     heading(f"git_history_import {TOOL_VERSION} - setup")
 
     source = args.source
@@ -672,7 +676,14 @@ def setup_command(args: argparse.Namespace) -> int:
     print(c("SETUP PASS", GREEN))
     print(f"Discovered: {candidate_plan['summary']['discoveredArchives']}")
     print(f"Available after exclusions: {candidate_plan['summary']['includedRevisions']}")
-    print(f"Excluded: {candidate_plan['summary']['excludedArchives']}")
+    print(f"Excluded source entries: {candidate_plan['summary']['excludedArchives']}")
+    if excludes:
+        inventory = source_inventory(source)
+        matched_rules = [pat for pat in excludes if any(engine.matches_any(name, [pat]) for name in inventory)]
+        absent_rules = [pat for pat in excludes if pat not in matched_rules]
+        print(f"Exclude rules: {len(excludes)} configured, {len(matched_rules)} matched, {len(absent_rules)} absent")
+        for pat in absent_rules:
+            print(c(f"  [ABSENT] {pat}", YELLOW))
     if candidate_plan["layout"].get("ambiguous"):
         print(c(f"Candidate layout currently has {len(candidate_plan['layout']['ambiguous'])} ambiguity/ambiguities.", YELLOW))
         print("Version selection will re-inspect only the chosen revisions.")
@@ -944,6 +955,17 @@ def status_command(args: argparse.Namespace) -> int:
     layout = state.get("layout", {})
     print(f"Layout:      {layout.get('value') or 'none (identity layout)'}")
     print(f"Exclude:     {state.get('excludeList') or 'none'}")
+    patterns = state.get("excludePatterns", []) or []
+    if patterns:
+        try:
+            inventory = source_inventory(state["source"])
+            matched_rules = [pat for pat in patterns if any(engine.matches_any(name, [pat]) for name in inventory)]
+            absent_rules = [pat for pat in patterns if pat not in matched_rules]
+            print(f"Exclude rules:{len(patterns):>4} configured / {len(matched_rules)} matched / {len(absent_rules)} absent")
+            for pat in absent_rules:
+                print(c(f"              [ABSENT] {pat}", YELLOW))
+        except Exception as exc:
+            print(c(f"Exclude check: unavailable ({exc})", YELLOW))
     print(f"Import all:  {'yes' if state.get('importAll') else 'no'}")
     print(f"Selected:    {state.get('selectedVersions', 0)} revision(s)")
     print()
