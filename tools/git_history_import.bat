@@ -1,6 +1,6 @@
 @echo off
 :setup
-set "app.version=0.3.1"
+set "app.version=0.3.2"
 set "app.name=git_history_import"
 set "app.self=%~f0"
 set "app.rc=0"
@@ -97,7 +97,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ToolVersion = '0.3.1'
+$ToolVersion = '0.3.2'
 $StateSchema = 'git-history-import-state/v1'
 $PlanSchema = 'history-import-plan/v1'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
@@ -287,7 +287,7 @@ function Load-State {
         throw "No history-import setup was found at $sp`nRun: tools\git_history_import setup"
     }
     $state = Read-JsonFile $sp
-    if ($state.schema -ne $StateSchema) { throw "Unsupported state schema in $sp: $($state.schema)" }
+    if ($state.schema -ne $StateSchema) { throw "Unsupported state schema in ${sp}: $($state.schema)" }
     return [pscustomobject]@{ WorkFolder=$wf; State=$state }
 }
 

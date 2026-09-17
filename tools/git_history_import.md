@@ -1,6 +1,6 @@
 # git_history_import
 
-**Version:** 0.3.1
+**Version:** 0.3.2
 
 `git_history_import` reconstructs and publishes Git history from complete archived project revisions.
 
@@ -221,3 +221,10 @@ For a file source such as `Project.zip`, the preferred companion files beside it
 Explicit `--layout`, `--exclude-list`, and `--versions` values override automatic discovery.
 
 A `.layout.txt` file contains exactly one active line after blank lines and `#` comments are ignored. That line may be the name of a source revision archive, a ZIP path, or a folder path.
+
+
+## Version history
+
+### 0.3.2
+
+- Fixed Windows PowerShell 5.1 parsing of a state-schema error message by delimiting the interpolated path variable before `:`.
