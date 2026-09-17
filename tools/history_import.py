@@ -33,6 +33,23 @@ from pathlib import Path, PurePosixPath
 from typing import Dict, Iterable, Iterator, List, Optional, Tuple
 
 SCHEMA = "history-import-plan/v1"
+
+CSI = "\x1b["
+RESET = CSI + "0m"
+BOLD = CSI + "1m"
+RED = CSI + "31m"
+GREEN = CSI + "32m"
+YELLOW = CSI + "33m"
+MAGENTA = CSI + "35m"
+CYAN = CSI + "36m"
+DIM = CSI + "2m"
+
+
+def _c(text: str, color: str) -> str:
+    if not sys.stdout.isatty() or os.environ.get("NO_COLOR") is not None:
+        return text
+    return f"{color}{text}{RESET}"
+
 VERSION_RE = re.compile(r"(?P<version>\d+(?:\.\d+){1,3})(?:-(?P<variant>[^.]+))?\.zip$", re.I)
 VERSION_LINE_RE = re.compile(r"^\s*(\d+(?:\.\d+){1,3})(?:\s*-\s*.*)?\s*$")
 HISTORY_MARKER_BEGIN = "# history-import exact-bytes begin"
@@ -931,7 +948,6 @@ def replay_command(args: argparse.Namespace) -> int:
             total = len(plan["revisions"])
             started = time.monotonic()
             for idx, rev in enumerate(plan["revisions"], 1):
-                print(f"[{idx:02d}/{total:02d}] {rev['version']}  {rev['archive']}  verifying...", flush=True)
                 cur = archive_snapshot_for_revision(source, rev, moves, include_data=False)
                 rec = {
                     "order": rev["order"],
@@ -944,11 +960,18 @@ def replay_command(args: argparse.Namespace) -> int:
                 }
                 report["revisions"].append(rec)
                 prev = cur
-                print(f"          OK  {_progress_done(started, idx, total)}", flush=True)
+                print(
+                    f"{_c(f'[{idx:02d}/{total:02d}]', CYAN)} "
+                    f"{_c(str(rev['version']), BOLD + CYAN)}  "
+                    f"{rev['archive']}  "
+                    f"{_c('OK', GREEN + BOLD)}  "
+                    f"{_c(_progress_done(started, idx, total), DIM)}",
+                    flush=True,
+                )
             report["ok"] = True
             write_logs(logdir, report)
-            print(f"DRY RUN PASS: {len(report['revisions'])} revisions verified.")
-            print(f"Logs: {logdir}")
+            print(_c(f"DRY RUN PASS: {len(report['revisions'])} revisions verified.", GREEN + BOLD))
+            print(f"{_c('Logs:', CYAN)} {logdir}")
             return 0
 
         target = Path(args.target).resolve() if args.target else None
@@ -1026,9 +1049,13 @@ def replay_command(args: argparse.Namespace) -> int:
                     break
 
                 progress_index += 1
-                print(f"[{progress_index:02d}/{total_selected:02d}] {rev['version']}  {rev['archive']}", flush=True)
-                print(f"          commit message: {rev['subject']}", flush=True)
-                print("          materialize...", flush=True)
+                print(
+                    f"{_c(f'[{progress_index:02d}/{total_selected:02d}]', CYAN)} "
+                    f"{_c(str(rev['version']), BOLD + CYAN)}  {rev['archive']}",
+                    flush=True,
+                )
+                print(f"          {_c('commit message:', MAGENTA)} {_c(str(rev['subject']), BOLD)}", flush=True)
+                print(f"          {_c('materialize...', CYAN)}", flush=True)
                 cur = archive_snapshot_for_revision(source, rev, moves, include_data=True)
                 action = apply_snapshot(target, prev, cur, managed_paths, replace_unmanaged)
                 managed_paths = set(cur)
@@ -1038,19 +1065,19 @@ def replay_command(args: argparse.Namespace) -> int:
                 commit = ""
 
                 if mode == "rehearse":
-                    print("          stage...", flush=True)
+                    print(f"          {_c('stage...', CYAN)}", flush=True)
                     run_git(target, ["-c", "core.autocrlf=false", "add", "-A"])
                     # The historical-exact path records diff-check findings but does not
                     # rewrite or reject archived bytes.
-                    print("          commit...", flush=True)
+                    print(f"          {_c('commit...', CYAN)}", flush=True)
                     run_git(target, ["commit", "-F", str(msg_file)])
                     commit = run_git(target, ["rev-parse", "--short=12", "HEAD"]).stdout.strip()
-                    print("          verify committed blobs...", flush=True)
+                    print(f"          {_c('verify committed blobs...', CYAN)}", flush=True)
                     verify_committed_blobs(target, cur)
                     if run_git(target, ["status", "--porcelain"]).stdout.strip():
                         raise HistoryError(f"Rehearsal worktree not clean after commit {order}.")
                 else:
-                    print("          publish...", flush=True)
+                    print(f"          {_c('publish...', YELLOW)}", flush=True)
                     env = os.environ.copy()
                     env["HISTORY_IMPORT_EXACT"] = "1"
                     cmd = publisher_command(target, msg_file)
@@ -1079,7 +1106,12 @@ def replay_command(args: argparse.Namespace) -> int:
                     "commit": commit,
                 })
                 prev = cur
-                print(f"          OK commit={commit}  {_progress_done(started, progress_index, total_selected)}", flush=True)
+                print(
+                    f"          {_c('OK', GREEN + BOLD)} "
+                    f"{_c('commit=', DIM)}{_c(commit, YELLOW)}  "
+                    f"{_c(_progress_done(started, progress_index, total_selected), DIM)}",
+                    flush=True,
+                )
 
             report["ok"] = True
             write_logs(logdir, report)
@@ -1095,8 +1127,8 @@ def replay_command(args: argparse.Namespace) -> int:
             if exact_attributes_installed:
                 remove_exact_attributes(target)
 
-        print(f"{mode.upper()} PASS: {len(report['revisions'])} revisions processed.")
-        print(f"Logs: {logdir}")
+        print(_c(f"{mode.upper()} PASS: {len(report['revisions'])} revisions processed.", GREEN + BOLD))
+        print(f"{_c('Logs:', CYAN)} {logdir}")
         return 0
 
 

@@ -21,9 +21,13 @@ import zipfile
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+# This tool is commonly run from a Git worktree. Imported-module bytecode must
+# never dirty that worktree or block the publish cleanliness gate.
+sys.dont_write_bytecode = True
+
 import history_import as engine
 
-TOOL_VERSION = "0.2.1"
+TOOL_VERSION = "0.2.2"
 STATE_SCHEMA = "git-history-import-state/v1"
 POINTER_NAME = "git_history_import_work_folder.txt"
 
@@ -33,7 +37,10 @@ BOLD = CSI + "1m"
 RED = CSI + "31m"
 GREEN = CSI + "32m"
 YELLOW = CSI + "33m"
+BLUE = CSI + "34m"
+MAGENTA = CSI + "35m"
 CYAN = CSI + "36m"
+WHITE = CSI + "37m"
 DIM = CSI + "2m"
 
 
@@ -180,7 +187,25 @@ def yes_no(prompt: str, default_yes: bool) -> bool:
             return True
         if ans in {"n", "no"}:
             return False
-        print("Please answer y or n.")
+        print(c("Please answer y or n.", YELLOW))
+
+
+def run_stop_skip(prompt: str) -> str:
+    """Return run, stop, or skip for guided dryrun/rehearsal prompts."""
+    while True:
+        ans = ask(f"{prompt} [Y/n/s]").lower()
+        if not ans or ans in {"y", "yes"}:
+            return "run"
+        if ans in {"n", "no"}:
+            return "stop"
+        if ans in {"s", "skip"}:
+            return "skip"
+        print(c("Please answer y, n, or s.", YELLOW))
+
+
+def phase_passed(state: dict, name: str) -> bool:
+    rec = (state.get("phases") or {}).get(name)
+    return bool(rec and rec.get("ok"))
 
 
 def read_list_file(path: Path) -> List[str]:
@@ -487,9 +512,9 @@ def show_match(status: str, token: str, archive: str = "", note: str = "") -> No
     else:
         st = c("[ERROR]", RED)
         vt = c(token, RED)
-    tail = f"  {archive}" if archive else ""
+    tail = f"  {c(archive, CYAN)}" if archive else ""
     if note:
-        tail += f"  {note}"
+        tail += f"  {c(note, YELLOW if status != 'FOUND' else DIM)}"
     print(f"{st} {vt}{tail}")
 
 
@@ -673,10 +698,10 @@ def setup_command(args: argparse.Namespace) -> int:
     write_review_files(wf, candidate_plan)
 
     print()
-    print(c("SETUP PASS", GREEN))
-    print(f"Discovered: {candidate_plan['summary']['discoveredArchives']}")
-    print(f"Available after exclusions: {candidate_plan['summary']['includedRevisions']}")
-    print(f"Excluded source entries: {candidate_plan['summary']['excludedArchives']}")
+    print(c("SETUP PASS", GREEN + BOLD))
+    print(f"{c('Discovered:', CYAN)} {c(str(candidate_plan['summary']['discoveredArchives']), BOLD)}")
+    print(f"{c('Available after exclusions:', CYAN)} {c(str(candidate_plan['summary']['includedRevisions']), GREEN + BOLD)}")
+    print(f"{c('Excluded source entries:', CYAN)} {c(str(candidate_plan['summary']['excludedArchives']), YELLOW + BOLD)}")
     if excludes:
         inventory = source_inventory(source)
         matched_rules = [pat for pat in excludes if any(engine.matches_any(name, [pat]) for name in inventory)]
@@ -802,29 +827,76 @@ def versions_command(args: argparse.Namespace) -> int:
     save_state(wf, state)
 
     print()
-    print(c(f"VERSIONS PASS: {len(selected)} revisions matched with commit messages.", GREEN))
+    print(c(f"VERSIONS PASS: {len(selected)} revisions matched with commit messages.", GREEN + BOLD))
     print(f"Commit messages: {wf / 'COMMIT-MESSAGES.txt'}")
     print(f"Excluded entries: {wf / 'EXCLUDED-ARCHIVES.txt'}")
 
-    if yes_no("Run dryrun now", True):
+    dry_choice = run_stop_skip("Run dryrun now")
+    if dry_choice == "run":
         rc = replay_action("dryrun", root, wf, state)
         if rc:
             return rc
-        if yes_no("Run rehearsal now", True):
-            rc = replay_action("rehearse", root, wf, state)
-            if rc:
-                return rc
-            if yes_no("Publish now", False):
-                return replay_action("publish", root, wf, state)
-            print()
-            print("When ready: git_history_import publish")
-            return 0
+    elif dry_choice == "stop":
         print()
+        print(c("Stopped before dryrun.", YELLOW))
+        print("When ready: git_history_import dryrun")
+        return 0
+    else:
+        prior = "previous PASS retained" if phase_passed(state, "dryrun") else "not run; publish remains blocked"
+        print(c(f"[SKIP] dryrun - {prior}", YELLOW))
+
+    rehearse_choice = run_stop_skip("Run rehearsal now")
+    if rehearse_choice == "run":
+        rc = replay_action("rehearse", root, wf, state)
+        if rc:
+            return rc
+    elif rehearse_choice == "stop":
+        print()
+        print(c("Stopped before rehearsal.", YELLOW))
         print("When ready: git_history_import rehearse")
         return 0
+    else:
+        prior = "previous PASS retained" if phase_passed(state, "rehearse") else "not run; publish remains blocked"
+        print(c(f"[SKIP] rehearse - {prior}", YELLOW))
+
+    if not phase_passed(state, "dryrun") or not phase_passed(state, "rehearse"):
+        print()
+        print(c("Publish is not offered because dryrun and rehearsal have not both passed.", YELLOW))
+        if not phase_passed(state, "dryrun"):
+            print("Required: git_history_import dryrun")
+        if not phase_passed(state, "rehearse"):
+            print("Required: git_history_import rehearse")
+        return 0
+
+    if yes_no("Publish now", False):
+        return replay_action("publish", root, wf, state)
     print()
-    print("When ready: git_history_import dryrun")
+    print("When ready: git_history_import publish")
     return 0
+
+
+def cleanup_importer_bytecode(root: Path) -> List[str]:
+    """Remove only bytecode generated by this importer from tools/__pycache__."""
+    cache = root / "tools" / "__pycache__"
+    removed: List[str] = []
+    if not cache.is_dir():
+        return removed
+    for p in list(cache.iterdir()):
+        if not p.is_file():
+            continue
+        name = p.name.casefold()
+        if (name.startswith("git_history_import.") or name.startswith("history_import.")) and name.endswith((".pyc", ".pyo")):
+            try:
+                p.unlink()
+                removed.append(str(p))
+            except OSError:
+                pass
+    try:
+        if cache.is_dir() and not any(cache.iterdir()):
+            cache.rmdir()
+    except OSError:
+        pass
+    return removed
 
 
 def require_plan(state: dict) -> Path:
@@ -853,19 +925,30 @@ def replay_action(mode: str, root: Path, wf: Path, state: dict) -> int:
         if not reh or not reh.get("ok"):
             raise engine.HistoryError("Publish is blocked until rehearsal has passed.")
         target = Path(state["repoRoot"])
+        removed = cleanup_importer_bytecode(target)
+        if removed:
+            print(c(f"Cleaned {len(removed)} importer bytecode cache file(s).", DIM))
         st = run(["git", "status", "--porcelain"], cwd=target)
         if st.returncode != 0 or st.stdout.strip():
             raise engine.HistoryError(
                 "Live repository must be clean before publish.\n" +
                 (st.stdout.strip() if st.stdout else "")
             )
+        origin = run(["git", "remote", "get-url", "origin"], cwd=target)
+        origin_url = origin.stdout.strip() if origin.returncode == 0 else ""
+        if not origin_url:
+            raise engine.HistoryError("Publish target has no origin remote.")
+        login, account = github_status(target)
         print()
-        print(c("LIVE PUBLICATION", RED))
-        print(f"Repository: {target}")
-        print(f"Revisions:  {state.get('selectedVersions', 0)}")
-        print("This will create and push the selected history commits.")
+        print(c("LIVE PUBLICATION", RED + BOLD))
+        print(f"{c('Repository:', CYAN)} {target}")
+        print(f"{c('origin:', CYAN)}     {c(origin_url, YELLOW)}")
+        print(f"{c('GitHub:', CYAN)}     {c(login, GREEN if login == 'logged in' else RED)}"
+              + (f" ({c(account, BOLD)})" if account else ""))
+        print(f"{c('Revisions:', CYAN)}  {c(str(state.get('selectedVersions', 0)), BOLD)}")
+        print(c("Review the origin above carefully. This operation creates and pushes commits.", YELLOW))
         if not yes_no("Publish now", False):
-            print("Publication cancelled.")
+            print(c("Publication cancelled.", YELLOW))
             return 0
 
     ns = argparse.Namespace(
@@ -939,10 +1022,11 @@ def status_command(args: argparse.Namespace) -> int:
     print(f"Repository:  {root}")
     print(f"Work folder: {wf}")
     login, account = github_status(root)
-    print(f"GitHub:      {login}" + (f" ({account})" if account else ""))
+    login_color = GREEN if login == "logged in" else (YELLOW if login == "unavailable" else RED)
+    print(f"GitHub:      {c(login, login_color)}" + (f" ({c(account, BOLD)})" if account else ""))
     origin = run(["git", "remote", "get-url", "origin"], cwd=root)
     if origin.returncode == 0:
-        print(f"origin:      {origin.stdout.strip()}")
+        print(f"origin:      {c(origin.stdout.strip(), CYAN)}")
     print()
     if not state:
         print(c("Setup: NOT CONFIGURED", YELLOW))
@@ -1079,9 +1163,10 @@ def print_help() -> None:
     print()
     print(c("WORKFLOW", CYAN))
     print("  setup -> versions -> dryrun -> rehearse -> publish")
+    print("  Guided dryrun/rehearse prompts accept Y=run, n=stop, s=skip.")
     print("  dryrun changes no repository.")
     print("  rehearse creates real commits in a disposable local repository.")
-    print("  publish modifies the live repository and pushes.")
+    print(c("  publish modifies the live repository and pushes.", YELLOW))
     print()
     print(c("EXAMPLES", CYAN))
     print('  git_history_import setup --source "..\\Project-History.zip" --layout "Project-1.2.0.zip"')

@@ -114,8 +114,10 @@ no repository and creates no commits.
 git_history_import dryrun
 ```
 
-Progress is printed as `[current/total]` with elapsed time and an estimated remaining
-time.
+Progress is printed as one line per revision, with `[current/total]`, result, elapsed
+time, and estimated remaining time. In the guided workflow the prompt accepts
+`Y` = run, `n` = stop the guided sequence, and `s` = skip this phase and continue.
+A skipped phase that has not previously passed still blocks publication.
 
 ### rehearse
 
@@ -127,7 +129,8 @@ git_history_import rehearse
 git_history_import rehearse --work-folder D:\temp\history-work
 ```
 
-Rehearsal starts immediately. It does not ask for a confirmation because the rehearsal
+Rehearsal starts immediately when invoked directly. In the guided workflow its prompt
+accepts `Y` = run, `n` = stop the guided sequence, and `s` = skip. The rehearsal
 repository is disposable and no remote is contacted. The live repository is not
 modified. Before each revision is materialized, rehearsal prints the exact commit
 subject that will be used; the complete subject/body is also written to the corresponding
@@ -136,8 +139,11 @@ message file under the rehearsal logs.
 ### publish
 
 `publish` is blocked until both `dryrun` and `rehearse` have passed. It also requires a
-clean live worktree. It asks for a default-No confirmation before creating and pushing
-the selected commits.
+clean live worktree. Importer-generated Python bytecode is suppressed and any legacy
+bytecode belonging only to the importer is removed before the cleanliness check.
+The publish preflight prints the exact repository path, `origin`, GitHub login state,
+account, and revision count, then asks for a default-No confirmation before creating
+and pushing commits.
 
 ```bat
 git_history_import publish
@@ -228,3 +234,14 @@ ignored.
 `history_import.py` remains the lower-level inspector/replay engine. Its
 `just_history_inspect.bat` and `just_history_replay.bat` launchers are retained for
 advanced/debugging use; normal users should use `git_history_import`.
+
+
+## 0.2.2 behavior changes
+
+- dry-run revision status is printed on one line;
+- rehearsal and dry-run guided prompts support `s` to skip;
+- console highlighting is expanded for versions, counts, results, commit hashes, paths,
+  warnings, and live-publication targets;
+- Python bytecode generation is disabled so `tools\__pycache__` cannot dirty the repository;
+- importer-owned legacy bytecode is cleaned before the publish cleanliness check;
+- live publication prominently displays `origin` and the authenticated GitHub account.

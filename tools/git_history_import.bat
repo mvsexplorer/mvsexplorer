@@ -1,5 +1,6 @@
 @echo off
 setlocal EnableExtensions
+set "PYTHONDONTWRITEBYTECODE=1"
 
 if "%~1"=="" goto :run
 if /I "%~1"=="/?" goto :run
