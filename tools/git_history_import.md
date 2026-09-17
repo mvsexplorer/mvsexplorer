@@ -1,39 +1,47 @@
 # git_history_import
 
-`git_history_import` reconstructs Git history from complete archived project revisions.
+**Version:** 0.3.0
 
-The public command is:
+`git_history_import` reconstructs and publishes Git history from complete archived project revisions.
+
+The command intentionally lives only under `tools\` because it is an infrequently used repository-maintenance tool:
 
 ```bat
-git_history_import <action> [options]
+tools\git_history_import <action> [options]
 ```
 
-The root `git_history_import.bat` is only a launcher. The implementation lives under
-`tools\git_history_import.bat` and `tools\git_history_import.py`.
+There is no root-level launcher.
+
+## Dependencies
+
+`git_history_import` has **no Python dependency** and contains no Python source.
+
+The single `tools\git_history_import.bat` file uses:
+
+- ordinary `cmd.exe` batch for the launcher/scaffold;
+- embedded Windows PowerShell/.NET for ZIP, JSON, SHA-256, filesystem, and replay operations that are disproportionately awkward in pure batch;
+- Git for repository operations;
+- GitHub CLI only for `relogin`, GitHub status, permission checks, and live publication preflight.
+
+No temporary `.ps1` files are created.
 
 ## Workflow
 
-The normal workflow is:
+The normal workflow remains:
 
-1. `setup`
-2. `versions`
-3. `dryrun`
-4. `rehearse`
-5. `publish`
+```text
+setup -> versions -> dryrun -> rehearse -> publish
+```
 
-`status` may be run at any time. `reset` discards local import state and starts over.
-`relogin` logs out of GitHub and performs the framework authentication flow again.
+`status` may be run at any time. `reset` removes the local importer state. `relogin` performs a GitHub logout/login cycle.
 
 ### setup
 
-`setup` records the history source, optional canonical layout, exclusions, work folder,
-and optional versions file. It inspects the source and writes a candidate plan.
-
 ```bat
-git_history_import setup
+tools\git_history_import setup
 ```
 
-Non-interactive options:
+Options:
 
 ```text
 --source PATH
@@ -44,159 +52,101 @@ Non-interactive options:
 --import-all
 ```
 
-The source can be:
+The source may be a directory of revision ZIPs, a directory of revision folders/ZIPs, or an outer ZIP containing nested revision ZIPs/top-level revision folders.
 
-- a directory containing revision ZIP files;
-- a directory containing revision folders and/or revision ZIP files;
-- an outer ZIP containing nested revision ZIP files;
-- an outer ZIP containing top-level revision folders.
+The optional layout may be an external folder, external ZIP, or the filename of a revision ZIP in the history source. If no final layout is selected, each revision keeps its own paths and each new snapshot becomes the complete managed project state for that revision.
 
-When the lower-level engine needs a uniform representation, revision folders are
-snapshotted into the local work-folder cache. Revision ZIPs are read directly when
-possible; local ZIPs are hardlinked into the cache when normalization is required and
-the filesystem allows it.
+Example — deliberately a real one-line `cmd.exe` command:
 
-The reference layout can be:
-
-- a directory containing the desired canonical final file layout;
-- an external ZIP containing that layout;
-- the filename of one revision ZIP inside the history source.
-
-If no reference layout is selected, path mapping is disabled. Every selected revision
-keeps its own relative paths. When a file disappears from the next revision, the
-previous imported copy is deleted; newly appearing files are added. Unmanaged framework
-files are preserved unless a planned imported path is explicitly allowed to replace one.
+```bat
+tools\git_history_import setup --source "D:\mvsworkfolder\MVS-Explorer.zip" --layout "MVS-Explorer-Toolkit-0.21.2.zip" --exclude-list "D:\mvsworkfolder\MVS-Explorer.zip.exclude.txt" --versions "D:\mvsworkfolder\MVS-Explorer.zip.versions.txt"
+```
 
 ### versions
 
-`versions` selects exactly which source revisions become Git commits and assigns the
-commit subject for each one.
+```bat
+tools\git_history_import versions
+tools\git_history_import versions --versions "D:\history\Project.zip.versions.txt"
+```
 
-Interactive mode accepts a multi-line paste:
+Interactive input accepts:
 
 ```text
 v0.1.0 feat: initial implementation
 v0.2.0 fix: correct parser behavior
 ```
 
-Press `CTRL+G` twice to terminate the paste.
+Press `CTRL+G` twice to finish interactive paste input.
 
-File mode:
-
-```bat
-git_history_import versions --versions my-versions.txt
-```
-
-Each line is checked before a plan is activated:
-
-```text
-[FOUND] v0.1.0  Project-0.1.0.zip
-[MISS]  v0.1.1  no matching source revision
-[ERROR] v0.2.0  ambiguous ...
-```
-
-Variant names may be used to disambiguate two archives with the same numeric version,
-for example `v0.14.1-development-handoff`. If only one archive exists for a numeric
-version, a filename suffix such as `-final` does not have to be repeated in the versions
-file.
-
-With `--import-all`, all non-excluded source revisions are selected. Numeric semantic
-versions are ordered by version; collisions are ordered deterministically by source
-entry name.
+Each requested revision is reported as `[FOUND]`, `[MISS]`, or `[ERROR]` before a plan is activated.
 
 ### dryrun
 
-`dryrun` rereads every selected source revision, applies the reviewed mapping in memory,
-and verifies archive hashes, normalized tree hashes, deltas, and collisions. It changes
-no repository and creates no commits.
-
 ```bat
-git_history_import dryrun
+tools\git_history_import dryrun
 ```
 
-Progress is printed as one line per revision, with `[current/total]`, result, elapsed
-time, and estimated remaining time. In the guided workflow the prompt accepts
-`Y` = run, `n` = stop the guided sequence, and `s` = skip this phase and continue.
-A skipped phase that has not previously passed still blocks publication.
+Dry run reads each selected revision, applies the reviewed layout mapping in memory, verifies archive/tree hashes and collisions, and changes no repository.
+
+Progress is one line per revision. In the guided workflow, `Y` runs, `n` stops, and `s` skips the phase.
 
 ### rehearse
 
-`rehearse` performs the real materialize/delete/stage/commit/verify sequence in a
-disposable local repository.
-
 ```bat
-git_history_import rehearse
-git_history_import rehearse --work-folder D:\temp\history-work
+tools\git_history_import rehearse
 ```
 
-Rehearsal starts immediately when invoked directly. In the guided workflow its prompt
-accepts `Y` = run, `n` = stop the guided sequence, and `s` = skip. The rehearsal
-repository is disposable and no remote is contacted. The live repository is not
-modified. Before each revision is materialized, rehearsal prints the exact commit
-subject that will be used; the complete subject/body is also written to the corresponding
-message file under the rehearsal logs.
+Rehearsal creates a disposable sibling repository under the work folder and performs the real materialize/delete/stage/commit/blob-verification sequence. The live repository and GitHub are not modified.
+
+Before each revision, the exact commit subject is printed. The full subject/body is saved under the rehearsal log `messages\` directory.
 
 ### publish
 
-`publish` is blocked until both `dryrun` and `rehearse` have passed. It also requires a
-clean live worktree. Importer-generated Python bytecode is suppressed and any legacy
-bytecode belonging only to the importer is removed before the cleanliness check.
-The publish preflight prints the exact repository path, `origin`, GitHub login state,
-account, and revision count, then asks for a default-No confirmation before creating
-and pushing commits.
-
 ```bat
-git_history_import publish
+tools\git_history_import publish
 ```
 
-The byte-exact publisher uses the guarded `historyexact` path in the framework's
-`just_publish.bat`, preserving historical whitespace and line endings while verifying
-the committed Git blobs.
+Publish is blocked until both dry run and rehearsal have passed. It requires a clean live worktree, a GitHub login, a recognized GitHub `origin`, and verified push permission for the authenticated account.
+
+The target repository, origin, account, and revision count are displayed before the default-No confirmation.
+
+The framework `just_publish.bat historyexact` path is used so archived line endings and whitespace are preserved byte-for-byte.
 
 ### status
 
 ```bat
-git_history_import status
+tools\git_history_import status
 ```
 
-Status reports:
-
-- repository and work folder;
-- original and normalized source when different;
-- layout mode/reference;
-- exclude list;
-- selected revision count;
-- setup/versions/dryrun/rehearse/publish PASS/FAIL/NOT RUN;
-- paths to the reports;
-- count/path of excluded source entries;
-- count/path of commit messages;
-- current GitHub login status/account;
-- current `origin`.
+Status reports the active work folder, source, layout, selected revision count, GitHub login/origin, and PASS/FAIL/NOT RUN state for setup, versions, dryrun, rehearse, and publish.
 
 ### reset
 
 ```bat
-git_history_import reset
+tools\git_history_import reset
 ```
 
-Reset removes only a recognized `git_history_import` work folder after confirmation and
-clears the local `.git\info` pointer to it.
+Reset removes only the recognized importer work folder and clears the local `.git\info` pointer.
 
 ### relogin
 
 ```bat
-git_history_import relogin
+tools\git_history_import relogin
 ```
 
-This logs the current GitHub account out and invokes the framework authentication-only
-login path again. `status` reports the resulting login account.
+Relogin logs out the current GitHub account and invokes the framework authentication-only login flow.
 
-## Work-folder files
+## Work folder
 
-The work folder is local state, not project source. By default it is a sibling named
-`local_history_import`; a custom path can be supplied with `--work-folder`.
+The default work folder is the sibling:
 
-Important generated files include:
+```text
+local_history_import
+```
+
+A different location can be selected with `--work-folder`.
+
+Generated review/audit files include:
 
 ```text
 git_history_import.state.json
@@ -212,45 +162,40 @@ logs\rehearse\report.json
 rehearsal-repository\
 ```
 
-If a custom work folder is inside the live Git worktree, setup adds it to the local
-`.git\info\exclude`; the replay engine refuses to use an in-worktree log folder unless
-Git confirms it is ignored.
+## Input examples
 
-## Exclusion-list format
+Generic examples are supplied as:
 
-See `git_history_import.exclude.list.example.txt`.
+```text
+tools\git_history_import.exclude.list.example.txt
+tools\git_history_import.versions.list.example.txt
+```
 
-One source entry path/name or glob per line. Blank lines and `#` comments are ignored.
+The exclude file contains one source name/path glob per line. Blank lines and `#` comments are ignored.
 
-## Versions-list format
+The versions file contains one version token and commit message per line. Blank lines and `#` comments are ignored.
 
-See `git_history_import.versions.list.example.txt`.
+## Batch implementation notes
 
-One selected version plus commit subject per line. Blank lines and `#` comments are
-ignored.
+The BAT follows the project Batch File Style Guide:
 
-## Low-level engine
+- `EnableExtensions` is assumed and is never enabled.
+- The script does not use `setlocal` or delayed expansion.
+- Commands are not physically continued with a trailing caret.
+- The top-level batch scaffold is `:setup`, `:main`, `:end`, then `GoTo :EOF`.
+- Reusable batch functions have documentation/version blocks.
+- The PowerShell fallback is embedded between labels inside the BAT and executed through `:RunPowerShellFromLabel`; no `.ps1` file is generated.
+- The BAT is UTF-8 without BOM with CRLF line endings.
 
-`history_import.py` remains the lower-level inspector/replay engine. Its
-`just_history_inspect.bat` and `just_history_replay.bat` launchers are retained for
-advanced/debugging use; normal users should use `git_history_import`.
+## 0.3.0
 
+0.3.0 is an architectural revision:
 
-## 0.2.3 behavior changes
-
-- dry-run revision status is printed on one line;
-- rehearsal and dry-run guided prompts support `s` to skip;
-- console highlighting is expanded for versions, counts, results, commit hashes, paths,
-  warnings, and live-publication targets;
-- Python bytecode generation is disabled so `tools\__pycache__` cannot dirty the repository;
-- importer-owned legacy bytecode is cleaned before the publish cleanliness check;
-- live publication prominently displays `origin` and the authenticated GitHub account.
-
-## 0.2.3 Windows rehearsal reset
-
-Rehearsal target cleanup clears read-only Git object attributes and retries transient
-Windows access-denied failures before reporting an error. A failed reset does not
-invalidate completed setup, versions, or dryrun phases; rerun `git_history_import rehearse`.
-
-Before publish, GitHub push permission for the current `origin` is verified for the
-authenticated account.
+- removed `git_history_import.py`;
+- removed `history_import.py`;
+- removed the Python-based low-level history launchers;
+- removed the root-level `git_history_import.bat` launcher;
+- consolidated the importer into `tools\git_history_import.bat`;
+- eliminated the Python runtime dependency and `__pycache__` side effects;
+- adopted the project batch style guide for the command surface and scaffold;
+- preserved the 0.2.x setup/versions/dryrun/rehearse/publish/status/reset/relogin workflow.
