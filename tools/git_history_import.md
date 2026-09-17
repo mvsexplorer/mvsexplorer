@@ -1,6 +1,6 @@
 # git_history_import
 
-**Version:** 0.3.3
+**Version:** 0.3.4
 
 `git_history_import` reconstructs and publishes Git history from complete archived project revisions.
 
@@ -146,6 +146,20 @@ tools\git_history_import relogin
 
 Relogin logs out the current GitHub account and invokes the framework authentication-only login flow.
 
+
+## Diagnostics
+
+`tools\git_history_import logs` creates a diagnostic ZIP under the project-local ignored log folder:
+
+```text
+tools\logs\git_history_import.YYYY-MM-DD.HHMMSS.zip
+```
+
+The bundle includes importer state, candidate/final plans, phase reports, review/message files, the most recent `last-error.txt`, companion configuration files when available, and the current importer BAT. It does **not** include the source history archive, source cache, or rehearsal repository.
+
+Fatal importer errors write `last-error.txt` into the active work folder and print the `logs` command to use for packaging diagnostics.
+
+
 ## Work folder
 
 The default work folder is the sibling:
@@ -235,7 +249,7 @@ A `.layout.txt` file contains exactly one active line after blank lines and `#` 
 
 ## Version history
 
-### 0.3.3
+### 0.3.4
 
 - Fixed command dispatch on Windows PowerShell 5.1 by removing collisions with the automatic `$args` variable.
 - Renamed option-parser and GitHub-login argument variables to non-reserved names.

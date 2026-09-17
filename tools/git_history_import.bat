@@ -1,6 +1,6 @@
 @echo off
 :setup
-set "app.version=0.3.3"
+set "app.version=0.3.4"
 set "app.name=git_history_import"
 set "app.self=%~f0"
 set "app.rc=0"
@@ -97,7 +97,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ToolVersion = '0.3.3'
+$ToolVersion = '0.3.4'
 $StateSchema = 'git-history-import-state/v1'
 $PlanSchema = 'history-import-plan/v1'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
@@ -281,6 +281,7 @@ function Save-State {
 function Load-State {
     param([string]$Root, [string]$ExplicitWorkFolder, [switch]$Optional)
     $wf = Resolve-WorkFolder $Root $ExplicitWorkFolder
+    $script:CurrentWorkFolder=$wf
     $sp = Get-StatePath $wf
     if (-not (Test-Path -LiteralPath $sp -PathType Leaf)) {
         if ($Optional) { return [pscustomobject]@{ WorkFolder=$wf; State=$null } }
@@ -448,7 +449,7 @@ function Prepare-Source {
         $zips = @(Get-ChildItem -LiteralPath $originalFull -File | Where-Object { $_.Extension -ieq '.zip' } | Sort-Object Name)
         if ($dirs.Count -eq 0) {
             if ($zips.Count -eq 0) { throw "Source directory contains no version folders or ZIP archives: $originalFull" }
-            return [pscustomobject]@{ Source=$originalFull; Aliases=$aliases; Notes=@($notes) }
+            return [pscustomobject]@{ Source=$originalFull; Aliases=$aliases; Notes=$notes.ToArray() }
         }
         $cache = Join-Path $WorkFolder 'source-cache'
         Remove-TreeRobust $cache
@@ -467,7 +468,7 @@ function Prepare-Source {
             $used[$name.ToLowerInvariant()]=$true
         }
         $notes.Add("Normalized $($dirs.Count) version folder(s) into $cache")
-        return [pscustomobject]@{ Source=$cache; Aliases=$aliases; Notes=@($notes) }
+        return [pscustomobject]@{ Source=$cache; Aliases=$aliases; Notes=$notes.ToArray() }
     }
     if (-not (Test-Path -LiteralPath $originalFull -PathType Leaf)) { throw "Source does not exist: $originalFull" }
     if ([IO.Path]::GetExtension($originalFull) -ine '.zip') { throw "Source compressed file must be a ZIP archive: $originalFull" }
@@ -530,7 +531,7 @@ function Prepare-Source {
         $outer.Dispose()
     }
     if (@(Get-ChildItem -LiteralPath $cache -Filter *.zip -File).Count -eq 0) { throw 'Compressed source contains no detectable version ZIPs/folders.' }
-    return [pscustomobject]@{ Source=$cache; Aliases=$aliases; Notes=@($notes) }
+    return [pscustomobject]@{ Source=$cache; Aliases=$aliases; Notes=$notes.ToArray() }
 }
 
 function Get-Sha256Bytes {
@@ -645,7 +646,7 @@ function Map-Snapshot {
         if($out.ContainsKey($dst)){$collisions.Add([pscustomobject]@{destination=$dst;sourceA=$orig[$dst];sourceB=$src});continue}
         $out.Add($dst,$Files[$src]);$orig[$dst]=$src
     }
-    return [pscustomobject]@{Files=$out;Collisions=@($collisions)}
+    return [pscustomobject]@{Files=$out;Collisions=$collisions.ToArray()}
 }
 
 function Get-ArchiveTexts {
@@ -677,7 +678,7 @@ function Get-HistoryBullets {
         }elseif($current -and $line.Trim()){$current+=' '+$line.Trim()}
     }
     if($current){$out.Add(($current -replace '\s+',' ').Trim())}
-    return @($out)
+    return $out.ToArray()
 }
 
 function Get-ReadmeBullets {
@@ -692,7 +693,7 @@ function Get-ReadmeBullets {
                 if($lines[$j] -match '^##\s+'){break}
                 if($lines[$j] -match '^\s*[-*]\s+(.*)$'){$out.Add(($Matches[1] -replace '\s+',' ').Trim())}
             }
-            if($out.Count){return @($out)}
+            if($out.Count){return $out.ToArray()}
         }
     }
     return @()
@@ -808,14 +809,14 @@ function Inspect-Source {
         foreach($q in $paths){
             if($finalFiles.ContainsKey($q)){continue}
             $base=[IO.Path]::GetFileName($q).ToLowerInvariant();$byBase=@()
-            if($finalBase.ContainsKey($base)){$byBase=@($finalBase[$base])}
+            if($finalBase.ContainsKey($base)){$byBase=$finalBase[$base].ToArray()}
             if($byBase.Count -eq 1){$moves[$q]=$byBase[0];$moveRecords.Add([pscustomobject]@{from=$q;to=$byBase[0];reason='unique-basename-in-final'});continue}
             $cand=[System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
             foreach($h in $pathHashes[$q]){if($finalHash.ContainsKey($h)){foreach($d in $finalHash[$h]){$cand.Add($d)|Out-Null}}}
-            if($cand.Count -eq 1){$d=@($cand)[0];$moves[$q]=$d;$moveRecords.Add([pscustomobject]@{from=$q;to=$d;reason='unique-content-match-in-final'});continue}
+            if($cand.Count -eq 1){$d=($cand | Select-Object -First 1);$moves[$q]=$d;$moveRecords.Add([pscustomobject]@{from=$q;to=$d;reason='unique-content-match-in-final'});continue}
             if($byBase.Count -gt 0 -or $cand.Count -gt 0){
-                $ambiguous.Add([pscustomobject]@{path=$q;basenameCandidates=@($byBase|Sort-Object);contentCandidates=@($cand|Sort-Object);seenIn=@($allPaths[$q]|Sort-Object)})
-            }else{$historical.Add([pscustomobject]@{path=$q;action='keep-original-path';seenIn=@($allPaths[$q]|Sort-Object)})}
+                $ambiguous.Add([pscustomobject]@{path=$q;basenameCandidates=@($byBase|Sort-Object);contentCandidates=@($cand.GetEnumerator()|Sort-Object);seenIn=@($allPaths[$q].GetEnumerator()|Sort-Object)})
+            }else{$historical.Add([pscustomobject]@{path=$q;action='keep-original-path';seenIn=@($allPaths[$q].GetEnumerator()|Sort-Object)})}
         }
     }
     $revisions=New-Object System.Collections.Generic.List[object];$collisions=New-Object System.Collections.Generic.List[object]
@@ -836,11 +837,11 @@ function Inspect-Source {
     }
     $plan=[pscustomobject][ordered]@{
         schema=$PlanSchema;createdUtc=Get-UtcText
-        source=[pscustomobject][ordered]@{name=[IO.Path]::GetFileName($Source);type='directory';finalArchive=$finalName;excludePatterns=@($ExcludePatterns);includePatterns=@($IncludeNames);excluded=@($excluded)}
+        source=[pscustomobject][ordered]@{name=[IO.Path]::GetFileName($Source);type='directory';finalArchive=$finalName;excludePatterns=@($ExcludePatterns);includePatterns=@($IncludeNames);excluded=$excluded.ToArray()}
         policies=[pscustomobject][ordered]@{preserveUnmanagedTargetFiles=$true;replaceUnmanagedPaths=@('README.md');historicalOnly='keep-original-path';exactBytes=$true;publishCommand='just_publish.bat historyexact yes messagefile <file> PUBLISH COMMIT'}
-        layout=[pscustomobject][ordered]@{mode=$layoutMode;finalArchive=$finalName;finalStripRoot=$finalPrefix.TrimEnd('/');finalFileCount=$finalFiles.Count;moves=@($moveRecords);historicalOnly=@($historical);ambiguous=@($ambiguous);collisions=@($collisions)}
-        revisions=@($revisions)
-        warnings=[pscustomobject][ordered]@{generatedHistoricalFiles=@($generated|Sort-Object)}
+        layout=[pscustomobject][ordered]@{mode=$layoutMode;finalArchive=$finalName;finalStripRoot=$finalPrefix.TrimEnd('/');finalFileCount=$finalFiles.Count;moves=$moveRecords.ToArray();historicalOnly=$historical.ToArray();ambiguous=$ambiguous.ToArray();collisions=$collisions.ToArray()}
+        revisions=$revisions.ToArray()
+        warnings=[pscustomobject][ordered]@{generatedHistoricalFiles=@($generated.GetEnumerator()|Sort-Object)}
         summary=[pscustomobject][ordered]@{
             discoveredArchives=$entries.Count;includedRevisions=$revisions.Count;excludedArchives=$excluded.Count
             distinctHistoricalPaths=$allPaths.Count;finalPaths=$finalFiles.Count;inferredMoves=$moveRecords.Count
@@ -862,7 +863,7 @@ function Read-ListFile {
         $t=$line.Trim()
         if($t -and -not $t.StartsWith('#')){$out.Add($t)}
     }
-    return @($out)
+    return $out.ToArray()
 }
 
 function Write-ReviewFiles {
@@ -912,7 +913,7 @@ function Parse-VersionRows {
         if(-not $m.Success){$rows.Add([pscustomobject]@{Token=$t;Message='';Full=$t});continue}
         $rows.Add([pscustomobject]@{Token=$m.Groups[1].Value;Message=$m.Groups[2].Value;Full=$t})
     }
-    return @($rows)
+    return $rows.ToArray()
 }
 
 function Get-VersionAliases {
@@ -964,14 +965,14 @@ function Select-PlanVersions {
         $State.phases.versions=New-PhaseRecord $false $null "$errors version-selection errors";Save-State $WorkFolder $State
         Write-Fail "VERSIONS FAIL: $errors problem(s). No import plan was activated.";return 2
     }
-    $planPath=Join-Path $WorkFolder 'plan.json';$include=@($selected|ForEach-Object{$_.Archive})
+    $planPath=Join-Path $WorkFolder 'plan.json';$include=@($selected.ToArray()|ForEach-Object{$_.Archive})
     Write-Host '';Write-Host 'Re-inspecting only the selected revisions...' -ForegroundColor Cyan
     $rc=Inspect-Source $State.source $planPath $State.layout.value ($State.layout.mode -eq 'identity') @($State.excludePatterns) $include
     if($rc -ne 0){$State.phases.versions=New-PhaseRecord $false $planPath 'selected plan has layout ambiguity/collision';Save-State $WorkFolder $State;return $rc}
     $plan=Read-JsonFile $planPath;$by=@{};foreach($r in @($plan.revisions)){$by[[string]$r.archive]=$r}
     $ordered=New-Object System.Collections.Generic.List[object];$i=0
     foreach($s in $selected){$i++;$r=$by[$s.Archive];$r.order=$i;$r.subject=$s.Subject;$ordered.Add($r)}
-    $plan.revisions=@($ordered);$plan.summary.includedRevisions=$ordered.Count
+    $plan.revisions=$ordered.ToArray();$plan.summary.includedRevisions=$ordered.Count
     Write-JsonFile $planPath $plan;Write-ReviewFiles $WorkFolder $plan
     $State.plan=$planPath;$State.selectedVersions=$selected.Count;$State.phases.versions=New-PhaseRecord $true $planPath "$($selected.Count) revisions selected"
     $State.phases.dryrun=$null;$State.phases.rehearse=$null;$State.phases.publish=$null;Save-State $WorkFolder $State
@@ -1200,6 +1201,93 @@ function Replay-History {
     Write-Ok ($Mode.ToUpperInvariant()+" PASS: $($report.revisions.Count) revisions processed.");Write-InfoPair 'Logs:' $logDir Cyan;return 0
 }
 
+
+function Add-ZipFile {
+    param($Archive,[string]$Source,[string]$EntryName)
+    if(-not(Test-Path -LiteralPath $Source -PathType Leaf)){return}
+    $entry=$Archive.CreateEntry($EntryName.Replace('\','/'),[IO.Compression.CompressionLevel]::Optimal)
+    $src=[IO.File]::OpenRead($Source);$dst=$entry.Open()
+    try{$src.CopyTo($dst)}finally{$dst.Dispose();$src.Dispose()}
+}
+
+function Add-ZipText {
+    param($Archive,[string]$EntryName,[string]$Text)
+    $entry=$Archive.CreateEntry($EntryName.Replace('\','/'),[IO.Compression.CompressionLevel]::Optimal)
+    $stream=$entry.Open();$writer=[IO.StreamWriter]::new($stream,$Utf8NoBom)
+    try{$writer.Write($Text)}finally{$writer.Dispose();$stream.Dispose()}
+}
+
+function Add-ZipTree {
+    param($Archive,[string]$Folder,[string]$EntryRoot)
+    if(-not(Test-Path -LiteralPath $Folder -PathType Container)){return}
+    $base=[IO.Path]::GetFullPath($Folder).TrimEnd('\')+'\'
+    foreach($f in Get-ChildItem -LiteralPath $Folder -File -Recurse -ErrorAction SilentlyContinue){
+        $rel=$f.FullName.Substring($base.Length).Replace('\','/')
+        Add-ZipFile $Archive $f.FullName (($EntryRoot.TrimEnd('/'))+'/'+$rel)
+    }
+}
+
+function Write-LastError {
+    param([string]$Root,[string]$WorkFolder,$ErrorRecord,[string[]]$CommandArgs)
+    if(-not $WorkFolder){$WorkFolder=Get-DefaultWorkFolder $Root}
+    [IO.Directory]::CreateDirectory($WorkFolder)|Out-Null
+    $sb=New-Object Text.StringBuilder
+    [void]$sb.AppendLine('git_history_import diagnostic error')
+    [void]$sb.AppendLine('Tool version: '+$ToolVersion)
+    [void]$sb.AppendLine('UTC: '+(Get-UtcText))
+    [void]$sb.AppendLine('Repository: '+$Root)
+    [void]$sb.AppendLine('Work folder: '+$WorkFolder)
+    [void]$sb.AppendLine('Command arguments: '+($CommandArgs -join ' '))
+    [void]$sb.AppendLine()
+    [void]$sb.AppendLine($ErrorRecord.ToString())
+    if($ErrorRecord.ScriptStackTrace){[void]$sb.AppendLine();[void]$sb.AppendLine('PowerShell stack:');[void]$sb.AppendLine($ErrorRecord.ScriptStackTrace)}
+    Write-Utf8File (Join-Path $WorkFolder 'last-error.txt') $sb.ToString()
+}
+
+function Invoke-Logs {
+    param([string]$Root,[string]$WorkOverride)
+    $workFolder=Resolve-WorkFolder $Root $WorkOverride
+    $projectLog=Join-Path (Join-Path $Root 'tools') 'logs'
+    [IO.Directory]::CreateDirectory($projectLog)|Out-Null
+    $stamp=(Get-Date).ToString('yyyy-MM-dd.HHmmss')
+    $zipPath=Join-Path $projectLog ('git_history_import.'+$stamp+'.zip')
+    $fs=[IO.File]::Create($zipPath)
+    $archive=[IO.Compression.ZipArchive]::new($fs,[IO.Compression.ZipArchiveMode]::Create,$false)
+    try{
+        $summary=New-Object Text.StringBuilder
+        [void]$summary.AppendLine('git_history_import diagnostic bundle')
+        [void]$summary.AppendLine('Tool version: '+$ToolVersion)
+        [void]$summary.AppendLine('Created: '+(Get-UtcText))
+        [void]$summary.AppendLine('Repository: '+$Root)
+        [void]$summary.AppendLine('Work folder: '+$workFolder)
+        $gh=Get-GithubStatus $Root
+        [void]$summary.AppendLine('GitHub: '+$gh.Status+$(if($gh.Account){' ('+$gh.Account+')'}else{''}))
+        $origin=Invoke-Git $Root @('remote','get-url','origin') -AllowFailure
+        if($origin.Rc -eq 0){[void]$summary.AppendLine('origin: '+$origin.Output.Trim())}
+        Add-ZipText $archive 'diagnostic-summary.txt' $summary.ToString()
+        Add-ZipFile $archive $env:rps_self 'tool/git_history_import.bat'
+        foreach($name in @('git_history_import.state.json','candidate-plan.json','plan.json','EXCLUDED-ARCHIVES.txt','COMMIT-MESSAGES.txt','last-error.txt')){
+            Add-ZipFile $archive (Join-Path $workFolder $name) ('work/'+$name)
+        }
+        Add-ZipTree $archive (Join-Path $workFolder 'logs') 'work/logs'
+        Add-ZipTree $archive (Join-Path $workFolder 'messages') 'work/messages'
+        $statePath=Join-Path $workFolder 'git_history_import.state.json'
+        if(Test-Path -LiteralPath $statePath -PathType Leaf){
+            $state=Read-JsonFile $statePath
+            $companions=@()
+            if($state.layout.file){$companions+=@([string]$state.layout.file)}
+            if($state.excludeList){$companions+=@([string]$state.excludeList)}
+            if($state.versionsFile){$companions+=@([string]$state.versionsFile)}
+            foreach($p in $companions){
+                if(Test-Path -LiteralPath $p -PathType Leaf){Add-ZipFile $archive $p ('companions/'+[IO.Path]::GetFileName($p))}
+            }
+        }
+    }finally{$archive.Dispose();$fs.Dispose()}
+    Write-Ok 'LOG BUNDLE CREATED'
+    Write-InfoPair 'ZIP:' $zipPath Cyan
+    return 0
+}
+
 function Find-Gh {
     param([string]$Root)
     $local=Join-Path (Join-Path (Join-Path $Root 'tools') 'gh\bin') 'gh.exe'
@@ -1272,6 +1360,7 @@ function Invoke-Setup {
     param([string]$Root,$Options)
     Write-Heading "git_history_import $ToolVersion - setup"
     $wf=Get-Option $Options 'work-folder';if($wf){$wf=[IO.Path]::GetFullPath($wf)}else{$wf=Get-DefaultWorkFolder $Root}
+    $script:CurrentWorkFolder=$wf
     $source=Get-Option $Options 'source';if(-not $source){$source=Read-Host 'Folder or compressed ZIP containing the history revisions'}
     if(-not $source){throw 'A source folder or ZIP is required.'};$source=[IO.Path]::GetFullPath($source);if(-not(Test-Path -LiteralPath $source)){throw "Source does not exist: $source"}
     $layoutInput=Get-Option $Options 'layout';$layout=$null;$layoutFile=$null;$identity=$false
@@ -1408,6 +1497,7 @@ function Show-Help {
     Write-Host '  tools\git_history_import status'
     Write-Host '  tools\git_history_import reset'
     Write-Host '  tools\git_history_import relogin'
+    Write-Host '  tools\git_history_import logs [--work-folder FOLDER]'
     Write-Host ''
     Write-Host 'SETUP OPTIONS' -ForegroundColor Cyan
     Write-Host '  --source PATH         Folder of version ZIPs/folders or outer ZIP containing them.'
@@ -1429,6 +1519,7 @@ function Show-Help {
     Write-Host '  dryrun changes no repository.'
     Write-Host '  rehearse commits into a disposable local repository.'
     Write-Host '  publish modifies the live repository and pushes.' -ForegroundColor Yellow
+    Write-Host '  logs creates a diagnostic ZIP under tools\logs.'
     Write-Host ''
     Write-Host 'EXAMPLES' -ForegroundColor Cyan
     Write-Host '  tools\git_history_import "D:\history\Project.zip"'
@@ -1449,7 +1540,8 @@ function Main {
     param([string[]]$CommandArgs)
     if($CommandArgs.Count -eq 0 -or $CommandArgs[0] -in @('/?','/h','-?','-h','--help')){Show-Help;return 0}
     $root=Get-RepositoryRoot
-    $known=@('setup','versions','inspect','dryrun','rehearse','publish','status','reset','relogin')
+    $script:CurrentRoot=$root
+    $known=@('setup','versions','inspect','dryrun','rehearse','publish','status','reset','relogin','logs')
     $first=$CommandArgs[0]
     if($first.ToLowerInvariant() -notin $known){
         if(-not(Test-Path -LiteralPath $first)){Write-Fail "Source not found: $first";return 2}
@@ -1480,6 +1572,7 @@ function Main {
         'status' { return (Invoke-Status $root (Get-Option $opts 'work-folder')) }
         'reset' { return (Invoke-Reset $root (Get-Option $opts 'work-folder')) }
         'relogin' { return (Invoke-Relogin $root) }
+        'logs' { return (Invoke-Logs $root (Get-Option $opts 'work-folder')) }
         default { Write-Fail "Unknown command: $cmd";Show-Help;return 2 }
     }
 }
@@ -1490,6 +1583,13 @@ try {
 } catch {
     Write-Host ''
     Write-Fail ('ERROR: '+$_.Exception.Message)
+    try{
+        $diagRoot=if($script:CurrentRoot){$script:CurrentRoot}else{Get-RepositoryRoot}
+        $diagWork=if($script:CurrentWorkFolder){$script:CurrentWorkFolder}else{Resolve-WorkFolder $diagRoot $null}
+        Write-LastError $diagRoot $diagWork $_ $CliArgs
+        Write-Host ('Diagnostic: '+(Join-Path $diagWork 'last-error.txt')) -ForegroundColor DarkGray
+        Write-Host 'Run: tools\git_history_import logs' -ForegroundColor Yellow
+    }catch{}
     exit 1
 }
 :_GitHistoryImport_end
