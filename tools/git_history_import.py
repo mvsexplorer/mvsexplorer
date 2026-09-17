@@ -27,7 +27,7 @@ sys.dont_write_bytecode = True
 
 import history_import as engine
 
-TOOL_VERSION = "0.2.2"
+TOOL_VERSION = "0.2.3"
 STATE_SCHEMA = "git-history-import-state/v1"
 POINTER_NAME = "git_history_import_work_folder.txt"
 
@@ -939,6 +939,21 @@ def replay_action(mode: str, root: Path, wf: Path, state: dict) -> int:
         if not origin_url:
             raise engine.HistoryError("Publish target has no origin remote.")
         login, account = github_status(target)
+        push_allowed, push_detail = github_push_permission(target, origin_url)
+        if login != "logged in":
+            raise engine.HistoryError("GitHub login is required before publish.")
+        if push_allowed is False:
+            raise engine.HistoryError(
+                f"Authenticated GitHub account {account!r} does not have push permission to {push_detail}.\n"
+                f"origin: {origin_url}\n"
+                "Run `git_history_import relogin`, change origin, or publish from the intended repository."
+            )
+        if push_allowed is None:
+            raise engine.HistoryError(
+                "Could not verify GitHub push permission before publish.\n"
+                f"origin: {origin_url}\n"
+                f"detail: {push_detail}"
+            )
         print()
         print(c("LIVE PUBLICATION", RED + BOLD))
         print(f"{c('Repository:', CYAN)} {target}")
@@ -1014,6 +1029,41 @@ def github_status(root: Path) -> Tuple[str, str]:
     account = u.stdout.strip() if u.returncode == 0 else "authenticated"
     return "logged in", account
 
+
+
+def github_repo_from_origin(url: str) -> Optional[str]:
+    """Return owner/repo for common GitHub HTTPS/SSH origin forms."""
+    value = (url or "").strip()
+    patterns = (
+        r"^https?://github\.com/([^/]+)/([^/]+?)(?:\.git)?/?$",
+        r"^ssh://git@github\.com/([^/]+)/([^/]+?)(?:\.git)?/?$",
+        r"^git@github\.com:([^/]+)/([^/]+?)(?:\.git)?$",
+    )
+    for pattern in patterns:
+        m = re.match(pattern, value, re.IGNORECASE)
+        if m:
+            return f"{m.group(1)}/{m.group(2)}"
+    return None
+
+
+def github_push_permission(root: Path, origin_url: str) -> Tuple[Optional[bool], str]:
+    """Check GitHub's reported push permission for the authenticated account."""
+    repo = github_repo_from_origin(origin_url)
+    if not repo:
+        return None, "origin is not a recognized GitHub URL"
+    gh = find_gh(root)
+    if not gh:
+        return None, "GitHub CLI not found"
+    p = run([gh, "api", f"repos/{repo}", "--jq", ".permissions.push"], cwd=root)
+    if p.returncode != 0:
+        detail = (p.stdout or "").strip()
+        return None, detail or "GitHub API permission check failed"
+    value = p.stdout.strip().lower()
+    if value == "true":
+        return True, repo
+    if value == "false":
+        return False, repo
+    return None, f"unexpected permission response for {repo}: {p.stdout.strip()}"
 
 def status_command(args: argparse.Namespace) -> int:
     root = repo_root()

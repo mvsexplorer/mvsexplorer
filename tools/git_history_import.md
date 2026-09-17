@@ -236,7 +236,7 @@ ignored.
 advanced/debugging use; normal users should use `git_history_import`.
 
 
-## 0.2.2 behavior changes
+## 0.2.3 behavior changes
 
 - dry-run revision status is printed on one line;
 - rehearsal and dry-run guided prompts support `s` to skip;
@@ -245,3 +245,12 @@ advanced/debugging use; normal users should use `git_history_import`.
 - Python bytecode generation is disabled so `tools\__pycache__` cannot dirty the repository;
 - importer-owned legacy bytecode is cleaned before the publish cleanliness check;
 - live publication prominently displays `origin` and the authenticated GitHub account.
+
+## 0.2.3 Windows rehearsal reset
+
+Rehearsal target cleanup clears read-only Git object attributes and retries transient
+Windows access-denied failures before reporting an error. A failed reset does not
+invalidate completed setup, versions, or dryrun phases; rerun `git_history_import rehearse`.
+
+Before publish, GitHub push permission for the current `origin` is verified for the
+authenticated account.

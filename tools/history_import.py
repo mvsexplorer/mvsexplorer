@@ -23,6 +23,7 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -49,6 +50,62 @@ def _c(text: str, color: str) -> str:
     if not sys.stdout.isatty() or os.environ.get("NO_COLOR") is not None:
         return text
     return f"{color}{text}{RESET}"
+
+
+def remove_tree_robust(path: Path, *, attempts: int = 8) -> None:
+    """Remove a disposable tree reliably, including read-only Git objects on Windows."""
+    path = Path(path)
+    if not path.exists():
+        return
+
+    def _make_writable(name: str | os.PathLike[str]) -> None:
+        try:
+            os.chmod(name, stat.S_IWRITE | stat.S_IREAD | stat.S_IEXEC)
+        except OSError:
+            pass
+
+    def _onerror(func, name, exc_info):
+        # Git object files can retain the Windows read-only attribute.  Clear it
+        # and retry the operation that shutil.rmtree() was attempting.
+        _make_writable(name)
+        parent = os.path.dirname(os.fspath(name))
+        if parent:
+            _make_writable(parent)
+        try:
+            func(name)
+        except OSError:
+            raise exc_info[1]
+
+    last_error: Optional[BaseException] = None
+    for attempt in range(1, attempts + 1):
+        try:
+            shutil.rmtree(path, onerror=_onerror)
+            return
+        except FileNotFoundError:
+            return
+        except (PermissionError, OSError) as exc:
+            last_error = exc
+
+            # A second pass handles trees copied from Git worktrees where many
+            # objects/directories are read-only.  It also helps after antivirus
+            # or indexing software releases a short-lived handle.
+            if path.exists():
+                for base, dirs, files in os.walk(path, topdown=False):
+                    for filename in files:
+                        _make_writable(os.path.join(base, filename))
+                    for dirname in dirs:
+                        _make_writable(os.path.join(base, dirname))
+                _make_writable(path)
+
+            if attempt < attempts:
+                time.sleep(min(0.20 * attempt, 1.0))
+
+    detail = f": {last_error}" if last_error else ""
+    raise HistoryError(
+        f"Could not reset disposable rehearsal folder after {attempts} attempts: {path}{detail}\n"
+        "Close Explorer/Git tools that may be holding files in that folder and run "
+        "`git_history_import rehearse` again."
+    )
 
 VERSION_RE = re.compile(r"(?P<version>\d+(?:\.\d+){1,3})(?:-(?P<variant>[^.]+))?\.zip$", re.I)
 VERSION_LINE_RE = re.compile(r"^\s*(\d+(?:\.\d+){1,3})(?:\s*-\s*.*)?\s*$")
@@ -1002,7 +1059,7 @@ def replay_command(args: argparse.Namespace) -> int:
                 if target.exists():
                     if not args.reset_target:
                         raise HistoryError(f"Rehearsal target already exists: {target}. Use --reset-target to replace it.")
-                    shutil.rmtree(target)
+                    remove_tree_robust(target)
                 target.mkdir(parents=True)
                 if args.baseline:
                     copy_baseline(Path(args.baseline).resolve(), target)
