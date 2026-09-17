@@ -1,6 +1,6 @@
 # git_history_import
 
-**Version:** 0.3.2
+**Version:** 0.3.3
 
 `git_history_import` reconstructs and publishes Git history from complete archived project revisions.
 
@@ -36,6 +36,16 @@ setup -> versions -> dryrun -> rehearse -> publish
 `status` may be run at any time. `reset` removes the local importer state. `relogin` performs a GitHub logout/login cycle.
 
 ### setup
+
+All three source forms are equivalent:
+
+```bat
+tools\git_history_import "D:\history\Project.zip"
+tools\git_history_import setup "D:\history\Project.zip"
+tools\git_history_import setup --source "D:\history\Project.zip"
+```
+
+`setup` without a source still prompts for one:
 
 ```bat
 tools\git_history_import setup
@@ -224,6 +234,13 @@ A `.layout.txt` file contains exactly one active line after blank lines and `#` 
 
 
 ## Version history
+
+### 0.3.3
+
+- Fixed command dispatch on Windows PowerShell 5.1 by removing collisions with the automatic `$args` variable.
+- Renamed option-parser and GitHub-login argument variables to non-reserved names.
+- Added `setup SOURCE` as an explicit positional-source form alongside `SOURCE` and `setup --source SOURCE`.
+- Added a source-not-found error instead of falling through to generic help for a nonexistent positional source.
 
 ### 0.3.2
 

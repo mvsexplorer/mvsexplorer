@@ -1,6 +1,6 @@
 @echo off
 :setup
-set "app.version=0.3.2"
+set "app.version=0.3.3"
 set "app.name=git_history_import"
 set "app.self=%~f0"
 set "app.rc=0"
@@ -97,7 +97,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ToolVersion = '0.3.2'
+$ToolVersion = '0.3.3'
 $StateSchema = 'git-history-import-state/v1'
 $PlanSchema = 'history-import-plan/v1'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
@@ -311,16 +311,16 @@ function Read-RunStopSkip {
 }
 
 function Parse-Options {
-    param([string[]]$Args, [int]$Start)
+    param([string[]]$OptionArgs, [int]$Start)
     $o = @{}
-    for ($i=$Start; $i -lt $Args.Count; $i++) {
-        $a = $Args[$i]
+    for ($i=$Start; $i -lt $OptionArgs.Count; $i++) {
+        $a = $OptionArgs[$i]
         if ($a -eq '--import-all') { $o['import-all']=$true; continue }
         if (-not $a.StartsWith('--')) { throw "Unexpected argument: $a" }
         $name = $a.Substring(2)
-        if ($i + 1 -ge $Args.Count) { throw "Missing value for $a" }
+        if ($i + 1 -ge $OptionArgs.Count) { throw "Missing value for $a" }
         $i++
-        $o[$name]=$Args[$i]
+        $o[$name]=$OptionArgs[$i]
     }
     return $o
 }
@@ -952,9 +952,9 @@ function Select-PlanVersions {
         $token=$row.Token;$key=$token.ToLowerInvariant()
         if(-not $row.Message -and -not $State.importAll){Write-Host '[ERROR]' -NoNewline -ForegroundColor Red;Write-Host " $token  missing commit message";$errors++;continue}
         if(-not $aliases.ContainsKey($key)){Write-Host '[MISS]' -NoNewline -ForegroundColor Red;Write-Host "  $token  no matching source revision";$errors++;continue}
-        $matches=@($aliases[$key])
-        if($matches.Count -ne 1){Write-Host '[ERROR]' -NoNewline -ForegroundColor Red;Write-Host " $token  ambiguous: $((@($matches|ForEach-Object{$_.archive})) -join ', ')";$errors++;continue}
-        $rev=$matches[0]
+        $candidates=@($aliases[$key])
+        if($candidates.Count -ne 1){Write-Host '[ERROR]' -NoNewline -ForegroundColor Red;Write-Host " $token  ambiguous: $((@($candidates|ForEach-Object{$_.archive})) -join ', ')";$errors++;continue}
+        $rev=$candidates[0]
         if($seen.ContainsKey([string]$rev.archive)){Write-Host '[ERROR]' -NoNewline -ForegroundColor Red;Write-Host " $token  duplicate version selection";$errors++;continue}
         $seen[[string]$rev.archive]=$true
         Write-Host '[FOUND]' -NoNewline -ForegroundColor Green;Write-Host (' '+$token+'  ') -NoNewline -ForegroundColor Cyan;Write-Host $rev.archive
@@ -1382,8 +1382,8 @@ function Invoke-Relogin {
     $gh=Find-Gh $Root;if(-not $gh){throw 'GitHub CLI was not found.'}
     $status=Get-GithubStatus $Root
     if($status.Status -eq 'logged in'){
-        $args=@('auth','logout','-h','github.com');if($status.Account -and $status.Account -ne 'authenticated'){$args+=@('-u',$status.Account)}
-        $r=Invoke-Captured $gh $args $Root;if($r.Rc -ne 0){throw "GitHub logout failed.`n$($r.Output)"}
+        $ghArgs=@('auth','logout','-h','github.com');if($status.Account -and $status.Account -ne 'authenticated'){$ghArgs+=@('-u',$status.Account)}
+        $r=Invoke-Captured $gh $ghArgs $Root;if($r.Rc -ne 0){throw "GitHub logout failed.`n$($r.Output)"}
     }
     $login=Join-Path $Root 'just_login.bat'
     if(Test-Path -LiteralPath $login -PathType Leaf){$cmd='call "'+$login+'" authenticate';$old=Get-Location;try{Set-Location -LiteralPath $Root;& $env:ComSpec /d /s /c $cmd 2>&1 | ForEach-Object { Write-Host $_ };$rc=$LASTEXITCODE}finally{Set-Location -LiteralPath $old}}
@@ -1399,7 +1399,7 @@ function Show-Help {
     Write-Host ''
     Write-Host 'USAGE' -ForegroundColor Cyan
     Write-Host '  tools\git_history_import SOURCE [options]'
-    Write-Host '  tools\git_history_import setup [options]'
+    Write-Host '  tools\git_history_import setup [SOURCE] [options]'
     Write-Host '  tools\git_history_import versions [--versions FILE]'
     Write-Host '  tools\git_history_import inspect'
     Write-Host '  tools\git_history_import dryrun'
@@ -1433,6 +1433,7 @@ function Show-Help {
     Write-Host 'EXAMPLES' -ForegroundColor Cyan
     Write-Host '  tools\git_history_import "D:\history\Project.zip"'
     Write-Host '  tools\git_history_import "D:\history\Project"'
+    Write-Host '  tools\git_history_import setup "D:\history\Project.zip"'
     Write-Host '  tools\git_history_import setup --source "D:\history\Project.zip" --layout "Project-1.2.0.zip" --exclude-list "D:\history\Project.zip.exclude.txt" --versions "D:\history\Project.zip.versions.txt"'
     Write-Host ''
     Write-Host 'This tool has no Python dependency. ZIP/JSON/hash operations use Windows PowerShell/.NET.'
@@ -1445,17 +1446,28 @@ function Invoke-InspectAction {
 }
 
 function Main {
-    param([string[]]$Args)
-    if($Args.Count -eq 0 -or $Args[0] -in @('/?','/h','-?','-h','--help')){Show-Help;return 0}
+    param([string[]]$CommandArgs)
+    if($CommandArgs.Count -eq 0 -or $CommandArgs[0] -in @('/?','/h','-?','-h','--help')){Show-Help;return 0}
     $root=Get-RepositoryRoot
     $known=@('setup','versions','inspect','dryrun','rehearse','publish','status','reset','relogin')
-    if($Args[0].ToLowerInvariant() -notin $known -and (Test-Path -LiteralPath $Args[0])){
-        $opts=Parse-Options $Args 1
+    $first=$CommandArgs[0]
+    if($first.ToLowerInvariant() -notin $known){
+        if(-not(Test-Path -LiteralPath $first)){Write-Fail "Source not found: $first";return 2}
+        $opts=Parse-Options $CommandArgs 1
         if($opts.ContainsKey('source')){throw 'Do not combine positional SOURCE with --source.'}
-        $opts['source']=$Args[0]
+        $opts['source']=$first
         return (Invoke-Setup $root $opts)
     }
-    $cmd=$Args[0].ToLowerInvariant();$opts=Parse-Options $Args 1
+    $cmd=$first.ToLowerInvariant()
+    if($cmd -eq 'setup' -and $CommandArgs.Count -gt 1 -and -not $CommandArgs[1].StartsWith('--')){
+        $sourceArg=$CommandArgs[1]
+        if(-not(Test-Path -LiteralPath $sourceArg)){Write-Fail "Source not found: $sourceArg";return 2}
+        $opts=Parse-Options $CommandArgs 2
+        if($opts.ContainsKey('source')){throw 'Do not combine positional SOURCE with --source.'}
+        $opts['source']=$sourceArg
+    } else {
+        $opts=Parse-Options $CommandArgs 1
+    }
     switch($cmd){
         'setup' { return (Invoke-Setup $root $opts) }
         'versions' {
