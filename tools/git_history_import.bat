@@ -1,6 +1,6 @@
 @echo off
 :setup
-set "app.version=0.3.4"
+set "app.version=0.3.5"
 set "app.name=git_history_import"
 set "app.self=%~f0"
 set "app.rc=0"
@@ -97,7 +97,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ToolVersion = '0.3.4'
+$ToolVersion = '0.3.5'
 $StateSchema = 'git-history-import-state/v1'
 $PlanSchema = 'history-import-plan/v1'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
@@ -953,7 +953,7 @@ function Select-PlanVersions {
         $token=$row.Token;$key=$token.ToLowerInvariant()
         if(-not $row.Message -and -not $State.importAll){Write-Host '[ERROR]' -NoNewline -ForegroundColor Red;Write-Host " $token  missing commit message";$errors++;continue}
         if(-not $aliases.ContainsKey($key)){Write-Host '[MISS]' -NoNewline -ForegroundColor Red;Write-Host "  $token  no matching source revision";$errors++;continue}
-        $candidates=@($aliases[$key])
+        $candidates=$aliases[$key].ToArray()
         if($candidates.Count -ne 1){Write-Host '[ERROR]' -NoNewline -ForegroundColor Red;Write-Host " $token  ambiguous: $((@($candidates|ForEach-Object{$_.archive})) -join ', ')";$errors++;continue}
         $rev=$candidates[0]
         if($seen.ContainsKey([string]$rev.archive)){Write-Host '[ERROR]' -NoNewline -ForegroundColor Red;Write-Host " $token  duplicate version selection";$errors++;continue}

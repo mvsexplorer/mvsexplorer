@@ -1,6 +1,6 @@
 # git_history_import
 
-**Version:** 0.3.4
+**Version:** 0.3.5
 
 `git_history_import` reconstructs and publishes Git history from complete archived project revisions.
 
@@ -249,7 +249,7 @@ A `.layout.txt` file contains exactly one active line after blank lines and `#` 
 
 ## Version history
 
-### 0.3.4
+### 0.3.5
 
 - Fixed command dispatch on Windows PowerShell 5.1 by removing collisions with the automatic `$args` variable.
 - Renamed option-parser and GitHub-login argument variables to non-reserved names.
