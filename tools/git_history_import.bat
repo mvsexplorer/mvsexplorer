@@ -1,6 +1,6 @@
 @echo off
 :setup
-set "app.version=0.3.0"
+set "app.version=0.3.1"
 set "app.name=git_history_import"
 set "app.self=%~f0"
 set "app.rc=0"
@@ -97,7 +97,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ToolVersion = '0.3.0'
+$ToolVersion = '0.3.1'
 $StateSchema = 'git-history-import-state/v1'
 $PlanSchema = 'history-import-plan/v1'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
@@ -329,6 +329,80 @@ function Get-Option {
     param($Options, [string]$Name)
     if ($Options.ContainsKey($Name)) { return [string]$Options[$Name] }
     return $null
+}
+
+function Get-CompanionFile {
+    param([string]$Source, [string]$Kind)
+    $full=[IO.Path]::GetFullPath($Source)
+    $isFolder=Test-Path -LiteralPath $full -PathType Container
+    $parent=if($isFolder){Split-Path -Parent $full}else{Split-Path -Parent $full}
+    $leaf=if($isFolder){Split-Path -Leaf $full}else{[IO.Path]::GetFileName($full)}
+    $stem=if($isFolder){$leaf}else{[IO.Path]::GetFileNameWithoutExtension($full)}
+    $exact=New-Object System.Collections.Generic.List[string]
+    $search=New-Object System.Collections.Generic.List[string]
+    if($isFolder){
+        $exact.Add((Join-Path $full ($leaf+'.'+$Kind+'.txt')))
+        $exact.Add((Join-Path $parent ($leaf+'.'+$Kind+'.txt')))
+        $search.Add($full)
+        if($parent -and $parent -ne $full){$search.Add($parent)}
+    }else{
+        $exact.Add($full+'.'+$Kind+'.txt')
+        if($stem -and $stem -ne $leaf){$exact.Add((Join-Path $parent ($stem+'.'+$Kind+'.txt')))}
+        $search.Add($parent)
+    }
+    foreach($p in $exact){
+        if(Test-Path -LiteralPath $p -PathType Leaf){return [pscustomobject]@{Path=[IO.Path]::GetFullPath($p);Match='exact'}}
+    }
+    $found=New-Object System.Collections.Generic.List[string]
+    foreach($dir in $search){
+        if(-not $dir -or -not(Test-Path -LiteralPath $dir -PathType Container)){continue}
+        foreach($f in @(Get-ChildItem -LiteralPath $dir -File -Filter ('*.'+$Kind+'.txt') -ErrorAction SilentlyContinue)){
+            $fp=[IO.Path]::GetFullPath($f.FullName)
+            if(-not $found.Contains($fp)){$found.Add($fp)}
+        }
+    }
+    if($found.Count -eq 1){return [pscustomobject]@{Path=$found[0];Match='unique wildcard'}}
+    if($found.Count -gt 1){
+        $detail=($found|ForEach-Object{'  '+$_}) -join "`n"
+        $option=if($Kind -eq 'exclude'){'exclude-list'}else{$Kind}
+        throw "More than one *.$Kind.txt companion was found for source '$full'. Use the explicit --$option option.`n$detail"
+    }
+    return $null
+}
+
+function Read-LayoutReferenceFile {
+    param([string]$Path)
+    $full=[IO.Path]::GetFullPath($Path)
+    if(-not(Test-Path -LiteralPath $full -PathType Leaf)){throw "Layout companion file not found: $full"}
+    $items=@(Read-ListFile $full)
+    if($items.Count -ne 1){throw "Layout companion must contain exactly one active line (blank lines and # comments are ignored): $full"}
+    $value=[string]$items[0]
+    if([IO.Path]::IsPathRooted($value)){return [IO.Path]::GetFullPath($value)}
+    $relative=Join-Path (Split-Path -Parent $full) $value
+    if(Test-Path -LiteralPath $relative){return [IO.Path]::GetFullPath($relative)}
+    return $value
+}
+
+function Resolve-LayoutValue {
+    param([string]$Value, [ref]$LayoutFile)
+    if(-not $Value){return $null}
+    if(Test-Path -LiteralPath $Value -PathType Leaf){
+        $full=[IO.Path]::GetFullPath($Value)
+        if([IO.Path]::GetFileName($full) -like '*.layout.txt'){
+            $LayoutFile.Value=$full
+            return (Read-LayoutReferenceFile $full)
+        }
+        return $full
+    }
+    if(Test-Path -LiteralPath $Value -PathType Container){return [IO.Path]::GetFullPath($Value)}
+    return $Value
+}
+
+function Write-AutoCompanion {
+    param([string]$Kind, $Match)
+    Write-Host '  [AUTO] ' -NoNewline -ForegroundColor Green
+    Write-Host ($Kind+': ') -NoNewline -ForegroundColor Cyan
+    Write-Host $Match.Path -ForegroundColor White
 }
 
 function Remove-TreeRobust {
@@ -1200,16 +1274,29 @@ function Invoke-Setup {
     $wf=Get-Option $Options 'work-folder';if($wf){$wf=[IO.Path]::GetFullPath($wf)}else{$wf=Get-DefaultWorkFolder $Root}
     $source=Get-Option $Options 'source';if(-not $source){$source=Read-Host 'Folder or compressed ZIP containing the history revisions'}
     if(-not $source){throw 'A source folder or ZIP is required.'};$source=[IO.Path]::GetFullPath($source);if(-not(Test-Path -LiteralPath $source)){throw "Source does not exist: $source"}
-    $layout=Get-Option $Options 'layout';$identity=$false
-    if($null -eq $layout){if(Read-YesNo 'Use a final reference layout' $false){$layout=Read-Host 'Reference layout folder/ZIP, or source archive name';if(-not $layout){throw 'A layout reference was requested but not supplied.'}}else{$identity=$true}}
-    if($layout -and (Test-Path -LiteralPath $layout)){$layout=[IO.Path]::GetFullPath($layout)}
+    $layoutInput=Get-Option $Options 'layout';$layout=$null;$layoutFile=$null;$identity=$false
+    if($null -eq $layoutInput){
+        $autoLayout=Get-CompanionFile $source 'layout'
+        if($autoLayout){Write-AutoCompanion 'layout' $autoLayout;$layoutFile=$autoLayout.Path;$layout=Read-LayoutReferenceFile $layoutFile}
+        elseif(Read-YesNo 'Use a final reference layout' $false){$layoutInput=Read-Host 'Reference layout folder/ZIP, source archive name, or .layout.txt file';if(-not $layoutInput){throw 'A layout reference was requested but not supplied.'};$layout=Resolve-LayoutValue $layoutInput ([ref]$layoutFile)}
+        else{$identity=$true}
+    }else{$layout=Resolve-LayoutValue $layoutInput ([ref]$layoutFile)}
     $exclude=Get-Option $Options 'exclude-list'
-    if(-not $exclude){$x=Read-Host 'Exclude-list file (optional; blank for none)';if($x){$exclude=$x}}
+    if(-not $exclude){
+        $autoExclude=Get-CompanionFile $source 'exclude'
+        if($autoExclude){Write-AutoCompanion 'exclude list' $autoExclude;$exclude=$autoExclude.Path}
+        else{$x=Read-Host 'Exclude-list file (optional; blank for none)';if($x){$exclude=$x}}
+    }
     $patterns=@()
     if($exclude){$exclude=[IO.Path]::GetFullPath($exclude);if(-not(Test-Path -LiteralPath $exclude -PathType Leaf)){throw "Exclude-list file not found: $exclude"};$patterns=Read-ListFile $exclude}
+    $importAll=$Options.ContainsKey('import-all')
     $versions=Get-Option $Options 'versions'
+    if(-not $versions -and -not $importAll){
+        $autoVersions=Get-CompanionFile $source 'versions'
+        if($autoVersions){Write-AutoCompanion 'versions' $autoVersions;$versions=$autoVersions.Path}
+    }
     if($versions){$versions=[IO.Path]::GetFullPath($versions);if(-not(Test-Path -LiteralPath $versions -PathType Leaf)){throw "Versions file not found: $versions"}}
-    $importAll=$Options.ContainsKey('import-all');if($importAll -and $versions){throw '--import-all and --versions are mutually exclusive.'}
+    if($importAll -and $versions){throw '--import-all and --versions are mutually exclusive.'}
     [IO.Directory]::CreateDirectory($wf)|Out-Null;Ensure-LocalIgnore $Root $wf
     $prep=Prepare-Source $source $wf;$engineSource=$prep.Source
     if($layout -and $prep.Aliases.ContainsKey($layout)){$layout=$prep.Aliases[$layout]}
@@ -1219,6 +1306,7 @@ function Invoke-Setup {
     if($engineSource -cne $source){Write-InfoPair 'Engine source:' $engineSource DarkGray}
     foreach($n in @($prep.Notes)){Write-Host ('  '+$n) -ForegroundColor DarkGray}
     Write-InfoPair 'Layout:' $(if($layout){$layout}else{'none (identity layout)'}) Cyan
+    if($layoutFile){Write-InfoPair 'Layout file:' $layoutFile Cyan}
     Write-InfoPair 'Exclude list:' $(if($exclude){$exclude}else{'none'}) Cyan
     Write-InfoPair 'Import all:' $(if($importAll){'yes'}else{'no'}) Cyan
     Write-Host '';Write-Host 'Inspecting source...' -ForegroundColor Cyan
@@ -1227,7 +1315,7 @@ function Invoke-Setup {
     $plan=Read-JsonFile $candidate
     $state=[pscustomobject][ordered]@{
         schema=$StateSchema;toolVersion=$ToolVersion;createdUtc=Get-UtcText;repoRoot=$Root;workFolder=$wf
-        source=$engineSource;sourceOriginal=$source;layout=[pscustomobject]@{mode=$(if($identity){'identity'}else{'reference'});value=$layout}
+        source=$engineSource;sourceOriginal=$source;layout=[pscustomobject]@{mode=$(if($identity){'identity'}else{'reference'});value=$layout;file=$layoutFile}
         excludeList=$exclude;excludePatterns=@($mappedPatterns);versionsFile=$versions;importAll=$importAll;candidatePlan=$candidate;plan=$null;selectedVersions=0
         phases=[pscustomobject]@{setup=New-PhaseRecord $true $candidate 'candidate source/layout inspection complete';versions=$null;dryrun=$null;rehearse=$null;publish=$null}
     }
@@ -1269,7 +1357,11 @@ function Invoke-Status {
     $gh=Get-GithubStatus $Root;Write-InfoPair 'GitHub:' ($gh.Status+$(if($gh.Account){' ('+$gh.Account+')'}else{''})) $(if($gh.Status -eq 'logged in'){'Green'}else{'Yellow'})
     $origin=Invoke-Git $Root @('remote','get-url','origin') -AllowFailure;if($origin.Rc -eq 0){Write-InfoPair 'origin:' $origin.Output.Trim() Cyan}
     if($null -eq $loaded.State){Write-Warn 'Setup: NOT CONFIGURED';Write-Host 'Run: tools\git_history_import setup';return 0}
-    $s=$loaded.State;Write-Host '';Write-InfoPair 'Source:' ([string]$s.sourceOriginal) Cyan;Write-InfoPair 'Layout:' $(if($s.layout.value){[string]$s.layout.value}else{'none (identity layout)'}) Cyan;Write-InfoPair 'Selected:' ([string]$s.selectedVersions+' revision(s)') Cyan
+    $s=$loaded.State;Write-Host '';Write-InfoPair 'Source:' ([string]$s.sourceOriginal) Cyan;Write-InfoPair 'Layout:' $(if($s.layout.value){[string]$s.layout.value}else{'none (identity layout)'}) Cyan
+    if($s.layout.file){Write-InfoPair 'Layout file:' ([string]$s.layout.file) Cyan}
+    if($s.excludeList){Write-InfoPair 'Exclude list:' ([string]$s.excludeList) Cyan}
+    if($s.versionsFile){Write-InfoPair 'Versions file:' ([string]$s.versionsFile) Cyan}
+    Write-InfoPair 'Selected:' ([string]$s.selectedVersions+' revision(s)') Cyan
     Write-Host '';Write-Host 'Phases:' -ForegroundColor Cyan
     foreach($name in @('setup','versions','dryrun','rehearse','publish')){$p=$s.phases.$name;$mark=if($null -eq $p){'NOT RUN'}elseif($p.ok){'PASS'}else{'FAIL'};$color=if($mark -eq 'PASS'){'Green'}elseif($mark -eq 'FAIL'){'Red'}else{'Yellow'};Write-Host ('  '+$name.PadRight(10)) -NoNewline;Write-Host $mark -ForegroundColor $color}
     return 0
@@ -1306,6 +1398,7 @@ function Show-Help {
     Write-Host 'Reconstruct and publish Git history from complete archived project revisions.'
     Write-Host ''
     Write-Host 'USAGE' -ForegroundColor Cyan
+    Write-Host '  tools\git_history_import SOURCE [options]'
     Write-Host '  tools\git_history_import setup [options]'
     Write-Host '  tools\git_history_import versions [--versions FILE]'
     Write-Host '  tools\git_history_import inspect'
@@ -1318,11 +1411,17 @@ function Show-Help {
     Write-Host ''
     Write-Host 'SETUP OPTIONS' -ForegroundColor Cyan
     Write-Host '  --source PATH         Folder of version ZIPs/folders or outer ZIP containing them.'
-    Write-Host '  --layout PATH|NAME   Optional canonical layout folder/ZIP or source archive name.'
+    Write-Host '  --layout PATH|NAME   Canonical layout folder/ZIP, source revision name, or .layout.txt file.'
     Write-Host '  --versions FILE      Version/message list.'
     Write-Host '  --exclude-list FILE  Source-entry names/globs to exclude, one per line.'
     Write-Host '  --work-folder PATH   Local state/log/rehearsal folder.'
     Write-Host '  --import-all         Select all non-excluded revisions.'
+    Write-Host ''
+    Write-Host 'COMPANION DISCOVERY' -ForegroundColor Cyan
+    Write-Host '  File source Project.zip prefers Project.zip.layout.txt, .exclude.txt, and .versions.txt.'
+    Write-Host '  Folder source Project prefers Project\Project.layout.txt, .exclude.txt, and .versions.txt.'
+    Write-Host '  Sibling folder companions and a unique matching *.TYPE.txt are accepted as fallbacks.'
+    Write-Host '  Explicit --layout, --exclude-list, and --versions options always win.'
     Write-Host ''
     Write-Host 'WORKFLOW' -ForegroundColor Cyan
     Write-Host '  setup -> versions -> dryrun -> rehearse -> publish'
@@ -1331,7 +1430,9 @@ function Show-Help {
     Write-Host '  rehearse commits into a disposable local repository.'
     Write-Host '  publish modifies the live repository and pushes.' -ForegroundColor Yellow
     Write-Host ''
-    Write-Host 'EXAMPLE' -ForegroundColor Cyan
+    Write-Host 'EXAMPLES' -ForegroundColor Cyan
+    Write-Host '  tools\git_history_import "D:\history\Project.zip"'
+    Write-Host '  tools\git_history_import "D:\history\Project"'
     Write-Host '  tools\git_history_import setup --source "D:\history\Project.zip" --layout "Project-1.2.0.zip" --exclude-list "D:\history\Project.zip.exclude.txt" --versions "D:\history\Project.zip.versions.txt"'
     Write-Host ''
     Write-Host 'This tool has no Python dependency. ZIP/JSON/hash operations use Windows PowerShell/.NET.'
@@ -1346,7 +1447,15 @@ function Invoke-InspectAction {
 function Main {
     param([string[]]$Args)
     if($Args.Count -eq 0 -or $Args[0] -in @('/?','/h','-?','-h','--help')){Show-Help;return 0}
-    $root=Get-RepositoryRoot;$cmd=$Args[0].ToLowerInvariant();$opts=Parse-Options $Args 1
+    $root=Get-RepositoryRoot
+    $known=@('setup','versions','inspect','dryrun','rehearse','publish','status','reset','relogin')
+    if($Args[0].ToLowerInvariant() -notin $known -and (Test-Path -LiteralPath $Args[0])){
+        $opts=Parse-Options $Args 1
+        if($opts.ContainsKey('source')){throw 'Do not combine positional SOURCE with --source.'}
+        $opts['source']=$Args[0]
+        return (Invoke-Setup $root $opts)
+    }
+    $cmd=$Args[0].ToLowerInvariant();$opts=Parse-Options $Args 1
     switch($cmd){
         'setup' { return (Invoke-Setup $root $opts) }
         'versions' {

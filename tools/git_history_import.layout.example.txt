@@ -1,0 +1,3 @@
+# git_history_import canonical layout reference
+# Exactly one active line. It may name a source revision, ZIP path, or folder path.
+Project-1.2.0.zip

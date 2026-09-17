@@ -1,6 +1,6 @@
 # git_history_import
 
-**Version:** 0.3.0
+**Version:** 0.3.1
 
 `git_history_import` reconstructs and publishes Git history from complete archived project revisions.
 
@@ -187,6 +187,13 @@ The BAT follows the project Batch File Style Guide:
 - The PowerShell fallback is embedded between labels inside the BAT and executed through `:RunPowerShellFromLabel`; no `.ps1` file is generated.
 - The BAT is UTF-8 without BOM with CRLF line endings.
 
+## 0.3.1
+
+- Added positional source setup: `tools\git_history_import SOURCE`.
+- Added automatic `.layout.txt`, `.exclude.txt`, and `.versions.txt` companion discovery.
+- Added `.layout.txt` support as a one-line canonical layout reference.
+- Added deterministic companion precedence and ambiguity detection.
+
 ## 0.3.0
 
 0.3.0 is an architectural revision:
@@ -199,3 +206,18 @@ The BAT follows the project Batch File Style Guide:
 - eliminated the Python runtime dependency and `__pycache__` side effects;
 - adopted the project batch style guide for the command surface and scaffold;
 - preserved the 0.2.x setup/versions/dryrun/rehearse/publish/status/reset/relogin workflow.
+
+## Positional source and companion discovery
+
+A source archive or folder may be passed as the first positional argument:
+
+    tools\git_history_import "D:\history\Project.zip"
+    tools\git_history_import "D:\history\Project"
+
+This is equivalent to `setup --source PATH`.
+
+For a file source such as `Project.zip`, the preferred companion files beside it are `Project.zip.layout.txt`, `Project.zip.exclude.txt`, and `Project.zip.versions.txt`. For a folder source such as `Project`, the preferred files inside the source folder are `Project\Project.layout.txt`, `Project\Project.exclude.txt`, and `Project\Project.versions.txt`; sibling `Project.TYPE.txt` files are also accepted. If no exact companion is present, a unique `*.TYPE.txt` in the applicable search folder may be used. Multiple wildcard candidates are an error rather than a guess.
+
+Explicit `--layout`, `--exclude-list`, and `--versions` values override automatic discovery.
+
+A `.layout.txt` file contains exactly one active line after blank lines and `#` comments are ignored. That line may be the name of a source revision archive, a ZIP path, or a folder path.
