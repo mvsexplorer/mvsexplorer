@@ -1,6 +1,6 @@
 # git_history_import
 
-**Version:** 0.3.5
+**Version:** 0.3.6
 
 `git_history_import` reconstructs and publishes Git history from complete archived project revisions.
 
@@ -64,7 +64,7 @@ Options:
 
 The source may be a directory of revision ZIPs, a directory of revision folders/ZIPs, or an outer ZIP containing nested revision ZIPs/top-level revision folders.
 
-The optional layout may be an external folder, external ZIP, or the filename of a revision ZIP in the history source. If no final layout is selected, each revision keeps its own paths and each new snapshot becomes the complete managed project state for that revision.
+The optional layout may be an external folder, external ZIP, or the filename of any revision ZIP in the history source. A layout revision is a placement reference only and does not need to be selected in the versions list or published as a Git commit. If no final layout is selected, each revision keeps its own paths and each new snapshot becomes the complete managed project state for that revision.
 
 Example — deliberately a real one-line `cmd.exe` command:
 

@@ -1,6 +1,6 @@
 @echo off
 :setup
-set "app.version=0.3.5"
+set "app.version=0.3.6"
 set "app.name=git_history_import"
 set "app.self=%~f0"
 set "app.rc=0"
@@ -97,7 +97,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ToolVersion = '0.3.5'
+$ToolVersion = '0.3.6'
 $StateSchema = 'git-history-import-state/v1'
 $PlanSchema = 'history-import-plan/v1'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
@@ -754,16 +754,20 @@ function Inspect-Source {
         $parsed += [pscustomobject]@{Entry=$e;Version=$v.Version;Variant=$v.Variant;SortKey=($v.SortKey+'|'+$e.Name.ToLowerInvariant())}
     }
     $parsed=@($parsed|Sort-Object SortKey)
-    $layoutMode='identity';$finalName=$null;$finalPrefix='';$finalFiles=[System.Collections.Generic.Dictionary[string,object]]::new([StringComparer]::Ordinal)
+    $layoutMode='identity';$layoutReferenceOnly=$false;$finalName=$null;$finalPrefix='';$finalFiles=[System.Collections.Generic.Dictionary[string,object]]::new([StringComparer]::Ordinal)
     if(-not $IdentityLayout){
         $layoutMode='reference'
         if($Layout){
             if(Test-Path -LiteralPath $Layout){
                 $li=Get-ExternalLayoutInventory $Layout;$finalFiles=$li.Files;$finalPrefix=$li.Prefix;$finalName=[IO.Path]::GetFullPath($Layout)
+                $layoutReferenceOnly=$true
             }else{
-                $match=@($parsed|Where-Object{$_.Entry.Name -ceq [IO.Path]::GetFileName($Layout)})
-                if($match.Count -ne 1){throw "Layout reference '$Layout' is neither an existing path nor exactly one included source archive."}
-                $finalName=$match[0].Entry.Name;$li=Read-ZipInventory $match[0].Entry.FullName $false;$finalFiles=$li.Files;$finalPrefix=$li.Prefix
+                $layoutLeaf=[IO.Path]::GetFileName($Layout)
+                $layoutMatches=@($entries|Where-Object{$_.Name -ceq $layoutLeaf})
+                if($layoutMatches.Count -ne 1){throw "Layout reference '$Layout' is neither an existing path nor exactly one source archive."}
+                $layoutEntry=$layoutMatches[0]
+                $finalName=$layoutEntry.Name;$li=Read-ZipInventory $layoutEntry.FullName $false;$finalFiles=$li.Files;$finalPrefix=$li.Prefix
+                $layoutReferenceOnly=(@($parsed|Where-Object{$_.Entry.Name -ceq $layoutEntry.Name}).Count -eq 0)
             }
         }else{
             $final=$parsed[-1];$finalName=$final.Entry.Name;$li=Read-ZipInventory $final.Entry.FullName $false;$finalFiles=$li.Files;$finalPrefix=$li.Prefix
@@ -839,19 +843,24 @@ function Inspect-Source {
         schema=$PlanSchema;createdUtc=Get-UtcText
         source=[pscustomobject][ordered]@{name=[IO.Path]::GetFileName($Source);type='directory';finalArchive=$finalName;excludePatterns=@($ExcludePatterns);includePatterns=@($IncludeNames);excluded=$excluded.ToArray()}
         policies=[pscustomobject][ordered]@{preserveUnmanagedTargetFiles=$true;replaceUnmanagedPaths=@('README.md');historicalOnly='keep-original-path';exactBytes=$true;publishCommand='just_publish.bat historyexact yes messagefile <file> PUBLISH COMMIT'}
-        layout=[pscustomobject][ordered]@{mode=$layoutMode;finalArchive=$finalName;finalStripRoot=$finalPrefix.TrimEnd('/');finalFileCount=$finalFiles.Count;moves=$moveRecords.ToArray();historicalOnly=$historical.ToArray();ambiguous=$ambiguous.ToArray();collisions=$collisions.ToArray()}
+        layout=[pscustomobject][ordered]@{mode=$layoutMode;finalArchive=$finalName;referenceOnly=$layoutReferenceOnly;finalStripRoot=$finalPrefix.TrimEnd('/');finalFileCount=$finalFiles.Count;moves=$moveRecords.ToArray();historicalOnly=$historical.ToArray();ambiguous=$ambiguous.ToArray();collisions=$collisions.ToArray()}
         revisions=$revisions.ToArray()
         warnings=[pscustomobject][ordered]@{generatedHistoricalFiles=@($generated.GetEnumerator()|Sort-Object)}
         summary=[pscustomobject][ordered]@{
             discoveredArchives=$entries.Count;includedRevisions=$revisions.Count;excludedArchives=$excluded.Count
             distinctHistoricalPaths=$allPaths.Count;finalPaths=$finalFiles.Count;inferredMoves=$moveRecords.Count
             historicalOnlyPaths=$historical.Count;ambiguousMappings=$ambiguous.Count;collisions=$collisions.Count
-            generatedHistoricalFileCandidates=$generated.Count
+            generatedHistoricalFileCandidates=$generated.Count;layoutReferenceOnly=$layoutReferenceOnly
         }
     }
     Write-JsonFile $Output $plan
     Write-Host "Wrote: $Output" -ForegroundColor DarkCyan
     foreach($p in $plan.summary.psobject.Properties){Write-Host ($p.Name+': ') -NoNewline -ForegroundColor DarkCyan;Write-Host $p.Value}
+    if($layoutReferenceOnly -and $layoutMode -eq 'reference'){
+        Write-Host 'Layout role: ' -NoNewline -ForegroundColor DarkCyan
+        Write-Host 'reference-only' -NoNewline -ForegroundColor Yellow
+        Write-Host (' ('+$finalName+' is not a selected history revision)')
+    }
     if($ambiguous.Count -gt 0 -or $collisions.Count -gt 0){Write-Warn 'WARNING: plan contains unresolved mapping problems.';return 3}
     return 0
 }
