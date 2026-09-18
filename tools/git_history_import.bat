@@ -1,6 +1,6 @@
 @echo off
 :setup
-set "app.version=0.3.9"
+set "app.version=0.4.0"
 set "app.name=git_history_import"
 set "app.self=%~f0"
 set "app.rc=0"
@@ -97,7 +97,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ToolVersion = '0.3.9'
+$ToolVersion = '0.4.0'
 $StateSchema = 'git-history-import-state/v1'
 $PlanSchema = 'history-import-plan/v1'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
@@ -422,6 +422,72 @@ function Resolve-LayoutValue {
     }
     if(Test-Path -LiteralPath $Value -PathType Container){return [IO.Path]::GetFullPath($Value)}
     return $Value
+}
+
+
+function Read-RepositoryReferenceFile {
+    param([string]$Path)
+    $full=[IO.Path]::GetFullPath($Path)
+    if(-not(Test-Path -LiteralPath $full -PathType Leaf)){throw "Repository companion file not found: $full"}
+    $items=@(Read-ListFile $full)
+    if($items.Count -eq 0){throw "Repository companion contains no active lines: $full"}
+    $cfg=@{}
+    foreach($line in $items){
+        $m=[regex]::Match([string]$line,'^(?<key>[A-Za-z][A-Za-z0-9_-]*)\s*=\s*(?<value>.*)$')
+        if($m.Success){
+            $cfg[$m.Groups['key'].Value.ToLowerInvariant()]=$m.Groups['value'].Value.Trim()
+            continue
+        }
+        if($items.Count -eq 1 -and ([string]$line) -match '^[^/\s]+/[^/\s]+$'){
+            $cfg['repository']=([string]$line).Trim()
+            continue
+        }
+        throw "Invalid repository companion line: $line`nFile: $full"
+    }
+    $repo=$null
+    if($cfg.ContainsKey('repository')){$repo=[string]$cfg['repository']}
+    $owner=if($cfg.ContainsKey('owner')){[string]$cfg['owner']}else{$null}
+    $name=if($cfg.ContainsKey('name')){[string]$cfg['name']}else{$null}
+    if($owner -or $name){
+        if(-not $owner -or -not $name){throw "Repository companion must specify both owner= and name=: $full"}
+        $ownerName=$owner+'/'+$name
+        if($repo -and $repo -ine $ownerName){throw "repository= does not match owner=/name= in $full"}
+        $repo=$ownerName
+    }
+    if(-not $repo -or $repo -notmatch '^[^/\s]+/[^/\s]+$'){throw "Repository companion must identify GitHub owner/name: $full"}
+    $parts=$repo.Split('/')
+    $visibility=if($cfg.ContainsKey('visibility')){([string]$cfg['visibility']).ToLowerInvariant()}else{'public'}
+    if($visibility -notin @('public','private','internal')){throw "Repository visibility must be public, private, or internal: $full"}
+    $create=if($cfg.ContainsKey('create')){([string]$cfg['create']).ToLowerInvariant()}else{'ask'}
+    if($create -in @('true','yes','y','1')){$create='yes'}
+    elseif($create -in @('false','no','n','0')){$create='no'}
+    elseif($create -ne 'ask'){throw "Repository create= must be ask, yes, or no: $full"}
+    $description=if($cfg.ContainsKey('description')){[string]$cfg['description']}else{''}
+    return [pscustomobject][ordered]@{file=$full;repo=($parts[0]+'/'+$parts[1]);owner=$parts[0];name=$parts[1];visibility=$visibility;description=$description;create=$create}
+}
+
+function Resolve-RepositoryValue {
+    param([string]$Value)
+    if(-not $Value){return $null}
+    if(Test-Path -LiteralPath $Value -PathType Leaf){return (Read-RepositoryReferenceFile ([IO.Path]::GetFullPath($Value)))}
+    $repo=$Value.Trim()
+    $fromUrl=Get-GithubRepoFromOrigin $repo
+    if($fromUrl){$repo=$fromUrl}
+    if($repo -notmatch '^[^/\s]+/[^/\s]+$'){throw "Repository must be owner/name, a GitHub repository URL, or a .repository.txt file: $Value"}
+    $parts=$repo.Split('/')
+    return [pscustomobject][ordered]@{file=$null;repo=($parts[0]+'/'+$parts[1]);owner=$parts[0];name=$parts[1];visibility='public';description='';create='ask'}
+}
+
+function Read-RepositorySpecInteractive {
+    param([string]$Account)
+    $repo=Read-Host 'Target GitHub repository owner/name'
+    if(-not $repo){Write-Warn 'Publication cancelled because no target repository was supplied.';return $null}
+    $spec=Resolve-RepositoryValue $repo
+    $v=Read-Host 'Repository visibility [public/private] (default public)'
+    if($v){$v=$v.Trim().ToLowerInvariant();if($v -notin @('public','private','internal')){throw "Unsupported repository visibility: $v"};$spec.visibility=$v}
+    $d=Read-Host 'Repository description (optional)'
+    if($d){$spec.description=$d}
+    return $spec
 }
 
 function Write-AutoCompanion {
@@ -1341,6 +1407,7 @@ function New-LogBundle {
             if($state.layout.file){$companions+=@([string]$state.layout.file)}
             if($state.excludeList){$companions+=@([string]$state.excludeList)}
             if($state.versionsFile){$companions+=@([string]$state.versionsFile)}
+            if($state.psobject.Properties['repository'] -and $state.repository -and $state.repository.file){$companions+=@([string]$state.repository.file)}
             foreach($p in $companions){
                 if(Test-Path -LiteralPath $p -PathType Leaf){Add-ZipFile $archive $p ('companions/'+[IO.Path]::GetFileName($p))}
             }
@@ -1443,6 +1510,111 @@ function Ensure-GithubReady {
     return [pscustomobject]@{Ready=$true;Cancelled=$false;Status=$status;Gh=$cli.Gh}
 }
 
+
+function Test-GithubRepositoryExists {
+    param([string]$Root,[string]$Gh,[string]$Repository)
+    $r=Invoke-Captured $Gh @('repo','view',$Repository,'--json','nameWithOwner','--jq','.nameWithOwner') $Root
+    if($r.Rc -eq 0 -and $r.Output.Trim()){return [pscustomobject]@{Exists=$true;Detail=$r.Output.Trim()}}
+    return [pscustomobject]@{Exists=$false;Detail=$r.Output.Trim()}
+}
+
+function Set-OriginRepository {
+    param([string]$Root,[string]$Repository)
+    $target='https://github.com/'+$Repository+'.git'
+    $o=Invoke-Git $Root @('remote','get-url','origin') -AllowFailure
+    if($o.Rc -eq 0 -and $o.Output.Trim()){
+        $current=$o.Output.Trim()
+        $currentRepo=Get-GithubRepoFromOrigin $current
+        if($currentRepo -and $currentRepo -ieq $Repository){return $target}
+        Write-InfoPair 'Current origin:' $current Yellow
+        Write-InfoPair 'Target origin:' $target Green
+        if(-not(Read-YesNo 'Replace origin with the target repository' $true)){Write-Warn 'Publication cancelled before changing origin.';return $null}
+        [void](Invoke-Git $Root @('remote','set-url','origin',$target))
+    }else{
+        Write-InfoPair 'Target origin:' $target Green
+        if(-not(Read-YesNo 'Add this repository as origin' $true)){Write-Warn 'Publication cancelled before adding origin.';return $null}
+        [void](Invoke-Git $Root @('remote','add','origin',$target))
+    }
+    Write-Ok ('origin ready: '+$target)
+    return $target
+}
+
+function Resolve-PublishRepositorySpec {
+    param([string]$Root,$State,[string]$RepositoryOverride,[string]$Account)
+    if($RepositoryOverride){
+        $spec=Resolve-RepositoryValue $RepositoryOverride
+        Write-InfoPair 'Target source:' 'explicit --repository' Cyan
+        return $spec
+    }
+    if($State.psobject.Properties['repository'] -and $State.repository -and $State.repository.repo){
+        Write-InfoPair 'Target source:' 'saved setup configuration' Cyan
+        return $State.repository
+    }
+    if($State.sourceOriginal){
+        $auto=Get-CompanionFile ([string]$State.sourceOriginal) 'repository'
+        if($auto){
+            Write-AutoCompanion 'repository' $auto
+            return (Read-RepositoryReferenceFile $auto.Path)
+        }
+    }
+    $o=Invoke-Git $Root @('remote','get-url','origin') -AllowFailure
+    if($o.Rc -eq 0 -and $o.Output.Trim()){
+        $current=$o.Output.Trim()
+        $repo=Get-GithubRepoFromOrigin $current
+        if($repo){
+            $perm=Test-GithubPushPermission $Root $current
+            if($perm.Known -and $perm.Allowed){
+                $parts=$repo.Split('/')
+                Write-InfoPair 'Target source:' 'current origin (push permission verified)' Cyan
+                return [pscustomobject][ordered]@{file=$null;repo=$repo;owner=$parts[0];name=$parts[1];visibility='public';description='';create='no'}
+            }
+            Write-Warn ("Current origin is not a usable publish target for account '$Account': "+$current)
+        }
+    }
+    Write-Warn 'No usable publish repository is configured.'
+    return (Read-RepositorySpecInteractive $Account)
+}
+
+function Ensure-GithubRepositoryTarget {
+    param([string]$Root,[string]$Gh,[string]$Account,$State,[string]$RepositoryOverride)
+    $spec=Resolve-PublishRepositorySpec $Root $State $RepositoryOverride $Account
+    if(-not $spec){return [pscustomobject]@{Ready=$false;Cancelled=$true;Origin=$null;Spec=$null}}
+    Write-InfoPair 'Target repository:' ([string]$spec.repo) Magenta
+    if($spec.file){Write-InfoPair 'Repository file:' ([string]$spec.file) DarkGray}
+    $probe=Test-GithubRepositoryExists $Root $Gh ([string]$spec.repo)
+    if(-not $probe.Exists){
+        Write-Warn ('GitHub repository does not currently exist or is not accessible: '+[string]$spec.repo)
+        $create=$false
+        if([string]$spec.create -eq 'yes'){$create=$true}
+        elseif([string]$spec.create -eq 'no'){$create=$false}
+        else{$create=Read-YesNo ('Create '+[string]$spec.repo+' now') $true}
+        if(-not $create){
+            Write-Warn 'Publication cancelled because the target repository is unavailable.'
+            return [pscustomobject]@{Ready=$false;Cancelled=$true;Origin=$null;Spec=$spec}
+        }
+        $createArgs=@('repo','create',[string]$spec.repo)
+        switch([string]$spec.visibility){
+            'private' {$createArgs+='--private'}
+            'internal' {$createArgs+='--internal'}
+            default {$createArgs+='--public'}
+        }
+        if($spec.description){$createArgs+=@('--description',[string]$spec.description)}
+        $created=Invoke-Captured $Gh $createArgs $Root
+        if($created.Rc -ne 0){throw "Could not create GitHub repository $($spec.repo).`n$($created.Output)"}
+        Write-Ok ('Created GitHub repository: '+[string]$spec.repo)
+    }else{
+        Write-Ok ('GitHub repository exists: '+[string]$spec.repo)
+    }
+    $origin=Set-OriginRepository $Root ([string]$spec.repo)
+    if(-not $origin){return [pscustomobject]@{Ready=$false;Cancelled=$true;Origin=$null;Spec=$spec}}
+    $perm=Test-GithubPushPermission $Root $origin
+    if(-not $perm.Known){throw "Could not verify GitHub push permission before publish.`norigin: $origin`ndetail: $($perm.Detail)"}
+    if(-not $perm.Allowed){throw "Authenticated GitHub account '$Account' does not have push permission to $($perm.Detail)."}
+    if($State.psobject.Properties['repository']){$State.repository=$spec}else{$State|Add-Member -NotePropertyName repository -NotePropertyValue $spec}
+    Save-State ([string]$State.workFolder) $State
+    return [pscustomobject]@{Ready=$true;Cancelled=$false;Origin=$origin;Spec=$spec}
+}
+
 function Phase-Passed {
     param($State,[string]$Name)
     $p=$State.phases.$Name
@@ -1472,7 +1644,8 @@ function Get-PublishWorktreeState {
         'tools/git_history_import.md',
         'tools/git_history_import.exclude.list.example.txt',
         'tools/git_history_import.versions.list.example.txt',
-        'tools/git_history_import.layout.example.txt'
+        'tools/git_history_import.layout.example.txt',
+        'tools/git_history_import.repository.example.txt'
     )
     $owned=@()
     $unknown=@()
@@ -1517,22 +1690,21 @@ function Ensure-PublishWorktreeClean {
 }
 
 function Invoke-ReplayAction {
-    param([string]$Mode,[string]$Root,[string]$WorkFolder,$State)
+    param([string]$Mode,[string]$Root,[string]$WorkFolder,$State,[string]$RepositoryOverride)
     if($Mode -eq 'publish'){
         if(-not(Phase-Passed $State 'dryrun')){throw 'Publish is blocked until dryrun has passed.'}
         if(-not(Phase-Passed $State 'rehearse')){throw 'Publish is blocked until rehearsal has passed.'}
         if(-not(Ensure-PublishWorktreeClean $Root)){return 0}
         $o=Invoke-Git $Root @('remote','get-url','origin') -AllowFailure
-        if($o.Rc -ne 0 -or -not $o.Output.Trim()){throw 'Publish target has no origin remote.'}
-        $origin=$o.Output.Trim()
+        $currentOrigin=if($o.Rc -eq 0 -and $o.Output.Trim()){$o.Output.Trim()}else{'none'}
         Write-Host '';Write-Host 'PUBLISH PREFLIGHT' -ForegroundColor Cyan
-        Write-InfoPair 'origin:' $origin Yellow
+        Write-InfoPair 'Current origin:' $currentOrigin Yellow
         $ready=Ensure-GithubReady $Root
         if(-not $ready.Ready){return 0}
         $ghs=$ready.Status
-        $perm=Test-GithubPushPermission $Root $origin
-        if(-not $perm.Known){throw "Could not verify GitHub push permission before publish.`norigin: $origin`ndetail: $($perm.Detail)"}
-        if(-not $perm.Allowed){throw "Authenticated GitHub account '$($ghs.Account)' does not have push permission to $($perm.Detail)."}
+        $target=Ensure-GithubRepositoryTarget $Root $ready.Gh $ghs.Account $State $RepositoryOverride
+        if(-not $target.Ready){return 0}
+        $origin=$target.Origin
         Write-Host '';Write-Host 'LIVE PUBLICATION' -ForegroundColor Red
         Write-InfoPair 'Repository:' $Root Yellow;Write-InfoPair 'origin:' $origin Yellow;Write-InfoPair 'GitHub:' ($ghs.Status+' ('+$ghs.Account+')') Green;Write-InfoPair 'Revisions:' ([string]$State.selectedVersions) Cyan
         Write-Warn 'Review the origin above carefully. This operation creates and pushes commits.'
@@ -1575,6 +1747,12 @@ function Invoke-Setup {
     }
     if($versions){$versions=[IO.Path]::GetFullPath($versions);if(-not(Test-Path -LiteralPath $versions -PathType Leaf)){throw "Versions file not found: $versions"}}
     if($importAll -and $versions){throw '--import-all and --versions are mutually exclusive.'}
+    $repositoryInput=Get-Option $Options 'repository';$repository=$null
+    if($repositoryInput){$repository=Resolve-RepositoryValue $repositoryInput}
+    else{
+        $autoRepository=Get-CompanionFile $source 'repository'
+        if($autoRepository){Write-AutoCompanion 'repository' $autoRepository;$repository=Read-RepositoryReferenceFile $autoRepository.Path}
+    }
     [IO.Directory]::CreateDirectory($wf)|Out-Null;Ensure-LocalIgnore $Root $wf
     $prep=Prepare-Source $source $wf;$engineSource=$prep.Source
     if($layout -and $prep.Aliases.ContainsKey($layout)){$layout=$prep.Aliases[$layout]}
@@ -1586,6 +1764,8 @@ function Invoke-Setup {
     Write-InfoPair 'Layout:' $(if($layout){$layout}else{'none (identity layout)'}) Cyan
     if($layoutFile){Write-InfoPair 'Layout file:' $layoutFile Cyan}
     Write-InfoPair 'Exclude list:' $(if($exclude){$exclude}else{'none'}) Cyan
+    if($repository){Write-InfoPair 'Publish target:' ([string]$repository.repo) Magenta;if($repository.file){Write-InfoPair 'Repository file:' ([string]$repository.file) DarkGray}}
+    else{Write-InfoPair 'Publish target:' 'not configured yet (will ask before publish)' Yellow}
     Write-InfoPair 'Import all:' $(if($importAll){'yes'}else{'no'}) Cyan
     Write-Host '';Write-Host 'Inspecting source...' -ForegroundColor Cyan
     $rc=Inspect-Source $engineSource $candidate $layout $identity $mappedPatterns @()
@@ -1594,7 +1774,7 @@ function Invoke-Setup {
     $state=[pscustomobject][ordered]@{
         schema=$StateSchema;toolVersion=$ToolVersion;createdUtc=Get-UtcText;repoRoot=$Root;workFolder=$wf
         source=$engineSource;sourceOriginal=$source;layout=[pscustomobject]@{mode=$(if($identity){'identity'}else{'reference'});value=$layout;file=$layoutFile}
-        excludeList=$exclude;excludePatterns=@($mappedPatterns);versionsFile=$versions;importAll=$importAll;candidatePlan=$candidate;plan=$null;selectedVersions=0
+        excludeList=$exclude;excludePatterns=@($mappedPatterns);versionsFile=$versions;repository=$repository;importAll=$importAll;candidatePlan=$candidate;plan=$null;selectedVersions=0
         phases=[pscustomobject]@{setup=New-PhaseRecord $true $candidate 'candidate source/layout inspection complete';versions=$null;dryrun=$null;rehearse=$null;publish=$null}
     }
     Save-State $wf $state;Set-WorkPointer $Root $wf;Write-ReviewFiles $wf $plan
@@ -1639,6 +1819,10 @@ function Invoke-Status {
     if($s.layout.file){Write-InfoPair 'Layout file:' ([string]$s.layout.file) Cyan}
     if($s.excludeList){Write-InfoPair 'Exclude list:' ([string]$s.excludeList) Cyan}
     if($s.versionsFile){Write-InfoPair 'Versions file:' ([string]$s.versionsFile) Cyan}
+    if($s.psobject.Properties['repository'] -and $s.repository -and $s.repository.repo){Write-InfoPair 'Publish target:' ([string]$s.repository.repo) Magenta}
+    elseif($s.sourceOriginal){
+        try{$autoRepository=Get-CompanionFile ([string]$s.sourceOriginal) 'repository';if($autoRepository){$rs=Read-RepositoryReferenceFile $autoRepository.Path;Write-InfoPair 'Publish target:' ([string]$rs.repo+' (auto)') Magenta}}catch{}
+    }
     Write-InfoPair 'Selected:' ([string]$s.selectedVersions+' revision(s)') Cyan
     Write-Host '';Write-Host 'Phases:' -ForegroundColor Cyan
     foreach($name in @('setup','versions','dryrun','rehearse','publish')){$p=$s.phases.$name;$mark=if($null -eq $p){'NOT RUN'}elseif($p.ok){'PASS'}else{'FAIL'};$color=if($mark -eq 'PASS'){'Green'}elseif($mark -eq 'FAIL'){'Red'}else{'Yellow'};Write-Host ('  '+$name.PadRight(10)) -NoNewline;Write-Host $mark -ForegroundColor $color}
@@ -1686,7 +1870,7 @@ function Show-Help {
     Write-Host '  tools\git_history_import inspect'
     Write-Host '  tools\git_history_import dryrun'
     Write-Host '  tools\git_history_import rehearse [--work-folder FOLDER]'
-    Write-Host '  tools\git_history_import publish'
+    Write-Host '  tools\git_history_import publish [--repository FILE|OWNER/NAME]'
     Write-Host '  tools\git_history_import status'
     Write-Host '  tools\git_history_import reset'
     Write-Host '  tools\git_history_import relogin'
@@ -1697,21 +1881,22 @@ function Show-Help {
     Write-Host '  --layout PATH|NAME   Canonical layout folder/ZIP, source revision name, or .layout.txt file.'
     Write-Host '  --versions FILE      Version/message list.'
     Write-Host '  --exclude-list FILE  Source-entry names/globs to exclude, one per line.'
+    Write-Host '  --repository VALUE    Repository companion file, GitHub URL, or owner/name.'
     Write-Host '  --work-folder PATH   Local state/log/rehearsal folder.'
     Write-Host '  --import-all         Select all non-excluded revisions.'
     Write-Host ''
     Write-Host 'COMPANION DISCOVERY' -ForegroundColor Cyan
-    Write-Host '  File source Project.zip prefers Project.zip.layout.txt, .exclude.txt, and .versions.txt.'
-    Write-Host '  Folder source Project prefers Project\Project.layout.txt, .exclude.txt, and .versions.txt.'
+    Write-Host '  File source Project.zip prefers Project.zip.layout.txt, .exclude.txt, .versions.txt, and .repository.txt.'
+    Write-Host '  Folder source Project prefers Project\Project.layout.txt, .exclude.txt, .versions.txt, and .repository.txt.'
     Write-Host '  Sibling folder companions and a unique matching *.TYPE.txt are accepted as fallbacks.'
-    Write-Host '  Explicit --layout, --exclude-list, and --versions options always win.'
+    Write-Host '  Explicit --layout, --exclude-list, --versions, and --repository options always win.'
     Write-Host ''
     Write-Host 'WORKFLOW' -ForegroundColor Cyan
     Write-Host '  setup -> versions -> dryrun -> rehearse -> publish'
     Write-Host '  Guided dryrun/rehearse prompts accept Y=run, n=stop, s=skip.'
     Write-Host '  dryrun changes no repository.'
     Write-Host '  rehearse commits into a disposable local repository.'
-    Write-Host '  publish can install/login GitHub CLI when needed, then modifies the live repository and pushes.' -ForegroundColor Yellow
+    Write-Host '  publish can install/login GitHub CLI, select/create the target repository, set origin, then push.' -ForegroundColor Yellow
     Write-Host '  Every non-help run creates a diagnostic ZIP in the launch directory.'
     Write-Host '  logs creates the same bundle on demand.'
     Write-Host ''
@@ -1762,7 +1947,7 @@ function Main {
         'inspect' { return (Invoke-InspectAction $root (Get-Option $opts 'work-folder')) }
         'dryrun' { $l=Load-State $root (Get-Option $opts 'work-folder');return (Invoke-ReplayAction 'dryrun' $root $l.WorkFolder $l.State) }
         'rehearse' { $l=Load-State $root (Get-Option $opts 'work-folder');return (Invoke-ReplayAction 'rehearse' $root $l.WorkFolder $l.State) }
-        'publish' { $l=Load-State $root (Get-Option $opts 'work-folder');return (Invoke-ReplayAction 'publish' $root $l.WorkFolder $l.State) }
+        'publish' { $l=Load-State $root (Get-Option $opts 'work-folder');return (Invoke-ReplayAction 'publish' $root $l.WorkFolder $l.State (Get-Option $opts 'repository')) }
         'status' { return (Invoke-Status $root (Get-Option $opts 'work-folder')) }
         'reset' { return (Invoke-Reset $root (Get-Option $opts 'work-folder')) }
         'relogin' { return (Invoke-Relogin $root) }

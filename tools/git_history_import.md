@@ -1,6 +1,6 @@
 # git_history_import
 
-**Version:** 0.3.9
+**Version:** 0.4.0
 
 `git_history_import` reconstructs and publishes Git history from complete archived project revisions.
 
@@ -58,6 +58,7 @@ Options:
 --layout PATH|NAME
 --versions FILE
 --exclude-list FILE
+--repository FILE|OWNER/NAME
 --work-folder PATH
 --import-all
 ```
@@ -69,8 +70,20 @@ The optional layout may be an external folder, external ZIP, or the filename of 
 Example — deliberately a real one-line `cmd.exe` command:
 
 ```bat
-tools\git_history_import setup --source "D:\mvsworkfolder\MVS-Explorer.zip" --layout "MVS-Explorer-Toolkit-0.21.2.zip" --exclude-list "D:\mvsworkfolder\MVS-Explorer.zip.exclude.txt" --versions "D:\mvsworkfolder\MVS-Explorer.zip.versions.txt"
+tools\git_history_import setup --source "D:\mvsworkfolder\MVS-Explorer.zip" --layout "MVS-Explorer-Toolkit-0.21.2.zip" --exclude-list "D:\mvsworkfolder\MVS-Explorer.zip.exclude.txt" --versions "D:\mvsworkfolder\MVS-Explorer.zip.versions.txt" --repository "D:\mvsworkfolder\MVS-Explorer.zip.repository.txt"
 ```
+
+A `.repository.txt` companion may contain:
+
+```text
+owner=example-owner
+name=example-repository
+visibility=public
+create=ask
+description=Repository description.
+```
+
+`repository=owner/name` may be used instead of separate `owner=` and `name=` lines. `create=` accepts `ask`, `yes`, or `no`; credentials are never stored in this file.
 
 ### versions
 
@@ -116,7 +129,11 @@ Before each revision, the exact commit subject is printed. The full subject/body
 tools\git_history_import publish
 ```
 
-Publish is blocked until both dry run and rehearsal have passed. It requires a clean live worktree, a recognized GitHub `origin`, and verified push permission for the authenticated account.
+Publish is blocked until both dry run and rehearsal have passed. It requires a clean live worktree and verified push permission for the final target repository.
+
+The publish target is resolved independently from the bootstrap/template `origin`. Precedence is: explicit `--repository`, saved setup configuration, an auto-discovered `.repository.txt` companion beside the original source, then the current `origin` only when the authenticated account already has push permission there. If none of those yields a usable target, publish asks for `owner/name`.
+
+If the configured GitHub repository does not exist, publish offers to create it using the configured visibility/description. It then offers to replace/add `origin`, verifies push permission on the new target, and only then shows the final default-No live publication confirmation. A template remote such as `helpersforopenwrt/testprofile_pleaseignore` is therefore not treated as the publish destination merely because it was inherited by the bootstrap.
 
 If the only worktree changes are tracked `git_history_import` files from an in-place tool update, publish shows those paths and offers to commit that importer update locally before continuing. Root-level `git_history_import-*-tool-only.zip` distribution packages are added to the repository-local `.git\info\exclude` and do not block publication. Arbitrary project changes are never ignored or auto-committed.
 
@@ -206,6 +223,8 @@ Generic examples are supplied as:
 ```text
 tools\git_history_import.exclude.list.example.txt
 tools\git_history_import.versions.list.example.txt
+tools\git_history_import.layout.example.txt
+tools\git_history_import.repository.example.txt
 ```
 
 The exclude file contains one source name/path glob per line. Blank lines and `#` comments are ignored.
@@ -253,14 +272,24 @@ A source archive or folder may be passed as the first positional argument:
 
 This is equivalent to `setup --source PATH`.
 
-For a file source such as `Project.zip`, the preferred companion files beside it are `Project.zip.layout.txt`, `Project.zip.exclude.txt`, and `Project.zip.versions.txt`. For a folder source such as `Project`, the preferred files inside the source folder are `Project\Project.layout.txt`, `Project\Project.exclude.txt`, and `Project\Project.versions.txt`; sibling `Project.TYPE.txt` files are also accepted. If no exact companion is present, a unique `*.TYPE.txt` in the applicable search folder may be used. Multiple wildcard candidates are an error rather than a guess.
+For a file source such as `Project.zip`, the preferred companion files beside it are `Project.zip.layout.txt`, `Project.zip.exclude.txt`, `Project.zip.versions.txt`, and `Project.zip.repository.txt`. For a folder source such as `Project`, the preferred files inside the source folder are `Project\Project.layout.txt`, `Project\Project.exclude.txt`, `Project\Project.versions.txt`, and `Project\Project.repository.txt`; sibling `Project.TYPE.txt` files are also accepted. If no exact companion is present, a unique `*.TYPE.txt` in the applicable search folder may be used. Multiple wildcard candidates are an error rather than a guess.
 
-Explicit `--layout`, `--exclude-list`, and `--versions` values override automatic discovery.
+Explicit `--layout`, `--exclude-list`, `--versions`, and `--repository` values override automatic discovery.
 
 A `.layout.txt` file contains exactly one active line after blank lines and `#` comments are ignored. That line may be the name of a source revision archive, a ZIP path, or a folder path.
 
 
 ## Version history
+
+### 0.4.0
+
+- Added `.repository.txt` companion discovery and `--repository FILE|OWNER/NAME`.
+- Decoupled the live publish target from an inherited bootstrap/template `origin`.
+- Added guided target-repository selection when the current origin is not writable by the authenticated account.
+- Added GitHub repository existence detection and guided creation with public/private/internal visibility and optional description.
+- Added guided `origin` replacement/addition followed by push-permission verification on the final target.
+- Added repository configuration to importer state, status output, and diagnostic bundles.
+- Existing successful dryrun/rehearsal state can resume directly at `publish` after upgrading.
 
 ### 0.3.9
 

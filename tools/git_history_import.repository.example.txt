@@ -1,0 +1,9 @@
+# git_history_import GitHub repository target
+# owner and name are required unless repository=owner/name is used.
+# visibility: public, private, or internal
+# create: ask, yes, or no
+owner=example-owner
+name=example-repository
+visibility=public
+create=ask
+description=Example repository created for reconstructed Git history.
