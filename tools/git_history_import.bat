@@ -1,6 +1,6 @@
 @echo off
 :setup
-set "app.version=0.3.8"
+set "app.version=0.3.9"
 set "app.name=git_history_import"
 set "app.self=%~f0"
 set "app.rc=0"
@@ -97,7 +97,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ToolVersion = '0.3.8'
+$ToolVersion = '0.3.9'
 $StateSchema = 'git-history-import-state/v1'
 $PlanSchema = 'history-import-plan/v1'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
@@ -1449,13 +1449,79 @@ function Phase-Passed {
     return ($null -ne $p -and [bool]$p.ok)
 }
 
+
+function Ensure-ImporterPackageIgnored {
+    param([string]$Root)
+    $gd=Get-GitDirectory $Root
+    if(-not $gd){return}
+    $exclude=Join-Path (Join-Path $gd 'info') 'exclude'
+    $old=''
+    if(Test-Path -LiteralPath $exclude -PathType Leaf){$old=Get-Content -LiteralPath $exclude -Raw -Encoding UTF8}
+    $line='/git_history_import-*-tool-only.zip'
+    if($old -notmatch [regex]::Escape($line)){
+        if($old -and -not $old.EndsWith("`n")){$old+="`n"}
+        Write-Utf8File $exclude ($old+'# git_history_import local update packages'+"`n"+$line+"`n")
+    }
+}
+
+function Get-PublishWorktreeState {
+    param([string]$Root)
+    $status=Invoke-Git $Root @('status','--porcelain')
+    $ownedTracked=@(
+        'tools/git_history_import.bat',
+        'tools/git_history_import.md',
+        'tools/git_history_import.exclude.list.example.txt',
+        'tools/git_history_import.versions.list.example.txt',
+        'tools/git_history_import.layout.example.txt'
+    )
+    $owned=@()
+    $unknown=@()
+    $packages=@()
+    $lines=$status.Output -split "`r?`n"
+    foreach($line in $lines){
+        if(-not $line){continue}
+        if($line.Length -lt 4){$unknown+=,$line;continue}
+        $code=$line.Substring(0,2)
+        $path=$line.Substring(3).Trim().Replace('\','/')
+        if($code -eq '??' -and $path -match '^git_history_import-[^/]+-tool-only\.zip$'){$packages+=,$path;continue}
+        if($ownedTracked -contains $path){$owned+=,$path;continue}
+        $unknown+=,$line
+    }
+    return [pscustomobject]@{Owned=$owned;Unknown=$unknown;Packages=$packages;Raw=$status.Output}
+}
+
+function Ensure-PublishWorktreeClean {
+    param([string]$Root)
+    Ensure-ImporterPackageIgnored $Root
+    $state=Get-PublishWorktreeState $Root
+    if($state.Unknown.Count -gt 0){throw "Live repository must be clean before publish.`n$($state.Unknown -join "`n")"}
+    if($state.Packages.Count -gt 0){
+        foreach($package in $state.Packages){Write-Info ('Local importer package ignored for Git cleanliness: '+$package)}
+    }
+    if($state.Owned.Count -gt 0){
+        Write-Warn 'The importer was updated after rehearsal and its tracked files are not committed.'
+        foreach($path in $state.Owned){Write-Host ('  '+$path) -ForegroundColor Yellow}
+        if(-not(Read-YesNo ('Commit git_history_import '+$ToolVersion+' update locally before publish') $true)){
+            Write-Warn 'Publication cancelled because the live repository is not clean.'
+            return $false
+        }
+        $addArgs=@('add','--')+$state.Owned
+        [void](Invoke-Git $Root $addArgs)
+        $commit=Invoke-Git $Root @('commit','-m',('Update git_history_import to '+$ToolVersion)) -AllowFailure
+        if($commit.Rc -ne 0){throw "Could not commit the importer update before publish.`n$($commit.Output)"}
+        Write-Ok ('Committed importer update: '+((Invoke-Git $Root @('rev-parse','--short=12','HEAD')).Output.Trim()))
+    }
+    $remaining=Invoke-Git $Root @('status','--porcelain')
+    if($remaining.Output.Trim()){throw "Live repository must be clean before publish.`n$($remaining.Output)"}
+    return $true
+}
+
 function Invoke-ReplayAction {
     param([string]$Mode,[string]$Root,[string]$WorkFolder,$State)
     if($Mode -eq 'publish'){
         if(-not(Phase-Passed $State 'dryrun')){throw 'Publish is blocked until dryrun has passed.'}
         if(-not(Phase-Passed $State 'rehearse')){throw 'Publish is blocked until rehearsal has passed.'}
-        $st=Invoke-Git $Root @('status','--porcelain')
-        if($st.Output.Trim()){throw "Live repository must be clean before publish.`n$($st.Output)"}
+        if(-not(Ensure-PublishWorktreeClean $Root)){return 0}
         $o=Invoke-Git $Root @('remote','get-url','origin') -AllowFailure
         if($o.Rc -ne 0 -or -not $o.Output.Trim()){throw 'Publish target has no origin remote.'}
         $origin=$o.Output.Trim()
