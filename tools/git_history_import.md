@@ -1,6 +1,6 @@
 # git_history_import
 
-**Version:** 0.5.0
+**Version:** 0.6.0
 
 `git_history_import` reconstructs and publishes Git history from complete archived project revisions.
 
@@ -61,11 +61,14 @@ Options:
 --repository FILE|OWNER/NAME
 --work-folder PATH
 --import-all
+--no-layout
 ```
 
 The source may be a directory of revision ZIPs, a directory of revision folders/ZIPs, or an outer ZIP containing nested revision ZIPs/top-level revision folders.
 
 The optional layout may be an external folder, external ZIP, or the filename of any revision ZIP in the history source. A layout revision is a placement reference only and does not need to be selected in the versions list or published as a Git commit. If no final layout is selected, each revision keeps its own paths and each new snapshot becomes the complete managed project state for that revision.
+
+`--no-layout` forces identity layout and suppresses `.layout.txt` auto-discovery. This is intended for controlled A/B validation where the same source is tested once with canonical path normalization and once with each archived revision's original paths.
 
 Example — deliberately a real one-line `cmd.exe` command:
 
@@ -146,6 +149,48 @@ Before any history commit is created, publish fetches the target branch and veri
 After approval, publish reconstructs and verifies every selected history commit locally using `core.autocrlf=false`. The remote branch is updated only once, after all commits have been created and blob-verified. This avoids partial remote publication. If the final push fails, the completed local history is retained and a later `publish` can retry only the final push when the report and local HEAD still match.
 
 0.5.0 also recognizes the specific 0.4.x failure mode where revision 1 was committed locally but its per-revision push was rejected. It offers to restore the pre-publish local HEAD while preserving an in-place importer update, so an already successful dry run and rehearsal do not need to be repeated.
+
+### next
+
+```bat
+tools\git_history_import next 0.21.3
+tools\git_history_import next 0.21.4 0.21.5
+tools\git_history_import next --reset 0.21.3
+tools\git_history_import next "D:\history\Project-1.2.1.zip"
+```
+
+`next` is a **read-only continuation check**. It takes one or more later revisions, applies the currently active layout mapping, and reports each normalized file count, delta from the preceding snapshot, and normalized tree hash. Inputs may be a numeric version present in the prepared source, an archive filename, or a ZIP path.
+
+The first invocation starts from the last revision selected by the active versions plan. A successful invocation records a continuation chain under `logs\next\report.json`, so a later `next` call continues from the last checked revision without changing Git. Use `--reset` to discard that check chain and start again from the selected history baseline.
+
+`next` does not create commits, change the repository, or push anything. This makes it suitable for checking a later revision individually, then checking a group of later revisions sequentially, before deciding how they should be added to published history.
+
+### repozip
+
+```bat
+tools\git_history_import repozip 0.19.3
+tools\git_history_import repozip 0.19.3 --output "D:\checks\mvsexplorer-v0.19.3.zip"
+```
+
+`repozip` resolves the unique Git commit whose subject begins with the requested `vVERSION` token and exports that complete repository tree with `git archive`. By default the ZIP is written to the directory from which the importer was launched.
+
+The exported ZIP intentionally contains the complete repository snapshot, including framework/tooling files that are not part of the archived project payload.
+
+### compare / check
+
+```bat
+tools\git_history_import compare 0.19.3
+tools\git_history_import check 0.19.3
+tools\git_history_import compare 0.19.3 --repo-zip "D:\checks\mvsexplorer-v0.19.3.zip"
+```
+
+`compare` and `check` are aliases.
+
+The command loads the original source revision from the active setup, applies the active layout mapping, and compares those managed project files by SHA-256 with the repository ZIP. If `--repo-zip` is omitted, a fresh repository ZIP for that version is created automatically in the launch directory first.
+
+A comparison passes only when every layout-normalized source file is present with identical bytes. Repository-only framework/tooling files are counted and reported separately as extras; they do not make the managed-project comparison fail.
+
+The JSON report is written under `logs\compare\VERSION.json`.
 
 ### status
 
@@ -246,6 +291,14 @@ The BAT follows the project Batch File Style Guide:
 - Reusable batch functions have documentation/version blocks.
 - The PowerShell fallback is embedded between labels inside the BAT and executed through `:RunPowerShellFromLabel`; no `.ps1` file is generated.
 - The BAT is UTF-8 without BOM with CRLF line endings.
+
+## 0.6.0
+
+- added `next` for read-only validation of one or more later revision ZIPs against the active layout;
+- added `repozip VERSION` to export the complete repository snapshot at any imported version;
+- added `compare VERSION` / `check VERSION` to compare a repository ZIP with the original revision after layout normalization;
+- repository-only framework/tooling files are reported separately from managed project files during comparison;
+- added `--no-layout` to force identity-layout testing even when a `.layout.txt` companion is present.
 
 ## 0.5.0
 
