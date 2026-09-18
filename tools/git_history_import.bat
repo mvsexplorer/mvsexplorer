@@ -1,6 +1,6 @@
 @echo off
 :setup
-set "app.version=0.3.6"
+set "app.version=0.3.7"
 set "app.name=git_history_import"
 set "app.self=%~f0"
 set "app.rc=0"
@@ -97,7 +97,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ToolVersion = '0.3.6'
+$ToolVersion = '0.3.7'
 $StateSchema = 'git-history-import-state/v1'
 $PlanSchema = 'history-import-plan/v1'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
@@ -160,13 +160,38 @@ function Write-JsonFile {
 function Invoke-Captured {
     param([string]$File, [string[]]$Arguments, [string]$WorkingDirectory)
     $old = Get-Location
+    $oldPreference = $ErrorActionPreference
     try {
         if ($WorkingDirectory) { Set-Location -LiteralPath $WorkingDirectory }
+        # Windows PowerShell 5.1 can promote harmless native stderr to a terminating
+        # ErrorRecord when ErrorActionPreference is Stop. Native success is determined
+        # by the process exit code, so capture stderr under Continue and inspect rc.
+        $ErrorActionPreference = 'Continue'
+        $global:LASTEXITCODE = 0
         $output = & $File @Arguments 2>&1 | ForEach-Object { $_.ToString() }
         $rc = $LASTEXITCODE
         if ($null -eq $rc) { $rc = 0 }
         return [pscustomobject]@{ Rc=[int]$rc; Output=($output -join "`n") }
     } finally {
+        $ErrorActionPreference = $oldPreference
+        Set-Location -LiteralPath $old
+    }
+}
+
+function Invoke-CmdStreaming {
+    param([string]$Command,[string]$WorkingDirectory)
+    $old=Get-Location
+    $oldPreference=$ErrorActionPreference
+    try{
+        if($WorkingDirectory){Set-Location -LiteralPath $WorkingDirectory}
+        $ErrorActionPreference='Continue'
+        $global:LASTEXITCODE=0
+        & $env:ComSpec /d /s /c $Command 2>&1 | ForEach-Object { Write-Host $_ }
+        $rc=$LASTEXITCODE
+        if($null -eq $rc){$rc=0}
+        return [int]$rc
+    }finally{
+        $ErrorActionPreference=$oldPreference
         Set-Location -LiteralPath $old
     }
 }
@@ -412,7 +437,7 @@ function Remove-TreeRobust {
     $last = $null
     for ($attempt=1; $attempt -le 8; $attempt++) {
         try {
-            & attrib.exe -R "$Path\*" /S /D 2>$null | Out-Null
+            Invoke-Captured 'attrib.exe' @('-R',($Path+'\*'),'/S','/D') $null | Out-Null
             Remove-Item -LiteralPath $Path -Recurse -Force -ErrorAction Stop
             return
         } catch {
@@ -1175,26 +1200,26 @@ function Replay-History {
         $managed=[System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
         $watch=[Diagnostics.Stopwatch]::StartNew();$total=@($plan.revisions).Count;$i=0
         foreach($rev in @($plan.revisions)){
-            $i++;Write-Host ('[{0:D2}/{1:D2}] ' -f $i,$total) -NoNewline -ForegroundColor Cyan;Write-Host ([string]$rev.version+'  ') -NoNewline -ForegroundColor Cyan;Write-Host $rev.archive
-            Write-Host '          commit message: ' -NoNewline -ForegroundColor Magenta;Write-Host $rev.subject -ForegroundColor White
-            Write-Host '          materialize...' -ForegroundColor Cyan
+            $i++;Write-Host ('[{0:D2}/{1:D2}] ' -f $i,$total) -NoNewline -ForegroundColor Cyan;Write-Host ([string]$rev.version+'  ') -NoNewline -ForegroundColor Cyan;Write-Host ([string]$rev.archive+' : ') -NoNewline -ForegroundColor White;Write-Host $rev.subject -ForegroundColor Magenta
+            Write-Host '   materialize... ' -NoNewline -ForegroundColor Cyan
             $cur=Get-ArchiveSnapshot $State.source $rev $moves $true
             $action=Apply-Snapshot $target $prev $cur $managed @($plan.policies.replaceUnmanagedPaths)
+            Write-Host 'OK  ' -NoNewline -ForegroundColor Green
             $managed=[System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal);foreach($k in $cur.Keys){$managed.Add($k)|Out-Null}
             $audit=Invoke-Git $target @('diff','--check') -AllowFailure;$msg=New-MessageFile $logDir $rev;$commit=''
             if($Mode -eq 'rehearse'){
-                Write-Host '          stage...' -ForegroundColor Cyan;Invoke-Git $target @('-c','core.autocrlf=false','add','-A')|Out-Null
-                Write-Host '          commit...' -ForegroundColor Cyan;Invoke-Git $target @('commit','-F',$msg)|Out-Null
+                Write-Host 'stage... ' -NoNewline -ForegroundColor Cyan;Invoke-Git $target @('-c','core.autocrlf=false','add','-A')|Out-Null;Write-Host 'OK  ' -NoNewline -ForegroundColor Green
+                Write-Host 'commit... ' -NoNewline -ForegroundColor Cyan;Invoke-Git $target @('commit','-F',$msg)|Out-Null;Write-Host 'OK  ' -NoNewline -ForegroundColor Green
                 $commit=(Invoke-Git $target @('rev-parse','--short=12','HEAD')).Output.Trim()
-                Write-Host '          verify committed blobs...' -ForegroundColor Cyan;Verify-CommittedBlobs $target $cur
+                Write-Host 'verify committed blobs... ' -NoNewline -ForegroundColor Cyan;Verify-CommittedBlobs $target $cur;Write-Host 'OK  ' -NoNewline -ForegroundColor Green
                 if((Invoke-Git $target @('status','--porcelain')).Output.Trim()){throw "Rehearsal worktree not clean after commit $($rev.order)."}
             }else{
-                Write-Host '          publish...' -ForegroundColor Yellow
+                Write-Host 'publish...' -ForegroundColor Yellow
                 $publisher=Join-Path $target 'just_publish.bat';if(-not(Test-Path -LiteralPath $publisher -PathType Leaf)){throw "Publisher not found: $publisher"}
                 $oldExact=$env:HISTORY_IMPORT_EXACT;$env:HISTORY_IMPORT_EXACT='1'
                 try{
                     $cmd='call "'+$publisher+'" historyexact yes messagefile "'+$msg+'" PUBLISH COMMIT'
-                    $old=Get-Location;try{Set-Location -LiteralPath $target;& $env:ComSpec /d /s /c $cmd 2>&1 | ForEach-Object { Write-Host $_ };$rc=$LASTEXITCODE}finally{Set-Location -LiteralPath $old}
+                    $rc=Invoke-CmdStreaming $cmd $target
                 }finally{$env:HISTORY_IMPORT_EXACT=$oldExact}
                 if($rc -ne 0){throw "just_publish failed for revision $($rev.order) ($($rev.archive)) with rc=$rc"}
                 $commit=(Invoke-Git $target @('rev-parse','--short=12','HEAD')).Output.Trim();Verify-CommittedBlobs $target $cur
@@ -1202,7 +1227,8 @@ function Replay-History {
             }
             $report.revisions.Add([pscustomobject][ordered]@{order=$rev.order;archive=$rev.archive;version=$rev.version;files=$cur.Count;treeSha256=Get-StableTreeHash $cur;delta=Get-Delta $prev $cur;subject=$rev.subject;messageFile=$msg;written=$action.written;deleted=$action.deleted;verified=$action.verified;diffCheckRc=$audit.Rc;diffCheckLines=@($audit.Output -split "`r?`n"|Where-Object{$_.Trim()}).Count;commit=$commit})
             $prev=$cur
-            Write-Host '          OK ' -NoNewline -ForegroundColor Green;Write-Host 'commit=' -NoNewline -ForegroundColor DarkGray;Write-Host $commit -NoNewline -ForegroundColor Yellow;Write-Host ('  '+(Get-ProgressText $watch $i $total)) -ForegroundColor DarkGray
+            if($Mode -eq 'rehearse'){Write-Host 'commit=' -NoNewline -ForegroundColor DarkGray;Write-Host $commit -NoNewline -ForegroundColor Yellow;Write-Host ('  '+(Get-ProgressText $watch $i $total)) -ForegroundColor DarkGray}else{Write-Host ('   OK commit='+$commit+'  '+(Get-ProgressText $watch $i $total)) -ForegroundColor Green}
+            Write-Report $logDir $report
         }
         $report.ok=$true;Write-Report $logDir $report
     }catch{$report.ok=$false;$report|Add-Member -NotePropertyName error -NotePropertyValue $_.Exception.Message -Force;try{Write-Report $logDir $report}catch{};throw}
@@ -1253,13 +1279,34 @@ function Write-LastError {
     Write-Utf8File (Join-Path $WorkFolder 'last-error.txt') $sb.ToString()
 }
 
-function Invoke-Logs {
-    param([string]$Root,[string]$WorkOverride)
+function Ensure-LogBundleIgnored {
+    param([string]$Root,[string]$OutputFolder)
+    $gd=Get-GitDirectory $Root
+    if(-not $gd){return}
+    $rootFull=[IO.Path]::GetFullPath($Root).TrimEnd('\')
+    $outFull=[IO.Path]::GetFullPath($OutputFolder).TrimEnd('\')
+    if(-not $outFull.Equals($rootFull,[StringComparison]::OrdinalIgnoreCase) -and -not $outFull.StartsWith($rootFull+'\',[StringComparison]::OrdinalIgnoreCase)){return}
+    $relative=if($outFull.Equals($rootFull,[StringComparison]::OrdinalIgnoreCase)){''}else{$outFull.Substring($rootFull.Length+1).Replace('\','/').Trim('/')}
+    $line=if($relative){'/'+$relative+'/git_history_import.*.logs.zip'}else{'/git_history_import.*.logs.zip'}
+    $exclude=Join-Path (Join-Path $gd 'info') 'exclude'
+    $old=''
+    if(Test-Path -LiteralPath $exclude -PathType Leaf){$old=Get-Content -LiteralPath $exclude -Raw -Encoding UTF8}
+    $marker='# git_history_import automatic log bundles'
+    if($old -notmatch [regex]::Escape($line)){
+        if($old -and -not $old.EndsWith("`n")){$old+="`n"}
+        Write-Utf8File $exclude ($old+$marker+"`n"+$line+"`n")
+    }
+}
+
+function New-LogBundle {
+    param([string]$Root,[string]$WorkOverride,[string]$OutputFolder,[string]$RunLog,[string[]]$CommandArgs,[int]$ExitCode)
     $workFolder=Resolve-WorkFolder $Root $WorkOverride
-    $projectLog=Join-Path (Join-Path $Root 'tools') 'logs'
-    [IO.Directory]::CreateDirectory($projectLog)|Out-Null
-    $stamp=(Get-Date).ToString('yyyy-MM-dd.HHmmss')
-    $zipPath=Join-Path $projectLog ('git_history_import.'+$stamp+'.zip')
+    if(-not $OutputFolder){$OutputFolder=(Get-Location).Path}
+    $OutputFolder=[IO.Path]::GetFullPath($OutputFolder)
+    [IO.Directory]::CreateDirectory($OutputFolder)|Out-Null
+    Ensure-LogBundleIgnored $Root $OutputFolder
+    $stamp=(Get-Date).ToString('yyyy-MM-dd.HHmmss.fff')
+    $zipPath=Join-Path $OutputFolder ('git_history_import.'+$stamp+'.logs.zip')
     $fs=[IO.File]::Create($zipPath)
     $archive=[IO.Compression.ZipArchive]::new($fs,[IO.Compression.ZipArchiveMode]::Create,$false)
     try{
@@ -1267,14 +1314,21 @@ function Invoke-Logs {
         [void]$summary.AppendLine('git_history_import diagnostic bundle')
         [void]$summary.AppendLine('Tool version: '+$ToolVersion)
         [void]$summary.AppendLine('Created: '+(Get-UtcText))
+        [void]$summary.AppendLine('Exit code: '+$ExitCode)
+        [void]$summary.AppendLine('Launch directory: '+$script:LaunchDirectory)
         [void]$summary.AppendLine('Repository: '+$Root)
         [void]$summary.AppendLine('Work folder: '+$workFolder)
+        [void]$summary.AppendLine('Command arguments: '+($CommandArgs -join ' '))
+        [void]$summary.AppendLine('PowerShell: '+$PSVersionTable.PSVersion.ToString())
         $gh=Get-GithubStatus $Root
         [void]$summary.AppendLine('GitHub: '+$gh.Status+$(if($gh.Account){' ('+$gh.Account+')'}else{''}))
         $origin=Invoke-Git $Root @('remote','get-url','origin') -AllowFailure
         if($origin.Rc -eq 0){[void]$summary.AppendLine('origin: '+$origin.Output.Trim())}
+        $status=Invoke-Git $Root @('status','--short','--branch') -AllowFailure
+        if($status.Output.Trim()){[void]$summary.AppendLine();[void]$summary.AppendLine('git status --short --branch');[void]$summary.AppendLine($status.Output.TrimEnd())}
         Add-ZipText $archive 'diagnostic-summary.txt' $summary.ToString()
         Add-ZipFile $archive $env:rps_self 'tool/git_history_import.bat'
+        if($RunLog){Add-ZipFile $archive $RunLog 'run/console-transcript.txt'}
         foreach($name in @('git_history_import.state.json','candidate-plan.json','plan.json','EXCLUDED-ARCHIVES.txt','COMMIT-MESSAGES.txt','last-error.txt')){
             Add-ZipFile $archive (Join-Path $workFolder $name) ('work/'+$name)
         }
@@ -1292,9 +1346,7 @@ function Invoke-Logs {
             }
         }
     }finally{$archive.Dispose();$fs.Dispose()}
-    Write-Ok 'LOG BUNDLE CREATED'
-    Write-InfoPair 'ZIP:' $zipPath Cyan
-    return 0
+    return $zipPath
 }
 
 function Find-Gh {
@@ -1484,7 +1536,7 @@ function Invoke-Relogin {
         $r=Invoke-Captured $gh $ghArgs $Root;if($r.Rc -ne 0){throw "GitHub logout failed.`n$($r.Output)"}
     }
     $login=Join-Path $Root 'just_login.bat'
-    if(Test-Path -LiteralPath $login -PathType Leaf){$cmd='call "'+$login+'" authenticate';$old=Get-Location;try{Set-Location -LiteralPath $Root;& $env:ComSpec /d /s /c $cmd 2>&1 | ForEach-Object { Write-Host $_ };$rc=$LASTEXITCODE}finally{Set-Location -LiteralPath $old}}
+    if(Test-Path -LiteralPath $login -PathType Leaf){$cmd='call "'+$login+'" authenticate';$rc=Invoke-CmdStreaming $cmd $Root}
     else{$r=Invoke-Captured $gh @('auth','login','-h','github.com','-p','https','-w') $Root;$rc=$r.Rc}
     if($rc -ne 0){throw 'GitHub login failed.'}
     $status=Get-GithubStatus $Root;Write-InfoPair 'GitHub:' ($status.Status+' ('+$status.Account+')') Green;return 0
@@ -1528,7 +1580,8 @@ function Show-Help {
     Write-Host '  dryrun changes no repository.'
     Write-Host '  rehearse commits into a disposable local repository.'
     Write-Host '  publish modifies the live repository and pushes.' -ForegroundColor Yellow
-    Write-Host '  logs creates a diagnostic ZIP under tools\logs.'
+    Write-Host '  Every non-help run creates a diagnostic ZIP in the launch directory.'
+    Write-Host '  logs creates the same bundle on demand.'
     Write-Host ''
     Write-Host 'EXAMPLES' -ForegroundColor Cyan
     Write-Host '  tools\git_history_import "D:\history\Project.zip"'
@@ -1581,15 +1634,24 @@ function Main {
         'status' { return (Invoke-Status $root (Get-Option $opts 'work-folder')) }
         'reset' { return (Invoke-Reset $root (Get-Option $opts 'work-folder')) }
         'relogin' { return (Invoke-Relogin $root) }
-        'logs' { return (Invoke-Logs $root (Get-Option $opts 'work-folder')) }
+        'logs' { $script:BundleWorkOverride=Get-Option $opts 'work-folder';return 0 }
         default { Write-Fail "Unknown command: $cmd";Show-Help;return 2 }
     }
 }
 
+$script:LaunchDirectory=(Get-Location).Path
+$script:RunTranscriptPath=Join-Path ([IO.Path]::GetTempPath()) ('git_history_import.'+$PID+'.'+(Get-Date).ToString('yyyyMMddHHmmssfff')+'.log')
+$script:RunTranscriptStarted=$false
+$script:BundleWorkOverride=$null
+$script:RunRc=1
+$helpOnly=($CliArgs.Count -eq 0 -or $CliArgs[0] -in @('/?','/h','-?','-h','--help'))
+if(-not $helpOnly){
+    try{Start-Transcript -Path $script:RunTranscriptPath -Force|Out-Null;$script:RunTranscriptStarted=$true}catch{}
+}
 try {
-    $rc=Main $CliArgs
-    exit [int]$rc
+    $script:RunRc=[int](Main $CliArgs)
 } catch {
+    $script:RunRc=1
     Write-Host ''
     Write-Fail ('ERROR: '+$_.Exception.Message)
     try{
@@ -1597,8 +1659,20 @@ try {
         $diagWork=if($script:CurrentWorkFolder){$script:CurrentWorkFolder}else{Resolve-WorkFolder $diagRoot $null}
         Write-LastError $diagRoot $diagWork $_ $CliArgs
         Write-Host ('Diagnostic: '+(Join-Path $diagWork 'last-error.txt')) -ForegroundColor DarkGray
-        Write-Host 'Run: tools\git_history_import logs' -ForegroundColor Yellow
     }catch{}
-    exit 1
+} finally {
+    if($script:RunTranscriptStarted){try{Stop-Transcript|Out-Null}catch{}}
+    if(-not $helpOnly){
+        try{
+            $bundleRoot=if($script:CurrentRoot){$script:CurrentRoot}else{Get-RepositoryRoot}
+            $bundleWork=if($script:BundleWorkOverride){$script:BundleWorkOverride}elseif($script:CurrentWorkFolder){$script:CurrentWorkFolder}else{$null}
+            $bundle=New-LogBundle $bundleRoot $bundleWork $script:LaunchDirectory $script:RunTranscriptPath $CliArgs $script:RunRc
+            Write-Host ''
+            if($script:RunRc -eq 0){Write-Ok 'LOG BUNDLE CREATED'}else{Write-Warn 'FAILURE LOG BUNDLE CREATED'}
+            Write-InfoPair 'ZIP:' $bundle Cyan
+        }catch{Write-Warn ('Could not create automatic log bundle: '+$_.Exception.Message)}
+        try{if(Test-Path -LiteralPath $script:RunTranscriptPath){Remove-Item -LiteralPath $script:RunTranscriptPath -Force}}catch{}
+    }
 }
+exit [int]$script:RunRc
 :_GitHistoryImport_end

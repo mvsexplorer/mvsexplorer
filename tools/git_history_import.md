@@ -1,6 +1,6 @@
 # git_history_import
 
-**Version:** 0.3.6
+**Version:** 0.3.7
 
 `git_history_import` reconstructs and publishes Git history from complete archived project revisions.
 
@@ -149,15 +149,24 @@ Relogin logs out the current GitHub account and invokes the framework authentica
 
 ## Diagnostics
 
-`tools\git_history_import logs` creates a diagnostic ZIP under the project-local ignored log folder:
+Every non-help invocation starts a console transcript and, on either success or failure, creates one diagnostic ZIP in the directory from which `tools\git_history_import` was launched:
 
 ```text
-tools\logs\git_history_import.YYYY-MM-DD.HHMMSS.zip
+git_history_import.YYYY-MM-DD.HHMMSS.mmm.logs.zip
 ```
 
-The bundle includes importer state, candidate/final plans, phase reports, review/message files, the most recent `last-error.txt`, companion configuration files when available, and the current importer BAT. It does **not** include the source history archive, source cache, or rehearsal repository.
+`tools\git_history_import logs` creates the same bundle on demand.
 
-Fatal importer errors write `last-error.txt` into the active work folder and print the `logs` command to use for packaging diagnostics.
+The bundle includes the console transcript, importer state, candidate/final plans, phase reports, review/message files, the most recent `last-error.txt`, companion configuration files when available, repository status/origin summary, PowerShell version, command arguments, and the current importer BAT. It does **not** include the source history archive, source cache, or rehearsal repository.
+
+When the launch directory is inside the Git repository, the generated ZIP pattern is added to `.git\info\exclude` so diagnostics do not dirty the worktree or block a later publish.
+
+Fatal importer errors still write `last-error.txt` into the active work folder; the automatic end-of-run ZIP normally makes a separate recovery command unnecessary.
+
+
+## Rehearsal progress
+
+Rehearsal output uses two lines per revision. The first line contains the revision/archive and commit subject. The second line keeps materialize/stage/commit/blob-verification progress inline and marks each completed step `OK`, followed by the commit hash, elapsed time, and estimated remaining time.
 
 
 ## Work folder
@@ -248,6 +257,15 @@ A `.layout.txt` file contains exactly one active line after blank lines and `#` 
 
 
 ## Version history
+
+### 0.3.7
+
+- Fixed Windows PowerShell 5.1 native-command capture so harmless stderr from successful commands, including Git automatic packing notices, is not promoted to a fatal importer error.
+- Added an automatic console transcript and end-of-run diagnostic ZIP for every non-help invocation.
+- Diagnostic ZIPs are written to the launch/current directory and ignored through `.git\info\exclude` when that directory is inside the repository.
+- Added incremental phase-report writes after each completed replay revision.
+- Compacted rehearsal progress to two lines per revision with inline `materialize`, `stage`, `commit`, and blob-verification status.
+
 
 ### 0.3.5
 
