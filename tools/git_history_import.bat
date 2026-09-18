@@ -1,6 +1,6 @@
 @echo off
 :setup
-set "app.version=0.3.7"
+set "app.version=0.3.8"
 set "app.name=git_history_import"
 set "app.self=%~f0"
 set "app.rc=0"
@@ -97,7 +97,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ToolVersion = '0.3.7'
+$ToolVersion = '0.3.8'
 $StateSchema = 'git-history-import-state/v1'
 $PlanSchema = 'history-import-plan/v1'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
@@ -1385,6 +1385,64 @@ function Test-GithubPushPermission {
     return [pscustomobject]@{Known=$false;Allowed=$false;Detail=('unexpected permission response: '+$r.Output.Trim())}
 }
 
+function Ensure-GithubCli {
+    param([string]$Root)
+    $gh=Find-Gh $Root
+    if($gh){return [pscustomobject]@{Ready=$true;Cancelled=$false;Gh=$gh}}
+    Write-Warn 'GitHub CLI is required for publication but was not found.'
+    if(-not(Read-YesNo 'Install GitHub CLI now' $true)){
+        Write-Warn 'Publication cancelled before GitHub CLI installation.'
+        return [pscustomobject]@{Ready=$false;Cancelled=$true;Gh=$null}
+    }
+    $installer=Join-Path (Join-Path $Root 'tools') 'GetGithubCLI.bat'
+    if(-not(Test-Path -LiteralPath $installer -PathType Leaf)){throw "GitHub CLI installer was not found: $installer"}
+    Write-Host 'Installing GitHub CLI...' -ForegroundColor Cyan
+    $rc=Invoke-CmdStreaming ('call "'+$installer+'"') $Root
+    if($rc -ne 0){throw "GitHub CLI installation failed with rc=$rc."}
+    $gh=Find-Gh $Root
+    if(-not $gh){throw 'GitHub CLI installation completed, but gh.exe still could not be found.'}
+    Write-Ok ('GitHub CLI ready: '+$gh)
+    return [pscustomobject]@{Ready=$true;Cancelled=$false;Gh=$gh}
+}
+
+function Invoke-GithubAuthenticate {
+    param([string]$Root,[string]$Gh)
+    $login=Join-Path (Join-Path $Root 'tools') 'just_login.bat'
+    if(Test-Path -LiteralPath $login -PathType Leaf){
+        $oldPath=$env:PATH
+        try{
+            $ghDir=Split-Path -Parent $Gh
+            if($ghDir){$env:PATH=$ghDir+';'+$env:PATH}
+            return (Invoke-CmdStreaming ('call "'+$login+'" authenticate prepared yes pause no') $Root)
+        }finally{$env:PATH=$oldPath}
+    }
+    Write-Warn 'Framework login helper not found; using GitHub CLI login directly.'
+    $rc=Invoke-CmdStreaming ('"'+$Gh+'" auth login -h github.com -p https -w') $Root
+    if($rc -ne 0){return $rc}
+    $setup=Invoke-Captured $Gh @('auth','setup-git','--hostname','github.com') $Root
+    return $setup.Rc
+}
+
+function Ensure-GithubReady {
+    param([string]$Root)
+    $cli=Ensure-GithubCli $Root
+    if(-not $cli.Ready){return [pscustomobject]@{Ready=$false;Cancelled=$true;Status=$null;Gh=$null}}
+    $status=Get-GithubStatus $Root
+    if($status.Status -ne 'logged in'){
+        Write-Warn 'GitHub login is required before publication.'
+        if(-not(Read-YesNo 'Login to GitHub now' $true)){
+            Write-Warn 'Publication cancelled before GitHub login.'
+            return [pscustomobject]@{Ready=$false;Cancelled=$true;Status=$status;Gh=$cli.Gh}
+        }
+        $rc=Invoke-GithubAuthenticate $Root $cli.Gh
+        if($rc -ne 0){throw "GitHub login failed or was cancelled with rc=$rc."}
+        $status=Get-GithubStatus $Root
+        if($status.Status -ne 'logged in'){throw 'GitHub login completed, but authentication could not be verified.'}
+        Write-Ok ('GitHub login ready: '+$status.Account)
+    }
+    return [pscustomobject]@{Ready=$true;Cancelled=$false;Status=$status;Gh=$cli.Gh}
+}
+
 function Phase-Passed {
     param($State,[string]$Name)
     $p=$State.phases.$Name
@@ -1400,8 +1458,12 @@ function Invoke-ReplayAction {
         if($st.Output.Trim()){throw "Live repository must be clean before publish.`n$($st.Output)"}
         $o=Invoke-Git $Root @('remote','get-url','origin') -AllowFailure
         if($o.Rc -ne 0 -or -not $o.Output.Trim()){throw 'Publish target has no origin remote.'}
-        $origin=$o.Output.Trim();$ghs=Get-GithubStatus $Root
-        if($ghs.Status -ne 'logged in'){throw 'GitHub login is required before publish.'}
+        $origin=$o.Output.Trim()
+        Write-Host '';Write-Host 'PUBLISH PREFLIGHT' -ForegroundColor Cyan
+        Write-InfoPair 'origin:' $origin Yellow
+        $ready=Ensure-GithubReady $Root
+        if(-not $ready.Ready){return 0}
+        $ghs=$ready.Status
         $perm=Test-GithubPushPermission $Root $origin
         if(-not $perm.Known){throw "Could not verify GitHub push permission before publish.`norigin: $origin`ndetail: $($perm.Detail)"}
         if(-not $perm.Allowed){throw "Authenticated GitHub account '$($ghs.Account)' does not have push permission to $($perm.Detail)."}
@@ -1529,17 +1591,21 @@ function Invoke-Reset {
 function Invoke-Relogin {
     param([string]$Root)
     Write-Heading 'git_history_import - GitHub relogin'
-    $gh=Find-Gh $Root;if(-not $gh){throw 'GitHub CLI was not found.'}
+    $cli=Ensure-GithubCli $Root
+    if(-not $cli.Ready){return 0}
+    $gh=$cli.Gh
     $status=Get-GithubStatus $Root
     if($status.Status -eq 'logged in'){
         $ghArgs=@('auth','logout','-h','github.com');if($status.Account -and $status.Account -ne 'authenticated'){$ghArgs+=@('-u',$status.Account)}
         $r=Invoke-Captured $gh $ghArgs $Root;if($r.Rc -ne 0){throw "GitHub logout failed.`n$($r.Output)"}
     }
-    $login=Join-Path $Root 'just_login.bat'
-    if(Test-Path -LiteralPath $login -PathType Leaf){$cmd='call "'+$login+'" authenticate';$rc=Invoke-CmdStreaming $cmd $Root}
-    else{$r=Invoke-Captured $gh @('auth','login','-h','github.com','-p','https','-w') $Root;$rc=$r.Rc}
-    if($rc -ne 0){throw 'GitHub login failed.'}
-    $status=Get-GithubStatus $Root;Write-InfoPair 'GitHub:' ($status.Status+' ('+$status.Account+')') Green;return 0
+    if(-not(Read-YesNo 'Login to GitHub now' $true)){Write-Warn 'Relogin cancelled.';return 0}
+    $rc=Invoke-GithubAuthenticate $Root $gh
+    if($rc -ne 0){throw 'GitHub login failed or was cancelled.'}
+    $status=Get-GithubStatus $Root
+    if($status.Status -ne 'logged in'){throw 'GitHub login completed, but authentication could not be verified.'}
+    Write-InfoPair 'GitHub:' ($status.Status+' ('+$status.Account+')') Green
+    return 0
 }
 
 function Show-Help {
@@ -1579,7 +1645,7 @@ function Show-Help {
     Write-Host '  Guided dryrun/rehearse prompts accept Y=run, n=stop, s=skip.'
     Write-Host '  dryrun changes no repository.'
     Write-Host '  rehearse commits into a disposable local repository.'
-    Write-Host '  publish modifies the live repository and pushes.' -ForegroundColor Yellow
+    Write-Host '  publish can install/login GitHub CLI when needed, then modifies the live repository and pushes.' -ForegroundColor Yellow
     Write-Host '  Every non-help run creates a diagnostic ZIP in the launch directory.'
     Write-Host '  logs creates the same bundle on demand.'
     Write-Host ''

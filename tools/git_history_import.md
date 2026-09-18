@@ -1,6 +1,6 @@
 # git_history_import
 
-**Version:** 0.3.7
+**Version:** 0.3.8
 
 `git_history_import` reconstructs and publishes Git history from complete archived project revisions.
 
@@ -116,7 +116,9 @@ Before each revision, the exact commit subject is printed. The full subject/body
 tools\git_history_import publish
 ```
 
-Publish is blocked until both dry run and rehearsal have passed. It requires a clean live worktree, a GitHub login, a recognized GitHub `origin`, and verified push permission for the authenticated account.
+Publish is blocked until both dry run and rehearsal have passed. It requires a clean live worktree, a recognized GitHub `origin`, and verified push permission for the authenticated account.
+
+If GitHub CLI is unavailable, publish offers to install the project-local CLI through `tools\GetGithubCLI.bat`. If GitHub authentication is missing, publish asks `Login to GitHub now [Y/n]?`, runs the framework authentication flow when accepted, verifies the authenticated account, and continues the same publish attempt without requiring another dry run or rehearsal.
 
 The target repository, origin, account, and revision count are displayed before the default-No confirmation.
 
@@ -257,6 +259,13 @@ A `.layout.txt` file contains exactly one active line after blank lines and `#` 
 
 
 ## Version history
+
+### 0.3.8
+
+- Changed live publication preflight to offer GitHub CLI installation when `gh` is unavailable instead of immediately failing.
+- Changed live publication preflight to ask `Login to GitHub now [Y/n]?` when authentication is missing, run the existing framework login flow, verify the account, and continue the same publish attempt.
+- Reused the same GitHub CLI/login helpers for `relogin`.
+- Added an early publish-preflight origin display before authentication so the remote target is visible before credentials are requested.
 
 ### 0.3.7
 
