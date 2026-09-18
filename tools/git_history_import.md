@@ -1,6 +1,6 @@
 # git_history_import
 
-**Version:** 0.4.0
+**Version:** 0.5.0
 
 `git_history_import` reconstructs and publishes Git history from complete archived project revisions.
 
@@ -139,9 +139,13 @@ If the only worktree changes are tracked `git_history_import` files from an in-p
 
 If GitHub CLI is unavailable, publish offers to install the project-local CLI through `tools\GetGithubCLI.bat`. If GitHub authentication is missing, publish asks `Login to GitHub now [Y/n]?`, runs the framework authentication flow when accepted, verifies the authenticated account, and continues the same publish attempt without requiring another dry run or rehearsal.
 
-The target repository, origin, account, and revision count are displayed before the default-No confirmation.
+The target repository, origin, account, revision count, remote branch state, and push strategy are displayed before the default-No confirmation.
 
-The framework `just_publish.bat historyexact` path is used so archived line endings and whitespace are preserved byte-for-byte.
+Before any history commit is created, publish fetches the target branch and verifies whether the final update can be a normal fast-forward. If the target branch contains incompatible existing history, publish explains the relationship and asks whether to replace that branch. Replacement is default-No and uses `--force-with-lease` tied to the exact remote tip observed during preflight; an unconditional force is never used.
+
+After approval, publish reconstructs and verifies every selected history commit locally using `core.autocrlf=false`. The remote branch is updated only once, after all commits have been created and blob-verified. This avoids partial remote publication. If the final push fails, the completed local history is retained and a later `publish` can retry only the final push when the report and local HEAD still match.
+
+0.5.0 also recognizes the specific 0.4.x failure mode where revision 1 was committed locally but its per-revision push was rejected. It offers to restore the pre-publish local HEAD while preserving an in-place importer update, so an already successful dry run and rehearsal do not need to be repeated.
 
 ### status
 
@@ -242,6 +246,15 @@ The BAT follows the project Batch File Style Guide:
 - Reusable batch functions have documentation/version blocks.
 - The PowerShell fallback is embedded between labels inside the BAT and executed through `:RunPowerShellFromLabel`; no `.ps1` file is generated.
 - The BAT is UTF-8 without BOM with CRLF line endings.
+
+## 0.5.0
+
+- changed live publication from per-revision commit-and-push to local reconstruction plus one final push;
+- added remote-branch compatibility inspection before history modification;
+- added explicit default-No replacement of incompatible existing remote history using guarded `--force-with-lease`;
+- added recovery for the 0.4.x first-revision local-commit/push-rejection failure;
+- added retry of a completed local history when only the final push failed;
+- records failed publish phase state and partial reports before returning diagnostics.
 
 ## 0.3.1
 

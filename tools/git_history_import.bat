@@ -1,6 +1,6 @@
 @echo off
 :setup
-set "app.version=0.4.0"
+set "app.version=0.5.0"
 set "app.name=git_history_import"
 set "app.self=%~f0"
 set "app.rc=0"
@@ -97,7 +97,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ToolVersion = '0.4.0'
+$ToolVersion = '0.5.0'
 $StateSchema = 'git-history-import-state/v1'
 $PlanSchema = 'history-import-plan/v1'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
@@ -933,7 +933,7 @@ function Inspect-Source {
     $plan=[pscustomobject][ordered]@{
         schema=$PlanSchema;createdUtc=Get-UtcText
         source=[pscustomobject][ordered]@{name=[IO.Path]::GetFileName($Source);type='directory';finalArchive=$finalName;excludePatterns=@($ExcludePatterns);includePatterns=@($IncludeNames);excluded=$excluded.ToArray()}
-        policies=[pscustomobject][ordered]@{preserveUnmanagedTargetFiles=$true;replaceUnmanagedPaths=@('README.md');historicalOnly='keep-original-path';exactBytes=$true;publishCommand='just_publish.bat historyexact yes messagefile <file> PUBLISH COMMIT'}
+        policies=[pscustomobject][ordered]@{preserveUnmanagedTargetFiles=$true;replaceUnmanagedPaths=@('README.md');historicalOnly='keep-original-path';exactBytes=$true;publishCommand='internal exact commit replay; single guarded final push'}
         layout=[pscustomobject][ordered]@{mode=$layoutMode;finalArchive=$finalName;referenceOnly=$layoutReferenceOnly;finalStripRoot=$finalPrefix.TrimEnd('/');finalFileCount=$finalFiles.Count;moves=$moveRecords.ToArray();historicalOnly=$historical.ToArray();ambiguous=$ambiguous.ToArray();collisions=$collisions.ToArray()}
         revisions=$revisions.ToArray()
         warnings=[pscustomobject][ordered]@{generatedHistoricalFiles=@($generated.GetEnumerator()|Sort-Object)}
@@ -1228,7 +1228,7 @@ function New-MessageFile {
 }
 
 function Replay-History {
-    param([string]$Mode,[string]$Root,[string]$WorkFolder,$State)
+    param([string]$Mode,[string]$Root,[string]$WorkFolder,$State,$PublishContext)
     $planPath=[string]$State.plan
     if(-not $planPath -or -not(Test-Path -LiteralPath $planPath)){throw 'No activated plan. Run versions first.'}
     $plan=Read-JsonFile $planPath
@@ -1273,35 +1273,27 @@ function Replay-History {
             Write-Host 'OK  ' -NoNewline -ForegroundColor Green
             $managed=[System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal);foreach($k in $cur.Keys){$managed.Add($k)|Out-Null}
             $audit=Invoke-Git $target @('diff','--check') -AllowFailure;$msg=New-MessageFile $logDir $rev;$commit=''
-            if($Mode -eq 'rehearse'){
-                Write-Host 'stage... ' -NoNewline -ForegroundColor Cyan;Invoke-Git $target @('-c','core.autocrlf=false','add','-A')|Out-Null;Write-Host 'OK  ' -NoNewline -ForegroundColor Green
-                Write-Host 'commit... ' -NoNewline -ForegroundColor Cyan;Invoke-Git $target @('commit','-F',$msg)|Out-Null;Write-Host 'OK  ' -NoNewline -ForegroundColor Green
-                $commit=(Invoke-Git $target @('rev-parse','--short=12','HEAD')).Output.Trim()
-                Write-Host 'verify committed blobs... ' -NoNewline -ForegroundColor Cyan;Verify-CommittedBlobs $target $cur;Write-Host 'OK  ' -NoNewline -ForegroundColor Green
-                if((Invoke-Git $target @('status','--porcelain')).Output.Trim()){throw "Rehearsal worktree not clean after commit $($rev.order)."}
-            }else{
-                Write-Host 'publish...' -ForegroundColor Yellow
-                $publisher=Join-Path $target 'just_publish.bat';if(-not(Test-Path -LiteralPath $publisher -PathType Leaf)){throw "Publisher not found: $publisher"}
-                $oldExact=$env:HISTORY_IMPORT_EXACT;$env:HISTORY_IMPORT_EXACT='1'
-                try{
-                    $cmd='call "'+$publisher+'" historyexact yes messagefile "'+$msg+'" PUBLISH COMMIT'
-                    $rc=Invoke-CmdStreaming $cmd $target
-                }finally{$env:HISTORY_IMPORT_EXACT=$oldExact}
-                if($rc -ne 0){throw "just_publish failed for revision $($rev.order) ($($rev.archive)) with rc=$rc"}
-                $commit=(Invoke-Git $target @('rev-parse','--short=12','HEAD')).Output.Trim();Verify-CommittedBlobs $target $cur
-                if((Invoke-Git $target @('status','--porcelain')).Output.Trim()){throw "Publish worktree not clean after revision $($rev.order)."}
-            }
+            Write-Host 'stage... ' -NoNewline -ForegroundColor Cyan;Invoke-Git $target @('-c','core.autocrlf=false','add','-A')|Out-Null;Write-Host 'OK  ' -NoNewline -ForegroundColor Green
+            Write-Host 'commit... ' -NoNewline -ForegroundColor Cyan;Invoke-Git $target @('commit','-F',$msg)|Out-Null;Write-Host 'OK  ' -NoNewline -ForegroundColor Green
+            $commit=(Invoke-Git $target @('rev-parse','--short=12','HEAD')).Output.Trim()
+            Write-Host 'verify committed blobs... ' -NoNewline -ForegroundColor Cyan;Verify-CommittedBlobs $target $cur;Write-Host 'OK  ' -NoNewline -ForegroundColor Green
+            if((Invoke-Git $target @('status','--porcelain')).Output.Trim()){throw "$Mode worktree not clean after commit $($rev.order)."}
             $report.revisions.Add([pscustomobject][ordered]@{order=$rev.order;archive=$rev.archive;version=$rev.version;files=$cur.Count;treeSha256=Get-StableTreeHash $cur;delta=Get-Delta $prev $cur;subject=$rev.subject;messageFile=$msg;written=$action.written;deleted=$action.deleted;verified=$action.verified;diffCheckRc=$audit.Rc;diffCheckLines=@($audit.Output -split "`r?`n"|Where-Object{$_.Trim()}).Count;commit=$commit})
             $prev=$cur
-            if($Mode -eq 'rehearse'){Write-Host 'commit=' -NoNewline -ForegroundColor DarkGray;Write-Host $commit -NoNewline -ForegroundColor Yellow;Write-Host ('  '+(Get-ProgressText $watch $i $total)) -ForegroundColor DarkGray}else{Write-Host ('   OK commit='+$commit+'  '+(Get-ProgressText $watch $i $total)) -ForegroundColor Green}
+            Write-Host 'commit=' -NoNewline -ForegroundColor DarkGray;Write-Host $commit -NoNewline -ForegroundColor Yellow;Write-Host ('  '+(Get-ProgressText $watch $i $total)) -ForegroundColor DarkGray
             Write-Report $logDir $report
+        }
+        if($Mode -eq 'publish'){
+            Write-Host ''
+            Write-Host ('Pushing completed '+$total+'-commit reconstructed history...') -ForegroundColor Cyan
+            Push-PublishedHistory $target $PublishContext|Out-Null
+            Write-Ok 'FINAL PUSH OK'
         }
         $report.ok=$true;Write-Report $logDir $report
     }catch{$report.ok=$false;$report|Add-Member -NotePropertyName error -NotePropertyValue $_.Exception.Message -Force;try{Write-Report $logDir $report}catch{};throw}
     finally{if($installed){Remove-ExactAttributes $target}}
     Write-Ok ($Mode.ToUpperInvariant()+" PASS: $($report.revisions.Count) revisions processed.");Write-InfoPair 'Logs:' $logDir Cyan;return 0
 }
-
 
 function Add-ZipFile {
     param($Archive,[string]$Source,[string]$EntryName)
@@ -1615,6 +1607,139 @@ function Ensure-GithubRepositoryTarget {
     return [pscustomobject]@{Ready=$true;Cancelled=$false;Origin=$origin;Spec=$spec}
 }
 
+
+function Get-PublishBranch {
+    param([string]$Root)
+    $r=Invoke-Git $Root @('branch','--show-current')
+    $branch=$r.Output.Trim()
+    if(-not $branch){throw 'A named Git branch must be checked out before publish.'}
+    return $branch
+}
+
+function Get-RemoteBranchState {
+    param([string]$Root,[string]$Branch)
+    $ref='refs/heads/'+$Branch
+    $probe=Invoke-Git $Root @('ls-remote','--heads','origin',$ref) -AllowFailure
+    if($probe.Rc -ne 0){throw "Could not inspect origin/$Branch before publish.`n$($probe.Output)"}
+    $local=(Invoke-Git $Root @('rev-parse','HEAD')).Output.Trim()
+    if(-not $probe.Output.Trim()){
+        return [pscustomobject]@{Branch=$Branch;Exists=$false;LocalHead=$local;RemoteHead='';Relationship='missing';ForceRequired=$false}
+    }
+    $remote=(($probe.Output.Trim() -split '\s+')[0]).Trim()
+    $remoteRef='refs/remotes/origin/'+$Branch
+    $fetch=Invoke-Git $Root @('fetch','--no-tags','origin',($ref+':'+$remoteRef)) -AllowFailure
+    if($fetch.Rc -ne 0){throw "Could not fetch origin/$Branch before publish.`n$($fetch.Output)"}
+    if($local -eq $remote){$relationship='aligned'}
+    elseif((Invoke-Git $Root @('merge-base','--is-ancestor',$remote,$local) -AllowFailure).Rc -eq 0){$relationship='remote-ancestor'}
+    elseif((Invoke-Git $Root @('merge-base','--is-ancestor',$local,$remote) -AllowFailure).Rc -eq 0){$relationship='local-behind'}
+    else{$relationship='diverged'}
+    return [pscustomobject]@{Branch=$Branch;Exists=$true;LocalHead=$local;RemoteHead=$remote;Relationship=$relationship;ForceRequired=($relationship -in @('local-behind','diverged'))}
+}
+
+function Test-RemoteContainsCommit {
+    param([string]$Root,$RemoteState,[string]$Commit)
+    if(-not $RemoteState.Exists){return $false}
+    $r=Invoke-Git $Root @('merge-base','--is-ancestor',$Commit,$RemoteState.RemoteHead) -AllowFailure
+    return ($r.Rc -eq 0)
+}
+
+function Backup-ImporterOwnedChanges {
+    param([string]$Root,[string]$WorkFolder,$WorktreeState)
+    $backup=Join-Path $WorkFolder 'importer-update-backup'
+    Remove-TreeRobust $backup
+    [IO.Directory]::CreateDirectory($backup)|Out-Null
+    foreach($rel in @($WorktreeState.Owned)){
+        $src=Join-Path $Root ($rel.Replace('/','\'))
+        if(Test-Path -LiteralPath $src -PathType Leaf){
+            $dst=Join-Path $backup ($rel.Replace('/','\'))
+            [IO.Directory]::CreateDirectory((Split-Path -Parent $dst))|Out-Null
+            [IO.File]::Copy($src,$dst,$true)
+        }
+    }
+    return $backup
+}
+
+function Restore-ImporterOwnedChanges {
+    param([string]$Root,[string]$Backup)
+    if(-not(Test-Path -LiteralPath $Backup -PathType Container)){return}
+    $base=[IO.Path]::GetFullPath($Backup).TrimEnd('\')+'\'
+    foreach($f in Get-ChildItem -LiteralPath $Backup -File -Recurse){
+        $rel=$f.FullName.Substring($base.Length)
+        $dst=Join-Path $Root $rel
+        [IO.Directory]::CreateDirectory((Split-Path -Parent $dst))|Out-Null
+        [IO.File]::Copy($f.FullName,$dst,$true)
+    }
+    Remove-TreeRobust $Backup
+}
+
+function Repair-LegacyPartialPublish {
+    param([string]$Root,[string]$WorkFolder,$State,$RemoteState)
+    $reportPath=Join-Path (Join-Path (Join-Path $WorkFolder 'logs') 'publish') 'report.json'
+    if(-not(Test-Path -LiteralPath $reportPath -PathType Leaf)){return $true}
+    $report=Read-JsonFile $reportPath
+    if($report.ok -or @($report.revisions).Count -ne 0 -or [string]$report.error -notmatch 'just_publish failed for revision 1'){return $true}
+    $plan=Read-JsonFile ([string]$State.plan)
+    if(@($plan.revisions).Count -eq 0){return $true}
+    $head=(Invoke-Git $Root @('rev-parse','HEAD')).Output.Trim()
+    $subject=(Invoke-Git $Root @('log','-1','--pretty=%s')).Output.Trim()
+    $expected=[string]$plan.revisions[0].subject
+    if($subject -cne $expected){return $true}
+    if(Test-RemoteContainsCommit $Root $RemoteState $head){return $true}
+    Write-Host ''
+    Write-Warn 'A previous 0.4.x publish attempt left revision 1 committed locally after its push was rejected.'
+    Write-InfoPair 'Local commit:' (($head.Substring(0,[Math]::Min(12,$head.Length)))+'  '+$subject) Yellow
+    if(-not(Read-YesNo 'Restore the pre-publish local HEAD and keep the importer update' $true)){
+        Write-Warn 'Publication cancelled. The previous local history commit was left untouched.'
+        return $false
+    }
+    Ensure-ImporterPackageIgnored $Root
+    $wt=Get-PublishWorktreeState $Root
+    if($wt.Unknown.Count -gt 0){throw "Cannot safely repair the previous publish while unrelated working-tree changes exist.`n$($wt.Unknown -join "`n")"}
+    $backup=Backup-ImporterOwnedChanges $Root $WorkFolder $wt
+    try{
+        [void](Invoke-Git $Root @('reset','--hard','HEAD^'))
+        Restore-ImporterOwnedChanges $Root $backup
+    }catch{
+        try{Restore-ImporterOwnedChanges $Root $backup}catch{}
+        throw
+    }
+    Write-Ok 'Previous unpushed revision-1 commit removed locally.'
+    return $true
+}
+
+function Get-PublishResumeState {
+    param([string]$Root,[string]$WorkFolder,$State)
+    $reportPath=Join-Path (Join-Path (Join-Path $WorkFolder 'logs') 'publish') 'report.json'
+    if(-not(Test-Path -LiteralPath $reportPath -PathType Leaf)){return [pscustomobject]@{Ready=$false;Report=$null}}
+    $report=Read-JsonFile $reportPath
+    $expected=[int]$State.selectedVersions
+    if($report.ok -or @($report.revisions).Count -ne $expected -or $expected -le 0){return [pscustomobject]@{Ready=$false;Report=$report}}
+    $last=$report.revisions[$expected-1]
+    if(-not $last.commit){return [pscustomobject]@{Ready=$false;Report=$report}}
+    $head=(Invoke-Git $Root @('rev-parse','--short=12','HEAD')).Output.Trim()
+    if($head -cne [string]$last.commit){return [pscustomobject]@{Ready=$false;Report=$report}}
+    if((Invoke-Git $Root @('status','--porcelain')).Output.Trim()){return [pscustomobject]@{Ready=$false;Report=$report}}
+    return [pscustomobject]@{Ready=$true;Report=$report;ReportPath=$reportPath}
+}
+
+function Push-PublishedHistory {
+    param([string]$Root,$PublishContext)
+    $branch=[string]$PublishContext.Branch
+    $pushArgs=New-Object System.Collections.Generic.List[string]
+    $pushArgs.Add('push')
+    if($PublishContext.ForceReplace){
+        $pushArgs.Add('--force-with-lease=refs/heads/'+$branch+':'+[string]$PublishContext.ExpectedRemoteHead)
+    }
+    $pushArgs.Add('-u');$pushArgs.Add('origin');$pushArgs.Add('HEAD:refs/heads/'+$branch)
+    $r=Invoke-Git $Root $pushArgs.ToArray() -AllowFailure
+    if($r.Output.Trim()){Write-Host $r.Output}
+    if($r.Rc -ne 0){
+        if($PublishContext.ForceReplace){throw "Final push failed. The guarded force-with-lease did not update origin/$branch. The remote may have changed since preflight.`n$($r.Output)"}
+        throw "Final push failed for origin/$branch.`n$($r.Output)"
+    }
+    return 0
+}
+
 function Phase-Passed {
     param($State,[string]$Name)
     $p=$State.phases.$Name
@@ -1691,10 +1816,10 @@ function Ensure-PublishWorktreeClean {
 
 function Invoke-ReplayAction {
     param([string]$Mode,[string]$Root,[string]$WorkFolder,$State,[string]$RepositoryOverride)
+    $publishContext=$null
     if($Mode -eq 'publish'){
         if(-not(Phase-Passed $State 'dryrun')){throw 'Publish is blocked until dryrun has passed.'}
         if(-not(Phase-Passed $State 'rehearse')){throw 'Publish is blocked until rehearsal has passed.'}
-        if(-not(Ensure-PublishWorktreeClean $Root)){return 0}
         $o=Invoke-Git $Root @('remote','get-url','origin') -AllowFailure
         $currentOrigin=if($o.Rc -eq 0 -and $o.Output.Trim()){$o.Output.Trim()}else{'none'}
         Write-Host '';Write-Host 'PUBLISH PREFLIGHT' -ForegroundColor Cyan
@@ -1705,12 +1830,66 @@ function Invoke-ReplayAction {
         $target=Ensure-GithubRepositoryTarget $Root $ready.Gh $ghs.Account $State $RepositoryOverride
         if(-not $target.Ready){return 0}
         $origin=$target.Origin
+        $branch=Get-PublishBranch $Root
+        $remoteState=Get-RemoteBranchState $Root $branch
+        if(-not(Repair-LegacyPartialPublish $Root $WorkFolder $State $remoteState)){return 0}
+        if(-not(Ensure-PublishWorktreeClean $Root)){return 0}
+        $remoteState=Get-RemoteBranchState $Root $branch
+        $force=$false
+        if($remoteState.Exists){
+            Write-InfoPair 'Remote branch:' ('origin/'+$branch) Cyan
+            Write-InfoPair 'Remote tip:' $remoteState.RemoteHead DarkGray
+            Write-InfoPair 'Branch relation:' $remoteState.Relationship $(if($remoteState.ForceRequired){'Yellow'}else{'Green'})
+            if($remoteState.ForceRequired){
+                Write-Warn "origin/$branch contains history that cannot accept this reconstructed history as a fast-forward."
+                Write-Warn 'A normal push would be rejected. Replacing the branch rewrites its existing remote history.'
+                if(-not(Read-YesNo ("Replace origin/$branch using guarded force-with-lease") $false)){
+                    Write-Warn 'Publication cancelled before changing remote history.'
+                    return 0
+                }
+                $force=$true
+            }
+        }else{
+            Write-InfoPair 'Remote branch:' ('origin/'+$branch+' does not exist yet') Green
+        }
+        $publishContext=[pscustomobject]@{Branch=$branch;ForceReplace=$force;ExpectedRemoteHead=$remoteState.RemoteHead;Origin=$origin}
+        $resume=Get-PublishResumeState $Root $WorkFolder $State
         Write-Host '';Write-Host 'LIVE PUBLICATION' -ForegroundColor Red
         Write-InfoPair 'Repository:' $Root Yellow;Write-InfoPair 'origin:' $origin Yellow;Write-InfoPair 'GitHub:' ($ghs.Status+' ('+$ghs.Account+')') Green;Write-InfoPair 'Revisions:' ([string]$State.selectedVersions) Cyan
-        Write-Warn 'Review the origin above carefully. This operation creates and pushes commits.'
+        Write-InfoPair 'Push strategy:' $(if($force){'single guarded force-with-lease after all local commits'}else{'single normal push after all local commits'}) $(if($force){'Yellow'}else{'Green'})
+        if($resume.Ready){Write-Warn 'All reconstructed commits already exist locally from a previous attempt; only the final push remains.'}
+        else{Write-Warn 'All revisions will be committed and verified locally first. The remote is updated only once, at the end.'}
         if(-not(Read-YesNo 'Publish now' $false)){Write-Warn 'Publication cancelled.';return 0}
+        if($resume.Ready){
+            try{
+                Push-PublishedHistory $Root $publishContext|Out-Null
+                $resume.Report.ok=$true
+                if($resume.Report.psobject.Properties['error']){$resume.Report.psobject.Properties.Remove('error')}
+                $logDir=Join-Path (Join-Path $WorkFolder 'logs') 'publish'
+                Write-Report $logDir $resume.Report
+                $State.phases.publish=New-PhaseRecord $true $resume.ReportPath 'completed local history push retried successfully'
+                Save-State $WorkFolder $State
+                Write-Ok "PUBLISH PASS: $($resume.Report.revisions.Count) revisions processed."
+                Write-InfoPair 'Logs:' $logDir Cyan
+                return 0
+            }catch{
+                $State.phases.publish=New-PhaseRecord $false $resume.ReportPath $_.Exception.Message
+                Save-State $WorkFolder $State
+                throw
+            }
+        }
+        $base=(Invoke-Git $Root @('rev-parse','HEAD')).Output.Trim()
+        if($State.psobject.Properties['publishBaseHead']){$State.publishBaseHead=$base}else{$State|Add-Member -NotePropertyName publishBaseHead -NotePropertyValue $base}
+        Save-State $WorkFolder $State
     }
-    $rc=Replay-History $Mode $Root $WorkFolder $State
+    try{
+        $rc=Replay-History $Mode $Root $WorkFolder $State $publishContext
+    }catch{
+        $report=Join-Path (Join-Path (Join-Path $WorkFolder 'logs') $Mode) 'report.json'
+        $State.phases.$Mode=New-PhaseRecord $false $(if(Test-Path -LiteralPath $report){$report}else{$null}) $_.Exception.Message
+        Save-State $WorkFolder $State
+        throw
+    }
     $report=Join-Path (Join-Path (Join-Path $WorkFolder 'logs') $Mode) 'report.json'
     $State.phases.$Mode=New-PhaseRecord ($rc -eq 0) $(if(Test-Path -LiteralPath $report){$report}else{$null}) ''
     Save-State $WorkFolder $State
@@ -1896,7 +2075,7 @@ function Show-Help {
     Write-Host '  Guided dryrun/rehearse prompts accept Y=run, n=stop, s=skip.'
     Write-Host '  dryrun changes no repository.'
     Write-Host '  rehearse commits into a disposable local repository.'
-    Write-Host '  publish can install/login GitHub CLI, select/create the target repository, set origin, then push.' -ForegroundColor Yellow
+    Write-Host '  publish verifies the remote branch, commits/verifies all revisions locally, then pushes once.' -ForegroundColor Yellow
     Write-Host '  Every non-help run creates a diagnostic ZIP in the launch directory.'
     Write-Host '  logs creates the same bundle on demand.'
     Write-Host ''
