@@ -1,6 +1,6 @@
 @echo off
 :setup
-set "app.version=0.6.0"
+set "app.version=0.7.0"
 set "app.name=git_history_import"
 set "app.self=%~f0"
 set "app.rc=0"
@@ -97,7 +97,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ToolVersion = '0.6.0'
+$ToolVersion = '0.7.0'
 $StateSchema = 'git-history-import-state/v1'
 $PlanSchema = 'history-import-plan/v1'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
@@ -402,7 +402,8 @@ function Read-LayoutReferenceFile {
     $full=[IO.Path]::GetFullPath($Path)
     if(-not(Test-Path -LiteralPath $full -PathType Leaf)){throw "Layout companion file not found: $full"}
     $items=@(Read-ListFile $full)
-    if($items.Count -ne 1){throw "Layout companion must contain exactly one active line (blank lines and # comments are ignored): $full"}
+    if($items.Count -gt 1){throw "Layout companion may contain at most one active line (blank lines and # comments are ignored): $full"}
+    if($items.Count -eq 0){return $null}
     $value=[string]$items[0]
     if([IO.Path]::IsPathRooted($value)){return [IO.Path]::GetFullPath($value)}
     $relative=Join-Path (Split-Path -Parent $full) $value
@@ -1908,13 +1909,21 @@ function Invoke-Setup {
     if($noLayout -and $null -ne $layoutInput){throw '--layout and --no-layout are mutually exclusive.'}
     if($noLayout){
         $identity=$true
-        Write-Host '  [FORCED] layout: none (identity layout)' -ForegroundColor Yellow
+        Write-Host '  [FORCED] layout: none (--no-layout; companion discovery skipped)' -ForegroundColor Yellow
     }elseif($null -eq $layoutInput){
         $autoLayout=Get-CompanionFile $source 'layout'
-        if($autoLayout){Write-AutoCompanion 'layout' $autoLayout;$layoutFile=$autoLayout.Path;$layout=Read-LayoutReferenceFile $layoutFile}
-        elseif(Read-YesNo 'Use a final reference layout' $false){$layoutInput=Read-Host 'Reference layout folder/ZIP, source archive name, or .layout.txt file';if(-not $layoutInput){throw 'A layout reference was requested but not supplied.'};$layout=Resolve-LayoutValue $layoutInput ([ref]$layoutFile)}
-        else{$identity=$true}
-    }else{$layout=Resolve-LayoutValue $layoutInput ([ref]$layoutFile)}
+        if($autoLayout){
+            $layoutFile=$autoLayout.Path
+            $layout=Read-LayoutReferenceFile $layoutFile
+            if($layout){Write-AutoCompanion 'layout' $autoLayout}
+            else{$identity=$true;Write-Host ('  [AUTO] layout: none (empty layout definition: '+$layoutFile+')') -ForegroundColor Yellow}
+        }
+        elseif(Read-YesNo 'Specify a canonical layout' $false){$layoutInput=Read-Host 'Reference layout folder/ZIP, source archive name, or .layout.txt file';if(-not $layoutInput){throw 'A layout reference was requested but not supplied.'};$layout=Resolve-LayoutValue $layoutInput ([ref]$layoutFile);if(-not $layout -and $layoutFile){$identity=$true;Write-Host ('  [EXPLICIT] layout: none (empty layout definition: '+$layoutFile+')') -ForegroundColor Yellow}}
+        else{$identity=$true;Write-Host '  [SELECTED] layout: none (identity layout)' -ForegroundColor Yellow}
+    }else{
+        $layout=Resolve-LayoutValue $layoutInput ([ref]$layoutFile)
+        if(-not $layout -and $layoutFile){$identity=$true;Write-Host ('  [EXPLICIT] layout: none (empty layout definition: '+$layoutFile+')') -ForegroundColor Yellow}
+    }
     $exclude=Get-Option $Options 'exclude-list'
     if(-not $exclude){
         $autoExclude=Get-CompanionFile $source 'exclude'
@@ -2008,32 +2017,6 @@ function Get-RevisionSpec {
     return $s
 }
 
-function Resolve-VersionCommit {
-    param([string]$Root,[string]$Version,[switch]$Optional)
-    $spec=Normalize-VersionSpec $Version
-    $r=Invoke-Git $Root @('log','--format=%H%x09%s','HEAD') -AllowFailure
-    if($r.Rc -ne 0){
-        if($Optional){return $null}
-        throw "Could not read Git history while resolving version $spec."
-    }
-    $found=New-Object System.Collections.Generic.List[object]
-    $pattern='^v'+[regex]::Escape($spec)+'(?:\s|$)'
-    foreach($line in ($r.Output -split "`r?`n")){
-        if(-not $line){continue}
-        $parts=$line -split "`t",2
-        if($parts.Count -eq 2 -and $parts[1] -match $pattern){$found.Add([pscustomobject]@{Commit=$parts[0];Subject=$parts[1]})}
-    }
-    if($found.Count -eq 0){
-        if($Optional){return $null}
-        throw "No Git commit with a subject beginning 'v$spec ' was found on HEAD history."
-    }
-    if($found.Count -gt 1){
-        $detail=($found.ToArray()|ForEach-Object{'  '+$_.Commit+'  '+$_.Subject}) -join "`n"
-        throw "More than one Git commit matches version $spec.`n$detail"
-    }
-    return $found[0]
-}
-
 function Get-PlanForComparison {
     param($State)
     $p=[string]$State.candidatePlan
@@ -2041,16 +2024,6 @@ function Get-PlanForComparison {
     $p=[string]$State.plan
     if($p -and (Test-Path -LiteralPath $p -PathType Leaf)){return (Read-JsonFile $p)}
     throw 'No source plan is available. Run setup first.'
-}
-
-function Find-PlanRevision {
-    param($Plan,[string]$Version)
-    $spec=Normalize-VersionSpec $Version
-    $found=New-Object System.Collections.Generic.List[object]
-    foreach($r in @($Plan.revisions)){if((Get-RevisionSpec $r) -ieq $spec){$found.Add($r)}}
-    if($found.Count -eq 0){throw "Version $spec is not present in the current source plan."}
-    if($found.Count -gt 1){throw "Version $spec is ambiguous in the current source plan."}
-    return $found[0]
 }
 
 function Get-MappedZipSnapshot {
@@ -2061,126 +2034,6 @@ function Get-MappedZipSnapshot {
     $mapped=Map-Snapshot $inv.Files $Moves
     if($mapped.Collisions.Count){throw "Layout mapping collision in $ZipPath"}
     return $mapped.Files
-}
-
-function Get-DefaultRepoZipPath {
-    param([string]$Root,$State,[string]$Version)
-    $spec=Normalize-VersionSpec $Version
-    $name=$null
-    if($State -and $State.psobject.Properties['repository'] -and $State.repository -and $State.repository.name){$name=[string]$State.repository.name}
-    if(-not $name){$name=Split-Path -Leaf $Root}
-    $safe=($name+'-v'+$spec) -replace '[^A-Za-z0-9._-]+','_'
-    return (Join-Path $script:LaunchDirectory ($safe+'.zip'))
-}
-
-function Ensure-RepoZipIgnored {
-    param([string]$Root,[string]$ZipPath)
-    $gd=Get-GitDirectory $Root
-    if(-not $gd){return}
-    $rootFull=[IO.Path]::GetFullPath($Root).TrimEnd('\')
-    $zipFull=[IO.Path]::GetFullPath($ZipPath)
-    if(-not $zipFull.StartsWith($rootFull+'\',[StringComparison]::OrdinalIgnoreCase)){return}
-    $rel=$zipFull.Substring($rootFull.Length+1).Replace('\','/')
-    $exclude=Join-Path (Join-Path $gd 'info') 'exclude'
-    $old='';if(Test-Path -LiteralPath $exclude -PathType Leaf){$old=Get-Content -LiteralPath $exclude -Raw -Encoding UTF8}
-    $line='/'+$rel
-    if($old -notmatch [regex]::Escape($line)){
-        if($old -and -not $old.EndsWith("`n")){$old+="`n"}
-        Write-Utf8File $exclude ($old+'# git_history_import repository ZIP exports'+"`n"+$line+"`n")
-    }
-}
-
-function New-RepoZipForVersion {
-    param([string]$Root,$State,[string]$Version,[string]$Output)
-    $spec=Normalize-VersionSpec $Version
-    $match=Resolve-VersionCommit $Root $spec
-    $out=if($Output){[IO.Path]::GetFullPath($Output)}else{Get-DefaultRepoZipPath $Root $State $spec}
-    $parent=Split-Path -Parent $out
-    if($parent){[IO.Directory]::CreateDirectory($parent)|Out-Null}
-    if(Test-Path -LiteralPath $out){Remove-Item -LiteralPath $out -Force}
-    Ensure-RepoZipIgnored $Root $out
-    $repoName=$null
-    if($State -and $State.psobject.Properties['repository'] -and $State.repository -and $State.repository.name){$repoName=[string]$State.repository.name}
-    if(-not $repoName){$repoName=Split-Path -Leaf $Root}
-    $prefix=(($repoName+'-v'+$spec) -replace '[^A-Za-z0-9._-]+','_')+'/'
-    Invoke-Git $Root @('archive','--format=zip',('--prefix='+$prefix),('--output='+$out),$match.Commit)|Out-Null
-    if(-not(Test-Path -LiteralPath $out -PathType Leaf)){throw "Git archive did not create $out"}
-    return [pscustomobject]@{Path=$out;Commit=$match.Commit;Subject=$match.Subject;Version=$spec;Sha256=Get-Sha256File $out}
-}
-
-function Invoke-RepoZip {
-    param([string]$Root,[string]$WorkOverride,[string]$Version,[string]$Output)
-    $loaded=Load-State $Root $WorkOverride -Optional
-    Write-Heading "git_history_import $ToolVersion - repozip"
-    $z=New-RepoZipForVersion $Root $loaded.State $Version $Output
-    Write-InfoPair 'Version:' $z.Version Cyan
-    Write-InfoPair 'Commit:' $z.Commit Yellow
-    Write-InfoPair 'ZIP:' $z.Path Cyan
-    Write-InfoPair 'SHA-256:' $z.Sha256 DarkGray
-    Write-Ok 'REPO ZIP PASS'
-    return 0
-}
-
-function Invoke-Compare {
-    param([string]$Root,[string]$WorkOverride,[string]$Version,[string]$RepoZip)
-    $loaded=Load-State $Root $WorkOverride
-    $state=$loaded.State;$plan=Get-PlanForComparison $state;$rev=Find-PlanRevision $plan $Version;$moves=Get-MoveMap $plan
-    $sourceZip=Join-Path ([string]$state.source) ([string]$rev.archive)
-    $expected=Get-MappedZipSnapshot $sourceZip $moves $false
-    if([string]$rev.archiveSha256){
-        $actualSourceHash=Get-Sha256File $sourceZip
-        if($actualSourceHash -cne [string]$rev.archiveSha256){throw "Archive hash changed for $($rev.archive): expected $($rev.archiveSha256), got $actualSourceHash"}
-    }
-    $zipInfo=$null
-    if($RepoZip){
-        $repoZipPath=[IO.Path]::GetFullPath($RepoZip)
-        if(-not(Test-Path -LiteralPath $repoZipPath -PathType Leaf)){throw "Repository ZIP not found: $repoZipPath"}
-    }else{
-        $zipInfo=New-RepoZipForVersion $Root $state (Get-RevisionSpec $rev) $null
-        $repoZipPath=$zipInfo.Path
-    }
-    $repoInv=Read-ZipInventory $repoZipPath $false
-    $missing=New-Object System.Collections.Generic.List[string]
-    $changed=New-Object System.Collections.Generic.List[object]
-    $extras=New-Object System.Collections.Generic.List[string]
-    $matched=0
-    foreach($p in $expected.Keys){
-        if(-not $repoInv.Files.ContainsKey($p)){$missing.Add($p);continue}
-        if([string]$repoInv.Files[$p].sha256 -cne [string]$expected[$p].sha256){$changed.Add([pscustomobject]@{path=$p;expected=[string]$expected[$p].sha256;actual=[string]$repoInv.Files[$p].sha256});continue}
-        $matched++
-    }
-    foreach($p in $repoInv.Files.Keys){if(-not $expected.ContainsKey($p)){$extras.Add($p)}}
-    $logDir=Join-Path (Join-Path $loaded.WorkFolder 'logs') 'compare';[IO.Directory]::CreateDirectory($logDir)|Out-Null
-    $safe=(Get-RevisionSpec $rev) -replace '[^A-Za-z0-9._-]+','_'
-    $reportPath=Join-Path $logDir ($safe+'.json')
-    $report=[pscustomobject][ordered]@{
-        schema='history-import-compare/v1';createdUtc=Get-UtcText;version=Get-RevisionSpec $rev;archive=$rev.archive
-        layoutMode=[string]$plan.layout.mode;layoutReference=[string]$plan.layout.finalArchive;inferredMoves=@($plan.layout.moves).Count
-        sourceZip=$sourceZip;repoZip=$repoZipPath;expectedManagedFiles=$expected.Count;matched=$matched
-        missing=$missing.ToArray();changed=$changed.ToArray();repoOnlyExtras=$extras.ToArray()
-        expectedTreeSha256=Get-StableTreeHash $expected;ok=($missing.Count -eq 0 -and $changed.Count -eq 0)
-    }
-    Write-JsonFile $reportPath $report
-    Write-Heading "git_history_import $ToolVersion - compare"
-    Write-InfoPair 'Version:' ([string]$report.version) Cyan
-    Write-InfoPair 'Original:' ([string]$rev.archive) Cyan
-    Write-InfoPair 'Repo ZIP:' $repoZipPath Cyan
-    Write-InfoPair 'Layout:' $(if($report.layoutMode -eq 'identity'){'none (identity layout)'}else{[string]$report.layoutReference}) Magenta
-    Write-InfoPair 'Inferred moves:' ([string]$report.inferredMoves) Cyan
-    Write-InfoPair 'Managed expected:' ([string]$report.expectedManagedFiles) Cyan
-    Write-InfoPair 'Matched:' ([string]$report.matched) Green
-    Write-InfoPair 'Missing:' ([string]$missing.Count) $(if($missing.Count){'Red'}else{'Green'})
-    Write-InfoPair 'Changed:' ([string]$changed.Count) $(if($changed.Count){'Red'}else{'Green'})
-    Write-InfoPair 'Repo-only extras:' ([string]$extras.Count) Yellow
-    Write-InfoPair 'Report:' $reportPath DarkGray
-    if(-not $report.ok){
-        foreach($p in $missing.ToArray()|Select-Object -First 10){Write-Fail ('  [MISSING] '+$p)}
-        foreach($c in $changed.ToArray()|Select-Object -First 10){Write-Fail ('  [CHANGED] '+$c.path)}
-        Write-Fail 'COMPARE FAIL'
-        return 4
-    }
-    Write-Ok 'COMPARE PASS'
-    return 0
 }
 
 function Resolve-NextRevisionInput {
@@ -2329,9 +2182,6 @@ function Show-Help {
     Write-Host '  tools\git_history_import rehearse [--work-folder FOLDER]'
     Write-Host '  tools\git_history_import publish [--repository FILE|OWNER/NAME]'
     Write-Host '  tools\git_history_import next REVISION [REVISION ...] [--reset] [--work-folder FOLDER]'
-    Write-Host '  tools\git_history_import repozip VERSION [--output FILE]'
-    Write-Host '  tools\git_history_import compare VERSION [--repo-zip FILE]'
-    Write-Host '  tools\git_history_import check VERSION [--repo-zip FILE]'
     Write-Host '  tools\git_history_import status'
     Write-Host '  tools\git_history_import reset'
     Write-Host '  tools\git_history_import relogin'
@@ -2360,8 +2210,6 @@ function Show-Help {
     Write-Host '  rehearse commits into a disposable local repository.'
     Write-Host '  publish verifies the remote branch, commits/verifies all revisions locally, then pushes once.' -ForegroundColor Yellow
     Write-Host '  next validates one or more later revisions against the active layout without changing Git.'
-    Write-Host '  repozip exports the repository tree at a version to a ZIP in the launch directory.'
-    Write-Host '  compare/check validates that ZIP against the original revision after active layout mapping.'
     Write-Host '  Every non-help run creates a diagnostic ZIP in the launch directory.'
     Write-Host '  logs creates the same bundle on demand.'
     Write-Host ''
@@ -2371,9 +2219,11 @@ function Show-Help {
     Write-Host '  tools\git_history_import setup "D:\history\Project.zip"'
     Write-Host '  tools\git_history_import setup --source "D:\history\Project.zip" --layout "Project-1.2.0.zip" --exclude-list "D:\history\Project.zip.exclude.txt" --versions "D:\history\Project.zip.versions.txt"'
     Write-Host '  tools\git_history_import next 1.2.1 1.2.2'
-    Write-Host '  tools\git_history_import repozip 0.19.3'
-    Write-Host '  tools\git_history_import compare 0.19.3'
     Write-Host '  tools\git_history_import "D:\history\Project.zip" --no-layout'
+    Write-Host ''
+    Write-Host 'RELATED TOOLS' -ForegroundColor Cyan
+    Write-Host '  tools\git_get_old_repo_version_zip VERSION'
+    Write-Host '  tools\git_compare_repo_version TARGET [TARGET ...]'
     Write-Host ''
     Write-Host 'This tool has no Python dependency. ZIP/JSON/hash operations use Windows PowerShell/.NET.'
 }
@@ -2389,9 +2239,15 @@ function Main {
     if($CommandArgs.Count -eq 0 -or $CommandArgs[0] -in @('/?','/h','-?','-h','--help')){Show-Help;return 0}
     $root=Get-RepositoryRoot
     $script:CurrentRoot=$root
-    $known=@('setup','versions','inspect','dryrun','rehearse','publish','next','repozip','compare','check','status','reset','relogin','logs')
+    $known=@('setup','versions','inspect','dryrun','rehearse','publish','next','status','reset','relogin','logs')
     $first=$CommandArgs[0]
-    if($first.ToLowerInvariant() -notin $known){
+    $firstLower=$first.ToLowerInvariant()
+    if($firstLower -in @('repozip','compare','check')){
+        if($firstLower -eq 'repozip'){Write-Warn 'repozip moved to: tools\git_get_old_repo_version_zip VERSION'}
+        else{Write-Warn 'compare/check moved to: tools\git_compare_repo_version TARGET [TARGET ...]'}
+        return 2
+    }
+    if($firstLower -notin $known){
         if(-not(Test-Path -LiteralPath $first)){Write-Fail "Source not found: $first";return 2}
         $opts=Parse-Options $CommandArgs 1
         if($opts.ContainsKey('source')){throw 'Do not combine positional SOURCE with --source.'}
@@ -2412,12 +2268,6 @@ function Main {
             }else{$nextInputs.Add($a)}
         }
         return (Invoke-NextCheck $root (Get-Option $nextOpts 'work-folder') $nextInputs.ToArray() $nextOpts.ContainsKey('reset'))
-    }
-    if($cmd -in @('repozip','compare','check')){
-        if($CommandArgs.Count -lt 2 -or $CommandArgs[1].StartsWith('--')){throw "$cmd requires a VERSION argument."}
-        $versionArg=$CommandArgs[1];$simpleOpts=Parse-Options $CommandArgs 2
-        if($cmd -eq 'repozip'){return (Invoke-RepoZip $root (Get-Option $simpleOpts 'work-folder') $versionArg (Get-Option $simpleOpts 'output'))}
-        return (Invoke-Compare $root (Get-Option $simpleOpts 'work-folder') $versionArg (Get-Option $simpleOpts 'repo-zip'))
     }
     if($cmd -eq 'setup' -and $CommandArgs.Count -gt 1 -and -not $CommandArgs[1].StartsWith('--')){
         $sourceArg=$CommandArgs[1]

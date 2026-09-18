@@ -1,6 +1,6 @@
 # git_history_import
 
-**Version:** 0.6.0
+**Version:** 0.7.0
 
 `git_history_import` reconstructs and publishes Git history from complete archived project revisions.
 
@@ -68,7 +68,7 @@ The source may be a directory of revision ZIPs, a directory of revision folders/
 
 The optional layout may be an external folder, external ZIP, or the filename of any revision ZIP in the history source. A layout revision is a placement reference only and does not need to be selected in the versions list or published as a Git commit. If no final layout is selected, each revision keeps its own paths and each new snapshot becomes the complete managed project state for that revision.
 
-`--no-layout` forces identity layout and suppresses `.layout.txt` auto-discovery. This is intended for controlled A/B validation where the same source is tested once with canonical path normalization and once with each archived revision's original paths.
+`--no-layout` forces identity layout and completely suppresses `.layout.txt` discovery/prompting. If no layout option and no layout companion exist, setup asks whether you want to specify a canonical layout; answering No selects identity layout. A discovered or explicitly supplied `.layout.txt` with zero active lines (blank/comment-only) is an intentional no-layout definition: setup reports that no layout is being used and does not ask again. This is intended for controlled A/B validation where the same source is tested once with canonical path normalization and once with each archived revision's original paths.
 
 Example — deliberately a real one-line `cmd.exe` command:
 
@@ -165,32 +165,20 @@ The first invocation starts from the last revision selected by the active versio
 
 `next` does not create commits, change the repository, or push anything. This makes it suitable for checking a later revision individually, then checking a group of later revisions sequentially, before deciding how they should be added to published history.
 
-### repozip
+## Related repository tools
+
+Repository snapshot export and arbitrary version/path comparison are separate tools rather than `git_history_import` subcommands:
 
 ```bat
-tools\git_history_import repozip 0.19.3
-tools\git_history_import repozip 0.19.3 --output "D:\checks\mvsexplorer-v0.19.3.zip"
+tools\git_get_old_repo_version_zip 0.19.3
+tools\git_compare_repo_version 0.19.3
+tools\git_compare_repo_version 0.19.3 current
+tools\git_compare_repo_version 0.19.3 "D:\history\Project-0.19.3.zip"
 ```
 
-`repozip` resolves the unique Git commit whose subject begins with the requested `vVERSION` token and exports that complete repository tree with `git archive`. By default the ZIP is written to the directory from which the importer was launched.
+`git_get_old_repo_version_zip` exports a complete historical Git tree with `git archive`.
 
-The exported ZIP intentionally contains the complete repository snapshot, including framework/tooling files that are not part of the archived project payload.
-
-### compare / check
-
-```bat
-tools\git_history_import compare 0.19.3
-tools\git_history_import check 0.19.3
-tools\git_history_import compare 0.19.3 --repo-zip "D:\checks\mvsexplorer-v0.19.3.zip"
-```
-
-`compare` and `check` are aliases.
-
-The command loads the original source revision from the active setup, applies the active layout mapping, and compares those managed project files by SHA-256 with the repository ZIP. If `--repo-zip` is omitted, a fresh repository ZIP for that version is created automatically in the launch directory first.
-
-A comparison passes only when every layout-normalized source file is present with identical bytes. Repository-only framework/tooling files are counted and reported separately as extras; they do not make the managed-project comparison fail.
-
-The JSON report is written under `logs\compare\VERSION.json`.
+`git_compare_repo_version` accepts repository versions, `current`, ZIP/file paths, and folder paths. One target is compared with `current`; multiple targets are compared pairwise in the order given. External snapshots are normalized through the active history-import layout mapping unless `--no-layout` is specified. When comparing an external original with a repository snapshot, repository-only framework files are reported separately from managed project mismatches.
 
 ### status
 
@@ -292,6 +280,15 @@ The BAT follows the project Batch File Style Guide:
 - The PowerShell fallback is embedded between labels inside the BAT and executed through `:RunPowerShellFromLabel`; no `.ps1` file is generated.
 - The BAT is UTF-8 without BOM with CRLF line endings.
 
+## 0.7.0
+
+- moved historical repository ZIP export to `tools\git_get_old_repo_version_zip`;
+- moved arbitrary repository/current/path comparisons to `tools\git_compare_repo_version`;
+- retained migration messages for the old `repozip`, `compare`, and `check` importer subcommands;
+- added explicit empty `.layout.txt` semantics: zero active lines select identity/no-layout mode without prompting;
+- `--no-layout` now explicitly reports that companion discovery was skipped;
+- no companion layout still prompts whether to specify one before falling back to identity layout.
+
 ## 0.6.0
 
 - added `next` for read-only validation of one or more later revision ZIPs against the active layout;
@@ -342,7 +339,7 @@ For a file source such as `Project.zip`, the preferred companion files beside it
 
 Explicit `--layout`, `--exclude-list`, `--versions`, and `--repository` values override automatic discovery.
 
-A `.layout.txt` file contains exactly one active line after blank lines and `#` comments are ignored. That line may be the name of a source revision archive, a ZIP path, or a folder path.
+A `.layout.txt` file contains zero or one active line after blank lines and `#` comments are ignored. Zero active lines explicitly select identity/no-layout mode and suppress the layout question. One active line may be the name of a source revision archive, a ZIP path, or a folder path.
 
 
 ## Version history
