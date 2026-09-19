@@ -1,5 +1,8 @@
 dev\generate_product_family_tools.py
 
+0.2.0 - 2026-09-01
+  - Adds generation of build_mvs_product_family_compact_index.bat alongside the existing full family builder and 32 query wrappers.
+
 0.1.1 - 2026-09-01
   - Supports a builder-specific generated version so the corrected 0.1.1 builder can ship without gratuitously changing the 32 unchanged 0.1.0 query wrappers.
 

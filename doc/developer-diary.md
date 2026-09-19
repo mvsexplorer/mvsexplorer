@@ -517,3 +517,16 @@ The native 0.15.0 run also exposed a documentation-only matrix error: the
 history scope contains 65 assertions, not 62. The actual full matrix is 1,090
 assertions, matching the observed 1,087 PASS plus 3 data-dependent SKIPs.
 
+
+## 2026-09-01 — Compact product-family evidence index
+
+The first real family index was intentionally forensic and therefore large:
+file/hash facts repeated once per observing dump. The accepted 0.15.1 index
+showed that this repetition can be collapsed safely without discarding exact
+dump provenance.
+
+0.15.2 adds a second-stage compact builder. Facts are grouped by their complete
+source-backed identity and point to reusable snapshot sets. Filename/hash
+ambiguity is separated into three meanings: cross-product filename reuse,
+same-product hash disagreement, and same-hash/multiple-filename aliases. This
+avoids treating ordinary filename reuse as evidence corruption.

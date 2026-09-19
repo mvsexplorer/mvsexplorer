@@ -123,6 +123,51 @@ to products merely by filename.
 `product-notes.tsv` retains title evidence, source ID where the heading
 actually supplies one, normalized text, and a content-addressed raw HTML block.
 
+## Compact all-ever index
+
+The full family index intentionally repeats source observations by snapshot so
+that dump-to-dump provenance is auditable. For distribution, browsing, and
+all-ever analysis, 0.15.2 adds a compact second-stage representation:
+
+```bat
+build_mvs_product_family_compact_index.bat family-index compact-family-index
+```
+
+The compact builder does not infer new family ownership or new hash
+relationships. It groups identical source-backed facts and stores the exact
+set of observing snapshots once in `snapshot-sets.tsv`. Fact rows reference
+that reusable set with `snapshot_set_id`, while also carrying
+`snapshot_count`, `first_seen`, and `last_seen`.
+
+The most important file/hash tables are:
+
+```text
+product-files-all-ever.tsv
+product-file-hashes-all-ever.tsv
+file-hashes-all-ever.tsv
+filename-hash-conflicts.tsv
+filename-hash-conflict-details.tsv
+product-file-hash-conflicts.tsv
+hash-filename-aliases.tsv
+```
+
+`filename-hash-conflicts.tsv` is deliberately broader than
+`product-file-hash-conflicts.tsv`. A filename can legitimately be reused by
+different products for different payloads. Such a case is labeled
+`CROSS_PRODUCT_FILENAME_REUSE`. A stricter
+`PRODUCT_HASH_DISAGREEMENT` is emitted only when the same product title,
+filename, and algorithm have multiple observed hashes.
+
+The inverse relationship is retained separately:
+`hash-filename-aliases.tsv` lists hashes observed under more than one
+filename. This is payload/name reuse, not a disagreement.
+
+The compact output also carries byte-identical classification/membership
+metadata, collapsed IDs/dates/notes/presence facts, and the content-addressed
+`raw-html` note store. It is therefore suitable as a much smaller final
+distribution index while the full index remains the forensic source for
+per-snapshot row-by-row inspection.
+
 ## Classification confidence
 
 The automatic classifier has two tiers:
@@ -243,7 +288,7 @@ test\test_product_family_tools.bat
 ```
 
 The synthetic regression builds a three-snapshot index (including one nested
-`mvs_dmp` snapshot) and performs 96 assertions:
+`mvs_dmp` snapshot) and performs 106 assertions:
 
 - archive fixture and builder execution;
 - all normalized output tables;

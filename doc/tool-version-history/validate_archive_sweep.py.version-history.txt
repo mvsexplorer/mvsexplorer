@@ -1,5 +1,9 @@
 validate_archive_sweep.py Version History
 
+0.6.2 - 2026-09-01
+  - Recognizes the compact family builder as a separate archive-level family tool, preserving the 34,822 legacy sweep plan.
+  - Validates the 477-tool public surface and 106-assertion family regression integration.
+
 0.6.1 - 2026-09-01
   - Guards the 0.15.1 release-token hardening and its new real-title-shaped family regression cases.
   - Requires the aggregate test harness to expect the exact 96-assertion family summary and rejects the stale 92-case success signature.

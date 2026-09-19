@@ -1,0 +1,7 @@
+build_mvs_product_family_compact_index.bat
+
+0.1.0 - 2026-09-01
+  - Initial standalone second-stage compact product-family index builder.
+  - Collapses repeated snapshot observations into all-ever facts while preserving exact snapshot provenance through reusable snapshot-set IDs.
+  - Emits global filename/hash tuples, cross-product filename collisions, same-product hash disagreements, and hash-to-multiple-filename aliases.
+  - Preserves classification/membership metadata and content-addressed raw note HTML without inventing hash pairings.

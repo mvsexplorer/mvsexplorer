@@ -1,5 +1,9 @@
 test\test_product_family_tools.bat
 
+0.1.2 - 2026-09-01
+  - Expands the dedicated regression from 96 to 106 assertions.
+  - Builds and validates the compact all-ever index, snapshot-set provenance, metadata/raw-note preservation, deduplication, collision semantics, true hash disagreements, and hash aliases.
+
 0.1.1 - 2026-09-01
   - Expands the dedicated product-family regression from 92 to 96 assertions.
   - Adds real-title-shaped guards for Office Online update stamps, Windows update years, semantic versions preceding referenced years, and explicit version 1809-style tokens.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate standalone product-family index/query tools.
 
-Version: 0.1.1
+Version: 0.2.0
 """
 from pathlib import Path
 import json
@@ -31,6 +31,19 @@ def main():
     if "@@" in text:
         raise ValueError("Unresolved product-family builder template marker")
     write_bat(ROOT / (spec["builder"] + ".bat"), text)
+
+    compact_template = read(DEV / "templates/product-family-compact-builder.bat.tpl")
+    compact_ps = read(DEV / "library/product-family-compact-builder.inc.ps1")
+    text = compact_template
+    for key, value in {
+        "TOOL_VERSION": spec.get("compact_builder_version", spec["version"]),
+        "BATCH_COMMON": batch_common,
+        "PRODUCT_FAMILY_COMPACT_POWERSHELL": compact_ps,
+    }.items():
+        text = text.replace("@@" + key + "@@", value)
+    if "@@" in text:
+        raise ValueError("Unresolved compact product-family builder template marker")
+    write_bat(ROOT / (spec["compact_builder"] + ".bat"), text)
 
     query_template = read(DEV / "templates/product-family-query.bat.tpl")
     query_ps = read(DEV / "library/product-family-query.inc.ps1")

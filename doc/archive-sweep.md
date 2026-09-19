@@ -291,3 +291,12 @@ and are tested separately by `test\test_product_family_tools.bat`; invoking
 them once per snapshot would be semantically wrong and would change the
 established 34,822-row logical plan for the known 79-snapshot archive.
 
+
+## 0.15.2 compact family-tool scope
+
+The compact family index builder is a second archive-level family tool, taking
+the full family index rather than an individual snapshot as input. The root
+public surface is therefore 477 tools and the family class is 34 tools. Both
+family builders and all 32 family query wrappers remain excluded from the
+legacy snapshot/comparison/history sweep; the established 34,822-row logical
+plan is unchanged.

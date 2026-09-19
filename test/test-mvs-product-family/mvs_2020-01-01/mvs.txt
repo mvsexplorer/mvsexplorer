@@ -1,9 +1,13 @@
 --- Microsoft Office Communications Server 2007 Standard Edition (English) [ID: 101] ---
 1111111111111111111111111111111111111111 *ocs2007-standard.iso
 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa *ocs2007-standard.iso
+d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1 *shared-collision.bin
+abababababababababababababababababababab *same-payload-a.bin
 
 --- Office 2007 Proofing Tools (x86) - DVD (English) [ID: 102] ---
 2222222222222222222222222222222222222222 *office2007-proofing.iso
+e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2 *shared-collision.bin
+abababababababababababababababababababab *same-payload-b.bin
 
 --- Microsoft Office System Developer Kit 3.0 (English) [ID: 103] ---
 3333333333333333333333333333333333333333 *office-sdk-3.iso

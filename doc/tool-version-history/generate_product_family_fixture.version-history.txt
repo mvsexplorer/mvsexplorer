@@ -1,5 +1,8 @@
 dev\generate_product_family_fixture.py
 
+0.1.2 - 2026-09-01
+  - Adds deterministic compact-index conflict fixtures: cross-product filename reuse, same-product hash change across snapshots, and same-hash/multiple-filename aliases.
+
 0.1.1 - 2026-09-01
   - Adds real-title-shaped release-inference regression cases discovered by auditing the native 0.15.0 family index.
   - Covers Office Online update stamps, Windows 10 update metadata, .NET/R semantic versions, and Windows Server version 1809.

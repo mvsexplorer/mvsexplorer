@@ -1,5 +1,8 @@
 Tool Version History: dev\generate_tests.py
 
+0.11.2 - 2026-09-01
+  - Regenerates structure/all tests for the 477-tool public surface and 106-assertion family acceptance.
+
 0.11.1 - 2026-09-01
   - Updates the aggregate family regression integration to require the 96-assertion dedicated summary.
   - Keeps the 476-tool public structure surface and all other public regression scopes unchanged.

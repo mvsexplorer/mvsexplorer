@@ -257,6 +257,35 @@ test\build_archive_html_report.bat result-folder
 `test\archive-exclusions.tsv` is an optional non-destructive canonical
 interpretation file. Excluded snapshots remain tested and fully ingested.
 
+## 0.15.2 compact product-family index regression
+
+The dedicated product-family acceptance now performs 106 assertions. In
+addition to the 0.15.1 hierarchy/release/query checks, it builds a compact
+second-stage index and verifies normalized output files, snapshot-set
+references, byte-preserved classification metadata, raw-note retention,
+deduplication, cross-product filename collisions, true same-product hash
+disagreements, and hash aliases across filenames.
+
+The new compact builder is a 34th family tool and is excluded from the legacy
+archive sweep. The normal 0.15.2 `test_all.bat` matrix is 1,091 assertions:
+
+```text
+Structure:       478
+Scalar:          120
+Lookup:           24
+Diagnostic:       46
+Relationship:    151
+Single-dump:     167
+Compare:          39
+History:          65
+Family wrapper:    1
+---------------------
+Total:          1091 assertions
+```
+
+On the established representative dump, with the same three data-dependent
+note SKIPs, the expected baseline is 1,088 PASS / 0 FAIL / 3 SKIP.
+
 ## 0.15.1 product-family release-token regression
 
 The dedicated product-family acceptance now performs 96 assertions. Four

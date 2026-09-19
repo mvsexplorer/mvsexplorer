@@ -1,5 +1,64 @@
-# MVS Explorer Toolkit 0.15.1
+# MVS Explorer Toolkit 0.15.2
 
+
+## 0.15.2 compact family index
+
+Version 0.15.2 adds `build_mvs_product_family_compact_index.bat`, a second-stage
+builder for the product-family index. The original family index remains the
+forensic/evidence form with one row per snapshot observation. The compact index
+collapses identical facts across snapshots while preserving exact dump
+provenance through reusable `snapshot_set_id` records.
+
+The compact builder is intentionally lossless with respect to the source-backed
+family facts it summarizes. Product IDs remain source/snapshot observations,
+product file/hash relationships remain those actually observed in `mvs.txt`,
+note raw HTML remains content-addressed, and SHA-1/SHA-256 values are never
+paired merely because a filename matches.
+
+Build it from an existing full family index:
+
+```bat
+build_mvs_product_family_compact_index.bat family-index compact-family-index
+```
+
+Key compact outputs include:
+
+```text
+snapshot-catalog.tsv
+snapshot-sets.tsv
+product-files-all-ever.tsv
+product-file-hashes-all-ever.tsv
+file-hashes-all-ever.tsv
+product-ids-all-ever.tsv
+product-dates-all-ever.tsv
+product-notes-all-ever.tsv
+product-presence-all-ever.tsv
+filename-hash-conflicts.tsv
+filename-hash-conflict-details.tsv
+product-file-hash-conflicts.tsv
+hash-filename-aliases.tsv
+compact-index-summary.txt
+```
+
+`filename-hash-conflicts.tsv` distinguishes ordinary cross-product filename
+reuse from a true same-product filename/hash disagreement.
+`product-file-hash-conflicts.tsv` is the stricter ledger for cases where the
+same normalized product title and filename/algorithm are observed with
+different hashes. `hash-filename-aliases.tsv` records the inverse condition:
+the same payload hash appears under multiple filenames.
+
+Against the accepted 0.15.1 real index, this representation collapses
+3,729,072 product-hash observations to 197,600 source/product/file/hash facts
+and 80,941 global filename/algorithm/hash tuples. There are 26 global
+filename/hash collision keys, zero same-product hash disagreements, and 356
+hashes that appear under multiple filenames. Those are observed archive
+statistics, not hard-coded expectations.
+
+The public root now contains 477 tools: the original 443 legacy tools, the
+existing 33 family tools, and the new compact builder. The legacy archive sweep
+remains 34,822 logical checks because both family builders are separate
+archive-level features. The dedicated family regression now performs 106
+assertions.
 
 ## 0.15.1 release-token inference maintenance
 

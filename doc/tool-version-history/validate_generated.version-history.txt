@@ -1,5 +1,8 @@
 Tool Version History: dev\validate_generated.py
 
+0.8.1 - 2026-09-01
+  - Validates the 477-tool public surface and distinguishes one full family builder, one compact family builder, and 32 family query wrappers.
+
 0.8.0 - 2026-09-01
   - Recognizes the product-family builder/query embedded PowerShell blocks.
   - Enforces 476 public tools: 443 legacy plus 33 product-family tools.

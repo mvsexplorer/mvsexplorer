@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validation for archive sweep, quality, reporting, and performance helpers.
 
-Version: 0.6.1
+Version: 0.6.2
 """
 from pathlib import Path
 import sys
@@ -52,7 +52,7 @@ def main():
         "archive-output","mvs_dmp","run_snapshot_tools_fast.bat","run_compare_tools_fast.bat",
         "run_archive_tools_fast.bat","Start-FastWorkerJob","Complete-FastWorkerJob",
         "build_archive_html_report.bat","Content cache:","Family tools:",
-        "build_mvs_product_family_index.bat","^(?:print|read)_mvs_product_"
+        "build_mvs_product_family_index.bat","build_mvs_product_family_compact_index.bat","^(?:print|read)_mvs_product_"
     ))
     if "'index','executor','engine_version','scope','snapshot'" not in text:
         fail("plan engine/executor identity is not serialized")
@@ -188,10 +188,10 @@ def main():
     compare=[p for p in public if p.name.startswith("compare_mvs_dump_")]
     archive_names={"build_mvs_dump_change_history.bat","build_mvs_dump_all_ever.bat"}
     archive=[p for p in public if p.name in archive_names]
-    family=[p for p in public if p.name=="build_mvs_product_family_index.bat" or
+    family=[p for p in public if p.name in {"build_mvs_product_family_index.bat","build_mvs_product_family_compact_index.bat"} or
             p.name.startswith("print_mvs_product_") or p.name.startswith("read_mvs_product_")]
     single=[p for p in public if p not in compare and p not in archive and p not in family]
-    if (len(public),len(single),len(compare),len(archive),len(family)) != (476,422,19,2,33):
+    if (len(public),len(single),len(compare),len(archive),len(family)) != (477,422,19,2,34):
         fail("unexpected public scope counts: public=%d single=%d compare=%d archive=%d family=%d" %
              (len(public),len(single),len(compare),len(archive),len(family)))
     planned=len(single)*79+len(compare)*78+len(archive)
@@ -207,24 +207,29 @@ def main():
         "Get-ReleaseToken","Microsoft Office Online Server","(?:last\\s+)?updated",
         "\\bversion\\s+"
     ))
+    compact_builder=check_batch(ROOT/"build_mvs_product_family_compact_index.bat",(
+        ":_MVSProductFamilyCompact_start","snapshot-sets.tsv","product-file-hashes-all-ever.tsv",
+        "file-hashes-all-ever.tsv","filename-hash-conflicts.tsv","product-file-hash-conflicts.tsv",
+        "hash-filename-aliases.tsv","CROSS_PRODUCT_FILENAME_REUSE","PRODUCT_HASH_DISAGREEMENT"
+    ))
     family_queries=[p for p in public if p.name.startswith("print_mvs_product_") or p.name.startswith("read_mvs_product_")]
     if len(family_queries)!=32:
         fail("expected 32 product-family query tools, got %d"%len(family_queries))
     for p in family_queries:
         check_batch(p,(":_MVSProductFamilyQuery_start","product-family-memberships.tsv","Matches-Pattern"))
     family_test=check_batch(ROOT/"test"/"test_product_family_tools.bat",(
-        ":_MVSProductFamilyTest_start","SUMMARY: passed=","expected 96 assertions",
+        ":_MVSProductFamilyTest_start","SUMMARY: passed=","expected 106 assertions",
         "embedded Office reference is not ownership","raw note HTML references are content-addressed",
         "Office Online update stamp is not a release",
         ".NET semantic version beats referenced year",
         "explicit non-year version beats update timestamp"
     ))
     test_all_text=(ROOT/"test"/"test_all.bat").read_text(encoding="utf-8")
-    if ("root public .bat count = 476" not in test_all_text or
-        "product-family regression 96 assertions" not in test_all_text or
-        "SUMMARY: passed=96 failed=0" not in test_all_text or
-        "SUMMARY: passed=92 failed=0" in test_all_text):
-        fail("test_all.bat is not integrated with the 96-assertion product-family regression")
+    if ("root public .bat count = 477" not in test_all_text or
+        "product-family regression 106 assertions" not in test_all_text or
+        "SUMMARY: passed=106 failed=0" not in test_all_text or
+        ("SUMMARY: passed=96 failed=0" in test_all_text or "SUMMARY: passed=92 failed=0" in test_all_text)):
+        fail("test_all.bat is not integrated with the 106-assertion product-family regression")
 
     exclusions=ROOT/"test"/"archive-exclusions.tsv"
     if not exclusions.is_file(): fail("missing test/archive-exclusions.tsv")
@@ -245,15 +250,15 @@ def main():
         "dev/templates/archive-quality.bat.tpl","dev/templates/test-performance.bat.tpl",
         "dev/templates/test-everything.bat.tpl","doc/archive-sweep.md","doc/performance-architecture.md",
         "dev/generate_product_family_tools.py","dev/generate_product_family_fixture.py","dev/product-family-tool-spec.json",
-        "dev/library/product-family-builder.inc.ps1","dev/library/product-family-query.inc.ps1",
-        "dev/templates/product-family-builder.bat.tpl","dev/templates/product-family-query.bat.tpl",
+        "dev/library/product-family-builder.inc.ps1","dev/library/product-family-compact-builder.inc.ps1","dev/library/product-family-query.inc.ps1",
+        "dev/templates/product-family-builder.bat.tpl","dev/templates/product-family-compact-builder.bat.tpl","dev/templates/product-family-query.bat.tpl",
         "test/test_product_family_tools.bat","doc/product-family-tools.md","doc/product-family-tool-matrix.tsv",
     )
     for rel in maintained:
         if not (ROOT/rel).is_file(): fail("missing maintained file: "+rel)
 
     print("PASS: archive sweep/quality/performance static validation")
-    print("public tools: 476 (single=422 compare=19 archive=2 family=33)")
+    print("public tools: 477 (single=422 compare=19 archive=2 family=34)")
     print("fast executor: indexed + source-stable + bounded parallel workers + content cache")
     print("analysis: per-dump contributions, quality, re-ID, notes, exclusions, interactive HTML")
     print("supplied archive plan: 34,822 logical checks for 79 snapshots")

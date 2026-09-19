@@ -2,6 +2,7 @@ MANIFEST.txt
 README.md
 build_mvs_dump_all_ever.bat
 build_mvs_dump_change_history.bat
+build_mvs_product_family_compact_index.bat
 build_mvs_product_family_index.bat
 compare_mvs_dump_dates_from_mvs_dates.txt.bat
 compare_mvs_dump_filenames_from_mvs.sha1.bat
@@ -62,6 +63,7 @@ dev/library/history-query.inc.ps1
 dev/library/lookup-query.inc.ps1
 dev/library/powershell-common.inc.ps1
 dev/library/product-family-builder.inc.ps1
+dev/library/product-family-compact-builder.inc.ps1
 dev/library/product-family-query.inc.ps1
 dev/library/relationship-query.inc.ps1
 dev/library/scalar-query.inc.ps1
@@ -84,6 +86,7 @@ dev/templates/history.bat.tpl
 dev/templates/lookup.bat.tpl
 dev/templates/performance-analyzer.bat.tpl
 dev/templates/product-family-builder.bat.tpl
+dev/templates/product-family-compact-builder.bat.tpl
 dev/templates/product-family-query.bat.tpl
 dev/templates/relationship.bat.tpl
 dev/templates/scalar.bat.tpl
@@ -149,6 +152,7 @@ doc/tool-version-history/analyze_test_performance.version-history.txt
 doc/tool-version-history/build_archive_html_report.version-history.txt
 doc/tool-version-history/build_mvs_dump_all_ever.txt
 doc/tool-version-history/build_mvs_dump_change_history.txt
+doc/tool-version-history/build_mvs_product_family_compact_index.version-history.txt
 doc/tool-version-history/build_mvs_product_family_index.version-history.txt
 doc/tool-version-history/check_archive_sweep_quality.version-history.txt
 doc/tool-version-history/compare_mvs_dump_dates_from_mvs_dates.txt.version-history.txt

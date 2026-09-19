@@ -1,6 +1,15 @@
 MVS Explorer Toolkit Project Version History
 
 
+0.15.2 - 2026-09-01
+  - Added build_mvs_product_family_compact_index.bat as a second-stage, lossless compact/all-ever family index builder.
+  - Collapses repeated snapshot observations while preserving exact dump provenance through reusable snapshot_set_id records.
+  - Added product/file/hash all-ever tables plus explicit filename/hash collision, same-product hash disagreement, and hash-to-multiple-filename alias ledgers.
+  - Preserves classification/membership metadata byte-for-byte and retains content-addressed raw note HTML; does not infer SHA-1/SHA-256 pairings.
+  - Real 0.15.1 audit baseline: 3,729,072 product-hash observations collapse to 197,600 source/product/file/hash facts and 80,941 global file-hash tuples; 26 filename collisions, 0 same-product hash disagreements, 356 hash filename aliases.
+  - Expanded the family synthetic regression from 96 to 106 assertions, including compact collapse/provenance/conflict semantics.
+  - Public root becomes 477 tools (34 family tools); legacy single/compare/archive sweep scope remains 34,822 logical checks.
+
 0.15.1 - 2026-09-01
   - Corrected analytical product-family release-token inference after auditing the native 0.15.0 real family index.
   - Prevented Updated/Last updated timestamps and later referenced-product years from overriding earlier structural product versions.

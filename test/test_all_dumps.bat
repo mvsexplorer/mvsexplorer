@@ -1214,12 +1214,13 @@ $publicFiles = @(Get-ChildItem -LiteralPath $ProjectRoot -File -Filter '*.bat' -
 if ($publicFiles.Count -eq 0) { Fail 4 'No public root .bat tools found.' }
 
 $familyFiles = @($publicFiles | Where-Object {
-    $_.Name -eq 'build_mvs_product_family_index.bat' -or $_.Name -match '^(?:print|read)_mvs_product_'
+    $_.Name -in @('build_mvs_product_family_index.bat','build_mvs_product_family_compact_index.bat') -or
+    $_.Name -match '^(?:print|read)_mvs_product_'
 })
 $singleFiles = @($publicFiles | Where-Object {
     $_.Name -notlike 'compare_mvs_dump_*.bat' -and
     $_.Name -notin @('build_mvs_dump_change_history.bat','build_mvs_dump_all_ever.bat') -and
-    $_.Name -ne 'build_mvs_product_family_index.bat' -and
+    $_.Name -notin @('build_mvs_product_family_index.bat','build_mvs_product_family_compact_index.bat') -and
     $_.Name -notmatch '^(?:print|read)_mvs_product_'
 })
 $compareFiles = @($publicFiles | Where-Object { $_.Name -like 'compare_mvs_dump_*.bat' })

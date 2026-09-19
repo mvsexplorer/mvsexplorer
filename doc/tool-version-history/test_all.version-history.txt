@@ -1,5 +1,8 @@
 Tool Version History: test\test_all.bat
 
+0.11.2 - 2026-09-01
+  - Integrates the 106-assertion family/compact regression and 477-tool structure surface.
+
 Purpose
   Test mode: all
   Standalone: yes; contains complete injected test harness

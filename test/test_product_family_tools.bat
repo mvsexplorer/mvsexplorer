@@ -2,7 +2,7 @@
 :setup
 REM Standalone product-family feature regression.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.1"
+set "app.version=0.1.2"
 set "app.name=test_product_family_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -258,6 +258,105 @@ try {
     for ($i=0; $i -lt 16; $i++) { FailCase ('semantic assertion '+($i+1)) $_.Exception.Message }
 }
 
+
+$CompactRoot = Join-Path $env:TEMP ('mvs-product-family-compact-test-'+[guid]::NewGuid().ToString('N'))
+$CompactBuilder = Join-Path $Root 'build_mvs_product_family_compact_index.bat'
+$compactRun = Invoke-Batch $CompactBuilder @($OutputRoot,$CompactRoot)
+if ($compactRun.rc -eq 0 -and [string]::IsNullOrWhiteSpace($compactRun.stderr)) {
+    Pass 'build_mvs_product_family_compact_index'
+} else {
+    FailCase 'build_mvs_product_family_compact_index' ('rc='+$compactRun.rc+' stderr='+$compactRun.stderr)
+}
+
+$compactReason = ''
+$requiredCompactOkay = $false
+$collapsedOkay = $false
+$snapshotRefsOkay = $false
+$metadataOkay = $false
+$rawCompactOkay = $false
+$filenameCollisionOkay = $false
+$productConflictOkay = $false
+$aliasOkay = $false
+$uniqueGlobalHashOkay = $false
+try {
+    $compactRequired = @(
+        'compact-index-summary.txt',
+        'snapshot-catalog.tsv',
+        'snapshot-sets.tsv',
+        'product-ids-all-ever.tsv',
+        'product-dates-all-ever.tsv',
+        'product-files-all-ever.tsv',
+        'product-file-hashes-all-ever.tsv',
+        'file-hashes-all-ever.tsv',
+        'product-notes-all-ever.tsv',
+        'product-presence-all-ever.tsv',
+        'filename-hash-conflicts.tsv',
+        'filename-hash-conflict-details.tsv',
+        'product-file-hash-conflicts.tsv',
+        'hash-filename-aliases.tsv',
+        'product-classifications.tsv',
+        'product-family-memberships.tsv'
+    )
+    $requiredCompactOkay = $true
+    foreach ($name in $compactRequired) {
+        if (-not (Test-Path -LiteralPath (Join-Path $CompactRoot $name) -PathType Leaf)) { $requiredCompactOkay=$false; break }
+    }
+
+    $rawHashRows = @(Import-Csv -LiteralPath (Join-Path $OutputRoot 'product-hashes.tsv') -Delimiter "`t" -Encoding UTF8)
+    $compactHashRows = @(Import-Csv -LiteralPath (Join-Path $CompactRoot 'product-file-hashes-all-ever.tsv') -Delimiter "`t" -Encoding UTF8)
+    $collapsedOkay = ($compactHashRows.Count -lt $rawHashRows.Count)
+
+    $snapshotSets = @(Import-Csv -LiteralPath (Join-Path $CompactRoot 'snapshot-sets.tsv') -Delimiter "`t" -Encoding UTF8)
+    $setIds = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+    foreach ($s in $snapshotSets) { [void]$setIds.Add([string]$s.snapshot_set_id) }
+    $snapshotRefsOkay = $true
+    foreach ($r in $compactHashRows) {
+        if (-not $setIds.Contains([string]$r.snapshot_set_id)) { $snapshotRefsOkay=$false; break }
+    }
+
+    $sourceClassBytes = [IO.File]::ReadAllBytes((Join-Path $OutputRoot 'product-classifications.tsv'))
+    $compactClassBytes = [IO.File]::ReadAllBytes((Join-Path $CompactRoot 'product-classifications.tsv'))
+    $metadataOkay = [Collections.StructuralComparisons]::StructuralEqualityComparer.Equals($sourceClassBytes,$compactClassBytes)
+
+    $rawCompactOkay = $true
+    $sourceRaw = @(Get-ChildItem -LiteralPath (Join-Path $OutputRoot 'raw-html') -File | Sort-Object Name)
+    $compactRaw = @(Get-ChildItem -LiteralPath (Join-Path $CompactRoot 'raw-html') -File | Sort-Object Name)
+    if ($sourceRaw.Count -ne $compactRaw.Count) { $rawCompactOkay=$false }
+    if ($rawCompactOkay) {
+        for ($i=0; $i -lt $sourceRaw.Count; $i++) {
+            if ($sourceRaw[$i].Name -ne $compactRaw[$i].Name -or $sourceRaw[$i].Length -ne $compactRaw[$i].Length) { $rawCompactOkay=$false; break }
+        }
+    }
+
+    $filenameConflicts = @(Import-Csv -LiteralPath (Join-Path $CompactRoot 'filename-hash-conflicts.tsv') -Delimiter "`t" -Encoding UTF8)
+    $filenameCollisionOkay = (@($filenameConflicts | Where-Object { $_.filename -eq 'shared-collision.bin' -and $_.conflict_type -eq 'CROSS_PRODUCT_FILENAME_REUSE' }).Count -eq 1)
+
+    $productConflicts = @(Import-Csv -LiteralPath (Join-Path $CompactRoot 'product-file-hash-conflicts.tsv') -Delimiter "`t" -Encoding UTF8)
+    $productConflictOkay = (@($productConflicts | Where-Object { $_.product_title -eq 'Office 2007 Proofing Tools (x86) - DVD (English)' -and $_.filename -eq 'office2007-proofing.iso' -and [int]$_.distinct_hashes -eq 2 }).Count -eq 1)
+
+    $aliases = @(Import-Csv -LiteralPath (Join-Path $CompactRoot 'hash-filename-aliases.tsv') -Delimiter "`t" -Encoding UTF8)
+    $aliasOkay = (@($aliases | Where-Object { $_.hash -eq 'abababababababababababababababababababab' -and $_.filenames -like '*same-payload-a.bin*' -and $_.filenames -like '*same-payload-b.bin*' }).Count -eq 1)
+
+    $globalHashes = @(Import-Csv -LiteralPath (Join-Path $CompactRoot 'file-hashes-all-ever.tsv') -Delimiter "`t" -Encoding UTF8)
+    $seenGlobal = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+    $uniqueGlobalHashOkay = $true
+    foreach ($r in $globalHashes) {
+        $key = ([string]$r.filename)+[char]31+([string]$r.algorithm)+[char]31+([string]$r.hash)
+        if (-not $seenGlobal.Add($key)) { $uniqueGlobalHashOkay=$false; break }
+    }
+} catch {
+    $compactReason = $_.Exception.Message
+}
+Assert-Semantic 'compact index required normalized files' $requiredCompactOkay $compactReason
+Assert-Semantic 'compact hash rows collapse repeated observations' $collapsedOkay $compactReason
+Assert-Semantic 'compact snapshot-set references resolve' $snapshotRefsOkay $compactReason
+Assert-Semantic 'compact index preserves classification metadata byte-for-byte' $metadataOkay $compactReason
+Assert-Semantic 'compact raw-note store is preserved' $rawCompactOkay $compactReason
+Assert-Semantic 'compact filename collision distinguishes cross-product reuse' $filenameCollisionOkay $compactReason
+Assert-Semantic 'compact same-product hash disagreement is highlighted' $productConflictOkay $compactReason
+Assert-Semantic 'compact hash alias across filenames is highlighted' $aliasOkay $compactReason
+Assert-Semantic 'compact global file-hash keys are unique' $uniqueGlobalHashOkay $compactReason
+
 $queries = @(
     [pscustomobject]@{base='product_titles_from_family';pattern='Microsoft Office'},
     [pscustomobject]@{base='product_families_from_title';pattern='Microsoft Office Communications Server 2007 Standard Edition (English)'},
@@ -289,13 +388,15 @@ foreach ($q in $queries) {
 }
 
 Write-Line ('SUMMARY: passed='+$script:Passed+' failed='+$script:Failed)
-if ($script:Passed + $script:Failed -ne 96) {
-    FailCase 'assertion accounting' ('expected 96 assertions, got '+($script:Passed+$script:Failed))
+if ($script:Passed + $script:Failed -ne 106) {
+    FailCase 'assertion accounting' ('expected 106 assertions, got '+($script:Passed+$script:Failed))
 }
 if ($script:Failed -gt 0) {
     Write-Line ('Artifacts retained at: '+$OutputRoot)
+    if (Test-Path -LiteralPath $CompactRoot) { Write-Line ('Compact artifacts retained at: '+$CompactRoot) }
     exit 1
 }
 if (Test-Path -LiteralPath $OutputRoot) { Remove-Item -LiteralPath $OutputRoot -Recurse -Force }
+if (Test-Path -LiteralPath $CompactRoot) { Remove-Item -LiteralPath $CompactRoot -Recurse -Force }
 exit 0
 :_MVSProductFamilyTest_end

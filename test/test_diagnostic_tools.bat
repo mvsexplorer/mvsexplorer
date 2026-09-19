@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.11.1"
+set "app.version=0.11.2"
 set "app.name=test_diagnostic_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -985,6 +985,7 @@ function Get-ProductFamilyToolNames {
     )
     $names = New-Object System.Collections.ArrayList
     [void]$names.Add('build_mvs_product_family_index')
+    [void]$names.Add('build_mvs_product_family_compact_index')
     foreach ($base in $bases) {
         [void]$names.Add('print_mvs_'+$base)
         [void]$names.Add('read_mvs_'+$base)
@@ -1012,7 +1013,7 @@ function Test-Structure {
     foreach ($familyTool in Get-ProductFamilyToolNames) { [void]$expected.Add($familyTool + '.bat') }
 
     $actual = @(Get-ChildItem -LiteralPath $Root -Filter '*.bat' -File | Select-Object -ExpandProperty Name)
-    if ($actual.Count -eq 476) { Write-Pass 'root public .bat count = 476' } else { Write-Fail 'root public .bat count' ('expected 476, got ' + $actual.Count) }
+    if ($actual.Count -eq 477) { Write-Pass 'root public .bat count = 477' } else { Write-Fail 'root public .bat count' ('expected 477, got ' + $actual.Count) }
 
     foreach ($name in $expected) {
         $path = Join-Path $Root $name
@@ -1024,7 +1025,7 @@ function Test-Structure {
         foreach ($label in @(':setup',':main',':end',':SetErrorLevel',':RunPowerShellFromLabel')) {
             if (-not $text.Contains($label)) { [void]$problems.Add('missing ' + $label) }
         }
-        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start') -and -not $text.Contains(':_MVSRelationship_start') -and -not $text.Contains(':_MVSSingleDump_start') -and -not $text.Contains(':_MVSCompare_start') -and -not $text.Contains(':_MVSHistory_start') -and -not $text.Contains(':_MVSProductFamily_start') -and -not $text.Contains(':_MVSProductFamilyQuery_start')) { [void]$problems.Add('missing injected PowerShell block') }
+        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start') -and -not $text.Contains(':_MVSRelationship_start') -and -not $text.Contains(':_MVSSingleDump_start') -and -not $text.Contains(':_MVSCompare_start') -and -not $text.Contains(':_MVSHistory_start') -and -not $text.Contains(':_MVSProductFamily_start') -and -not $text.Contains(':_MVSProductFamilyCompact_start') -and -not $text.Contains(':_MVSProductFamilyQuery_start')) { [void]$problems.Add('missing injected PowerShell block') }
         if ($text.Contains('dev\library') -or $text.Contains('generate_tools.py')) { [void]$problems.Add('development runtime dependency reference') }
         if ($text.Contains(':_MVSSingleDump_start') -and -not $text.Contains('return ,(New-Object System.Collections.ArrayList)')) {
             [void]$problems.Add('single-dump New-ArrayList can collapse empty collection to null')
@@ -1449,12 +1450,12 @@ function Test-ProductFamilyFeature {
         return
     }
     $run = Invoke-PublicTool $path '' $null $false
-    if ($run.rc -eq 0 -and [string]::IsNullOrWhiteSpace($run.stderr) -and $run.stdout -match 'SUMMARY: passed=96 failed=0') {
-        Write-Pass 'product-family regression 96 assertions' '0' ([string]$run.rc) ([string]$run.elapsed_ms)
+    if ($run.rc -eq 0 -and [string]::IsNullOrWhiteSpace($run.stderr) -and $run.stdout -match 'SUMMARY: passed=106 failed=0') {
+        Write-Pass 'product-family regression 106 assertions' '0' ([string]$run.rc) ([string]$run.elapsed_ms)
     } else {
         $reason = 'rc=' + $run.rc + '; stdout=' + (Short-Text $run.stdout) + '; stderr=' + (Short-Text $run.stderr)
-        Write-Fail 'product-family regression 96 assertions' $reason '0' ([string]$run.rc) ([string]$run.elapsed_ms)
-        Save-FailureArtifacts 'product-family regression' $run 0 'SUMMARY: passed=96 failed=0' $reason
+        Write-Fail 'product-family regression 106 assertions' $reason '0' ([string]$run.rc) ([string]$run.elapsed_ms)
+        Save-FailureArtifacts 'product-family regression' $run 0 'SUMMARY: passed=106 failed=0' $reason
     }
 }
 
