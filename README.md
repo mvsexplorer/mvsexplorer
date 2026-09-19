@@ -1,104 +1,119 @@
-# MVS Explorer Toolkit 0.2.0
+# MVS Explorer Toolkit 0.3.0
 
-MVS Explorer Toolkit is being developed as a collection of simple console tools that will eventually support a graphical application named **MVS Explorer**.
+MVS Explorer Toolkit is a growing collection of console tools for exploring MVS dump snapshots, intended to culminate in the graphical **MVS Explorer** application.
 
-This milestone implements scalar product-list views for extracted MVS dump folders.
+## Standalone public tools, shared development source
 
-## Standalone-tool rule
+Every public `.bat` in the project root is fully standalone.
 
-Every `.bat` in the project root is **fully standalone**.
+Common code is now maintained under `dev\` and injected by `dev\generate_tools.py`. The generated public tools contain their own batch functions and embedded PowerShell; they do not read or call anything under `dev\` at runtime.
 
-A tool does not call another toolkit `.bat`, `.ps1`, `.js`, library, or helper file at runtime. Each script contains all code required for its own operation, including:
-
-- argument handling and help;
-- dump-folder resolution;
-- `mvs_ids.txt` parsing;
-- `mvs_dates.txt` parsing;
-- `mvs_notes.html` parsing and note normalization;
-- human or machine output formatting;
-- embedded PowerShell extraction/execution;
-- error reporting and return-code handling.
-
-The only runtime dependencies are Windows `cmd.exe`, `powershell.exe`, and the selected extracted MVS dump.
-
-## Tool families
-
-`print_mvs_dump_*.bat`
-: Human-readable one-line-per-product output with labels.
-
-`read_mvs_dump_*.bat`
-: Machine-readable, headerless TSV with one line per product.
-
-The project currently provides all 15 non-empty scalar projections of:
+The development model is:
 
 ```text
-ID
-TITLE
-DATE
-NOTE
+common library + template + tool specification
+                  |
+                  v
+             generation
+                  |
+                  v
+      fully standalone public .bat
 ```
 
-in both output modes, for 30 standalone tools total.
+## Public tool count
 
-## Examples
+Version 0.3.0 contains **127 standalone public batch tools**:
+
+- 30 source-order scalar tools;
+- 90 sorted scalar tools;
+- 7 lookup tools.
+
+## Sorted scalar tools
+
+Every existing scalar `print_` and `read_` tool now has three companions:
 
 ```text
-print_mvs_dump_id.bat mvs_2021-08-17
-print_mvs_dump_id_title_date.bat mvs_2021-06-21-1830
-read_mvs_dump_id_title.bat "D:\MVS\mvs_2021-08-17"
-read_mvs_dump_title_note.bat mvs_2021-08-17 > titles-and-notes.tsv
+_sorted_by_id
+_sorted_by_title
+_sorted_by_date
 ```
 
-Help:
+For example:
 
 ```text
-print_mvs_dump_id.bat --help
+print_mvs_dump_id_title_date_note.bat
+print_mvs_dump_id_title_date_note_sorted_by_id.bat
+print_mvs_dump_id_title_date_note_sorted_by_title.bat
+print_mvs_dump_id_title_date_note_sorted_by_date.bat
 ```
 
-## Dump lookup
+Sort semantics are ascending:
 
-The dump argument may be an absolute/relative folder or a dump folder name.
+- **ID:** numeric product ID.
+- **TITLE:** case-insensitive natural/alphanumeric title; numeric runs are compared naturally, with numeric ID as tie-break.
+- **DATE:** chronological date/time where parseable; source date text and numeric ID provide deterministic tie-breaks.
 
-Named folders are searched in:
+The original unsorted tools remain source-order interfaces and follow `mvs_ids.txt`.
 
-1. the current directory;
-2. `%MVS_DUMPS_ROOT%`, if defined;
-3. the script directory;
-4. `mvs_dumps_archive` below/adjacent to the script directory;
-5. `mvs_dumps_archive` below the current directory.
+A sort field does not have to be displayed. For example, `print_mvs_dump_note_sorted_by_title.bat` prints notes while ordering product rows by title.
 
-## Scalar data model
+## Lookup tools
 
-Within the supplied archive, product ID is the reliable primary key for the scalar catalog records:
+Current lookup relationships:
 
 ```text
-ID -> one title in mvs_ids.txt
-ID -> one release date in mvs_dates.txt
+lookup_mvs_title_from_id.bat
+lookup_mvs_title_from_date.bat
+lookup_mvs_note_from_id.bat
+lookup_mvs_note_from_title.bat
+lookup_mvs_note_from_date.bat
+lookup_mvs_date_from_id.bat
+lookup_mvs_date_from_title.bat
 ```
 
-Titles are not unique across IDs.
+Examples:
 
-Notes are not keyed by ID in `mvs_notes.html`; they are headed by title. This toolkit therefore treats notes as title-level information and documents the ambiguity when multiple IDs have the same title.
+```text
+lookup_mvs_title_from_id.bat mvs_2021-08-17 28
+lookup_mvs_title_from_id.bat mvs_2021-08-17 2*
+lookup_mvs_title_from_id.bat mvs_2021-08-17 *28
+lookup_mvs_title_from_id.bat mvs_2021-08-17 *2*
+lookup_mvs_note_from_title.bat mvs_2021-08-17 "Windows 7 *"
+```
 
-## Machine output
+`*` matches zero or more characters anywhere in the search value. Matching is case-insensitive. Every non-`*` character is treated literally.
 
-`read_` tools emit literal TAB-separated fields in the order named by the tool, with no header, color, banner, or status text on stdout.
+Lookup tools emit **distinct, non-empty associated values, one per line**, with no label or header. Multiple matching product rows are ordered by the searched field: ID numerically, title naturally, or date chronologically.
 
-Missing fields are empty. Embedded tab/CR/LF characters are normalized to spaces.
+No associated value produces no stdout and return code `1`.
 
-Errors go to stderr.
+## Scalar output families
+
+`print_`
+: Human-readable, labeled, one product per line.
+
+`read_`
+: Headerless TSV, one product per line, intended for piping and machine consumption.
+
+## Development files
+
+`dev\library\`
+: Common maintained batch/PowerShell source.
+
+`dev\templates\`
+: Batch templates.
+
+`dev\tool-spec.json`
+: Tool matrix.
+
+`dev\generate_tools.py`
+: Injects common source into standalone public tools.
+
+`dev\validate_generated.py`
+: Static validator for generated tools.
+
+These are development-time files only.
 
 ## Documentation
 
-See `doc\` for:
-
-- the supplied Batch File Style Guide v1.8.0;
-- project-specific style-guide addendum;
-- PowerShell style guide;
-- development prompts;
-- distilled development directives;
-- developer diary;
-- development observation journal;
-- project version history;
-- one version-history file per tool;
-- scalar data-model and output-format notes.
+See `doc\` for the supplied Batch File Style Guide, project addendum, embedded PowerShell style guide, developer diary, observation journal, complete prompt record, distilled directives, project history, output/data-model documents, tool catalog, and one version-history file per public/development tool.

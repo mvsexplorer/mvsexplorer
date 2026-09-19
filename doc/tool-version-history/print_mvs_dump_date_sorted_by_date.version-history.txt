@@ -1,0 +1,11 @@
+Tool Version History: print_mvs_dump_date_sorted_by_date.bat
+
+Purpose
+  Projection: DATE
+  Output: human-readable labeled output
+  Ordering: chronological DATE ascending, date text/ID tie-break
+
+0.1.0 - 2026-08-27
+  - Initial version.
+  - Generated as a fully standalone sorted companion to print_mvs_dump_date.bat.
+  - Contains injected batch and PowerShell implementation.

@@ -1,21 +1,26 @@
 MVS Explorer Toolkit Project Version History
 
+0.3.0 - 2026-08-27
+  - Added shared development-time libraries/templates and generator while
+    preserving fully standalone public batch deliverables.
+  - Regenerated 30 source-order scalar tools from injected common source.
+  - Added 90 sorted scalar tools: every scalar print/read projection now has
+    sorted_by_id, sorted_by_title, and sorted_by_date companions.
+  - ID sort is numeric ascending.
+  - Title sort is case-insensitive natural/alphanumeric with ID tie-break.
+  - Date sort is chronological where parseable with deterministic tie-breaks.
+  - Added 7 lookup tools.
+  - Added exact and '*' wildcard lookup matching.
+  - Multiple lookup matches are ordered by searched/source field.
+  - Lookup output is distinct non-empty associated values, one per line.
+  - Added development generator, validator, templates, common source, and
+    tool specification.
+  - Updated project documentation and development records.
+
 0.2.0 - 2026-08-27
-  - Reworked the entire scalar toolkit so every .bat is fully standalone.
-  - Removed the shared tools\MVS_Query.bat runtime architecture.
-  - Embedded each tool's PowerShell parsing implementation in that tool.
-  - Added doc\Batch-File-Style-Guide-v1.8.0.txt.
-  - Added development-prompts.md.
-  - Added development-directives.md.
-  - Added developer-diary.md.
-  - Added observation-journal.md.
-  - Added style-guide-addendum.md.
-  - Added powershell-style-guide.md.
-  - Added project and per-tool version histories.
-  - Retained 30 scalar tools: 15 projections x human/machine output.
+  - Reworked all scalar public batch files to be fully standalone.
+  - Added development documentation, directives, histories, style addendum,
+    embedded PowerShell guide, and observation journal.
 
 0.1.0 - 2026-08-27
-  - Initial scalar-product toolkit.
-  - Added 15 print_ and 15 read_ scalar front ends.
-  - Used a shared tools\MVS_Query.bat parser.
-  - Established ID/title/date/note scalar model and title-keyed note policy.
+  - Initial scalar-product toolkit using a shared runtime parser.

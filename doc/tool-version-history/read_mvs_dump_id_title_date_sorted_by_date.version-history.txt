@@ -1,0 +1,11 @@
+Tool Version History: read_mvs_dump_id_title_date_sorted_by_date.bat
+
+Purpose
+  Projection: ID, TITLE, DATE
+  Output: headerless TSV output
+  Ordering: chronological DATE ascending, date text/ID tie-break
+
+0.1.0 - 2026-08-27
+  - Initial version.
+  - Generated as a fully standalone sorted companion to read_mvs_dump_id_title_date.bat.
+  - Contains injected batch and PowerShell implementation.

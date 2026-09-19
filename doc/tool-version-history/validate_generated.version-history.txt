@@ -1,0 +1,6 @@
+Tool Version History: dev\validate_generated.py
+
+0.1.0 - 2026-08-27
+  - Initial static generated-tool validator.
+  - Checks line endings/BOM, scaffold labels, injected blocks, duplicate
+    labels, trailing-caret continuations, and development dependency leakage.

@@ -1,0 +1,14 @@
+Tool Version History: lookup_mvs_title_from_date.bat
+
+Purpose
+  Search field: DATE
+  Returned field: TITLE
+  Wildcard: * (zero or more characters), case-insensitive
+  Multiple-match ordering: natural DATE ordering
+  Output: distinct non-empty TITLE values, one per line
+
+0.1.0 - 2026-08-27
+  - Initial version.
+  - Added exact and '*' wildcard lookup.
+  - Added deterministic multiple-match ordering.
+  - Generated as a fully standalone batch file.

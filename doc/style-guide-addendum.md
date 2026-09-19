@@ -1,115 +1,84 @@
 # MVS Explorer Toolkit — Batch Style Guide Addendum
 
-**Addendum version:** 0.1.0  
-**Applies with:** Batch File Style Guide v1.8.0  
-**Project:** MVS Explorer Toolkit
+**Addendum version:** 0.2.0  
+**Applies with:** Batch File Style Guide v1.8.0
 
-This addendum does not replace the supplied style guide. It records project-specific clarifications discovered while implementing MVS Explorer Toolkit.
+This addendum supplements the supplied guide with project-specific conventions.
 
-## 1. Standalone delivery is a project requirement
+## 1. Standalone public tools
 
-Every user-facing `.bat` tool delivered in MVS Explorer Toolkit must be independently runnable when copied by itself.
+Each public root `.bat` must perform its core function if copied by itself, assuming Windows `cmd.exe`, `powershell.exe`, and the selected MVS dump are available.
 
-Therefore a delivered tool must not require another toolkit `.bat`, `.cmd`, `.ps1`, `.js`, library file, generated cache, configuration file, or documentation file in order to perform its advertised core function.
+## 2. Shared development source is allowed
 
-Windows components such as `cmd.exe` and `powershell.exe`, and the user's selected MVS dump files, are runtime dependencies rather than toolkit-file dependencies.
+The standalone rule does not prohibit common source during development.
 
-This project-specific rule intentionally favors duplication over shared runtime helpers.
-
-Development-time generators and tests may be shared, but generated deliverables must remain standalone.
-
-## 2. Embedded PowerShell is part of the standalone file
-
-When PowerShell is necessary, substantial PowerShell should be embedded between labels and executed through `:RunPowerShellFromLabel`.
-
-No temporary `.ps1` file is created for ordinary parsing.
-
-The embedded block is considered part of the `.bat` tool itself, not an external dependency.
-
-## 3. Console-filter behavior overrides pause-on-double-click defaults
-
-The scalar `print_` and `read_` tools are designed primarily as console filters that can be piped and redirected.
-
-They therefore do **not** pause on exit, even when launched outside an existing console.
-
-A future explicitly interactive tool may use `:IsConsole` and pause where appropriate.
-
-## 4. Human and machine output are separate contracts
-
-`print_` means human-oriented output.
-
-`read_` means machine-oriented output.
-
-Machine output must not contain:
-
-- ANSI color;
-- banners;
-- labels;
-- progress text;
-- pause prompts;
-- explanatory prose on stdout.
-
-Errors go to stderr.
-
-## 5. TSV is the initial machine scalar protocol
-
-For scalar `read_` tools:
-
-- one product is one physical line;
-- fields are separated by TAB;
-- no header is emitted;
-- missing values are empty fields;
-- TAB/CR/LF occurring inside values are normalized to spaces.
-
-If a future format is called CSV/JSON/XML, proper escaping for that format is mandatory.
-
-## 6. Preserve source order unless a tool explicitly promises sorting
-
-Scalar tools emit products in `mvs_ids.txt` order.
-
-Do not silently sort by ID, title, or date in a tool whose name does not state a sorting behavior.
-
-## 7. Source truth versus convenience joins must be documented
-
-An ID join from `mvs_dates.txt` is source-supported.
-
-The current note join is title-based because `mvs_notes.html` lacks IDs. It is a convenience relation and must be described as such.
-
-Future tools should keep similar distinctions explicit.
-
-## 8. Tool names are part of the public interface
-
-Current convention:
+Preferred model:
 
 ```text
-print_mvs_dump_<projection>.bat
-read_mvs_dump_<projection>.bat
+common source -> generation/injection -> standalone public .bat
 ```
 
-Projection fields are ordered left to right in the filename and in output.
+The generator and includes live under `dev\` and are not runtime dependencies.
 
-Changing a tool's field order is an interface change.
+## 3. Generated files contain implementation
 
-## 9. Complete scalar projection set
+A generated public `.bat` must contain the batch functions and embedded PowerShell it actually uses. Do not generate a wrapper that calls the development library.
 
-For four scalar product fields, the toolkit intentionally exposes all 15 non-empty combinations rather than an arbitrary subset.
+## 4. Source-order and sorted interfaces remain distinct
 
-This makes naming predictable and prevents special-case growth.
+Unsuffixed scalar tools preserve `mvs_ids.txt` source order.
 
-## 10. Duplicate implementation must be synchronized deliberately
+Sorted companions are explicit:
 
-Because standalone delivery duplicates common code, a change to shared behavior such as dump resolution, note normalization, help, error handling, or the PowerShell bridge must be propagated to every affected standalone tool and recorded in each tool's version history.
+```text
+_sorted_by_id
+_sorted_by_title
+_sorted_by_date
+```
 
-Automated generation is encouraged during development to reduce drift, provided the delivered `.bat` files remain independent.
+Do not silently sort the unsuffixed tools.
 
-## 11. Project documentation is a maintained development artifact
+## 5. Sort semantics
 
-At milestone delivery, update as applicable:
+ID: numeric ascending.
 
-- project version history;
-- changed tool version histories;
-- developer diary;
-- observation journal;
-- development directives when user requirements change;
-- this addendum when project experience clarifies batch conventions;
-- the PowerShell style guide when embedded PowerShell conventions change.
+TITLE: case-insensitive natural/alphanumeric ascending; numeric ID tie-break.
+
+DATE: chronological ascending where parseable; source date text then numeric ID tie-break.
+
+No note sort is currently generated.
+
+## 6. Lookup naming and arguments
+
+```text
+lookup_mvs_<target>_from_<source>.bat dump-folder search-value
+```
+
+## 7. Lookup wildcard
+
+Only `*` is special. It matches zero or more characters anywhere.
+
+Matching is case-insensitive. Every other search character is literal.
+
+This intentionally avoids exposing PowerShell's larger wildcard language by accident.
+
+## 8. Lookup output
+
+Lookup tools emit distinct non-empty associated target values, one per line, with no label/header.
+
+No associated value returns `1` with no stdout.
+
+## 9. Generated-code synchronization
+
+A common source change must be regenerated into every affected public file and validated before release.
+
+Material regenerated implementation changes increment affected tool versions according to the main guide.
+
+## 10. Console-filter behavior
+
+These tools do not auto-pause. Piping/redirection are primary use cases.
+
+## 11. Development records
+
+Milestones update the project history, affected tool histories, prompt/directive records, developer diary, observation journal, and applicable style guides.

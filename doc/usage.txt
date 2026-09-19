@@ -1,36 +1,51 @@
-MVS Explorer Toolkit 0.2.0
-Scalar Product Tools
+MVS Explorer Toolkit 0.3.0
+Usage Summary
 
-Every .bat in the project root is standalone.
+SCALAR SOURCE-ORDER
+  print_mvs_dump_<fields>.bat dump-folder
+  read_mvs_dump_<fields>.bat dump-folder
 
-USAGE
-  <tool>.bat dump-folder
-  <tool>.bat --help
+SCALAR SORTED
+  print_mvs_dump_<fields>_sorted_by_id.bat dump-folder
+  print_mvs_dump_<fields>_sorted_by_title.bat dump-folder
+  print_mvs_dump_<fields>_sorted_by_date.bat dump-folder
 
-HUMAN OUTPUT
-  print_mvs_dump_*.bat
+  read_mvs_dump_<fields>_sorted_by_id.bat dump-folder
+  read_mvs_dump_<fields>_sorted_by_title.bat dump-folder
+  read_mvs_dump_<fields>_sorted_by_date.bat dump-folder
 
-MACHINE OUTPUT
-  read_mvs_dump_*.bat
+SORTS
+  ID     numeric ascending
+  TITLE  natural/alphanumeric ascending, case-insensitive; ID tie-break
+  DATE   chronological ascending where parseable; date text then ID tie-break
+
+LOOKUPS
+  lookup_mvs_title_from_id.bat dump-folder search-value
+  lookup_mvs_title_from_date.bat dump-folder search-value
+  lookup_mvs_note_from_id.bat dump-folder search-value
+  lookup_mvs_note_from_title.bat dump-folder search-value
+  lookup_mvs_note_from_date.bat dump-folder search-value
+  lookup_mvs_date_from_id.bat dump-folder search-value
+  lookup_mvs_date_from_title.bat dump-folder search-value
+
+LOOKUP WILDCARD
+  * matches zero or more characters.
+  Matching is case-insensitive.
+  Every character other than * is literal.
 
 EXAMPLES
-  print_mvs_dump_id.bat mvs_2021-08-17
-  print_mvs_dump_id_title_date.bat mvs_2021-06-21-1830
-  read_mvs_dump_id_title.bat "D:\MVS\mvs_2021-08-17"
+  lookup_mvs_title_from_id.bat mvs_2021-08-17 28
+  lookup_mvs_title_from_id.bat mvs_2021-08-17 2*
+  lookup_mvs_title_from_id.bat mvs_2021-08-17 *28
+  lookup_mvs_title_from_id.bat mvs_2021-08-17 *2*
+  lookup_mvs_note_from_title.bat mvs_2021-08-17 "Windows 7 *"
 
-MACHINE FORMAT
-  Headerless TSV, one product per physical line.
+LOOKUP OUTPUT
+  One distinct non-empty associated value per line.
+  Multiple matching rows are ordered by the searched/source field.
+  No associated value: no stdout, return code 1.
 
-REQUIRED SOURCE FILES
-  mvs_ids.txt
-  mvs_dates.txt
-
-OPTIONAL SOURCE FILE
-  mvs_notes.html
-
-RETURN CODES
-  0  success/help
-  2  invalid arguments/mode/field
-  3  dump folder not found
-  4  required source file missing
-  5  no product records parsed
+DUMP RESOLUTION
+  A dump may be an absolute/relative folder path or a dump folder name.
+  Named folders are searched in the current directory, MVS_DUMPS_ROOT,
+  the script directory, and common adjacent mvs_dumps_archive locations.

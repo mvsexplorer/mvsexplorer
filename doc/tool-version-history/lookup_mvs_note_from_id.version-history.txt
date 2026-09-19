@@ -1,0 +1,14 @@
+Tool Version History: lookup_mvs_note_from_id.bat
+
+Purpose
+  Search field: ID
+  Returned field: NOTE
+  Wildcard: * (zero or more characters), case-insensitive
+  Multiple-match ordering: natural ID ordering
+  Output: distinct non-empty NOTE values, one per line
+
+0.1.0 - 2026-08-27
+  - Initial version.
+  - Added exact and '*' wildcard lookup.
+  - Added deterministic multiple-match ordering.
+  - Generated as a fully standalone batch file.

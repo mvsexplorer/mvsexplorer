@@ -288,3 +288,45 @@ also write all my prompts in a development prompts and from that write a documen
 as you write more script and need to clarify the style guide, write a style guide addendum, also write the style guide for the powershell that you use as part of this project inside the context of the batch style guide
 and also keep a journal of observation from development of this project
 ```
+
+## Prompt 5
+
+```text
+It is ok to maintain a function library and to use a script to inject the common function into each of the .bat
+as long as the result .bat are fully standalone
+
+One thing I notice with all of these, is that while it works
+the output is not sorted
+
+so I think every script here should also have a version that is _sorted
+and here we can sort by id, numerically, by title alphanumerically and by date
+sort by note does not seem useful
+
+so for example
+print_mvs_dump_id_title_date_note.bat
+would also have
+print_mvs_dump_id_title_date_note_sorted_by_id.bat
+print_mvs_dump_id_title_date_note_sorted_by_title.bat
+print_mvs_dump_id_title_date_note_sorted_by_date.bat
+
+
+also I think we should have lookup_ scripts
+where you give one value and it returns the value associated with it
+
+example
+lookup_mvs_title_from_id dumpfolderhere 28
+and that would return the title of id 28
+lookup_mvs_title_from_date 
+returns all titles with that date
+lookup_mvs_note_from_id
+lookup_mvs_note_from_title
+lookup_mvs_note_from_date
+lookup_mvs_date_from_id
+lookup_mvs_date_from_title
+if there is more than one result, it should print it
+and it should be possible to add wildcard for the search
+lookup_mvs_title_from_id dumpfolderhere 28
+lookup_mvs_title_from_id dumpfolderhere 2*
+lookup_mvs_title_from_id dumpfolderhere *28
+lookup_mvs_title_from_id dumpfolderhere *2*
+```

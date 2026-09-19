@@ -1,20 +1,18 @@
 Tool Version History: read_mvs_dump_title.bat
 
-Current purpose
+Purpose
   Projection: TITLE
-  Output mode: machine (headerless tab-separated machine output)
-  Input: one extracted MVS dump folder/path/name
+  Output: headerless TSV output
+  Ordering: source order from mvs_ids.txt
+
+0.3.0 - 2026-08-27
+  - Regenerated from common development source.
+  - Public batch remains fully standalone after injection.
+  - Refactored embedded product parsing around reusable injected helpers.
+  - Preserved source-order behavior/output contract.
 
 0.2.0 - 2026-08-27
-  - Rewritten as a fully standalone tool.
-  - Embedded all dump resolution, TITLE projection parsing/join logic,
-    output formatting, help, PowerShell bridge, and return-code handling
-    directly in this .bat file.
-  - Removed runtime dependency on tools\MVS_Query.bat.
-  - Preserved one product per output record.
-  - Preserved machine output semantics for this tool.
+  - Rewritten as fully standalone.
 
 0.1.0 - 2026-08-27
-  - Initial version.
-  - Exposed the TITLE projection as a thin front end.
-  - Called shared tools\MVS_Query.bat.
+  - Initial version using shared runtime parser.

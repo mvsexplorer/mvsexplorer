@@ -1,0 +1,6 @@
+Tool Version History: dev\generate_tools.py
+
+0.1.0 - 2026-08-27
+  - Initial development-time generator.
+  - Injects common batch/PowerShell source into public standalone tools.
+  - Generates source-order scalar, sorted scalar, and lookup families.

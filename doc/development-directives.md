@@ -1,61 +1,86 @@
 # MVS Explorer Toolkit — Development Directives
 
-These directives are distilled from the user's project prompts. They are the working requirements for future development.
+These directives are distilled from the user's project prompts.
 
 ## Product direction
 
-1. Build **MVS Explorer Toolkit** as a collection of simple console-oriented tools, primarily `.bat` scripts and helpers.
-2. The toolkit should collect, search, transform, and display information from MVS dump snapshots.
-3. Development should culminate in a graphical application named **MVS Explorer**.
-4. Console tools should establish reusable data semantics and output contracts that the later GUI can consume.
+1. Build MVS Explorer Toolkit mainly from simple console-oriented `.bat` tools and helpers.
+2. Use the tools to collect, search, transform, and display information from named MVS dump snapshots.
+3. Evolve the toolkit toward a graphical application named **MVS Explorer**.
 
-## Source model
+## Standalone delivery and shared development source
 
-5. A dump is selected by dump folder/date name, for example `mvs_2021-08-17` or `mvs_2021-06-21-1830`.
-6. Treat product ID as the primary product identity when the source supplies it.
-7. Product scalar data currently consists of ID, title, release date, and note.
-8. Variants are child records associated with product IDs and are expected to expose variant name, filename, and hash information.
-9. Do not invent stronger source relationships than the files actually support; document inferred/convenience joins.
+4. Every delivered public `.bat` must be fully standalone.
+5. Common libraries and generation/injection scripts are allowed during development.
+6. Common code must be injected into the resulting public `.bat`; the public tool must not require the library/generator at runtime.
+7. Prefer generation to manual duplication when it reduces drift while preserving standalone delivery.
 
-## Tool naming and outputs
+## Scalar model
 
-10. Human-readable tools use the `print_` prefix.
-11. Machine-readable tools use the `read_` prefix.
-12. Tool names should describe their projection, for example `print_mvs_dump_id_title_date`.
-13. Field order in output follows field order in the tool name.
-14. Machine-readable output should be simple and stable for scripts and future application code.
-15. Human-readable and machine-readable output are separate interfaces and need not look identical.
+8. Treat product ID as the primary scalar key when present.
+9. Current scalar product fields are ID, title, release date, and note.
+10. Notes are a documented title-level convenience join because `mvs_notes.html` lacks an ID-native note key.
+11. Do not silently strengthen inferred relationships beyond what source files support.
 
-## Standalone requirement
+## Scalar output families
 
-16. Every delivered tool file must be fully standalone.
-17. A delivered `.bat` must include all code required for its own function.
-18. Do not require another toolkit source/helper file at runtime for the advertised core function.
-19. Shared development-time generation is acceptable if final delivered tools remain independent.
+12. Human-readable tools use `print_`.
+13. Machine-readable tools use `read_`.
+14. Preserve unsuffixed source-order scalar tools.
+15. Every scalar `print_` and `read_` tool must also have:
+    - `_sorted_by_id`
+    - `_sorted_by_title`
+    - `_sorted_by_date`
+16. Sort ID numerically ascending.
+17. Sort title naturally/alphanumerically ascending, case-insensitively, with numeric ID tie-break.
+18. Sort date chronologically ascending where parseable with deterministic tie-breaks.
+19. Do not create note-sorted scalar tools unless a later requirement establishes a useful purpose.
+20. A sort field may control order even when it is not part of the printed/read projection.
 
-## Language/style
+## Lookup family
 
-20. Follow the supplied Batch File Style Guide for `.bat` code.
-21. Use batch when practical.
-22. Use PowerShell when the operation is genuinely too awkward or fragile in pure batch.
-23. Apply the batch guide's principles in spirit to PowerShell and other languages.
-24. Maintain a project-specific style-guide addendum when development reveals clarifications or local conventions.
-25. Maintain a PowerShell style guide specifically for embedded PowerShell used by this project.
+21. Lookup naming is `lookup_mvs_<target>_from_<source>.bat`.
+22. Lookup arguments are `dump-folder search-value`.
+23. Initial relationships:
+    - TITLE from ID
+    - TITLE from DATE
+    - NOTE from ID
+    - NOTE from TITLE
+    - NOTE from DATE
+    - DATE from ID
+    - DATE from TITLE
+24. Search values support `*` at the beginning, middle, and/or end.
+25. `*` means zero or more characters.
+26. Matching is case-insensitive.
+27. All non-`*` characters are literal.
+28. Multiple associated results must be printed.
+29. Emit distinct non-empty target values, one per line.
+30. Sort multiple matching rows by the natural order of the searched/source field.
+31. No associated value emits no stdout and returns `1`.
 
-## Documentation/history
+## Output contracts
 
-26. Keep the supplied batch style guide inside `doc\`.
-27. Maintain a developer diary.
-28. Maintain a project version history.
-29. Maintain a separate version history for every tool.
-30. Preserve the user's development prompts in a development-prompts document.
-31. Maintain this distilled development-directives document.
-32. Maintain an observation journal capturing source/data/implementation discoveries.
-33. Update relevant development documents as the project evolves rather than treating documentation as static boilerplate.
+32. `print_`: human-oriented labeled rows.
+33. `read_`: machine-oriented headerless TSV.
+34. `lookup_`: raw associated values, one per line.
+35. Machine/plain output must not contain ANSI, banners, progress, pauses, or explanatory text on stdout.
+36. Errors go to stderr.
 
-## Current scalar milestone
+## Language and style
 
-34. Provide all useful scalar combinations of ID, title, date, and note.
-35. Preserve one product per output record for scalar tools.
-36. Human output should be readable on the console.
-37. Machine output should avoid decorative content and remain pipe/redirection friendly.
+37. Follow the supplied Batch File Style Guide for `.bat`.
+38. Use batch where practical.
+39. Use embedded PowerShell when pure batch would be disproportionately awkward or fragile.
+40. Apply the guide in spirit to PowerShell and development helper languages.
+41. Maintain the project batch addendum and project embedded PowerShell guide.
+
+## Documentation
+
+42. Keep the supplied batch style guide in `doc\`.
+43. Maintain a developer diary.
+44. Maintain an observation journal.
+45. Maintain project version history.
+46. Maintain a tool-specific version history for every public and development tool.
+47. Preserve all user project prompts in `development-prompts.md`.
+48. Maintain these distilled development directives as requirements evolve.
+49. Update style-guide documents as implementation reveals project-specific conventions.

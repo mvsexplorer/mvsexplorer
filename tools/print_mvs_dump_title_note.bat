@@ -2,12 +2,13 @@
 :setup
 REM Scoped because this standalone tool embeds PowerShell and should not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.2.0"
+set "app.version=0.3.0"
 set "app.name=print_mvs_dump_title_note"
 set "app.rc=0"
 set "app.self=%~f0"
 set "mvsq_mode=human"
 set "mvsq_fields=title,note"
+set "mvsq_sort="
 set "mvsq_dump=%~1"
 set "mvsq_caller=%~nx0"
 set "mvsq_script_root=%~dp0"
@@ -56,10 +57,6 @@ exit /b %~1
 ::   set "RunPowerShellFromLabel.function=BlockName"
 ::   call :RunPowerShellFromLabel [arguments...]
 ::
-:: Persistent Default:
-::   set "_RunPowerShellFromLabel.function=BlockName"
-::   call :RunPowerShellFromLabel [arguments...]
-::
 :: Arguments:
 ::   BlockName  embedded PowerShell block name
 ::   arguments  arguments forwarded to the block
@@ -77,7 +74,6 @@ if defined _rps_rc (set "_rps_rc=" & exit /b %_rps_rc%)
 set "rps_self=%~f0" & set "rps_argc=0"
 if defined app.self set "rps_self=%app.self%"
 if defined RunPowerShellFromLabel.function (set "rps_label=%RunPowerShellFromLabel.function%" & set "RunPowerShellFromLabel.function=" & goto :_RunPowerShellFromLabel_capture)
-if defined _RunPowerShellFromLabel.function (set "rps_label=%_RunPowerShellFromLabel.function%" & goto :_RunPowerShellFromLabel_capture)
 set "rps_label=%~1"
 if not defined rps_label (set "_rps_rc=2" & goto :RunPowerShellFromLabel)
 shift
@@ -100,13 +96,6 @@ $ErrorActionPreference = 'Stop'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 [Console]::OutputEncoding = $utf8
 
-$Mode = [string]$env:mvsq_mode
-$FieldsText = [string]$env:mvsq_fields
-$Dump = [string]$env:mvsq_dump
-$Caller = [string]$env:mvsq_caller
-$ScriptRoot = [string]$env:mvsq_script_root
-$Version = [string]$env:mvsq_version
-
 function Write-Line {
     param([AllowEmptyString()][string]$Text)
     [Console]::Out.WriteLine($Text)
@@ -115,29 +104,6 @@ function Write-Line {
 function Write-Err {
     param([string]$Text)
     [Console]::Error.WriteLine($Text)
-}
-
-function Show-Usage {
-    Write-Line ('MVS Explorer Toolkit tool ' + $Version)
-    Write-Line ('Usage: ' + $Caller + ' dump-folder')
-    Write-Line ''
-    Write-Line 'dump-folder may be:'
-    Write-Line '  - an absolute or relative path to an extracted MVS dump folder'
-    Write-Line '  - a dump folder name such as mvs_2021-08-17'
-    Write-Line ''
-    Write-Line 'Named dump folders are searched in the current directory,'
-    Write-Line 'MVS_DUMPS_ROOT (if defined), the script directory, and common'
-    Write-Line 'mvs_dumps_archive locations adjacent to the script/current directory.'
-}
-
-function Fail {
-    param([int]$Code, [string]$Message)
-    if ($Mode -eq 'machine') {
-        Write-Err ('MVS_QUERY_ERROR' + [char]9 + $Code + [char]9 + $Message)
-    } else {
-        Write-Err ('ERROR: ' + $Message)
-    }
-    exit $Code
 }
 
 function Normalize-Scalar {
@@ -196,68 +162,162 @@ function Resolve-DumpFolder {
     return $null
 }
 
-if ([string]::IsNullOrWhiteSpace($Mode)) { Show-Usage; exit 2 }
-if ([string]::IsNullOrWhiteSpace($FieldsText)) { Show-Usage; exit 2 }
+function Get-NaturalKey {
+    param([AllowNull()][AllowEmptyString()][string]$Value)
+    if ($null -eq $Value) { return '' }
+    $text = $Value.ToLowerInvariant()
+    $evaluator = [System.Text.RegularExpressions.MatchEvaluator]{
+        param($Match)
+        $digits = $Match.Value
+        if ($digits.Length -lt 32) { return $digits.PadLeft(32, '0') }
+        return ('~' + $digits.Length.ToString('D6') + ':' + $digits)
+    }
+    return [regex]::Replace($text, '\d+', $evaluator)
+}
+
+function Get-DateTicks {
+    param([AllowNull()][AllowEmptyString()][string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) { return [Int64]::MaxValue }
+    $dto = [DateTimeOffset]::MinValue
+    $styles = [Globalization.DateTimeStyles]::AllowWhiteSpaces -bor [Globalization.DateTimeStyles]::AssumeUniversal
+    if ([DateTimeOffset]::TryParse($Value, [Globalization.CultureInfo]::InvariantCulture, $styles, [ref]$dto)) {
+        return $dto.UtcTicks
+    }
+    return [Int64]::MaxValue
+}
+
+function Sort-Products {
+    param([object[]]$Products, [string]$Key)
+    switch ($Key) {
+        ''      { return @($Products) }
+        'id'    { return @($Products | Sort-Object @{Expression={ [int]$_.id }; Ascending=$true}) }
+        'title' { return @($Products | Sort-Object @{Expression={ Get-NaturalKey $_.title }; Ascending=$true}, @{Expression={ [int]$_.id }; Ascending=$true}) }
+        'date'  { return @($Products | Sort-Object @{Expression={ Get-DateTicks $_.date }; Ascending=$true}, @{Expression={ $_.date }; Ascending=$true}, @{Expression={ [int]$_.id }; Ascending=$true}) }
+        default { throw ('Unsupported sort key: ' + $Key) }
+    }
+}
+
+function New-StarWildcardRegex {
+    param([AllowNull()][AllowEmptyString()][string]$Pattern)
+    if ($null -eq $Pattern) { $Pattern = '' }
+    $escaped = [regex]::Escape($Pattern)
+    $escaped = $escaped.Replace('\*', '.*')
+    return New-Object System.Text.RegularExpressions.Regex(('^' + $escaped + '$'), [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+}
+
+function Read-Products {
+    param([string]$DumpFolder)
+    $idsPath = Join-Path $DumpFolder 'mvs_ids.txt'
+    $datesPath = Join-Path $DumpFolder 'mvs_dates.txt'
+    $notesPath = Join-Path $DumpFolder 'mvs_notes.html'
+
+    if (-not (Test-Path -LiteralPath $idsPath -PathType Leaf)) {
+        throw [System.IO.FileNotFoundException]::new(('Missing required file: ' + $idsPath))
+    }
+    if (-not (Test-Path -LiteralPath $datesPath -PathType Leaf)) {
+        throw [System.IO.FileNotFoundException]::new(('Missing required file: ' + $datesPath))
+    }
+
+    $datesById = @{}
+    foreach ($line in Get-Content -LiteralPath $datesPath -Encoding UTF8) {
+        if ($line -match '^(?<date>.*?)\s+-\s+.*?\[ID:\s*(?<id>\d+)\]\s*$') {
+            $datesById[[int]$Matches.id] = $Matches.date.Trim()
+        }
+    }
+
+    $notesByTitle = @{}
+    if (Test-Path -LiteralPath $notesPath -PathType Leaf) {
+        $html = Get-Content -LiteralPath $notesPath -Raw -Encoding UTF8
+        $noteMatches = [regex]::Matches($html, '(?is)<h1>(.*?)</h1>(.*?)(?=<h1>|\z)')
+        foreach ($match in $noteMatches) {
+            $heading = Normalize-Title ([regex]::Replace($match.Groups[1].Value, '(?is)<[^>]+>', ' '))
+            $note = Convert-NoteHtmlToText $match.Groups[2].Value
+            if ([string]::IsNullOrWhiteSpace($heading) -or [string]::IsNullOrWhiteSpace($note)) { continue }
+            if (-not $notesByTitle.ContainsKey($heading)) {
+                $notesByTitle[$heading] = New-Object System.Collections.ArrayList
+            }
+            if (-not $notesByTitle[$heading].Contains($note)) {
+                [void]$notesByTitle[$heading].Add($note)
+            }
+        }
+    }
+
+    $products = New-Object System.Collections.ArrayList
+    foreach ($line in Get-Content -LiteralPath $idsPath -Encoding UTF8) {
+        if ($line -notmatch '^(?<title>.*?)\s*\[ID:\s*(?<id>\d+)\]\s*$') { continue }
+        $id = [int]$Matches.id
+        $title = Normalize-Title $Matches.title
+        $date = ''
+        if ($datesById.ContainsKey($id)) { $date = [string]$datesById[$id] }
+        $note = ''
+        if ($notesByTitle.ContainsKey($title)) {
+            $note = (($notesByTitle[$title] | ForEach-Object { [string]$_ }) -join ' || ')
+        }
+        [void]$products.Add([pscustomobject]@{
+            id = [string]$id
+            title = $title
+            date = $date
+            note = $note
+        })
+    }
+    return @($products)
+}
+
+$Mode = [string]$env:mvsq_mode
+$FieldsText = [string]$env:mvsq_fields
+$Dump = [string]$env:mvsq_dump
+$Caller = [string]$env:mvsq_caller
+$ScriptRoot = [string]$env:mvsq_script_root
+$Version = [string]$env:mvsq_version
+$SortKey = [string]$env:mvsq_sort
+
+function Show-Usage {
+    Write-Line ('MVS Explorer Toolkit tool ' + $Version)
+    Write-Line ('Usage: ' + $Caller + ' dump-folder')
+    if (-not [string]::IsNullOrWhiteSpace($SortKey)) {
+        Write-Line ('Sort: ascending by ' + $SortKey)
+    } else {
+        Write-Line 'Sort: source order from mvs_ids.txt'
+    }
+}
+
+function Fail {
+    param([int]$Code, [string]$Message)
+    if ($Mode -eq 'machine') {
+        Write-Err ('MVS_QUERY_ERROR' + [char]9 + $Code + [char]9 + $Message)
+    } else {
+        Write-Err ('ERROR: ' + $Message)
+    }
+    exit $Code
+}
+
 if ([string]::IsNullOrWhiteSpace($Dump) -or (@('--help','-h','-?','/h','/?') -contains $Dump)) { Show-Usage; exit 0 }
-if (@('human','machine') -notcontains $Mode) { Fail 2 ('Invalid output mode: ' + $Mode) }
 
 $Fields = @($FieldsText.Split(',') | ForEach-Object { $_.Trim().ToLowerInvariant() } | Where-Object { $_ })
-$allowed = @('id','title','date','note')
 if ($Fields.Count -eq 0) { Fail 2 'No fields were requested.' }
 foreach ($field in $Fields) {
-    if ($allowed -notcontains $field) { Fail 2 ('Unsupported field: ' + $field) }
+    if (@('id','title','date','note') -notcontains $field) { Fail 2 ('Unsupported field: ' + $field) }
 }
+if (@('','id','title','date') -notcontains $SortKey) { Fail 2 ('Unsupported sort key: ' + $SortKey) }
 
 $DumpFolder = Resolve-DumpFolder $Dump $ScriptRoot
 if ($null -eq $DumpFolder) { Fail 3 ('Dump folder not found: ' + $Dump) }
 
-$idsPath = Join-Path $DumpFolder 'mvs_ids.txt'
-$datesPath = Join-Path $DumpFolder 'mvs_dates.txt'
-$notesPath = Join-Path $DumpFolder 'mvs_notes.html'
-if (-not (Test-Path -LiteralPath $idsPath -PathType Leaf)) { Fail 4 ('Missing required file: ' + $idsPath) }
-if (-not (Test-Path -LiteralPath $datesPath -PathType Leaf)) { Fail 4 ('Missing required file: ' + $datesPath) }
-
-$datesById = @{}
-foreach ($line in Get-Content -LiteralPath $datesPath -Encoding UTF8) {
-    if ($line -match '^(?<date>.*?)\s+-\s+.*?\[ID:\s*(?<id>\d+)\]\s*$') {
-        $datesById[[int]$Matches.id] = $Matches.date.Trim()
-    }
+try {
+    $Products = Read-Products $DumpFolder
+} catch [System.IO.FileNotFoundException] {
+    Fail 4 $_.Exception.Message
+} catch {
+    Fail 5 $_.Exception.Message
 }
 
-$notesByTitle = @{}
-if (Test-Path -LiteralPath $notesPath -PathType Leaf) {
-    $html = Get-Content -LiteralPath $notesPath -Raw -Encoding UTF8
-    $noteMatches = [regex]::Matches($html, '(?is)<h1>(.*?)</h1>(.*?)(?=<h1>|\z)')
-    foreach ($match in $noteMatches) {
-        $heading = Normalize-Title ([regex]::Replace($match.Groups[1].Value, '(?is)<[^>]+>', ' '))
-        $note = Convert-NoteHtmlToText $match.Groups[2].Value
-        if ([string]::IsNullOrWhiteSpace($heading) -or [string]::IsNullOrWhiteSpace($note)) { continue }
-        if (-not $notesByTitle.ContainsKey($heading)) {
-            $notesByTitle[$heading] = New-Object System.Collections.ArrayList
-        }
-        if (-not $notesByTitle[$heading].Contains($note)) {
-            [void]$notesByTitle[$heading].Add($note)
-        }
-    }
-}
+if ($Products.Count -eq 0) { Fail 5 ('No product records parsed from: ' + $DumpFolder) }
+$Products = Sort-Products $Products $SortKey
 
-$parsedCount = 0
-foreach ($line in Get-Content -LiteralPath $idsPath -Encoding UTF8) {
-    if ($line -notmatch '^(?<title>.*?)\s*\[ID:\s*(?<id>\d+)\]\s*$') { continue }
-    $parsedCount++
-    $id = [int]$Matches.id
-    $title = Normalize-Title $Matches.title
-    $date = ''
-    if ($datesById.ContainsKey($id)) { $date = [string]$datesById[$id] }
-    $note = ''
-    if ($notesByTitle.ContainsKey($title)) {
-        $note = (($notesByTitle[$title] | ForEach-Object { [string]$_ }) -join ' || ')
-    }
-
-    $record = @{ id=[string]$id; title=$title; date=$date; note=$note }
+foreach ($record in $Products) {
     $values = @()
     foreach ($field in $Fields) {
-        $value = Normalize-Scalar ([string]$record[$field])
+        $value = Normalize-Scalar ([string]$record.$field)
         if ($Mode -eq 'human') {
             if ([string]::IsNullOrEmpty($value)) { $value = '(none)' }
             $label = switch ($field) {
@@ -271,14 +331,11 @@ foreach ($line in Get-Content -LiteralPath $idsPath -Encoding UTF8) {
             $values += $value
         }
     }
-
     if ($Mode -eq 'human') {
         Write-Line ($values -join ' | ')
     } else {
         Write-Line ($values -join [char]9)
     }
 }
-
-if ($parsedCount -eq 0) { Fail 5 ('No product records parsed from: ' + $idsPath) }
 exit 0
 :_MVSQuery_end

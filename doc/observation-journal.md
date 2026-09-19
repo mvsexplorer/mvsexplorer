@@ -1,53 +1,45 @@
 # Development Observation Journal
 
-This journal records observations that may affect later MVS Explorer Toolkit design. It is intentionally distinct from the developer diary: the diary records what was done; this file records facts, risks, patterns, and questions discovered while doing it.
-
 ## 2026-08-27
 
-### The dump archive is metadata, not payload storage
+### Source order and sorted order serve different purposes
 
-The archive contains catalog text/checksum/HTML metadata. Filenames for ISO/EXE/ZIP/etc. payloads appear as references; the payloads themselves are not the content being explored here.
+Source order preserves provenance from `mvs_ids.txt`. Sorted order improves exploration. Explicit companion tools preserve both.
 
-### Snapshot layout changes over time
+### Sort key should be independent of projection
 
-Not every snapshot has every later file. Early snapshots predate `mvs_names.txt`; SHA-256 manifests also appear later. Some snapshots contain an extra directory level. Future dump-resolution and validation code must not assume one historical layout without checking.
+A tool can print NOTE while sorting by TITLE. Sorting therefore belongs before projection in the data pipeline.
 
-### ID is a better scalar key than title
+### Natural title sorting is preferable to plain lexical sorting
 
-Inside a snapshot, IDs behave as unique product identifiers for the product/date records reviewed. Titles can be duplicated across IDs.
+Product titles often contain version numbers. Plain lexical ordering can put `10` before `7`; natural/alphanumeric ordering better matches user expectation.
 
-Implication: joins should use ID whenever the source provides ID.
+### Date ordering should parse rather than merely compare strings
 
-### Notes are structurally weaker than dates
+ISO-like source values often sort lexically, but zone and representation differences make chronological parsing more robust. The emitted source string should remain unchanged.
 
-Dates contain IDs and can be joined directly.
+### Wildcard syntax should be intentionally small
 
-Notes are headed by title and do not carry IDs. A title join can be useful but cannot remove ambiguity when titles repeat.
+The requested wildcard behavior is `*`. Reusing PowerShell `-like` directly would silently expose bracket expressions and other wildcard semantics.
 
-Implication: the GUI should eventually be able to expose raw source provenance and ambiguity rather than only a flattened convenience value.
+Escaping first and translating only `*` provides the requested language and nothing more.
 
-### Variant is useful terminology but still a toolkit term
+### Duplicate lookup target values are not useful row identity
 
-The headings in `mvs_names.txt` look like named download variants. Calling them `variant` is useful for the toolkit, but the term should remain documented as an MVS Explorer model term rather than falsely attributed as a formal source field name.
+A lookup that returns only a target field cannot explain why the same target appears twice. Current lookup tools therefore emit exact distinct non-empty target values. A future row-level lookup/report should include ID if multiplicity matters.
 
-### Hash algorithm cannot be assumed globally
+### Missing target and missing source match are collapsed at lookup output level
 
-Examples in older dumps are SHA-1-shaped, but the archive evolves to include SHA-256 material. Future variant/hash parsers should recognize the algorithm from the actual record/source rather than assume all `mvs_names.txt` entries are SHA-1.
+A matched product can have no note under the title-based note join. Lookup tools omit empty targets and return `1` when no non-empty associated value is emitted.
 
-### Standalone files are a deliberate maintenance tradeoff
+### Generated standalone files solve the maintenance/deployment tension
 
-Embedding the parser in every tool increases duplication and future update work.
+There are now 127 public tools. Manually synchronizing common functions would be error-prone. Development-time generation keeps one maintained common source while producing independent deliverables.
 
-For this project the duplication is intentional because a copied individual tool must remain usable by itself. To manage the tradeoff, future releases should use generation/testing during development while delivering standalone artifacts.
+### Tool discovery is becoming a project concern
 
-### Machine output should remain boring
+The scalar matrix alone produces 120 tools: 15 projections × 2 output modes × 4 orderings. A machine-readable tool catalog is now useful and will be even more important for MVS Explorer GUI integration.
 
-The `read_` family should avoid ANSI, labels, banners, progress, pause prompts, and decorative text on stdout. Stable boring output is valuable because it becomes a protocol used by later scripts and the graphical MVS Explorer.
+### Windows runtime testing remains required
 
-### Parser-sensitive values justify PowerShell
-
-Titles/notes can contain characters that are unpleasant to transport and transform safely through multiple `cmd.exe` parse passes. Embedded PowerShell confines that complexity without adding an external `.ps1` dependency.
-
-### Runtime testing still needs Windows
-
-Static checks can verify labels, CRLF, BOM, scaffolds, and obvious dependency mistakes in this environment. Actual `cmd.exe` and Windows PowerShell execution should be part of milestone validation on Windows.
+Static validation can verify generation, labels, CRLF/BOM, injection, naming, and obvious dependency leakage here. Actual `cmd.exe` and Windows PowerShell execution should be part of Windows milestone testing.

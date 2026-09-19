@@ -1,31 +1,17 @@
 # MVS Explorer Toolkit — Embedded PowerShell Style Guide
 
-**Guide version:** 0.1.0  
+**Guide version:** 0.2.0  
 **Context:** Companion to Batch File Style Guide v1.8.0 and the MVS Explorer Toolkit addendum.
 
-This guide applies to PowerShell source embedded inside standalone MVS Explorer Toolkit `.bat` files.
+## 1. Role
 
-## 1. Role of PowerShell
+Batch remains the public executable format. Embedded PowerShell is appropriate for Unicode/text parsing, HTML normalization, dictionaries/joins, sorting, wildcard matching, and parser-sensitive content that would be fragile through repeated `cmd.exe` parsing.
 
-Batch remains the public executable format.
+## 2. Development injection
 
-Use embedded PowerShell for work that is disproportionately awkward or fragile in pure batch, especially:
+PowerShell can be maintained centrally under `dev\library` and injected into every generated public `.bat`.
 
-- HTML parsing/normalization;
-- structured collections/dictionaries;
-- parser-sensitive arbitrary text;
-- complex joins;
-- Unicode-aware text handling.
-
-Do not move trivial batch work into PowerShell merely because PowerShell can do it.
-
-## 2. Standalone requirement
-
-PowerShell code required by a tool must be embedded in that tool.
-
-Do not require an external `.ps1` for the tool's core function.
-
-Prefer the style guide's multiline-between-labels mechanism for substantial code.
+The generated `.bat` must contain the embedded block and must not read the include at runtime.
 
 ## 3. Invocation
 
@@ -35,152 +21,94 @@ Use:
 powershell.exe -NoLogo -NoProfile -NonInteractive -Command ...
 ```
 
-Do not add `-ExecutionPolicy Bypass` to ordinary embedded `-Command` execution.
-
-Avoid temporary PowerShell files.
+Avoid temporary `.ps1` files for ordinary work and do not add `-ExecutionPolicy Bypass` to normal embedded `-Command` calls.
 
 ## 4. Source/data separation
 
-Do not construct executable PowerShell source from arbitrary MVS data.
+Never construct executable PowerShell source from arbitrary dump data or lookup search text.
 
-Pass configuration through controlled environment variables or argument arrays and treat dump content strictly as data.
+Transport controlled settings through environment variables and treat MVS/search content purely as data.
 
-The batch side may select a known embedded block name; dump titles, notes, filenames, and other catalog values must never become executable PowerShell fragments.
+## 5. Streams
 
-## 5. Error handling
+Set `$ErrorActionPreference = 'Stop'`.
 
-At the embedded script entry point:
+Normal records go to stdout. Errors and diagnostics go to stderr.
 
-```powershell
-$ErrorActionPreference = 'Stop'
-```
+Do not contaminate `read_` or `lookup_` stdout with presentation text.
 
-Use explicit nonzero exits for defined input/data failures where practical.
+## 6. Text
 
-Human-mode errors and machine-mode errors go to stderr.
+Set console output encoding explicitly for Unicode output.
 
-Do not mix normal data and diagnostic messages on machine-readable stdout.
+Where one physical line is the protocol, normalize embedded TAB/CR/LF appropriately.
 
-## 6. Function design
+Preserve source date strings for output; sorting does not justify silently reformatting them.
 
-Prefer small functions with descriptive verb-noun names where practical.
+## 7. Sorting
 
-Functions should have:
+Centralize product sorting.
 
-- a narrow responsibility;
-- explicit parameters;
-- explicit return/output behavior;
-- no hidden modification of unrelated state.
+ID:
+: integer/numeric ascending.
 
-For short private helpers inside one embedded block, full comment-based help is optional; important behavior belongs in the surrounding project documentation and source comments where needed.
+TITLE:
+: case-insensitive natural key. Numeric runs are normalized in the internal key so version-like numbers sort naturally. ID breaks ties.
 
-## 7. Naming
+DATE:
+: parse using invariant culture and an explicit assumption for zone-less values; sort by UTC ticks when parseable. Preserve original source date text for output. Use source date text and ID as deterministic tie-breaks.
 
-Use readable PascalCase function names:
+Apply sorting before output projection so hidden fields may be sort keys.
 
-```text
-Resolve-DumpFolder
-Normalize-Title
-Convert-NoteHtmlToText
-Write-Line
-```
+## 8. Lookup wildcard
 
-Use descriptive local variables.
+Public wildcard semantics consist only of `*`.
 
-Environment variables used to cross the batch/PowerShell boundary use the `mvsq_` namespace for the scalar query tools.
+Implementation should regex-escape the complete user pattern, replace escaped `*` with `.*`, anchor the expression to the entire field, and use case-insensitive matching.
 
-## 8. Text and encoding
+This prevents characters such as `[` from acquiring undocumented PowerShell wildcard semantics.
 
-Set console output encoding deliberately when machine-readable Unicode output is expected.
+## 9. Lookup multiplicity
 
-For current tools:
+Filter complete product records by the source field, sort matching records by that source field, project the target field, omit empty targets, and emit exact distinct target values in first-sorted occurrence order.
 
-```powershell
-$utf8 = New-Object System.Text.UTF8Encoding($false)
-[Console]::OutputEncoding = $utf8
-```
+## 10. Source truth
 
-Do not silently rewrite source date/time values into another timezone or format unless the tool explicitly promises conversion.
+Use ID joins when IDs exist in both sources.
 
-Normalize only what the output contract requires.
+Treat notes as title-level convenience data unless a source providing an ID-native note relation is identified.
 
-## 9. Machine-readable scalar output
+## 11. Compatibility
 
-For `read_` tools:
-
-- write only records to stdout;
-- one record per product;
-- TAB delimiter;
-- no header;
-- normalize embedded TAB/CR/LF to spaces;
-- keep missing fields empty;
-- errors to stderr.
-
-Use `[Console]::Out.WriteLine()` rather than formatting cmdlets that may add presentation behavior.
-
-## 10. Collections and joins
-
-Use dictionaries/hashtables for keyed joins where the source provides a key.
-
-Current rules:
-
-- date: join by numeric product ID;
-- note: join by normalized title because the note source lacks ID.
-
-Do not infer a stronger key than the source supports.
-
-When multiple note blocks share one normalized title, de-duplicate identical normalized blocks and preserve distinct blocks in source order.
-
-## 11. HTML note normalization
-
-The current scalar tools use lightweight normalization rather than claiming full HTML DOM semantics.
-
-They:
-
-- convert common structural closing tags and `<br>` to spaces;
-- strip remaining tags;
-- HTML-decode entities;
-- replace NBSP with normal space;
-- collapse whitespace.
-
-If note rendering later requires semantic HTML preservation, create a new explicit output mode rather than silently changing the scalar text contract.
+Write for Windows PowerShell launched by `powershell.exe`, not just PowerShell 7/`pwsh`.
 
 ## 12. Performance
 
-For current scalar tools, one PowerShell startup per tool invocation is acceptable.
+One PowerShell startup per tool invocation is acceptable.
 
-Avoid spawning PowerShell once per product or once per field.
+Do not spawn PowerShell once per product/field.
 
-Read each source file at most once per invocation where practical.
+Read source files once per invocation where practical.
 
-Optimization should follow measurement, consistent with the batch guide.
+## 13. Testing focus
 
-## 13. Compatibility
+Sort tests:
 
-Write for Windows PowerShell as invoked by `powershell.exe`, not only PowerShell 7 (`pwsh`).
+- `2`, `10`, `28`, `200`;
+- titles with embedded numbers;
+- equal titles/dates;
+- timezone-bearing dates;
+- unparseable dates.
 
-Avoid syntax/features unavailable in Windows PowerShell when compatibility is part of the current project requirement.
+Lookup tests:
 
-## 14. Testing
-
-Test both human and machine output.
-
-Important cases include:
-
-- dump folder with spaces;
-- named-folder resolution;
-- missing dump;
-- missing required source file;
-- titles containing parser-sensitive characters;
-- Unicode title/note text;
-- empty/missing note;
-- duplicate titles across IDs;
-- duplicate note headings;
-- note HTML with entities and line breaks;
-- redirection and piping of `read_` output.
-
-## 15. Versioning documentation
-
-The embedded PowerShell is part of the tool implementation.
-
-A material PowerShell behavior/interface change increments the containing tool version and is recorded in that tool's history. If the project-wide PowerShell conventions change, update this guide's version as well.
+- exact;
+- `2*`;
+- `*28`;
+- `*2*`;
+- quoted values containing spaces;
+- characters meaningful to regex/PowerShell wildcards but literal in this interface;
+- multiple matches;
+- duplicate target values;
+- no match;
+- matching product with missing note.
