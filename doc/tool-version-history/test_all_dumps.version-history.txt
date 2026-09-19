@@ -1,3 +1,8 @@
+0.4.6 - 2026-09-06
+  - Replaces banner-only snapshot/compare output with paired Starting/Completed lines.
+  - Completion lines include elapsed seconds and the cumulative logical status counters.
+  - Adds --quiet-plan to suppress per-snapshot planning chatter during automated preflight.
+
 test_all_dumps.bat Version History
 
 0.4.3 - 2026-08-30

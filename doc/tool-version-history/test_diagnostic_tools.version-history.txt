@@ -1,3 +1,7 @@
+0.11.5 / project 0.16.2
+- Regenerated with project 0.16.2 progress metadata and the strengthened structure preflight.
+- Full all-mode matrix is 1,099 assertions; subset behavior is otherwise unchanged.
+
 Tool Version History: test\test_diagnostic_tools.bat
 
 0.11.4 - 2026-09-03

@@ -85,7 +85,7 @@ Run $fastTest @()
 
 $planFolder=New-TempFolder 'mvs-everything-plan'
 try{
-    Run $sweep @($Archive,$planFolder,'--plan-only','--workers',[string]$Workers,'--no-report','--no-cache')
+    Run $sweep @($Archive,$planFolder,'--plan-only','--quiet-plan','--workers',[string]$Workers,'--no-report','--no-cache')
 } finally {if(Test-Path -LiteralPath $planFolder){Remove-Item -LiteralPath $planFolder -Recurse -Force -ErrorAction SilentlyContinue}}
 
 if(-not[string]::IsNullOrWhiteSpace($ExistingResults)){

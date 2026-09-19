@@ -1,3 +1,8 @@
+0.4.6 - 2026-09-06
+  - Adds paired/timed snapshot and compare console progress.
+  - Adds --quiet-plan for concise plan-only preflight.
+  - Preserves the established 422 single / 19 compare / 2 archive logical plan.
+
 test_all_dumps.bat
 
 0.4.4 - 2026-09-01

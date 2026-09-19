@@ -1,4 +1,4 @@
-# 0.16.1 progress and generated-database validation
+# 0.16.2 progress and generated-database validation
 
 All assertion-producing test harnesses now print project version plus
 `TEST n/total | remaining=m`. `test_everything.bat` likewise numbers its child
@@ -14,14 +14,17 @@ The recommended full rebuild entry point is the root
 `all_test_then_all_database_then_test_database_and_all_tools.bat`; database
 generation is gated on passing tests.
 
-The 0.16.1 `all` matrix is 1,094 assertions: two new structure assertions
-preflight the generated-database validator/pipeline for PowerShell return-token
-boundaries and correct DAG unique-family counting before any real database
-generation begins.
+The 0.16.2 `all` matrix is 1,099 assertions: structure scope is 486, and the
+expected established result is 1,096 PASS / 0 FAIL / 3 data-dependent note
+SKIP. The five new structure guards require plan-index reconciliation,
+singleton snapshot-array preservation, paired/timed archive progress, concise
+phase-1 plan preflight, and PASS/FAIL/WARN console colorization.
 
-0.16.1 fixes the Windows PowerShell 5.1 token-boundary defect in the initial
-0.16.0 generated-database validator. The validator remains 57 checks; no
-database semantics were relaxed. The root production pipeline can use
+The generated-database validator remains 57 checks; no database semantics are
+relaxed. Archive `plan.tsv` and `runs.tsv` are reconciled by plan index because
+parallel workers append completed batches in completion order. Compact
+snapshot-set parsing preserves one-element sets as arrays under Windows
+PowerShell 5.1. The root production pipeline can use
 `--resume-built archive-db family-db compact-db` to re-run this gate and package
 already-built databases without repeating generation.
 

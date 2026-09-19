@@ -1,3 +1,8 @@
+0.7.1 - 2026-09-06
+  - Requires --quiet-plan plus paired/timed snapshot/compare progress markers.
+  - Guards plan-index database reconciliation and typed singleton snapshot-set validation.
+  - Guards top-level PASS/FAIL/WARN console colorization while preserving the 34,822/1,306 plan invariants.
+
 validate_archive_sweep.py Version History
 
 0.6.2 - 2026-09-01

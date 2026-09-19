@@ -1,3 +1,7 @@
+0.1.4 - 2026-09-06
+  - Generates test_everything.bat 0.1.3 for project 0.16.2.
+  - The real-archive plan-only preflight now uses --quiet-plan while retaining full plan validation.
+
 generate_quality_tools.py Version History
 
 0.1.2 - 2026-08-30

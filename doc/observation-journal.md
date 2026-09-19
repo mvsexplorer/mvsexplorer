@@ -439,4 +439,38 @@ boundary. Embedded references remain insufficient evidence of ownership.
 Coverage itself is a measured archive property, not a hard-coded invariant.
 The accepted 0.14.4 title ledger measures 7,295 high-confidence, 314 review, and
 514 unclassified titles out of 8,123; future snapshots may change that mix.
+## 2026-09-06
+
+### Parallel completion order is not plan identity
+
+A concurrent executor may append successful batch results in completion order.
+Validation must join `runs.tsv` to `plan.tsv` by the stable plan index rather
+than assuming physical row order. Ordering is presentation; the index is the
+identity key.
+
+### PowerShell singleton unwrapping can invalidate list logic
+
+An expression that emits one object may become a scalar under Windows
+PowerShell 5.1. Snapshot-set parsing must force a typed array before using
+indexing semantics; otherwise `$names[0]` on a string returns its first
+character rather than the first snapshot name.
+
+### Preflight should remain complete without duplicating long visual output
+
+The real archive plan is worth validating before expensive builds, but an
+automated preflight does not need to print every snapshot name. A quiet-plan
+mode preserves the safety gate while reserving detailed planning output for the
+production plan that is actually persisted.
+
+### Long-running progress should have paired lifecycle messages
+
+`Starting X ...` and `Completed X in N s ...` makes concurrent work easier to
+follow than section banners followed by detached aggregate progress lines.
+Completion time belongs on the same line as the item identity.
+
+### Console color should not contaminate retained logs
+
+Status color is a presentation concern. Applying console foreground colors at
+the top-level writer keeps PASS/FAIL/WARN visually distinct while writing the
+same plain text to log files.
 

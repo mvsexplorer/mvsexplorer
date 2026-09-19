@@ -1,7 +1,7 @@
 @echo off
 :setup
 setlocal DisableDelayedExpansion
-set "app.version=0.1.2"
+set "app.version=0.1.3"
 set "app.name=test_everything"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -15,7 +15,7 @@ set "mvste_arg7=%~7"
 set "mvste_script_root=%~dp0"
 set "mvste_caller=%~nx0"
 set "mvste_version=%app.version%"
-set "mvste_project_version=0.16.1"
+set "mvste_project_version=0.16.2"
 :main
 set "RunPowerShellFromLabel.function=MVSTestEverything"
 call :RunPowerShellFromLabel
@@ -185,7 +185,7 @@ Run $fastTest @()
 
 $planFolder=New-TempFolder 'mvs-everything-plan'
 try{
-    Run $sweep @($Archive,$planFolder,'--plan-only','--workers',[string]$Workers,'--no-report','--no-cache')
+    Run $sweep @($Archive,$planFolder,'--plan-only','--quiet-plan','--workers',[string]$Workers,'--no-report','--no-cache')
 } finally {if(Test-Path -LiteralPath $planFolder){Remove-Item -LiteralPath $planFolder -Recurse -Force -ErrorAction SilentlyContinue}}
 
 if(-not[string]::IsNullOrWhiteSpace($ExistingResults)){

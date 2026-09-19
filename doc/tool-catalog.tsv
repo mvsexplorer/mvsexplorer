@@ -498,7 +498,7 @@ test\fast\run_archive_tools_fast.bat	test-fast	file-output	archive history/all-e
 test\fast\run_compare_tools_fast.bat	test-fast	batch-status	19 adjacent comparisons	source-order	dump-pair		0.1.1
 test\fast\run_snapshot_tools_fast.bat	test-fast	batch-status	422 single-snapshot checks	source-order	snapshot		0.1.1
 test\test_all.bat	test	console	all				0.7.0
-test\test_all_dumps.bat	test	archive-sweep	logical public-tool plan	chronological	archive-root		0.2.0
+test\test_all_dumps.bat	test	archive-sweep	logical public-tool plan	chronological	archive-root		0.4.6
 test\test_compare_tools.bat	test	console	compare				0.7.0
 test\test_diagnostic_tools.bat	test	console	diagnostic				0.7.0
 test\test_fast_archive_sweep.bat	test	console	fast archive executor acceptance	chronological	synthetic archive		0.1.0

@@ -1,3 +1,8 @@
+0.11.5 / project 0.16.2
+- Adds five structure assertions for archive plan-index reconciliation, singleton snapshot arrays, paired/timed archive progress, quiet-plan preflight, and PASS/FAIL/WARN console colorization.
+- Structure scope is 486 assertions; all mode is 1,099 assertions.
+- On the established representative dump the expected result is 1,096 PASS / 0 FAIL / 3 SKIP.
+
 0.11.4 / project 0.16.1
 - Adds two pre-build structure assertions for the generated-database validator/pipeline: PowerShell return-token boundaries and DAG unique-family counting.
 - Structure scope is 481 assertions; all mode is 1,094 assertions.

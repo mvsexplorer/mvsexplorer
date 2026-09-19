@@ -1,5 +1,48 @@
-# MVS Explorer Toolkit 0.16.1
+# MVS Explorer Toolkit 0.16.2
 
+
+
+## 0.16.2 real-database validator and console-progress fixes
+
+A clean native 0.16.1 production run completed the test gate, all 34,822
+archive logical checks, archive quality validation, and both family database
+builds. The final 57-check database gate then exposed three validator-only
+false negatives. The generated databases themselves are valid.
+
+0.16.2 fixes archive plan/run reconciliation to join by the stable plan
+`index` rather than by row position. Parallel snapshot workers intentionally
+append completed batches in completion order, so `runs.tsv` is not required to
+have the same physical row order as `plan.tsv`.
+
+It also fixes Windows PowerShell 5.1 singleton unwrapping in
+`snapshot-sets.tsv` validation by preserving the parsed snapshot list as a
+typed string array. This corrects both the snapshot-set dictionary check and
+the dependent compact-reference check without changing the compact database
+format.
+
+The archive sweep console output is now paired and timed:
+
+```text
+Starting snapshot mvs_2020-04-21 [fast-combined 422 checks; worker 8/8] ...
+Completed snapshot mvs_2020-04-21 in 112.963 s. Progress: ...
+
+Starting compare mvs_2022-03-15-1649 -> mvs_2022-04-20-1713 [fast-combined 19 checks] ...
+Completed compare mvs_2022-03-15-1649 -> mvs_2022-04-20-1713 in 0.312 s. Progress: ...
+```
+
+The one-command pipeline colorizes PASS lines green, FAIL/error lines red, and
+warning/SKIP lines yellow on an interactive console. Retained log files remain
+plain text.
+
+The real archive plan is still validated during phase 1, but that preflight now
+uses `--quiet-plan`; the repeated list of all snapshot names is suppressed.
+Phase 2 still prints the production planning pass because that is the plan
+actually persisted into the archive database.
+
+The pre-build `test_all` structure gate now contains five additional assertions
+covering these fixes and UX invariants. The 0.16.2 all-mode matrix is 1,099
+assertions; on the established representative dump the expected result is
+1,096 PASS / 0 FAIL / 3 data-dependent note SKIP.
 
 ## 0.16.1 Windows PowerShell 5.1 database-validator hotfix and resume mode
 

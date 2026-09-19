@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validation for archive sweep, quality, reporting, and performance helpers.
 
-Version: 0.7.0
+Version: 0.7.1
 """
 from pathlib import Path
 import sys
@@ -46,13 +46,14 @@ def main():
     text=check_batch(batch,(
         "@echo off\r\n:setup\r\n","\r\n:main\r\n","\r\n:end\r\n","\r\nGoTo :EOF\r\n",
         "\r\n:_MVSArchiveSweep_start\r\n","\r\n:_MVSArchiveSweep_end\r\n",
-        "--plan-only","--resume","--external-tools","--workers","--exclusions","--no-report",
+        "--plan-only","--quiet-plan","--resume","--external-tools","--workers","--exclusions","--no-report",
         "--cache-folder","--no-cache","fast-combined","external-public","engine_version",
         "plan-sha256.txt","runs.tsv","fast-batches.tsv","SOURCE_MISSING","NO_RESULT",
         "archive-output","mvs_dmp","run_snapshot_tools_fast.bat","run_compare_tools_fast.bat",
         "run_archive_tools_fast.bat","Start-FastWorkerJob","Complete-FastWorkerJob",
         "build_archive_html_report.bat","Content cache:","Family tools:",
-        "build_mvs_product_family_index.bat","build_mvs_product_family_compact_index.bat","^(?:print|read)_mvs_product_"
+        "build_mvs_product_family_index.bat","build_mvs_product_family_compact_index.bat","^(?:print|read)_mvs_product_",
+        "Starting snapshot ","Completed snapshot ","Starting compare ","Completed compare ","Elapsed.TotalSeconds"
     ))
     if "'index','executor','engine_version','scope','snapshot'" not in text:
         fail("plan engine/executor identity is not serialized")
@@ -102,7 +103,7 @@ def main():
     ))
     everything=check_batch(ROOT/"test"/"test_everything.bat",(
         ':_MVSTestEverything_start','--full-archive','--strict-performance','--archive-results',
-        'test_all.bat','test_fast_archive_sweep.bat','check_archive_sweep_quality.bat','--no-cache',
+        'test_all.bat','test_fast_archive_sweep.bat','check_archive_sweep_quality.bat','--no-cache','--quiet-plan',
         'param([string]$Tool,[object[]]$ToolArgs)','& $Tool @ToolArgs'
     ))
     if 'param([string]$Tool,[object[]]$Args)' in everything or '& $Tool @Args' in everything:
@@ -221,12 +222,14 @@ def main():
     pipeline_tool=check_batch(ROOT/"all_test_then_all_database_then_test_database_and_all_tools.bat",(
         ":_MVSAllPipeline_start","Project version:","ALL TESTS","BUILD ARCHIVE ANALYSIS DATABASE",
         "BUILD FULL PRODUCT-FAMILY EVIDENCE DATABASE","BUILD COMPACT ALL-EVER PRODUCT-FAMILY DATABASE",
-        "test_generated_databases.bat","phase-performance.tsv","SEND-ME-"
+        "test_generated_databases.bat","phase-performance.tsv","SEND-ME-","Get-StatusColor",
+        "[Console]::ForegroundColor","'Green'","'Red'","'Yellow'"
     ))
     db_validator=check_batch(ROOT/"test"/"test_generated_databases.bat",(
         ":_MVSDatabaseValidation_start","DB TEST","all-family-tools-performance.tsv",
         "snapshot-set dictionary is internally consistent","same-product filename/hash disagreement ledger",
-        "all 32 public family query tools"
+        "all 32 public family query tools","$planByIndex=@{}","foreach($r in $runs)",
+        "[string[]]$names=@()","$names=@(([string]$r.snapshots)-split"
     ))
     family_test=check_batch(ROOT/"test"/"test_product_family_tools.bat",(
         ":_MVSProductFamilyTest_start","SUMMARY: passed=","expected 106 assertions",
@@ -248,10 +251,10 @@ def main():
         fail("archive-exclusions.tsv header mismatch")
 
     # Test harness must capture per-invocation elapsed time.
-    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","remaining=","Project: MVS Explorer Toolkit","mvst_project_version=0.16.1"))
+    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","remaining=","Project: MVS Explorer Toolkit","mvst_project_version=0.16.2"))
     if "expected_rc`tactual_rc`telapsed_ms" not in test_all:
         fail("test result TSV does not include elapsed_ms")
-    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","remaining=","Project version:","0.16.1"))
+    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","remaining=","Project version:","0.16.2"))
 
     maintained=(
         "dev/generate_archive_sweep.py","dev/generate_performance_tools.py","dev/generate_report_tools.py",

@@ -1,3 +1,30 @@
+## 0.16.2 - real-data validator ordering/singleton fixes and console UX
+
+A clean 0.16.1 run from only the original 79-snapshot dump archive passed the
+1,094-assertion pre-build suite, completed all 34,822 archive logical checks,
+passed archive quality, and built both family indexes. Phase 6 then reported
+three false negatives: archive plan/run alignment plus the compact snapshot-set
+dictionary and its dependent reference check.
+
+Inspection of the produced archive database showed that `plan.tsv` and
+`runs.tsv` contain the same 34,822 unique plan indexes with exact
+index/scope/snapshot/tool identity. The physical order differs because parallel
+snapshot workers append batches when they finish; in the observed run,
+`runs.tsv` began at plan index 845 because the third snapshot completed first.
+The validator now joins by plan index, matching the executor contract.
+
+The compact database contains 967 valid snapshot sets, 35 of them singletons,
+and every reference across the eight compact fact/detail tables resolves with
+exact count/first/last metadata. Windows PowerShell 5.1 had unwrapped a
+one-element split result to a scalar string, making `$names[0]` the character
+`m`. The validator now uses a typed `string[]` so singleton and multi-snapshot
+sets follow the same logic.
+
+The same release improves long-run console ergonomics: paired/timed
+Starting/Completed snapshot and compare lines, a quiet phase-1 plan preflight,
+and status-aware console colors at the top-level pipeline. Plain-text logs are
+kept free of terminal escape sequences.
+
 ## 0.16.1 - native pipeline validator hotfix
 
 The first native 0.16.0 end-to-end production run passed the 1,092-assertion

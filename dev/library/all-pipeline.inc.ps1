@@ -38,18 +38,40 @@ $ResumeFamilyInput = ''
 $ResumeCompactInput = ''
 $ResumeTestResultsInput = ''
 
+function Get-StatusColor {
+    param([AllowEmptyString()][string]$Text)
+    if($Text-match'(?i)(\[FAIL\]|status=FAIL|^Status:\s*FAIL|^ERROR:|failed=[1-9][0-9]*|^Errors:\s*[1-9][0-9]*)'){return 'Red'}
+    if($Text-match'(?i)(\[WARN(?:ING)?\]|^WARNING:|^Warnings:\s*[1-9][0-9]*|^- quality flags|\[SKIP\])'){return 'Yellow'}
+    if($Text-match'(?i)(\[PASS\]|status=PASS|^Status:\s*PASS|^SUMMARY:.*failed=0|^SUMMARY:\s*PASS=.*FAIL=0|PASS=[0-9]+.*FAIL=0)'){return 'Green'}
+    return ''
+}
+function Write-ConsoleStyled {
+    param([AllowEmptyString()][string]$Text,[AllowEmptyString()][string]$Color='')
+    if([string]::IsNullOrWhiteSpace($Color)-or[Console]::IsOutputRedirected){[Console]::Out.WriteLine($Text);return}
+    try{
+        $old=[Console]::ForegroundColor
+        [Console]::ForegroundColor=[System.ConsoleColor]$Color
+        [Console]::Out.WriteLine($Text)
+        [Console]::ForegroundColor=$old
+    }catch{
+        try{[Console]::ResetColor()}catch{}
+        [Console]::Out.WriteLine($Text)
+    }
+}
 function Write-Console {
     param([AllowEmptyString()][string]$Text)
-    [Console]::Out.WriteLine($Text)
+    Write-ConsoleStyled $Text (Get-StatusColor $Text)
 }
 function Write-Log {
     param([AllowEmptyString()][string]$Text)
-    [Console]::Out.WriteLine($Text)
+    Write-ConsoleStyled $Text (Get-StatusColor $Text)
     if($null-ne$script:MasterWriter){$script:MasterWriter.WriteLine($Text);$script:MasterWriter.Flush()}
 }
 function Write-ErrLog {
     param([string]$Text)
-    [Console]::Error.WriteLine($Text)
+    if([Console]::IsErrorRedirected){[Console]::Error.WriteLine($Text)}else{
+        try{$old=[Console]::ForegroundColor;[Console]::ForegroundColor=[System.ConsoleColor]::Red;[Console]::Error.WriteLine($Text);[Console]::ForegroundColor=$old}catch{try{[Console]::ResetColor()}catch{};[Console]::Error.WriteLine($Text)}
+    }
     if($null-ne$script:MasterWriter){$script:MasterWriter.WriteLine($Text);$script:MasterWriter.Flush()}
 }
 function Clean-Tsv {

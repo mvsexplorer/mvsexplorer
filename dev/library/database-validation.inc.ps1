@@ -166,7 +166,8 @@ function Validate-SnapshotSets{
     $rows=@(Import-Csv -LiteralPath (Join-Path $CompactRoot 'snapshot-sets.tsv') -Delimiter "`t" -Encoding UTF8)
     $map=@{}
     foreach($r in $rows){
-        $names=if([string]::IsNullOrWhiteSpace([string]$r.snapshots)){@()}else{@(([string]$r.snapshots)-split'\|')}
+        [string[]]$names=@()
+        if(-not[string]::IsNullOrWhiteSpace([string]$r.snapshots)){$names=@(([string]$r.snapshots)-split'\|')}
         if([int]$r.snapshot_count-ne$names.Count){return [pscustomobject]@{ok=$false;map=$map;reason='snapshot_count mismatch for '+$r.snapshot_set_id}}
         if($names.Count-gt0-and(([string]$r.first_snapshot-ne$names[0])-or([string]$r.last_snapshot-ne$names[$names.Count-1]))){return [pscustomobject]@{ok=$false;map=$map;reason='first/last mismatch for '+$r.snapshot_set_id}}
         $map[[string]$r.snapshot_set_id]=$r
@@ -239,12 +240,20 @@ Test-Case 'archive plan/runs align by index and identity' {
     $plan=@(Import-Csv -LiteralPath (Join-Path $ArchiveRoot 'plan.tsv') -Delimiter "`t" -Encoding UTF8)
     $runs=@(Import-Csv -LiteralPath (Join-Path $ArchiveRoot 'runs.tsv') -Delimiter "`t" -Encoding UTF8)
     if($plan.Count-ne$runs.Count-or$plan.Count-eq0){return $false}
-    $seen=New-OrdinalSet
-    for($i=0;$i-lt$plan.Count;$i++){
-        if(-not$seen.Add([string]$runs[$i].index)){return $false}
-        foreach($f in @('index','scope','snapshot','tool')){if([string]$plan[$i].$f-ne[string]$runs[$i].$f){return $false}}
+    $planByIndex=@{}
+    foreach($p in $plan){
+        $key=[string]$p.index
+        if($planByIndex.ContainsKey($key)){return $false}
+        $planByIndex[$key]=$p
     }
-    return $true
+    $seen=New-OrdinalSet
+    foreach($r in $runs){
+        $key=[string]$r.index
+        if(-not$seen.Add($key)-or-not$planByIndex.ContainsKey($key)){return $false}
+        $p=$planByIndex[$key]
+        foreach($f in @('index','scope','snapshot','tool')){if([string]$p.$f-ne[string]$r.$f){return $false}}
+    }
+    return ($seen.Count-eq$plan.Count)
 }
 Test-Case 'archive runs contain no FAIL status' {
     foreach($r in @(Import-Csv -LiteralPath (Join-Path $ArchiveRoot 'runs.tsv') -Delimiter "`t" -Encoding UTF8)){if([string]$r.status-eq'FAIL'){return $false}}
@@ -325,7 +334,8 @@ Test-Case 'compact taxonomy/classification metadata is byte-identical to full fa
 $snapshotValidation=$null
 Test-Case 'compact snapshot-set dictionary is internally consistent' {
     $script:snapshotValidation=Validate-SnapshotSets $CompactRoot
-    return [bool]$script:snapshotValidation.ok
+    if(-not[bool]$script:snapshotValidation.ok){throw([string]$script:snapshotValidation.reason)}
+    return $true
 }
 Test-Case 'every compact snapshot-set reference resolves with exact count/first/last' {
     if($null-eq$script:snapshotValidation-or-not$script:snapshotValidation.ok){$script:snapshotValidation=Validate-SnapshotSets $CompactRoot}

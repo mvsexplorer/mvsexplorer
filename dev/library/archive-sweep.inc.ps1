@@ -9,6 +9,7 @@ $RawArgs = @(
 )
 $OutputInput = ''
 $PlanOnly = $false
+$QuietPlan = $false
 $Resume = $false
 $Executor = 'fast-combined'
 $Workers = [Math]::Min(4,[Math]::Max(1,[int][Math]::Ceiling([Environment]::ProcessorCount / 2.0)))
@@ -41,7 +42,7 @@ function Fail {
 
 function Show-Usage {
     Write-Line ('MVS Explorer Toolkit archive-wide tool sweep ' + $Version)
-    Write-Line ('Usage: ' + $Caller + ' mvs-dumps-root [results-folder] [--plan-only] [--resume] [--external-tools] [--workers N] [--exclusions FILE] [--no-report] [--cache-folder DIR] [--no-cache]')
+    Write-Line ('Usage: ' + $Caller + ' mvs-dumps-root [results-folder] [--plan-only] [--quiet-plan] [--resume] [--external-tools] [--workers N] [--exclusions FILE] [--no-report] [--cache-folder DIR] [--no-cache]')
     Write-Line 'Default executor: fast-combined (indexed shared parse, logical status validation).'
     Write-Line '--external-tools executes every public .bat wrapper literally.'
     Write-Line '--workers N controls bounded parallel snapshot workers in fast mode (default: auto up to 4).'
@@ -52,6 +53,7 @@ function Show-Usage {
     Write-Line 'Fast mode builds history/all-ever together in one streaming archive pass; --external-tools runs both public builders literally.'
     Write-Line 'Return codes 1 and 4 are recorded as NO_RESULT and SOURCE_MISSING, not runtime failures.'
     Write-Line '--plan-only writes the deterministic plan without executing checks.'
+    Write-Line '--quiet-plan suppresses per-snapshot planning lines; intended for automated preflight use.'
     Write-Line '--resume requires an existing matching results folder; executor identity is part of the plan hash.'
 }
 
@@ -1019,6 +1021,11 @@ for($argIndex=0;$argIndex-lt$argsList.Count;$argIndex++){
         $PlanOnly=$true
         continue
     }
+    if($arg -eq '--quiet-plan'){
+        if($QuietPlan){Fail 2 'Duplicate --quiet-plan option.'}
+        $QuietPlan=$true
+        continue
+    }
     if($arg -eq '--resume'){
         if($Resume){Fail 2 'Duplicate --resume option.'}
         $Resume=$true
@@ -1225,7 +1232,7 @@ $snapshotSb = New-Object Text.StringBuilder
 for ($i = 0; $i -lt $snapshotDirs.Count; $i++) {
     $dir = $snapshotDirs[$i]
     $dataPath = Resolve-SnapshotDataPath $dir.FullName
-    Write-Line ('Planning snapshot ' + ($i + 1) + '/' + $snapshotDirs.Count + ': ' + $dir.Name)
+    if(-not $QuietPlan){Write-Line ('Planning snapshot ' + ($i + 1) + '/' + $snapshotDirs.Count + ': ' + $dir.Name)}
     $profile = Get-SnapshotProfile $dataPath
     $snapshot = [pscustomobject]@{ name=$dir.Name; snapshot_path=$dir.FullName; data_path=$dataPath; profile=$profile }
     [void]$snapshots.Add($snapshot)
@@ -1372,7 +1379,7 @@ if ($Executor -eq 'external-public') {
         while($nextBatch-lt$snapshotBatches.Count -and $active.Count-lt$Workers){
             $batch=$snapshotBatches[$nextBatch]
             $nextBatch++
-            Write-Line ('=== Snapshot '+$batch.snapshot.name+' [fast-combined '+$batch.entries.Count+' checks; worker '+($active.Count+1)+'/'+$Workers+'] ===')
+            Write-Line ('Starting snapshot '+$batch.snapshot.name+' [fast-combined '+$batch.entries.Count+' checks; worker '+($active.Count+1)+'/'+$Workers+'] ...')
             $ctx=Start-FastWorkerJob $batch.entries $snapshotWorker $batch.snapshot.data_path '' $ResultsFolder $CachePath
             [void]$active.Add($ctx)
         }
@@ -1392,7 +1399,7 @@ if ($Executor -eq 'external-public') {
             [void]$done.Add([int]$ctx.entries[$n].index)
             $completed++
         }
-        Write-Line ('Completed snapshot '+$ctx.snapshot+'. Progress: '+$completed+'/'+$plan.Count+' PASS='+$counts.PASS+' NO_RESULT='+$counts.NO_RESULT+' SOURCE_MISSING='+$counts.SOURCE_MISSING+' FAIL='+$counts.FAIL)
+        Write-Line ('Completed snapshot '+$ctx.snapshot+' in '+([Math]::Round($ctx.stopwatch.Elapsed.TotalSeconds,3))+' s. Progress: '+$completed+'/'+$plan.Count+' PASS='+$counts.PASS+' NO_RESULT='+$counts.NO_RESULT+' SOURCE_MISSING='+$counts.SOURCE_MISSING+' FAIL='+$counts.FAIL)
         Write-Summary $summaryPath $summaryMode $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
     }
 
@@ -1404,21 +1411,24 @@ if ($Executor -eq 'external-public') {
         })
         if($pending.Count -eq 0){continue}
 
-        Write-Line ('=== Compare ' + $from.name + ' -> ' + $to.name + ' [fast-combined ' + $pending.Count + ' checks] ===')
+        Write-Line ('Starting compare ' + $from.name + ' -> ' + $to.name + ' [fast-combined ' + $pending.Count + ' checks] ...')
+        $compareSw=[Diagnostics.Stopwatch]::StartNew()
         $statuses=@(Invoke-FastWorker $pending $compareWorker $from.data_path $to.data_path $ResultsFolder $runsPath $fastBatchesPath $failureFolder)
+        $compareSw.Stop()
         for($n=0;$n-lt$pending.Count;$n++){
             $status=[string]$statuses[$n]
             if($counts.ContainsKey($status)){$counts[$status]++}
             [void]$done.Add([int]$pending[$n].index)
             $completed++
         }
-        Write-Line ('Progress: ' + $completed + '/' + $plan.Count + ' PASS=' + $counts.PASS + ' NO_RESULT=' + $counts.NO_RESULT + ' SOURCE_MISSING=' + $counts.SOURCE_MISSING + ' FAIL=' + $counts.FAIL)
+        Write-Line ('Completed compare ' + $from.name + ' -> ' + $to.name + ' in ' + ([Math]::Round($compareSw.Elapsed.TotalSeconds,3)) + ' s. Progress: ' + $completed + '/' + $plan.Count + ' PASS=' + $counts.PASS + ' NO_RESULT=' + $counts.NO_RESULT + ' SOURCE_MISSING=' + $counts.SOURCE_MISSING + ' FAIL=' + $counts.FAIL)
         Write-Summary $summaryPath $summaryMode $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
     }
 
     $archiveEntries=@($plan | Where-Object {$_.scope -eq 'archive' -and -not $done.Contains([int]$_.index)})
     if($archiveEntries.Count -gt 0){
-        Write-Line ('=== Archive builders [fast-combined ' + $archiveEntries.Count + ' checks] ===')
+        Write-Line ('Starting archive builders [fast-combined ' + $archiveEntries.Count + ' checks] ...')
+        $archiveSw=[Diagnostics.Stopwatch]::StartNew()
         if(-not(Test-Path -LiteralPath $archiveOutput -PathType Container)){[void](New-Item -ItemType Directory -Path $archiveOutput -Force)}
         $archiveWorker=Join-Path (Join-Path $ScriptRoot 'fast') 'run_archive_tools_fast.bat'
         if(-not(Test-Path -LiteralPath $archiveWorker -PathType Leaf)){Fail 4 ('Missing fast archive worker: '+$archiveWorker)}
@@ -1429,7 +1439,8 @@ if ($Executor -eq 'external-public') {
             [void]$done.Add([int]$archiveEntries[$n].index)
             $completed++
         }
-        Write-Line ('Progress: ' + $completed + '/' + $plan.Count + ' PASS=' + $counts.PASS + ' NO_RESULT=' + $counts.NO_RESULT + ' SOURCE_MISSING=' + $counts.SOURCE_MISSING + ' FAIL=' + $counts.FAIL)
+        $archiveSw.Stop()
+        Write-Line ('Completed archive builders in ' + ([Math]::Round($archiveSw.Elapsed.TotalSeconds,3)) + ' s. Progress: ' + $completed + '/' + $plan.Count + ' PASS=' + $counts.PASS + ' NO_RESULT=' + $counts.NO_RESULT + ' SOURCE_MISSING=' + $counts.SOURCE_MISSING + ' FAIL=' + $counts.FAIL)
         Write-Summary $summaryPath $summaryMode $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
     }
 }

@@ -1,3 +1,9 @@
+0.1.2 / project 0.16.2
+- Reconciles parallel archive `runs.tsv` to `plan.tsv` by stable plan index instead of physical row position.
+- Preserves one-element `snapshot-sets.tsv` lists as typed string arrays under Windows PowerShell 5.1.
+- Keeps the same 57 checks and database semantics; the changes remove validator false negatives only.
+- Reports the concrete snapshot-set validation reason when the dictionary is genuinely inconsistent.
+
 0.1.1 / project 0.16.1
 - Fixes the Windows PowerShell 5.1 lexical regression where compacted `return` statements lost whitespace before variables/type literals.
 - Keeps the same 57 semantic checks: 25 database integrity/reconciliation checks plus 32 real family-query executions.

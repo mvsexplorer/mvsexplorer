@@ -22,7 +22,7 @@ failures.
 
 ## Resume already-built databases
 
-0.16.1 adds a recovery path for a late-stage validator/packaging failure after
+0.16.2 retains the recovery path introduced in 0.16.1 for a late-stage validator/packaging failure after
 the three reusable databases were already generated:
 
 ```bat
@@ -62,6 +62,14 @@ the available logs into a `SEND-ME-LOGS-*.zip` hardlink.
 
 Every phase prints project version, phase number, phase total and remaining
 phases. Child test harnesses provide their own test-number/remaining counters.
+
+The phase-1 real-archive plan preflight runs with `--quiet-plan`, so it validates
+the deterministic 34,822-entry plan without printing all snapshot names. The
+phase-2 production plan remains visible once. Archive execution prints paired
+`Starting snapshot` / `Completed snapshot` and `Starting compare` /
+`Completed compare` lines with elapsed time. The top-level pipeline colors
+PASS green, FAIL/error red, and warning/SKIP yellow on interactive consoles;
+logs stay plain text.
 
 ## Outputs
 

@@ -1,3 +1,8 @@
+0.4.6 - 2026-09-06
+  - Generates paired `Starting snapshot` / `Completed snapshot` and `Starting compare` / `Completed compare` progress with elapsed seconds.
+  - Adds `--quiet-plan` for automated plan-only preflight while retaining the exact deterministic plan.
+  - Preserves the 422/19/2 legacy logical surface and 34,822-row known-archive plan.
+
 generate_archive_sweep.py Version History
 
 0.4.4 - 2026-09-01

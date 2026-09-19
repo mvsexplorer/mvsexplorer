@@ -1,3 +1,14 @@
+0.16.2 - 2026-09-06
+- Fixes three generated-database validator false negatives exposed by a clean native 0.16.1 production run.
+- Reconciles archive plan/run rows by stable `index` instead of physical row order; 8-worker completion order is intentionally nondeterministic while plan identity remains exact.
+- Preserves singleton compact snapshot sets as typed string arrays under Windows PowerShell 5.1, fixing the snapshot-set dictionary and dependent reference checks.
+- Keeps the archive/full-family/compact database formats unchanged; direct replay of the uploaded 0.16.1 outputs confirms all 34,822 plan identities and all 967 snapshot sets/references are valid.
+- Adds paired/timed `Starting` / `Completed` snapshot and compare console progress.
+- Adds `--quiet-plan` for automated plan preflight; the phase-1 plan check remains complete but no longer prints the 79 snapshot names before the phase-2 production planning pass.
+- Adds live console status colorization in the one-command pipeline: PASS green, FAIL/error red, warning/SKIP yellow; retained log files stay plain text.
+- Adds five pre-build structure assertions for plan-index reconciliation, singleton snapshot arrays, timed progress, quiet-plan preflight, and console color markers.
+- `test_all` becomes 1,099 assertions (normally 1,096 PASS / 0 FAIL / 3 SKIP); public root remains 478 tools and the legacy archive plan remains 34,822 logical checks.
+
 0.16.1 - 2026-09-03
 - Windows PowerShell 5.1 hotfix for the new generated-database validator and pipeline failure-summary helpers.
 - Restores required whitespace after PowerShell `return` before variables/type literals; first native 0.16.0 production run exposed `return$true`, `return$map`, and `return[pscustomobject]...` failures in phase 6.

@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.11.4"
+set "app.version=0.11.5"
 set "app.name=test_relationship_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -10,7 +10,7 @@ set "mvst_mode=relationship"
 set "mvst_dump=%~1"
 set "mvst_caller=%~nx0"
 set "mvst_version=%app.version%"
-set "mvst_project_version=0.16.1"
+set "mvst_project_version=0.16.2"
 for %%I in ("%~dp0..") do set "mvst_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSTest"
@@ -105,7 +105,7 @@ $Caller = [string]$env:mvst_caller
 $Version = [string]$env:mvst_version
 $ProjectVersion = [string]$env:mvst_project_version
 $script:ExpectedAssertions = switch ($Mode) {
-    'structure' { 481 }
+    'structure' { 486 }
     'scalar' { 120 }
     'lookup' { 24 }
     'diagnostic' { 46 }
@@ -113,7 +113,7 @@ $script:ExpectedAssertions = switch ($Mode) {
     'single_dump' { 167 }
     'compare' { 39 }
     'history' { 65 }
-    'all' { 1094 }
+    'all' { 1099 }
     default { 0 }
 }
 
@@ -1081,6 +1081,61 @@ function Test-Structure {
         }
     } else {
         Write-Fail 'database validator DAG counts unique family names rather than node-role rows' 'test_generated_databases.bat missing'
+    }
+
+    if (Test-Path -LiteralPath $dbValidatorPath -PathType Leaf) {
+        $dbValidatorText = [IO.File]::ReadAllText($dbValidatorPath,[Text.Encoding]::UTF8)
+        if ($dbValidatorText.Contains('$planByIndex=@{}') -and $dbValidatorText.Contains('foreach($r in $runs)') -and $dbValidatorText.Contains('$planByIndex[$key]')) {
+            Write-Pass 'database validator reconciles parallel archive runs by plan index rather than row order'
+        } else {
+            Write-Fail 'database validator reconciles parallel archive runs by plan index rather than row order' 'plan-index keyed reconciliation markers missing'
+        }
+        if ($dbValidatorText.Contains('[string[]]$names=@()') -and $dbValidatorText.Contains('$names=@(([string]$r.snapshots)-split')) {
+            Write-Pass 'database validator preserves singleton snapshot sets as arrays'
+        } else {
+            Write-Fail 'database validator preserves singleton snapshot sets as arrays' 'typed singleton snapshot-array guard missing'
+        }
+    } else {
+        Write-Fail 'database validator reconciles parallel archive runs by plan index rather than row order' 'test_generated_databases.bat missing'
+        Write-Fail 'database validator preserves singleton snapshot sets as arrays' 'test_generated_databases.bat missing'
+    }
+
+    $archiveSweepPath = Join-Path $Root 'test\test_all_dumps.bat'
+    if (Test-Path -LiteralPath $archiveSweepPath -PathType Leaf) {
+        $archiveSweepText = [IO.File]::ReadAllText($archiveSweepPath,[Text.Encoding]::UTF8)
+        if ($archiveSweepText.Contains('Starting snapshot ') -and $archiveSweepText.Contains('Completed snapshot ') -and
+            $archiveSweepText.Contains('Starting compare ') -and $archiveSweepText.Contains('Completed compare ') -and
+            $archiveSweepText.Contains('Elapsed.TotalSeconds')) {
+            Write-Pass 'archive sweep reports paired start/completion progress with durations'
+        } else {
+            Write-Fail 'archive sweep reports paired start/completion progress with durations' 'start/completion duration markers missing'
+        }
+    } else {
+        Write-Fail 'archive sweep reports paired start/completion progress with durations' 'test_all_dumps.bat missing'
+    }
+
+    $everythingPath = Join-Path $Root 'test\test_everything.bat'
+    if (Test-Path -LiteralPath $everythingPath -PathType Leaf) {
+        $everythingText = [IO.File]::ReadAllText($everythingPath,[Text.Encoding]::UTF8)
+        if ($everythingText.Contains("'--quiet-plan'")) {
+            Write-Pass 'comprehensive suite uses concise archive plan preflight'
+        } else {
+            Write-Fail 'comprehensive suite uses concise archive plan preflight' 'quiet plan preflight marker missing'
+        }
+    } else {
+        Write-Fail 'comprehensive suite uses concise archive plan preflight' 'test_everything.bat missing'
+    }
+
+    if (Test-Path -LiteralPath $pipelinePath -PathType Leaf) {
+        $pipelineText = [IO.File]::ReadAllText($pipelinePath,[Text.Encoding]::UTF8)
+        if ($pipelineText.Contains('Get-StatusColor') -and $pipelineText.Contains('[Console]::ForegroundColor') -and
+            $pipelineText.Contains("'Green'") -and $pipelineText.Contains("'Red'") -and $pipelineText.Contains("'Yellow'")) {
+            Write-Pass 'pipeline console colorizes PASS FAIL WARN status classes'
+        } else {
+            Write-Fail 'pipeline console colorizes PASS FAIL WARN status classes' 'status colorization markers missing'
+        }
+    } else {
+        Write-Fail 'pipeline console colorizes PASS FAIL WARN status classes' 'pipeline batch missing'
     }
 }
 

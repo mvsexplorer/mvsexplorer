@@ -1,3 +1,8 @@
+1.0.2 / project 0.16.2
+- Colorizes live PASS output green, FAIL/error output red, and warning/SKIP output yellow on interactive consoles while keeping retained logs plain text.
+- Retains 0.16.1 resume mode and the ten-phase clean production workflow.
+- Works with the corrected 0.1.2 generated-database validator and concise phase-1 plan preflight.
+
 1.0.1 / project 0.16.1
 - Fixes Windows PowerShell 5.1 return-token boundary failures in summary/log helpers.
 - Adds --resume-built ARCHIVE_DB FAMILY_DB COMPACT_DB and optional --resume-test-results DIR.
