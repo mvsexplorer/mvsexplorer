@@ -1,3 +1,8 @@
+0.5.1 - 2026-09-12
+- Replaces fixed `%1`..`%9` batch-to-PowerShell argument transport with indexed arbitrary-length capture.
+- Fixes adaptive maintenance preflights where `--cache-folder` is argument 9 and its directory is argument 10.
+- Scheduling and logical result semantics are unchanged.
+
 0.5.0 - 2026-09-12
 - Replaces the fixed default snapshot worker count with adaptive start/max concurrency.
 - Default start is ceil(logical CPUs / 4), minimum 1; default maximum is logical CPUs.

@@ -1,3 +1,9 @@
+## 0.20.1 native hotfix
+
+0.20.1 corrects the maintained product-family regression project label and the
+archive-sweep batch argument bridge exposed by the first 0.20.0 Windows run.
+Pipeline gating and adaptive worker policy are otherwise unchanged.
+
 # Full validation and database production pipeline
 
 ## Command

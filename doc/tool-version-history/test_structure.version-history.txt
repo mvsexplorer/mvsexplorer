@@ -1,3 +1,6 @@
+0.11.17 / project 0.20.1 - 2026-09-12
+- Adds arbitrary-length archive-sweep argument transport guard; structure=506.
+
 0.11.16 - 2026-09-12
 - Project 0.20.0.
 - Removes redundant remaining=N from assertion progress.

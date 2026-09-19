@@ -1,3 +1,18 @@
+## 0.20.1 native argument-transport/test-metadata hotfix
+
+`templates\archive-sweep.bat.tpl` must capture arbitrary-length option lists;
+do not restore fixed `%1`..`%9` transport. `library\archive-sweep.inc.ps1`
+reconstructs the indexed captured arguments and keeps the first value as the
+archive input.
+
+`test\test_product_family_tools.bat` remains a maintained regression artifact.
+Its embedded project version must be advanced with each project release because
+the generated structure harness verifies both the `tools\` query path and the
+current project version.
+
+Archive-processing result semantics and the semantic result-producer reuse
+fingerprint are unchanged.
+
 ## 0.19.3 pipeline-gate hotfix
 
 `library\test-harness.inc.ps1` must compare expected embedded PowerShell source

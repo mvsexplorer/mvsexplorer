@@ -1,4 +1,23 @@
-# MVS Explorer Toolkit 0.20.0
+# MVS Explorer Toolkit 0.20.1
+
+## 0.20.1 native regression hotfix
+
+0.20.1 fixes the two failures exposed by the first native 0.20.0 run.
+
+`test_product_family_tools.bat` is a maintained regression artifact rather than
+a generated test wrapper. Its embedded project metadata is now 0.20.1, so the
+structure gate no longer rejects a valid `tools\` query path because of the
+stale 0.19.3 project label.
+
+`test_all_dumps.bat` no longer transports only `%1` through `%9` from batch into
+its embedded PowerShell. It captures an arbitrary number of command-line
+arguments before shifting them into indexed environment variables. This is
+required by adaptive maintenance invocations such as
+`--start-workers N --max-workers N --cache-folder DIR`, where the cache path can
+be the tenth positional argument.
+
+Archive result semantics, the 34,822-row known plan, adaptive scaling policy,
+and the semantic result-producer fingerprint are unchanged from 0.20.0.
 
 ## 0.20.0 adaptive archive-sweep concurrency and concise progress
 

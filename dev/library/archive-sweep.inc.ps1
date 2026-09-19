@@ -2,11 +2,22 @@ $ErrorActionPreference = 'Stop'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 [Console]::OutputEncoding = $utf8
 
-$ArchiveInput = [string]$env:mvsa_archive_root
-$RawArgs = @(
-    [string]$env:mvsa_arg2,[string]$env:mvsa_arg3,[string]$env:mvsa_arg4,[string]$env:mvsa_arg5,
-    [string]$env:mvsa_arg6,[string]$env:mvsa_arg7,[string]$env:mvsa_arg8,[string]$env:mvsa_arg9
-)
+$CapturedArgCount = 0
+if (-not [int]::TryParse([string]$env:mvsa_argc,[ref]$CapturedArgCount) -or $CapturedArgCount -lt 1) {
+    $ArchiveInput = ''
+    $RawArgs = @()
+} else {
+    $CapturedArgs = New-Object System.Collections.ArrayList
+    for ($CapturedArgIndex = 0; $CapturedArgIndex -lt $CapturedArgCount; $CapturedArgIndex++) {
+        [void]$CapturedArgs.Add([Environment]::GetEnvironmentVariable(('mvsa_arg_{0}' -f $CapturedArgIndex)))
+    }
+    $ArchiveInput = [string]$CapturedArgs[0]
+    if ($CapturedArgCount -gt 1) {
+        $RawArgs = @($CapturedArgs[1..($CapturedArgCount-1)])
+    } else {
+        $RawArgs = @()
+    }
+}
 $OutputInput = ''
 $PlanOnly = $false
 $QuietPlan = $false

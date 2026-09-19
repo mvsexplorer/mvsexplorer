@@ -6,15 +6,14 @@ set "app.version=@@TOOL_VERSION@@"
 set "app.name=test_all_dumps"
 set "app.rc=0"
 set "app.self=%~f0"
-set "mvsa_archive_root=%~1"
-set "mvsa_arg2=%~2"
-set "mvsa_arg3=%~3"
-set "mvsa_arg4=%~4"
-set "mvsa_arg5=%~5"
-set "mvsa_arg6=%~6"
-set "mvsa_arg7=%~7"
-set "mvsa_arg8=%~8"
-set "mvsa_arg9=%~9"
+set "mvsa_argc=0"
+:mvsa_capture_args
+if "%~1"=="" goto :mvsa_capture_done
+set "mvsa_arg_%mvsa_argc%=%~1"
+set /a mvsa_argc+=1
+shift
+goto :mvsa_capture_args
+:mvsa_capture_done
 set "mvsa_caller=%~nx0"
 set "mvsa_script_root=%~dp0"
 set "mvsa_version=%app.version%"

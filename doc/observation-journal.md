@@ -1,3 +1,12 @@
+## 2026-09-12 - Native adaptive invocation crossed cmd.exe's ninth-argument boundary
+
+Composable CLI options can turn a previously safe `%1`..`%9` batch bridge into
+silent truncation without changing any individual option. The 0.20.0 adaptive
+maintenance preflight placed `--cache-folder` at argument 9 and its directory at
+argument 10. Batch wrappers that forward extensible option sets must therefore
+capture/shift arbitrary arguments instead of enumerating a fixed positional
+ceiling.
+
 ## 2026-09-10 — native 0.19.1 follow-up
 
 ### PowerShell array shape is part of GUI correctness

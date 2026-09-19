@@ -1,3 +1,6 @@
+0.2.1 - 2026-09-12
+- Emits project 0.20.1 maintenance components after native adaptive-preflight hotfix.
+
 0.2.0 - 2026-09-12
 - Project 0.20.0.
 - Adds adaptive worker policy propagation and semantic archive-result fingerprint migration.

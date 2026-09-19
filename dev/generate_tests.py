@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate standalone test batch files.
 
-Version: 0.11.16
+Version: 0.11.17
 """
 from pathlib import Path
 
@@ -34,8 +34,8 @@ def main():
     for name, mode in TESTS:
         text = template
         values = {
-            "TEST_VERSION": "0.11.16",
-            "PROJECT_VERSION": "0.20.0",
+            "TEST_VERSION": "0.11.17",
+            "PROJECT_VERSION": "0.20.1",
             "TEST_NAME": name,
             "TEST_MODE": mode,
             "BATCH_COMMON": batch_common,

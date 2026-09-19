@@ -10,7 +10,7 @@ $Caller = [string]$env:mvst_caller
 $Version = [string]$env:mvst_version
 $ProjectVersion = [string]$env:mvst_project_version
 $script:ExpectedAssertions = switch ($Mode) {
-    'structure' { 505 }
+    'structure' { 506 }
     'scalar' { 120 }
     'lookup' { 24 }
     'diagnostic' { 46 }
@@ -18,7 +18,7 @@ $script:ExpectedAssertions = switch ($Mode) {
     'single_dump' { 167 }
     'compare' { 39 }
     'history' { 65 }
-    'all' { 1118 }
+    'all' { 1119 }
     default { 0 }
 }
 
@@ -1049,6 +1049,20 @@ function Test-Structure {
         }
     } else {
         Write-Fail 'archive sweep adaptive worker controller' 'test_all_dumps.bat missing'
+    }
+
+    if (Test-Path -LiteralPath $archiveSweepPath -PathType Leaf) {
+        if ($archiveSweepText.Contains('set "mvsa_argc=0"') -and
+            $archiveSweepText.Contains(':mvsa_capture_args') -and
+            $archiveSweepText.Contains('set "mvsa_arg_%mvsa_argc%=%~1"') -and
+            $archiveSweepText.Contains('[Environment]::GetEnvironmentVariable((''mvsa_arg_{0}'' -f $CapturedArgIndex))') -and
+            -not $archiveSweepText.Contains('set "mvsa_arg9=%~9"')) {
+            Write-Pass 'archive sweep transports adaptive option lists beyond cmd.exe ninth positional argument'
+        } else {
+            Write-Fail 'archive sweep transports adaptive option lists beyond cmd.exe ninth positional argument' 'dynamic batch-to-PowerShell argument capture markers missing'
+        }
+    } else {
+        Write-Fail 'archive sweep transports adaptive option lists beyond cmd.exe ninth positional argument' 'test_all_dumps.bat missing'
     }
 
     $everythingPath = Join-Path $Root 'test\test_everything.bat'

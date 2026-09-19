@@ -1,3 +1,9 @@
+## 0.20.1 native hotfix
+
+The adaptive prepare preflight can safely pass `--start-workers`,
+`--max-workers`, and `--cache-folder` together. `test_all_dumps.bat` no longer
+drops the cache directory when it appears after the ninth positional argument.
+
 # Incremental MVS database maintenance
 
 ## Entry point

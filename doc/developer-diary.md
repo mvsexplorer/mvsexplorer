@@ -1,3 +1,19 @@
+## 2026-09-12 - 0.20.1 native argument transport hotfix
+
+The first native 0.20.0 run exposed two release-integration defects before any
+archive rebuild began. The structure harness correctly rejected
+`test_product_family_tools.bat` because that maintained regression artifact
+still identified project 0.19.3. The later modular create/update invocation
+showed a separate command-transport bug: adaptive worker options pushed the
+`--cache-folder` value into positional argument 10, while `test_all_dumps.bat`
+only copied `%1` through `%9` into its embedded PowerShell environment.
+
+0.20.1 advances the maintained family-regression project metadata and replaces
+the fixed archive-sweep argument bridge with an indexed capture/shift loop that
+accepts arbitrary option counts. A new structure/static guard rejects restoring
+the `%9` truncation pattern. Archive processing semantics and the 34,822-row
+known plan remain unchanged.
+
 ## 2026-09-08 — 0.19.1 native maintenance validation hotfix
 
 The first native 0.19.0 create/update run successfully completed and committed

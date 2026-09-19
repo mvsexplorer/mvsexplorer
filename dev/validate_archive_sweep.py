@@ -256,7 +256,8 @@ def main():
         "embedded Office reference is not ownership","raw note HTML references are content-addressed",
         "Office Online update stamp is not a release",
         ".NET semantic version beats referenced year",
-        "explicit non-year version beats update timestamp"
+        "explicit non-year version beats update timestamp",
+        "mvspf_project_version=0.20.1"
     ))
     test_all_text=(ROOT/"test"/"test_all.bat").read_text(encoding="utf-8")
     if ("public layout = tools\\ 478 BATs, root 4 launchers, create/update 8 components" not in test_all_text or
@@ -270,11 +271,18 @@ def main():
     if exclusions.read_text(encoding="utf-8").splitlines()[0] != "snapshot\tscope\tcanonical\treason":
         fail("archive-exclusions.tsv header mismatch")
 
+    archive_sweep_text=(ROOT/"test"/"test_all_dumps.bat").read_text(encoding="utf-8")
+    for marker in ('set "mvsa_argc=0"', ':mvsa_capture_args', 'set "mvsa_arg_%mvsa_argc%=%~1"', "GetEnvironmentVariable(('mvsa_arg_{0}' -f $CapturedArgIndex))"):
+        if marker not in archive_sweep_text:
+            fail("test_all_dumps.bat lacks arbitrary-length argument transport marker: "+marker)
+    if 'set "mvsa_arg9=%~9"' in archive_sweep_text:
+        fail("test_all_dumps.bat still truncates options at cmd.exe positional argument 9")
+
     # Test harness must capture per-invocation elapsed time.
-    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","Project: MVS Explorer Toolkit","mvst_project_version=0.20.0"))
+    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","Project: MVS Explorer Toolkit","mvst_project_version=0.20.1"))
     if "expected_rc`tactual_rc`telapsed_ms" not in test_all:
         fail("test result TSV does not include elapsed_ms")
-    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","Project version:","0.20.0","--start-workers","--max-workers"))
+    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","Project version:","0.20.1","--start-workers","--max-workers"))
 
     maintained=(
         "dev/generate_archive_sweep.py","dev/generate_performance_tools.py","dev/generate_report_tools.py",

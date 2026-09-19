@@ -1,19 +1,17 @@
-# 0.19.3 current regression notes
+# 0.20.1 current regression notes
 
-The current generated public `all` matrix contains **1,115 assertions** and the
-structure subset contains **502 assertions**. In addition to the 0.19.2 guards,
-0.19.3 fixes literal-marker checks for timestamped HTML and moved family-query
-tools, and adds a pipeline early-gate evidence/NOT-RUN regression.
+The current generated public `all` matrix contains **1,119 assertions** and the
+structure subset contains **506 assertions**. 0.20.1 fixes the first native
+0.20.0 failures: the maintained product-family regression now carries the
+current project version, and `test_all_dumps.bat` transports arbitrary-length
+option lists rather than truncating after the ninth positional argument.
 
-`test\test_product_family_tools.bat` is version 0.1.5 / project 0.19.3 and
-continues to contain 106 dedicated product-family/compact assertions. Its 32
-public query wrappers are resolved from `tools\`, matching the 0.19.x delivery
-layout.
+`test\test_product_family_tools.bat` remains version 0.1.5 / project 0.20.1 and
+contains 106 dedicated product-family/compact assertions. Its 32 public query
+wrappers continue to resolve from `tools\`.
 
-The generated-database validator remains 57 checks. Create/update maintenance
-may reuse a prior managed validation PASS on a later unchanged run; use
-`create_or_update_mvs_database.bat --force-validate` to require a fresh 57-check
-validation and all 32 real family-query smoke executions.
+The generated-database validator remains 57 checks. Archive result semantics and
+the known 34,822-row archive plan are unchanged.
 
 # 0.16.5 progress and generated-database validation
 
@@ -418,12 +416,12 @@ The 33 family tools are intentionally a separate archive-level class. They do
 not alter the legacy `test_all_dumps.bat` 79-snapshot plan, which remains
 34,822 logical checks.
 
-## Current project 0.20.0 matrix
+## Current project 0.20.1 matrix
 
 The current normal `test_all.bat` matrix is:
 
 ```text
-Structure:       505
+Structure:       506
 Scalar:          120
 Lookup:           24
 Diagnostic:       46
@@ -433,9 +431,9 @@ Compare:          39
 History:          65
 Family wrapper:    1
 ---------------------
-Total:          1118 assertions
+Total:          1119 assertions
 ```
 
 On the established representative real dump, the three note-dependent exact
-lookup cases may remain SKIP, so the expected clean result is 1115 PASS /
+lookup cases may remain SKIP, so the expected clean result is 1116 PASS /
 0 FAIL / 3 SKIP.

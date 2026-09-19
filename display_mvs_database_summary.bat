@@ -2,13 +2,13 @@
 :setup
 REM Displays health/completeness for the latest mvs_databases* folder in current/parent.
 setlocal DisableDelayedExpansion
-set "app.version=0.2.0"
+set "app.version=0.2.1"
 set "app.name=display_mvs_database_summary"
 set "app.rc=0"
 set "app.self=%~f0"
 set "mvsdisp_invocation_dir=%CD%"
 set "mvsdisp_version=%app.version%"
-set "mvsdisp_project_version=0.20.0"
+set "mvsdisp_project_version=0.20.1"
 :main
 set "RunPowerShellFromLabel.function=MVSDisplayDatabaseSummary"
 call :RunPowerShellFromLabel

@@ -1,3 +1,10 @@
+## 0.20.1 argument transport hotfix
+
+The archive sweep now captures an arbitrary number of batch arguments before
+entering embedded PowerShell. This fixes adaptive maintenance commands whose
+`--cache-folder` value becomes the tenth positional argument. Worker scheduling,
+result semantics, and logical plan construction are unchanged.
+
 # Archive-wide public-tool sweep
 
 > **0.19.0 layout:** Public utility BATs referenced in this document are delivered under `tools\`. Run them as `tools\<tool>.bat` from the project root, or change into `tools\` first. Their established arguments/output semantics are unchanged.

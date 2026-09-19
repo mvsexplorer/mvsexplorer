@@ -1,3 +1,10 @@
+0.20.1 - 2026-09-12
+- Fixes the first native 0.20.0 structure failure by advancing the maintained `test_product_family_tools.bat` project metadata from stale 0.19.3 to 0.20.1 while preserving its `tools\` query paths and 106 assertions.
+- Fixes create/update adaptive preflight argument truncation: `test_all_dumps.bat` now captures arbitrary command-line arguments instead of only `%1` through `%9`, so the tenth-argument cache directory is preserved.
+- Adds a structure/static regression requiring arbitrary-length archive-sweep argument transport and rejects restoration of the old fixed ninth-argument bridge.
+- Structure becomes 506 assertions; all mode becomes 1,119 assertions.
+- Archive evidence semantics, adaptive scaling policy, semantic reuse fingerprint, and the known 34,822-row archive plan are unchanged.
+
 0.20.0 - 2026-09-12
 - Native 0.19.3 production acceptance completed successfully: 1,112 PASS / 0 FAIL / 3 SKIP, 34,822/34,822 archive checks with zero FAIL, 57/57 database checks, all 32 family queries, final pipeline PASS, and managed database health PASS.
 - Removes redundant `remaining=N` text from test, suite-test, database-test, and pipeline-phase progress markers; progress retains current/total.

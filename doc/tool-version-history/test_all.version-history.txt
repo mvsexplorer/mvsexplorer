@@ -1,3 +1,8 @@
+0.11.17 / project 0.20.1 - 2026-09-12
+- Fixes the maintained product-family regression project metadata.
+- Adds one structure guard for arbitrary-length archive-sweep option transport.
+- Structure=506; all=1119.
+
 0.11.16 - 2026-09-12
 - Project 0.20.0.
 - Removes redundant remaining=N from assertion progress.

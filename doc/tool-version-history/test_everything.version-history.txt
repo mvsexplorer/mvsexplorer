@@ -1,3 +1,7 @@
+0.2.1 - 2026-09-12
+- Project 0.20.1.
+- Exercises the corrected 1,119-assertion generated matrix and arbitrary-length archive-sweep option bridge.
+
 0.2.0 - 2026-09-12
 - Project 0.20.0.
 - Propagates adaptive --start-workers/--max-workers policy and preserves fixed --workers compatibility.

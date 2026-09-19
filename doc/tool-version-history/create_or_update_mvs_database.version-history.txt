@@ -1,3 +1,7 @@
+0.2.1 - 2026-09-12
+- Project 0.20.1.
+- Native adaptive prepare now reaches `--cache-folder DIR` through the corrected archive-sweep argument transport.
+
 0.2.0 - 2026-09-12
 - Project 0.20.0.
 - Propagates adaptive worker policy to archive maintenance and uses semantic result-producer fingerprint reuse.

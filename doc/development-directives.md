@@ -370,3 +370,9 @@ These directives are distilled from the user's project prompts.
 259. Migration from an older aggregate fingerprint is allowed only for an explicitly recognized accepted fingerprint whose result-producing bytes are known to map to the current semantic fingerprint; do not make compatibility wildcard-based.
 260. Adaptive snapshot concurrency must not imply that inherently single-process family/compact/archive-wide builder phases are parallel; parallelize those separately only after semantic/performance acceptance.
 
+## 0.20.1 native argument transport and maintained regression metadata
+
+261. Public batch wrappers that can receive composable option lists must not truncate arguments at cmd.exe's directly addressable `%1` through `%9`; capture/shift arbitrary-length argument sequences before handing them to embedded PowerShell.
+262. Any maintained (non-generated) regression artifact whose source is inspected for the current toolkit project version must advance that embedded project metadata with the release; generator runs cannot be assumed to update maintained artifacts.
+263. Scheduler/argument-transport hotfixes that do not alter result-producing semantics must preserve archive reuse compatibility and the established logical plan rather than forcing unrelated evidence recomputation.
+

@@ -7,8 +7,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 DEV=ROOT/"dev"
 OUT=ROOT/"create_or_update_mvs_database"
-TOOL_VERSION="0.2.0"
-PROJECT_VERSION="0.20.0"
+TOOL_VERSION="0.2.1"
+PROJECT_VERSION="0.20.1"
 
 def read(path):
     return path.read_text(encoding="utf-8").replace("\r\n","\n").rstrip()

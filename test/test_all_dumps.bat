@@ -2,19 +2,18 @@
 :setup
 REM Scoped because this standalone archive sweep harness embeds PowerShell.
 setlocal DisableDelayedExpansion
-set "app.version=0.5.0"
+set "app.version=0.5.1"
 set "app.name=test_all_dumps"
 set "app.rc=0"
 set "app.self=%~f0"
-set "mvsa_archive_root=%~1"
-set "mvsa_arg2=%~2"
-set "mvsa_arg3=%~3"
-set "mvsa_arg4=%~4"
-set "mvsa_arg5=%~5"
-set "mvsa_arg6=%~6"
-set "mvsa_arg7=%~7"
-set "mvsa_arg8=%~8"
-set "mvsa_arg9=%~9"
+set "mvsa_argc=0"
+:mvsa_capture_args
+if "%~1"=="" goto :mvsa_capture_done
+set "mvsa_arg_%mvsa_argc%=%~1"
+set /a mvsa_argc+=1
+shift
+goto :mvsa_capture_args
+:mvsa_capture_done
 set "mvsa_caller=%~nx0"
 set "mvsa_script_root=%~dp0"
 set "mvsa_version=%app.version%"
@@ -104,11 +103,22 @@ $ErrorActionPreference = 'Stop'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 [Console]::OutputEncoding = $utf8
 
-$ArchiveInput = [string]$env:mvsa_archive_root
-$RawArgs = @(
-    [string]$env:mvsa_arg2,[string]$env:mvsa_arg3,[string]$env:mvsa_arg4,[string]$env:mvsa_arg5,
-    [string]$env:mvsa_arg6,[string]$env:mvsa_arg7,[string]$env:mvsa_arg8,[string]$env:mvsa_arg9
-)
+$CapturedArgCount = 0
+if (-not [int]::TryParse([string]$env:mvsa_argc,[ref]$CapturedArgCount) -or $CapturedArgCount -lt 1) {
+    $ArchiveInput = ''
+    $RawArgs = @()
+} else {
+    $CapturedArgs = New-Object System.Collections.ArrayList
+    for ($CapturedArgIndex = 0; $CapturedArgIndex -lt $CapturedArgCount; $CapturedArgIndex++) {
+        [void]$CapturedArgs.Add([Environment]::GetEnvironmentVariable(('mvsa_arg_{0}' -f $CapturedArgIndex)))
+    }
+    $ArchiveInput = [string]$CapturedArgs[0]
+    if ($CapturedArgCount -gt 1) {
+        $RawArgs = @($CapturedArgs[1..($CapturedArgCount-1)])
+    } else {
+        $RawArgs = @()
+    }
+}
 $OutputInput = ''
 $PlanOnly = $false
 $QuietPlan = $false

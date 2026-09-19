@@ -1,3 +1,10 @@
+## 0.20.1 native hotfix
+
+The generated matrix is now 1,119 all-mode assertions / 506 structure
+assertions. The added guard requires arbitrary-length argument transport in
+`test_all_dumps.bat`; the maintained product-family regression is also pinned to
+project 0.20.1.
+
 ## 0.19.0 recommended production run
 
 For a clean test + database rebuild + database integrity/query sweep + packaging
