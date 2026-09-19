@@ -1,3 +1,7 @@
+0.11.18 - 2026-09-12
+- Strengthens the archive argument-transport structure guard to require script-root capture before `shift`.
+- Assertion counts remain structure=506 and all=1,119.
+
 0.19.0 - 2026-09-07
 - Structure scope updated for tools\ relocation, maintenance components, database summary, GUI discovery, and timestamped HTML defaults.
 - Structure expects 495 assertions; all mode expects 1,108.

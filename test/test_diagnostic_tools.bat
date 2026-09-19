@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.11.17"
+set "app.version=0.11.18"
 set "app.name=test_diagnostic_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -10,7 +10,7 @@ set "mvst_mode=diagnostic"
 set "mvst_dump=%~1"
 set "mvst_caller=%~nx0"
 set "mvst_version=%app.version%"
-set "mvst_project_version=0.20.1"
+set "mvst_project_version=0.20.2"
 for %%I in ("%~dp0..") do set "mvst_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSTest"
@@ -1148,17 +1148,23 @@ function Test-Structure {
     }
 
     if (Test-Path -LiteralPath $archiveSweepPath -PathType Leaf) {
+        $scriptRootMarker = 'set "mvsa_script_root=%~dp0"'
+        $captureMarker = ':mvsa_capture_args'
+        $shiftMarker = [Environment]::NewLine + 'shift' + [Environment]::NewLine
+        $scriptRootIndex = $archiveSweepText.IndexOf($scriptRootMarker,[StringComparison]::Ordinal)
+        $captureIndex = $archiveSweepText.IndexOf($captureMarker,[StringComparison]::Ordinal)
+        $shiftIndex = $archiveSweepText.IndexOf($shiftMarker,[StringComparison]::Ordinal)
         if ($archiveSweepText.Contains('set "mvsa_argc=0"') -and
-            $archiveSweepText.Contains(':mvsa_capture_args') -and
             $archiveSweepText.Contains('set "mvsa_arg_%mvsa_argc%=%~1"') -and
             $archiveSweepText.Contains('[Environment]::GetEnvironmentVariable((''mvsa_arg_{0}'' -f $CapturedArgIndex))') -and
+            $scriptRootIndex -ge 0 -and $captureIndex -gt $scriptRootIndex -and $shiftIndex -gt $scriptRootIndex -and
             -not $archiveSweepText.Contains('set "mvsa_arg9=%~9"')) {
-            Write-Pass 'archive sweep transports adaptive option lists beyond cmd.exe ninth positional argument'
+            Write-Pass 'archive sweep transports adaptive option lists beyond cmd.exe ninth positional argument without shifting caller root'
         } else {
-            Write-Fail 'archive sweep transports adaptive option lists beyond cmd.exe ninth positional argument' 'dynamic batch-to-PowerShell argument capture markers missing'
+            Write-Fail 'archive sweep transports adaptive option lists beyond cmd.exe ninth positional argument without shifting caller root' 'dynamic capture missing or caller/script root is not frozen before SHIFT'
         }
     } else {
-        Write-Fail 'archive sweep transports adaptive option lists beyond cmd.exe ninth positional argument' 'test_all_dumps.bat missing'
+        Write-Fail 'archive sweep transports adaptive option lists beyond cmd.exe ninth positional argument without shifting caller root' 'test_all_dumps.bat missing'
     }
 
     $everythingPath = Join-Path $Root 'test\test_everything.bat'

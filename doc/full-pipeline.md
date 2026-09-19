@@ -1,3 +1,7 @@
+## 0.20.2 caller-root hotfix
+
+0.20.2 fixes archive-sweep toolkit-root discovery after the 0.20.1 argument-transport change. Pipeline gating, worker policy, and database semantics are unchanged.
+
 ## 0.20.1 native hotfix
 
 0.20.1 corrects the maintained product-family regression project label and the

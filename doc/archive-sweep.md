@@ -1,3 +1,7 @@
+## 0.20.2 script-root preservation
+
+`test_all_dumps.bat` captures its own script directory before entering the `shift` loop. This keeps `ProjectRoot` anchored to the toolkit regardless of output/cache arguments while retaining arbitrary-length argument transport.
+
 ## 0.20.1 argument transport hotfix
 
 The archive sweep now captures an arbitrary number of batch arguments before

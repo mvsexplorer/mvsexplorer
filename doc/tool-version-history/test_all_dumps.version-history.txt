@@ -1,3 +1,7 @@
+0.5.2 - 2026-09-12
+- Captures `%~nx0` and `%~dp0` before any `shift`, preventing project-root/tool-root misresolution.
+- Keeps the 0.20.1 arbitrary-length argument bridge.
+
 0.5.1 - 2026-09-12
 - Replaces fixed `%1`..`%9` batch-to-PowerShell argument transport with indexed arbitrary-length capture.
 - Fixes adaptive maintenance preflights where `--cache-folder` is argument 9 and its directory is argument 10.

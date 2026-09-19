@@ -376,3 +376,10 @@ These directives are distilled from the user's project prompts.
 262. Any maintained (non-generated) regression artifact whose source is inspected for the current toolkit project version must advance that embedded project metadata with the release; generator runs cannot be assumed to update maintained artifacts.
 263. Scheduler/argument-transport hotfixes that do not alter result-producing semantics must preserve archive reuse compatibility and the established logical plan rather than forcing unrelated evidence recomputation.
 
+
+
+## 0.20.2 caller identity before argument shifting
+
+264. Any batch wrapper that uses `shift` must capture immutable script identity/path values such as `%~f0`, `%~nx0`, and `%~dp0` before the first shift if later logic depends on the original batch file location.
+265. Arbitrary-length option transport must preserve both the complete argument sequence and the original toolkit-relative runtime root; fixing one must not weaken the other.
+266. Static regressions for batch argument bridges must verify ordering of identity capture relative to `shift`, not only the presence of capture markers.

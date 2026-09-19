@@ -1,3 +1,7 @@
+## 0.20.2 caller-root regression
+
+The 1,119/506 assertion counts are unchanged. The archive transport structure guard now verifies that the batch file root is frozen before `shift`, in addition to verifying arbitrary-length option capture.
+
 ## 0.20.1 native hotfix
 
 The generated matrix is now 1,119 all-mode assertions / 506 structure

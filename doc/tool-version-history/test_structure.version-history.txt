@@ -1,3 +1,6 @@
+0.11.18 / project 0.20.2 - 2026-09-12
+- Strengthens the archive argument-transport guard to require `%~dp0` capture before `shift`; structure remains 506 assertions.
+
 0.11.17 / project 0.20.1 - 2026-09-12
 - Adds arbitrary-length archive-sweep argument transport guard; structure=506.
 

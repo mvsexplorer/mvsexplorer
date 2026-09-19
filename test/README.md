@@ -1,3 +1,14 @@
+# 0.20.2 current regression notes
+
+The generated public `all` matrix remains **1,119 assertions** and the structure
+subset remains **506 assertions**. The archive argument-transport assertion now
+also requires `%~dp0` to be captured before the first `shift`, preventing
+project/tool-root discovery from following a shifted argument.
+
+`test\test_product_family_tools.bat` remains 106 assertions and carries project
+0.20.2 metadata. Archive result semantics and the known 34,822-row archive plan
+are unchanged.
+
 # 0.20.1 current regression notes
 
 The current generated public `all` matrix contains **1,119 assertions** and the

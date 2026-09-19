@@ -1,4 +1,18 @@
-# MVS Explorer Toolkit 0.20.1
+# MVS Explorer Toolkit 0.20.2
+
+## 0.20.2 caller-root preservation hotfix
+
+0.20.2 fixes the path-resolution regression exposed by the first native 0.20.1 run.
+The arbitrary-length argument bridge introduced in 0.20.1 called `shift` before
+capturing `%~dp0`; under cmd.exe that mutates the positional parameter frame, so
+the archive sweep could derive its `tools\` directory from an argument/current
+directory instead of from `test\test_all_dumps.bat`.
+
+The wrapper now freezes caller name and script directory before the first
+`shift`, while keeping arbitrary-length option transport. The existing structure
+guard is strengthened to require that ordering. Archive result semantics,
+adaptive scaling, semantic reuse fingerprinting, and the known 34,822-row
+79-snapshot plan are unchanged.
 
 ## 0.20.1 native regression hotfix
 

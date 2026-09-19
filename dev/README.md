@@ -1,3 +1,10 @@
+## 0.20.2 caller-root hotfix
+
+`templates\archive-sweep.bat.tpl` must freeze `mvsa_caller` and
+`mvsa_script_root` before the first `shift`. The 0.20.1 arbitrary-length
+argument bridge remains required; only its ordering changes. The structure
+harness checks both properties.
+
 ## 0.20.1 native argument-transport/test-metadata hotfix
 
 `templates\archive-sweep.bat.tpl` must capture arbitrary-length option lists;

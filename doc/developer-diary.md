@@ -1,3 +1,17 @@
+## 2026-09-12 - 0.20.2 caller-root preservation hotfix
+
+The first native 0.20.1 run proved that arbitrary argument capture itself worked,
+but exposed a cmd.exe positional-frame side effect. `test_all_dumps.bat` saved
+`mvsa_script_root=%~dp0` only after repeatedly executing `shift`. By then `%0`
+no longer reliably denoted the batch file. The fast synthetic test consequently
+looked for `D:\dev\MVS-Explorer\tools`, while modular maintenance looked for
+`D:\dev\MVS-Explorer\mvs_databases\tools`.
+
+The maintained archive-sweep template now snapshots caller identity and script
+root before the first shift. The existing argument-transport structure test also
+verifies this ordering, so preserving more than nine arguments cannot again
+corrupt project-root discovery.
+
 ## 2026-09-12 - 0.20.1 native argument transport hotfix
 
 The first native 0.20.0 run exposed two release-integration defects before any

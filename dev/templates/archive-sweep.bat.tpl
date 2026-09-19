@@ -6,6 +6,9 @@ set "app.version=@@TOOL_VERSION@@"
 set "app.name=test_all_dumps"
 set "app.rc=0"
 set "app.self=%~f0"
+REM Freeze caller identity before SHIFT mutates the positional parameter frame.
+set "mvsa_caller=%~nx0"
+set "mvsa_script_root=%~dp0"
 set "mvsa_argc=0"
 :mvsa_capture_args
 if "%~1"=="" goto :mvsa_capture_done
@@ -14,8 +17,6 @@ set /a mvsa_argc+=1
 shift
 goto :mvsa_capture_args
 :mvsa_capture_done
-set "mvsa_caller=%~nx0"
-set "mvsa_script_root=%~dp0"
 set "mvsa_version=%app.version%"
 :main
 set "RunPowerShellFromLabel.function=MVSArchiveSweep"

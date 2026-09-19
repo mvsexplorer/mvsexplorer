@@ -8,7 +8,7 @@ set "app.rc=0"
 set "app.self=%~f0"
 set "mvspf_caller=%~nx0"
 set "mvspf_version=%app.version%"
-set "mvspf_project_version=0.20.1"
+set "mvspf_project_version=0.20.2"
 for %%I in ("%~dp0..") do set "mvspf_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSProductFamilyTest"

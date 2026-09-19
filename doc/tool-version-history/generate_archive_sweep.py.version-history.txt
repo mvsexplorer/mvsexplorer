@@ -1,3 +1,7 @@
+0.5.2 - 2026-09-12
+- Freezes archive-sweep caller/script-root metadata before the argument `shift` loop.
+- Preserves arbitrary-length option capture and archive semantics.
+
 0.4.6 - 2026-09-06
   - Generates paired `Starting snapshot` / `Completed snapshot` and `Starting compare` / `Completed compare` progress with elapsed seconds.
   - Adds `--quiet-plan` for automated plan-only preflight while retaining the exact deterministic plan.

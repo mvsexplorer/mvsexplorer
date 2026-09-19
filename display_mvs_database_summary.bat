@@ -8,7 +8,7 @@ set "app.rc=0"
 set "app.self=%~f0"
 set "mvsdisp_invocation_dir=%CD%"
 set "mvsdisp_version=%app.version%"
-set "mvsdisp_project_version=0.20.1"
+set "mvsdisp_project_version=0.20.2"
 :main
 set "RunPowerShellFromLabel.function=MVSDisplayDatabaseSummary"
 call :RunPowerShellFromLabel

@@ -1,3 +1,10 @@
+0.20.2 - 2026-09-12
+- Fixes the first native 0.20.1 fast-sweep/maintenance failure: `test_all_dumps.bat` now freezes its own caller name and `%~dp0` script directory before any `shift`.
+- Preserves the arbitrary-length argument transport added in 0.20.1 while preventing `SHIFT` from redirecting project-root discovery to the last argument/current directory.
+- Strengthens the existing structure assertion to require script-root capture before the argument-shift loop.
+- `test_all_dumps.bat`/archive-sweep generator advance to 0.5.2; generated regression harnesses advance to 0.11.18.
+- Assertion counts remain structure=506 and all=1,119; archive evidence semantics and the 34,822-row known plan are unchanged.
+
 0.20.1 - 2026-09-12
 - Fixes the first native 0.20.0 structure failure by advancing the maintained `test_product_family_tools.bat` project metadata from stale 0.19.3 to 0.20.1 while preserving its `tools\` query paths and 106 assertions.
 - Fixes create/update adaptive preflight argument truncation: `test_all_dumps.bat` now captures arbitrary command-line arguments instead of only `%1` through `%9`, so the tenth-argument cache directory is preserved.

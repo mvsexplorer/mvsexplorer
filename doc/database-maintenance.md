@@ -1,3 +1,7 @@
+## 0.20.2 archive-sweep root preservation
+
+Maintenance preflight/update calls may pass archive, staging, worker options, and cache paths in any supported combination; the archive sweep now resolves `tools\` from its own installation path rather than from a shifted argument.
+
 ## 0.20.1 native hotfix
 
 The adaptive prepare preflight can safely pass `--start-workers`,
