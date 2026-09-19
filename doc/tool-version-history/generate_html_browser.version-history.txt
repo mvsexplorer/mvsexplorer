@@ -1,4 +1,7 @@
 generate_html_browser.py
 
+0.2.0 / project 0.21.2 - 2026-09-15
+- Generates HTML browser builder 0.2.0 with hierarchy sort/copy controls, cascading clear, terminal file/hash-row counts, sortable result tables, all-pages clipboard export, and selectable page size.
+
 0.1.2 / project 0.19.0 - 2026-09-07
 - Generates the HTML builder under tools\ with timestamped project-root default output.

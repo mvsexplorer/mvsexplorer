@@ -1168,6 +1168,16 @@ function Test-Structure {
             $browserText.Contains('product-file-hashes-all-ever.tsv') -and
             $browserText.Contains('type="application/json"') -and
             $browserText.Contains('Files &amp; hashes') -and
+            $browserText.Contains('Select all') -and
+            $browserText.Contains('Copy selected') -and
+            $browserText.Contains('Copy all') -and
+            $browserText.Contains('Sort: Count') -and
+            $browserText.Contains('variantEvidenceCount') -and
+            $browserText.Contains('data-copy-table') -and
+            $browserText.Contains('data-copy-col') -and
+            $browserText.Contains('Rows per page') -and
+            $browserText.Contains('clearFrom') -and
+            -not $browserText.Contains('Select visible') -and
             $browserText.Contains("mvs-browser-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'.html") -and
             -not $browserText.Contains('<script src=') -and
             -not $browserText.Contains('https://') -and

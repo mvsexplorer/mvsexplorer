@@ -401,3 +401,11 @@ These directives are distilled from the user's project prompts.
 279. Generic brand aliases such as `Windows` must not absorb known branded SDK/client/service/tool products into the generic operating-system product family. Curated subproduct rules take precedence over generic alias rules.
 280. Curated Windows subproduct exceptions preserve `Microsoft Windows` as the broad family while assigning a distinct product family and release branch to the known subproduct; avoid broad lexical heuristics that manufacture product identity.
 281. Performance optimizations may reduce PowerShell helper calls, temporary allocations, buffer overhead, or snapshot-scoped dedupe retention only when row identity, provenance, source coverage, hash-pairing boundaries, and deterministic output semantics remain unchanged.
+
+## 0.21.2 HTML browser terminal counts, clipboard export, and paging
+
+282. In the HTML browser, the Variant / exact-title hierarchy count represents the number of applicable product-backed Files & hashes rows for that exact title; do not display a variant-within-variant count.
+283. HTML hierarchy lists must provide separate `Copy selected` and `Copy all` actions. `Select all` and `Copy all` operate on all currently available hierarchy values rather than only the text-filter-visible subset.
+284. HTML Products and Files & hashes result tables must sort by any clicked column, support reversible ordering, and keep sorting presentation-only.
+285. HTML result-table complete-table and per-column clipboard export must use the entire current filtered/sorted result set across all pages, never only the rendered page.
+286. HTML result-table page size must be user-selectable and include an explicit `All` choice; paging changes DOM rendering only and must not change filtering, sorting, or clipboard result semantics.

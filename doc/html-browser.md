@@ -32,6 +32,17 @@ search only changes what is visible; it does not silently select evidence.
 No selection in a column means all values that remain available from the
 columns to its left.
 
+Every hierarchy list provides **Select all**, **Clear**, **Copy selected**,
+**Copy all**, and ordering by Name, Count, Reverse name, or Reverse count.
+Select all applies to every currently available value, independent of the text
+filter. Clear is a cascading reset: clearing one level also clears dependent
+selections to its right before downstream availability is recomputed.
+
+For Basic families, Products, and Releases, the item count is the number of
+applicable exact product titles. For **Variants / exact titles**, the count is
+instead the number of product-backed **Files & hashes** result rows for that
+exact title, because a variant does not contain other variants.
+
 ## Evidence pane
 
 The lower area contains four views:
@@ -44,6 +55,12 @@ The lower area contains four views:
   range, and retained raw-HTML content hashes.
 - **Selection**: a readable summary of the active hierarchy and the evidence
   semantics used by the browser.
+
+The Products and Files & hashes tables sort by any column when its header is
+clicked. A second click on the active column reverses the order. Copy-table and
+copy-column actions operate on the complete current filtered result set across
+all pages, not only visible DOM rows. Page size can be 50, 100, 200, 500, 1000,
+or All.
 
 ## Semantic limits
 
@@ -79,10 +96,12 @@ The delivered builder is required to run under Windows PowerShell 5.1. Project
 non-generic `Array.Sort` overload. This changes only builder compatibility; the
 HTML data model and browser UI contract are unchanged.
 
-0.17.0 introduces the builder as an independent public tool. It is not yet
-inserted into the production pipeline, so browser UX can be refined before a
-future release decides whether browser generation belongs in the fail-gated
-pipeline/package set.
+0.17.0 introduced the builder as an independent public tool. Project 0.19.0
+integrated browser generation into the modular create/update workflow. Project
+0.21.2 advances the generated browser UI to 0.2.0 with hierarchy copy/sort
+controls, cascading clear, meaningful variant file/hash-row counts, sortable
+result columns, all-pages clipboard export, and selectable page sizes including
+All.
 
 
 ## Desktop companion

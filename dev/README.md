@@ -1,3 +1,17 @@
+## 0.21.2 HTML browser controls
+
+`library/html-browser-builder.inc.ps1` is the maintained source for the
+self-contained browser UI. Hierarchy actions must preserve the same semantics as
+the Explorer controls: Select all means all currently available values (not
+search-visible values), Clear cascades to dependent columns, and copy actions
+distinguish selected values from the complete available list.
+
+Variant hierarchy badges count product-backed Files & hashes rows (`p[11]`)
+for the exact title. Result-table sorting is presentation-only; table and column
+clipboard export must use the complete filtered/sorted row set across every
+page. Page-size `All` is an explicit user choice and may render the full result
+set.
+
 ## 0.21.0 reporting/UI/taxonomy/performance rules
 
 ## 0.21.1 maintained classification hints and concise runtime reporting

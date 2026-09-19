@@ -61,11 +61,13 @@ def main():
                 issues.append(f"{path.name}: product-family query missing index/wildcard markers")
         if ":_MVSHtmlBrowser_start" in text:
             browser += 1
-            for marker in ("product-classifications.tsv","product-file-hashes-all-ever.tsv","type=\"application/json\"","Files &amp; hashes","Unclassified / historical","yyyyMMdd-HHmmss"):
+            for marker in ("product-classifications.tsv","product-file-hashes-all-ever.tsv","type=\"application/json\"","Files &amp; hashes","Unclassified / historical","yyyyMMdd-HHmmss","Select all","Copy selected","Copy all","Sort: Count","variantEvidenceCount","data-copy-table","data-copy-col","Rows per page","clearFrom"):
                 if marker not in text:
                     issues.append(f"{path.name}: HTML browser builder missing {marker}")
             if "http://" in text or "https://" in text or "<script src=" in text:
                 issues.append(f"{path.name}: HTML browser builder is not self-contained/offline")
+            if "Select visible" in text:
+                issues.append(f"{path.name}: HTML browser builder must label whole-list selection Select all")
             if "[Array]::Sort[string]" in text or "[Array]::Sort($a,[StringComparer]::OrdinalIgnoreCase)" not in text:
                 issues.append(f"{path.name}: HTML browser builder must use Windows PowerShell 5.1-safe array sorting")
         if ":_MVSExplorerGui_start" in text:

@@ -1,5 +1,35 @@
-# MVS Explorer Toolkit 0.21.1
+# MVS Explorer Toolkit 0.21.2
 
+
+## 0.21.2 HTML-browser interaction parity and result-table controls
+
+0.21.2 starts from the fully successful native 0.21.1 pipeline and managed
+database run: 1,116 regression PASS / 0 FAIL / 3 data-dependent SKIP,
+34,822/34,822 archive checks with 0 FAIL, 57/57 generated-database checks,
+all 32 family query tools, and managed database health PASS.
+
+The self-contained HTML browser now follows the hierarchy interaction contract
+already established for MVS Explorer: each hierarchy column has **Select all**,
+**Clear**, **Copy selected**, **Copy all**, and four explicit ordering choices
+(Name, Count, Reverse name, Reverse count). Clear cascades through dependent
+columns so stale selections to the right cannot keep the browser silently
+constrained. Selection and list-search semantics remain distinct.
+
+Variant / exact-title rows now show the number of applicable **Files & hashes**
+rows for that exact title. This makes the final hierarchy count meaningful:
+for example, `.NET Compact Framework 2.0 Service Pack 1 Patch` has 9 such rows
+in the accepted 0.21.1 browser payload.
+
+The Products and Files & hashes result tables can now be sorted by clicking any
+column header. Each column has an all-pages copy action, the complete filtered
+table can be copied across all pages, and page size can be selected as
+50/100/200/500/1000/All. Clipboard export uses the full filtered/sorted row set,
+not only the current rendered page.
+
+This release changes browser presentation/interaction only. Product-family,
+archive, compact-database evidence semantics and the established 34,822-row
+archive plan are unchanged. Native Windows PowerShell 5.1/browser acceptance
+for the new HTML-builder UI remains the external release check.
 
 ## 0.21.1 quieter long-running console, bidirectional adaptive scaling, and inspectable family hints
 

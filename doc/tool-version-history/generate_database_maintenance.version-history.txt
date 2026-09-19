@@ -1,3 +1,7 @@
+0.2.3 / project 0.21.2 - 2026-09-15
+- Regenerates maintenance launchers/components with project 0.21.2 metadata.
+- Maintenance behavior and tool version 0.2.3 are otherwise unchanged.
+
 0.2.1 - 2026-09-12
 - Emits project 0.20.1 maintenance components after native adaptive-preflight hotfix.
 

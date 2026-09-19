@@ -1,3 +1,11 @@
+0.2.0 / project 0.21.2 - 2026-09-15
+- Aligns HTML hierarchy controls with the Explorer interaction contract: Select all, cascading Clear, Copy selected, Copy all, and Name/Count/Reverse ordering.
+- Variant / exact-title badges count applicable product-backed Files & hashes rows.
+- Products and Files & hashes tables sort by any clicked column.
+- Complete-table and per-column clipboard export uses all filtered/sorted rows across every page.
+- Adds selectable 50/100/200/500/1000/All page sizes.
+- Keeps the browser self-contained/offline and preserves compact-database evidence semantics.
+
 0.1.2 / project 0.19.0 - 2026-09-07
 - Delivery path moves to `tools\build_mvs_html_browser.bat`.
 - When output is omitted, writes a date/time-stamped `mvs-browser-YYYYMMDD-HHmmss.html` in the project root.

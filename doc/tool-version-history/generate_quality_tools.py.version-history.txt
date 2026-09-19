@@ -1,3 +1,6 @@
+0.2.4 / project 0.21.2 - 2026-09-15
+- Regenerates comprehensive-suite project metadata for 0.21.2; quality/performance behavior is unchanged.
+
 0.1.5 / project 0.16.4
 - Regenerates test_everything.bat with project 0.16.4 metadata; quiet-plan behavior is unchanged.
 

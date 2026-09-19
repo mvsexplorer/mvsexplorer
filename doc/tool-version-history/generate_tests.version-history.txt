@@ -1,3 +1,8 @@
+0.11.21 / project 0.21.2 - 2026-09-15
+- Advances project metadata to 0.21.2.
+- Strengthens the existing HTML-browser structure assertion with Select all/copy/sort/variant-count/all-pages-copy/page-size markers and rejects the old Select visible label.
+- Assertion counts remain structure=506 and all=1,119.
+
 0.11.18 - 2026-09-12
 - Strengthens the archive argument-transport structure guard to require script-root capture before `shift`.
 - Assertion counts remain structure=506 and all=1,119.

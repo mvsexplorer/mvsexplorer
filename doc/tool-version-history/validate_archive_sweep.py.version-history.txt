@@ -1,3 +1,7 @@
+0.8.3 / project 0.21.2 - 2026-09-15
+- Advances current-project metadata checks to 0.21.2.
+- Static archive-plan/tool-count semantics remain unchanged at 34,822 logical checks for the known 79-snapshot archive.
+
 0.19.0 - 2026-09-07
 - Understands the tools\ utility layout and root maintenance applications while preserving the 34,822-row legacy archive plan.
 

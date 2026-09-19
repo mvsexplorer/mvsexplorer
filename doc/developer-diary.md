@@ -1,3 +1,24 @@
+## 2026-09-15 - 0.21.2 HTML-browser interaction parity
+
+The accepted 0.21.1 browser made the taxonomy improvement visible, especially
+for Microsoft Windows, but also exposed that the HTML browser still carried its
+older 0.17-era list controls while the WinForms Explorer had already implemented
+the later hierarchy interaction directives. The HTML builder now uses the same
+meaning for Select all and cascading Clear and adds explicit selected/all
+clipboard export plus name/count/reverse ordering.
+
+The final hierarchy needs a different count from its parents. Basic family,
+product family, and release counts answer “how many exact titles are below this
+item?” A variant is already the exact title, so another variant count collapses
+to one and conveys nothing. Its badge therefore counts the title's product-backed
+Files & hashes rows. This is presentation of existing compact evidence; it does
+not create a new product/file/hash relationship.
+
+Result-table ordering, clipboard export, and paging are likewise UI transforms
+over the already-filtered row set. Copy always uses the complete filtered row
+set across pages. Pagination limits DOM work only; choosing All deliberately
+removes that rendering limit at the user's request.
+
 ## 2026-09-13 - 0.21.0 concise reporting, Explorer controls, taxonomy refinement, and family hot paths
 
 The fully successful native 0.20.2 run showed that correctness and gating were

@@ -1757,3 +1757,40 @@ two follow-up changes:
 The implementation preserves `--workers N` as fixed-mode backward
 compatibility and adds `--start-workers N` / `--max-workers N`.
 
+## Prompt 23 — native 0.21.1 acceptance and HTML-browser interaction refinement
+
+The user supplied the complete native Windows 0.21.1 fresh-pipeline and managed
+create/update results. The run completed 1,116 regression PASS / 0 FAIL / 3
+data-dependent SKIP, all 34,822 archive checks with zero FAIL, 57/57 generated
+database validations including all 32 family query tools, and managed database
+health PASS.
+
+The accompanying 0.21.1 databases and browser confirmed that the Windows-family
+classification work was a major improvement. The follow-up HTML-browser
+requirements are:
+
+```text
+Rename "Select Visible" to "Select all".
+Clear must refresh/cascade the downstream hierarchy like ordinary selection
+changes.
+
+For every hierarchy list add:
+- Copy selected
+- Copy all
+- sorting by Name, Count, Reverse name, and Reverse count
+
+The final "Variants" column should not show a count of variants. Its meaningful
+count is the number of applicable "Files & hashes" rows for that exact title.
+For example ".NET Compact Framework 2.0 Service Pack 1 Patch" has 9 such rows.
+
+For the result tables:
+- clicking any column sorts by that column;
+- copy a complete column;
+- copy the complete table;
+- copying must cover the entire filtered result set, not only the current page;
+- allow the user to choose rows per page, including All.
+```
+
+These changes are presentation/interaction requirements over the existing
+compact-database evidence and must not strengthen product/file/hash
+relationships.

@@ -1,3 +1,20 @@
+## 2026-09-15 - Hierarchy counts must describe what the next level actually contains
+
+The accepted 0.21.1 taxonomy made the HTML hierarchy substantially more useful,
+but the final Variant / exact-title column still inherited the parent-column
+count convention. Because an exact title does not contain more exact titles,
+that count was structurally uninformative. The useful terminal measure is the
+number of product-backed Files & hashes rows reachable from that exact title.
+
+Bulk hierarchy actions also need the same refresh semantics as individual
+selection changes. In particular, clearing a parent without clearing dependent
+selections leaves an invisible right-hand constraint in place and makes the UI
+look as though it failed to refresh. Cascading clear removes that stale state.
+
+Pagination is a rendering strategy, not a data boundary. Clipboard export and
+column sorting must operate on the complete filtered result set; otherwise a
+page boundary silently changes the meaning of “copy table” or “sort column.”
+
 ## 2026-09-13 - Native 0.20.2 acceptance exposed presentation and taxonomy costs rather than correctness failures
 
 The 0.20.2 native fresh pipeline passed end-to-end, including all 34,822 archive
