@@ -1,0 +1,6 @@
+test_all_dumps.bat
+
+
+0.3.0 - 2026-08-29
+  - Fast-combined archive tail now uses run_archive_tools_fast.bat.
+  - --external-tools retains literal public archive builders.

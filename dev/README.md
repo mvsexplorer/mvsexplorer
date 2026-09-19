@@ -111,3 +111,6 @@ generate_archive_sweep.py
 `generate_archive_sweep.py` injects the maintained PowerShell implementation
 and common batch functions into `test\test_all_dumps.bat`. The delivered test
 harness is standalone and does not read `dev\` at runtime.
+
+- `library\fast-archive.inc.ps1` — one-pass combined archive history/all-ever runtime.
+- `templates\fast-archive.bat.tpl` — standalone fast archive worker template.

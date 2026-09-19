@@ -146,3 +146,16 @@ The 0.13.0 combined snapshot worker used an overly nested `Where-Object` boolean
 `Test-HashResult`. Windows PowerShell 5.1 rejected the embedded script block before execution.
 0.13.1 rewrites that predicate as explicit algorithm/source branches. This is a parser-only
 maintenance correction; the logical status contract and public-tool interfaces do not change.
+
+
+## Archive-worker completion (0.13.3)
+
+The final two logical archive checks previously escaped the combined executor
+and reparsed the complete archive in two literal PowerShell processes. The
+0.13.3 archive worker streams each source once per snapshot, compares adjacent
+source-local sets while the previous snapshot is still in memory, and updates
+the all-ever union during the same pass. This removes the duplicate full-archive
+parse and makes progress visible.
+
+The literal public builders remain the authoritative compatibility path under
+`--external-tools`.

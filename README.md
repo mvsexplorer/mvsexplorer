@@ -1,4 +1,18 @@
-# MVS Explorer Toolkit 0.13.1
+# MVS Explorer Toolkit 0.13.3
+
+## 0.13.3 fast archive builder
+
+Version 0.13.3 closes the final performance gap in the archive sweep. In
+`fast-combined` mode, the two archive-wide history/all-ever checks are now
+executed by `test\fast\run_archive_tools_fast.bat` in one streaming pass over
+the archive. The public `build_mvs_dump_change_history.bat` and
+`build_mvs_dump_all_ever.bat` interfaces are unchanged and remain available
+through `--external-tools`.
+
+The fast archive worker writes history ledgers incrementally, reports one
+progress line per snapshot, reuses parsed source data for history and all-ever
+accumulation, and is restart-safe because logical archive rows are committed to
+`runs.tsv` only after the combined worker succeeds.
 
 ## 0.13.1 fast-worker PowerShell 5.1 parser fix
 

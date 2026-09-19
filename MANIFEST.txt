@@ -46,6 +46,7 @@ dev/library/archive-sweep.inc.ps1
 dev/library/batch-common.inc.bat
 dev/library/compare-query.inc.ps1
 dev/library/diagnostic-query.inc.ps1
+dev/library/fast-archive.inc.ps1
 dev/library/fast-sweep.inc.ps1
 dev/library/history-query.inc.ps1
 dev/library/lookup-query.inc.ps1
@@ -61,6 +62,7 @@ dev/templates/archive-sweep.bat.tpl
 dev/templates/compare.bat.tpl
 dev/templates/diagnostic.bat.tpl
 dev/templates/fast-archive-test.bat.tpl
+dev/templates/fast-archive.bat.tpl
 dev/templates/fast-sweep.bat.tpl
 dev/templates/history.bat.tpl
 dev/templates/lookup.bat.tpl
@@ -579,9 +581,11 @@ doc/tool-version-history/read_mvs_unparsed_lines_in_mvs.txt.version-history.txt
 doc/tool-version-history/read_mvs_unparsed_lines_in_mvs_dates.txt.version-history.txt
 doc/tool-version-history/read_mvs_unparsed_lines_in_mvs_ids.txt.version-history.txt
 doc/tool-version-history/read_mvs_unparsed_lines_in_mvs_names.txt.version-history.txt
+doc/tool-version-history/run_archive_tools_fast.bat.txt
 doc/tool-version-history/run_compare_tools_fast.version-history.txt
 doc/tool-version-history/run_snapshot_tools_fast.version-history.txt
 doc/tool-version-history/test_all.version-history.txt
+doc/tool-version-history/test_all_dumps.bat.txt
 doc/tool-version-history/test_all_dumps.version-history.txt
 doc/tool-version-history/test_compare_tools.version-history.txt
 doc/tool-version-history/test_diagnostic_tools.version-history.txt
@@ -1446,6 +1450,7 @@ test/expected-single-dump/read_mvs_unparsed_lines_in_mvs.txt.expected.txt
 test/expected-single-dump/read_mvs_unparsed_lines_in_mvs_dates.txt.expected.txt
 test/expected-single-dump/read_mvs_unparsed_lines_in_mvs_ids.txt.expected.txt
 test/expected-single-dump/read_mvs_unparsed_lines_in_mvs_names.txt.expected.txt
+test/fast/run_archive_tools_fast.bat
 test/fast/run_compare_tools_fast.bat
 test/fast/run_snapshot_tools_fast.bat
 test/README.md

@@ -1,0 +1,6 @@
+run_archive_tools_fast.bat
+
+0.1.0 - 2026-08-29
+  - Initial one-pass fast archive history/all-ever worker.
+  - Streams source files and reports progress per snapshot.
+  - Generates both archive product families in one process.

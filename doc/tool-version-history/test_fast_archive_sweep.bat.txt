@@ -8,3 +8,6 @@ test_fast_archive_sweep.bat
 0.1.1 - 2026-08-28
   - Fast-combined three-snapshot acceptance test for 1,306 logical checks.
   - External-public plan-only verification.
+
+0.2.0 - 2026-08-29
+  - Validates fast archive history and all-ever outputs against fixed expected trees.

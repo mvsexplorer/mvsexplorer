@@ -349,3 +349,17 @@ missing prerequisite—was the next defect.
 The acceptance test now reads metadata using PowerShell `Get-Content -Encoding
 UTF8`, and any assertion failure automatically prints and preserves its temp
 evidence. The test remains self-contained.
+
+
+## 2026-08-29 — 0.13.3 archive-tail performance fix
+
+A real 79-snapshot fast sweep reached 34,820/34,822 checks with zero logical
+failures, then appeared to stall at `=== Archive builders [literal] ===`.
+Inspection of the partial result bundle showed the architecture gap: fast mode
+still invoked the two original archive builders separately. Each builder
+reparsed the full archive and buffered most output until parsing finished.
+
+The fast executor now uses one streaming archive worker for both logical
+builders. History additions/removals are emitted incrementally, all-ever state
+is updated during the same source pass, and one progress line is produced per
+snapshot. Literal public builders remain unchanged for compatibility mode.

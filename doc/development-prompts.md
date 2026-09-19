@@ -1616,3 +1616,16 @@ produces 34,822 planned invocations across the supplied archive.
 > ...
 > Exception calling "Create" with "1" argument(s):
 > Missing closing ')' in expression.
+
+
+## 2026-08-29 — Archive tail appears stuck after resume
+
+> Planned invocations: 34822
+> Already completed: 34820
+> === Archive builders [literal] ===
+>
+> It seems to be stuck here for a couple hours already.
+
+The attached result bundle confirmed indices 1-34820 were committed with zero
+FAIL rows; only the two archive-wide builder rows remained. This led to the
+0.13.3 one-pass fast archive worker.

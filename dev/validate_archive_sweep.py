@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validation for the dual-executor archive-wide sweep.
 
-Version: 0.2.2
+Version: 0.3.0
 """
 from pathlib import Path
 import re
@@ -33,7 +33,7 @@ def main():
         "\r\n:_MVSArchiveSweep_start\r\n", "\r\n:_MVSArchiveSweep_end\r\n",
         "--plan-only","--resume","--external-tools","fast-combined","external-public",
         "plan-sha256.txt","runs.tsv","fast-batches.tsv","SOURCE_MISSING","NO_RESULT",
-        "archive-output","mvs_dmp","run_snapshot_tools_fast.bat","run_compare_tools_fast.bat",
+        "archive-output","mvs_dmp","run_snapshot_tools_fast.bat","run_compare_tools_fast.bat","run_archive_tools_fast.bat",
         "1> $null","Executor: "
     ))
     if 'executor`tscope`tsnapshot' not in text:
@@ -50,11 +50,15 @@ def main():
     comp=check_batch(ROOT/"test"/"fast"/"run_compare_tools_fast.bat",(
         ':_MVSFastSweep_start','mvsf_mode=compare','Get-CompareStatus'
     ))
+    arch=check_batch(ROOT/"test"/"fast"/"run_archive_tools_fast.bat",(
+        ':_MVSFastArchive_start','Fast archive snapshot','history-coverage.tsv',
+        'all-ever-coverage.tsv','fast-archive-summary.txt','System.IO.StreamReader'
+    ))
     analyzer=check_batch(ROOT/"test"/"analyze_archive_sweep_performance.bat",(
         ':_MVSPerformance_start','performance-by-tool.tsv','fast-batches.tsv'
     ))
     fast_test=check_batch(ROOT/"test"/"test_fast_archive_sweep.bat",(
-        'fast-combined 1306 logical checks','--external-tools','--plan-only',
+        'fast-combined 1306 logical checks and archive outputs','--external-tools','--plan-only','AssertExpectedTree',
         ':AssertMetadataLine','Get-Content -LiteralPath $env:mvs_assert_file -Encoding UTF8',
         'Artifacts retained at:'
     ))
@@ -80,9 +84,11 @@ def main():
         ROOT/"dev"/"generate_performance_tools.py",
         ROOT/"dev"/"library"/"archive-sweep.inc.ps1",
         ROOT/"dev"/"library"/"fast-sweep.inc.ps1",
+        ROOT/"dev"/"library"/"fast-archive.inc.ps1",
         ROOT/"dev"/"library"/"archive-performance.inc.ps1",
         ROOT/"dev"/"templates"/"archive-sweep.bat.tpl",
         ROOT/"dev"/"templates"/"fast-sweep.bat.tpl",
+        ROOT/"dev"/"templates"/"fast-archive.bat.tpl",
         ROOT/"dev"/"templates"/"performance-analyzer.bat.tpl",
         ROOT/"dev"/"templates"/"fast-archive-test.bat.tpl",
         ROOT/"doc"/"archive-sweep.md",

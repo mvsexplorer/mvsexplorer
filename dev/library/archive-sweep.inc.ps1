@@ -39,7 +39,7 @@ function Show-Usage {
     Write-Line 'Default executor: fast-combined (shared parse, logical status validation).'
     Write-Line '--external-tools executes every public .bat wrapper literally.'
     Write-Line 'Single-dump logical checks run once per snapshot; compare checks use adjacent snapshots.'
-    Write-Line 'Archive history/all-ever builders are always executed literally once against the complete archive.'
+    Write-Line 'Fast mode builds history/all-ever together in one streaming archive pass; --external-tools runs both public builders literally.'
     Write-Line 'Return codes 1 and 4 are recorded as NO_RESULT and SOURCE_MISSING, not runtime failures.'
     Write-Line '--plan-only writes the deterministic plan without executing checks.'
     Write-Line '--resume requires an existing matching results folder; executor identity is part of the plan hash.'
@@ -776,6 +776,58 @@ function Invoke-FastWorker {
     return @($statuses)
 }
 
+
+function Invoke-FastArchiveWorker {
+    param(
+        [object[]]$Entries,
+        [string]$WorkerPath,
+        [string]$ArchiveRoot,
+        [string]$ArchiveOutput,
+        [string]$ResultsFolder,
+        [string]$RunsPath,
+        [string]$FastBatchesPath,
+        [string]$FailureFolder
+    )
+    if($Entries.Count -eq 0){return @()}
+
+    $stderrPath=Join-Path $ResultsFolder '_fast.archive.stderr.txt'
+    Remove-Item -LiteralPath $stderrPath -Force -ErrorAction SilentlyContinue
+    $sw=[Diagnostics.Stopwatch]::StartNew()
+    $rc=5
+    try{
+        $global:LASTEXITCODE=0
+        $oldPreference=$ErrorActionPreference
+        $ErrorActionPreference='Continue'
+        try{
+            & $WorkerPath $ArchiveRoot $ArchiveOutput 2> $stderrPath
+            if($null -eq $LASTEXITCODE){$rc=0}else{$rc=[int]$LASTEXITCODE}
+        }finally{$ErrorActionPreference=$oldPreference}
+    }catch{
+        $rc=5
+        Add-TextUtf8 $stderrPath (($_ | Out-String)+[Environment]::NewLine)
+    }finally{$sw.Stop()}
+
+    Add-FastBatchRow $FastBatchesPath 'archive' '(archive)' '' $Entries.Count ([IO.Path]::GetFileName($WorkerPath)) $sw.ElapsedMilliseconds $rc
+
+    if($rc -ne 0){
+        $target=Join-Path $FailureFolder 'fast-batch__archive.stderr.txt'
+        if(Test-Path -LiteralPath $stderrPath -PathType Leaf){Copy-Item -LiteralPath $stderrPath -Destination $target -Force}
+        else{Write-TextUtf8 $target ('Fast archive worker failed with rc '+$rc+[Environment]::NewLine)}
+        Fail 5 ('Fast combined archive worker failed; see '+$target)
+    }
+
+    $statuses=New-Object System.Collections.ArrayList
+    $first=$true
+    foreach($entry in $Entries){
+        $logicalMs=if($first){$sw.ElapsedMilliseconds}else{0}
+        Add-RunRow $RunsPath $entry 'PASS' 0 0 0 $logicalMs
+        [void]$statuses.Add('PASS')
+        $first=$false
+    }
+    Remove-Item -LiteralPath $stderrPath -Force -ErrorAction SilentlyContinue
+    return @($statuses)
+}
+
 function Get-ExistingRunState {
     param([string]$RunsPath)
     $done = New-Object 'System.Collections.Generic.HashSet[int]'
@@ -918,7 +970,7 @@ if (-not $Resume) {
         'archive-output\   Change-history and all-ever builder output.',
         '',
         'Executor meanings:',
-        '  fast-combined    Shared-parse logical status validation; public stdout is not produced.',
+        '  fast-combined    Shared-parse logical status validation; archive builders share one streaming pass.',
         '  external-public  Literal execution of every public .bat wrapper.',
         '',
         'Status meanings:',
@@ -1130,14 +1182,17 @@ if ($Executor -eq 'external-public') {
 
     $archiveEntries=@($plan | Where-Object {$_.scope -eq 'archive' -and -not $done.Contains([int]$_.index)})
     if($archiveEntries.Count -gt 0){
-        Write-Line '=== Archive builders [literal] ==='
+        Write-Line ('=== Archive builders [fast-combined ' + $archiveEntries.Count + ' checks] ===')
         if(-not(Test-Path -LiteralPath $archiveOutput -PathType Container)){[void](New-Item -ItemType Directory -Path $archiveOutput -Force)}
-    }
-    foreach($entry in $archiveEntries){
-        $status=Invoke-OneExternal $entry $ResultsFolder $ArchiveRoot $archiveOutput $runsPath $failureFolder
-        if($counts.ContainsKey($status)){$counts[$status]++}
-        [void]$done.Add([int]$entry.index)
-        $completed++
+        $archiveWorker=Join-Path (Join-Path $ScriptRoot 'fast') 'run_archive_tools_fast.bat'
+        if(-not(Test-Path -LiteralPath $archiveWorker -PathType Leaf)){Fail 4 ('Missing fast archive worker: '+$archiveWorker)}
+        $statuses=@(Invoke-FastArchiveWorker $archiveEntries $archiveWorker $ArchiveRoot $archiveOutput $ResultsFolder $runsPath $fastBatchesPath $failureFolder)
+        for($n=0;$n-lt$archiveEntries.Count;$n++){
+            $status=[string]$statuses[$n]
+            if($counts.ContainsKey($status)){$counts[$status]++}
+            [void]$done.Add([int]$archiveEntries[$n].index)
+            $completed++
+        }
         Write-Line ('Progress: ' + $completed + '/' + $plan.Count + ' PASS=' + $counts.PASS + ' NO_RESULT=' + $counts.NO_RESULT + ' SOURCE_MISSING=' + $counts.SOURCE_MISSING + ' FAIL=' + $counts.FAIL)
         Write-Summary $summaryPath $summaryMode $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
     }

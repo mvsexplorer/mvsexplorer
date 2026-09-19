@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
-set "app.version=0.1.2"
+set "app.version=0.2.0"
 set "root=%~dp0"
 set "fixture=%root%test-mvs-dump-history"
 set "tag=%RANDOM%%RANDOM%"
@@ -16,7 +16,13 @@ if not exist "%fixture%\" (
 call "%root%test_all_dumps.bat" "%fixture%" "%fastout%" >"%log%" 2>&1
 if errorlevel 1 (
   echo [FAIL] fast-combined sweep
-  call :ShowFailure "%fastout%"
+  call :AssertExpectedTree
+set "mvs_expected_root=%~1"
+set "mvs_actual_root=%~2"
+powershell.exe -NoLogo -NoProfile -NonInteractive -Command "$ErrorActionPreference='Stop'; $e=$env:mvs_expected_root; $a=$env:mvs_actual_root; if(-not(Test-Path -LiteralPath $e -PathType Container)){exit 2}; foreach($f in Get-ChildItem -LiteralPath $e -File -Recurse){$rel=$f.FullName.Substring($e.Length).TrimStart('\'); $g=Join-Path $a $rel; if(-not(Test-Path -LiteralPath $g -PathType Leaf)){exit 1}; $x=(Get-Content -LiteralPath $f.FullName -Raw -Encoding UTF8).Replace(\"`r`n\",\"`n\"); $y=(Get-Content -LiteralPath $g -Raw -Encoding UTF8).Replace(\"`r`n\",\"`n\"); if($x-ne$y){exit 1}}; exit 0"
+exit /b %errorlevel%
+
+:ShowFailure "%fastout%"
   exit /b 1
 )
 
@@ -44,7 +50,19 @@ if errorlevel 1 (
   call :ShowFailure "%fastout%"
   exit /b 1
 )
-echo [PASS] fast-combined 1306 logical checks
+call :AssertExpectedTree "%root%expected-history\history" "%fastout%\archive-output"
+if errorlevel 1 (
+  echo [FAIL] fast archive history output mismatch
+  call :ShowFailure "%fastout%"
+  exit /b 1
+)
+call :AssertExpectedTree "%root%expected-history\all-ever" "%fastout%\archive-output"
+if errorlevel 1 (
+  echo [FAIL] fast archive all-ever output mismatch
+  call :ShowFailure "%fastout%"
+  exit /b 1
+)
+echo [PASS] fast-combined 1306 logical checks and archive outputs
 
 call "%root%test_all_dumps.bat" "%fixture%" "%extout%" --plan-only --external-tools >"%log%" 2>&1
 if errorlevel 1 (

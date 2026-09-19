@@ -205,3 +205,23 @@ test\analyze_archive_sweep_performance.bat test\archive-sweep-results-YYYYMMDD-H
 ```
 
 See `doc\performance-architecture.md`.
+
+
+## Fast archive completion (0.13.3)
+
+The default `fast-combined` executor no longer falls back to the two literal
+archive builders at the end of a sweep. It invokes:
+
+```bat
+test\fast\run_archive_tools_fast.bat archive-root archive-output-folder
+```
+
+once, generating both the change-history and all-ever products in one
+streaming pass. Progress is printed once per snapshot. The two logical archive
+rows are appended to `runs.tsv` only after the worker returns success.
+
+`--external-tools` intentionally retains the literal public builders.
+
+Because executor identity and the logical 34,822-row plan are unchanged,
+a 0.13.2 fast-combined results folder with 34,820 completed rows can be resumed
+by 0.13.3 after stopping any still-running 0.13.2 archive-builder process.

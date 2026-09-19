@@ -469,3 +469,4 @@ test\fast\run_snapshot_tools_fast.bat	test-fast	batch-status	422 single-snapshot
 test\fast\run_compare_tools_fast.bat	test-fast	batch-status	19 adjacent comparisons	source-order	dump-pair		0.1.1
 test\analyze_archive_sweep_performance.bat	test	analysis	elapsed/status/output metrics	elapsed	results-folder		0.1.0
 test\test_fast_archive_sweep.bat	test	console	fast archive executor acceptance	chronological	synthetic archive		0.1.0
+test\fast\run_archive_tools_fast.bat	test-fast	file-output	archive history/all-ever	chronological	archive-root		0.1.0

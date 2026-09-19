@@ -241,3 +241,8 @@ These directives are distilled from the user's project prompts.
 156. Prefer indexed/HashSet membership for large repeated lookup operations.
 157. Preserve a dedicated small synthetic acceptance path for the combined executor.
 158. Preserve elapsed-time data and provide an analyzer so performance regressions can be investigated without another full archive run.
+
+159. Fast-combined archive mode must not fall back to two independent full-archive parses.
+160. The combined archive worker must preserve the existing 19 source-local history/all-ever domains and missing-source coverage semantics.
+161. Commit logical archive rows to runs.tsv only after the combined archive worker succeeds; interrupted partial archive output must be safely rebuildable.
+162. Preserve literal public archive-builder execution under --external-tools.

@@ -1,5 +1,13 @@
 MVS Explorer Toolkit Project Version History
 
+0.13.3 - 2026-08-29
+  - Added one-pass fast archive history/all-ever worker.
+  - Fast-combined mode no longer runs the two literal archive builders.
+  - Preserved all 443 public tool interfaces unchanged.
+  - Added per-snapshot archive-worker progress and incremental history ledger output.
+  - Preserved --external-tools as the literal public-builder compatibility path.
+  - Preserved the 34,822-row fast-combined plan identity for resume compatibility.
+
 0.13.2 - 2026-08-28
   - Maintenance release for test_fast_archive_sweep.bat metadata validation.
   - 443 public root tools are byte-for-byte unchanged from 0.13.1.
