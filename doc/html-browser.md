@@ -70,6 +70,13 @@ first/last observation plus the evidence values requested for browsing.
 
 ## Development status
 
+## Windows PowerShell compatibility
+
+The delivered builder is required to run under Windows PowerShell 5.1. Project
+0.17.1 replaces the 0.17.0 generic static-method sort call with the PS5.1-safe
+non-generic `Array.Sort` overload. This changes only builder compatibility; the
+HTML data model and browser UI contract are unchanged.
+
 0.17.0 introduces the builder as an independent public tool. It is not yet
 inserted into the production pipeline, so browser UX can be refined before a
 future release decides whether browser generation belongs in the fail-gated

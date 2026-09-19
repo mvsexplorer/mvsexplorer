@@ -59,6 +59,8 @@ def main():
                     issues.append(f"{path.name}: HTML browser builder missing {marker}")
             if "http://" in text or "https://" in text or "<script src=" in text:
                 issues.append(f"{path.name}: HTML browser builder is not self-contained/offline")
+            if "[Array]::Sort[string]" in text or "[Array]::Sort($a,[StringComparer]::OrdinalIgnoreCase)" not in text:
+                issues.append(f"{path.name}: HTML browser builder must use Windows PowerShell 5.1-safe array sorting")
         if ":_MVSAllPipeline_start" in text:
             pipeline += 1
             for marker in ("ALL TESTS","BUILD ARCHIVE ANALYSIS DATABASE","BUILD FULL PRODUCT-FAMILY EVIDENCE DATABASE","BUILD COMPACT ALL-EVER PRODUCT-FAMILY DATABASE","test_generated_databases.bat","SEND-ME-","phase-performance.tsv","--resume-built","mvspipe_arg9","RESUME PRECHECK: STRUCTURE + DATABASE-VALIDATOR GUARDS","Get-StatusTokenColor","Write-ConsoleTokenized","[IO.FileShare]::ReadWrite","[Console]::ForegroundColor"):

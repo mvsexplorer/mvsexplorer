@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Generate the standalone self-contained MVS HTML browser builder.
 
-Version: 0.1.0
+Version: 0.1.1
 """
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEV = ROOT / "dev"
-TOOL_VERSION = "0.1.0"
+TOOL_VERSION = "0.1.1"
 
 def read(path):
     return path.read_text(encoding="utf-8").replace("\r\n", "\n").rstrip()

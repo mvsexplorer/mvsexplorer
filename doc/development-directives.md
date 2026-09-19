@@ -297,3 +297,4 @@ These directives are distilled from the user's project prompts.
 202. Browser-specific payload compaction may dictionary-encode repeated strings and use integer references provided the transformation is lossless for the values exposed by the browser.
 203. Keep browser generation independent from the fail-gated production pipeline until its UX and output contract have had a native acceptance cycle.
 
+204. Embedded PowerShell in public browser builders must parse and run under Windows PowerShell 5.1; avoid generic static-method invocation syntax such as `[Type]::Method[T](...)` when a PS5.1-compatible non-generic overload is available.

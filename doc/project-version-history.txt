@@ -1,3 +1,11 @@
+0.17.1 - 2026-09-07
+- Fixes the first native 0.17.0 HTML-browser builder failure under Windows PowerShell 5.1.
+- Replaces unsupported generic static-method syntax `[Array]::Sort[string](...)` with the PS5.1-compatible non-generic `Array.Sort` overload while preserving ordinal case-insensitive ordering.
+- Adds a dedicated structure regression and generated-output validator guard for the PS5.1-safe sort contract.
+- Browser builder version becomes 0.1.1; browser hierarchy, payload format and conservative evidence semantics are unchanged.
+- Structure becomes 492 assertions and all mode 1,105. Public root remains 479 standalone BATs and the legacy archive plan remains 34,822 checks.
+- 0.16.5 remains the native-accepted pipeline baseline; 0.17.1 requires a native browser-builder acceptance run.
+
 0.17.0 - 2026-09-07
 - Adds `build_mvs_html_browser.bat`, the first self-contained offline MVS browser builder.
 - The generated browser uses a horizontal broad-family -> product-family -> release -> exact-title hierarchy with filter-as-you-type and multi-selection in every list.

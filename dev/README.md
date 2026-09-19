@@ -1,3 +1,14 @@
+## 0.17.1 browser-builder PS5.1 compatibility maintenance
+
+The first native 0.17.0 browser-builder run exposed a Windows PowerShell 5.1
+parser incompatibility in `library/html-browser-builder.inc.ps1`:
+`[Array]::Sort[string](...)` is generic static-method invocation syntax that
+Windows PowerShell 5.1 does not parse. The maintained source now uses
+`[Array]::Sort($a,[StringComparer]::OrdinalIgnoreCase)`.
+
+`test-harness.inc.ps1` and `validate_generated.py` both guard this contract.
+0.17.1 structure has 492 assertions and all mode has 1,105.
+
 ## 0.17.0 self-contained HTML browser maintenance
 
 `generate_html_browser.py` maintains `build_mvs_html_browser.bat` from

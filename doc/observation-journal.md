@@ -1,5 +1,19 @@
 # Development Observation Journal
 
+## 2026-09-07 — native browser-builder compatibility
+
+### Static generation checks do not replace the target PowerShell parser
+
+The first 0.17.0 native browser build failed before database ingestion because
+Windows PowerShell 5.1 does not parse generic static-method invocation syntax
+used by `[Array]::Sort[string](...)`. The same ordering can be expressed with
+the non-generic `Array.Sort(Array, IComparer)` overload and
+`StringComparer.OrdinalIgnoreCase`.
+
+Browser-builder structure validation now guards both sides of that lesson: the
+PS5.1-safe marker must be present and the incompatible generic marker must be
+absent.
+
 ## 2026-09-07 — browser exploration layer
 
 ### The compact family database is already a sufficient browser source

@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.11.9"
+set "app.version=0.11.10"
 set "app.name=test_history_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -10,7 +10,7 @@ set "mvst_mode=history"
 set "mvst_dump=%~1"
 set "mvst_caller=%~nx0"
 set "mvst_version=%app.version%"
-set "mvst_project_version=0.17.0"
+set "mvst_project_version=0.17.1"
 for %%I in ("%~dp0..") do set "mvst_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSTest"
@@ -105,7 +105,7 @@ $Caller = [string]$env:mvst_caller
 $Version = [string]$env:mvst_version
 $ProjectVersion = [string]$env:mvst_project_version
 $script:ExpectedAssertions = switch ($Mode) {
-    'structure' { 491 }
+    'structure' { 492 }
     'scalar' { 120 }
     'lookup' { 24 }
     'diagnostic' { 46 }
@@ -113,7 +113,7 @@ $script:ExpectedAssertions = switch ($Mode) {
     'single_dump' { 167 }
     'compare' { 39 }
     'history' { 65 }
-    'all' { 1104 }
+    'all' { 1105 }
     default { 0 }
 }
 
@@ -1157,8 +1157,15 @@ function Test-Structure {
         } else {
             Write-Fail 'HTML browser builder is standalone, self-contained and source-conservative' 'offline/data-source markers missing'
         }
+        if ($browserText.Contains('[Array]::Sort($a,[StringComparer]::OrdinalIgnoreCase)') -and
+            -not $browserText.Contains('[Array]::Sort[string]')) {
+            Write-Pass 'HTML browser builder uses Windows PowerShell 5.1-safe array sorting'
+        } else {
+            Write-Fail 'HTML browser builder uses Windows PowerShell 5.1-safe array sorting' 'generic static method syntax is not compatible with Windows PowerShell 5.1'
+        }
     } else {
         Write-Fail 'HTML browser builder is standalone, self-contained and source-conservative' 'build_mvs_html_browser.bat missing'
+        Write-Fail 'HTML browser builder uses Windows PowerShell 5.1-safe array sorting' 'build_mvs_html_browser.bat missing'
     }
 
     if (Test-Path -LiteralPath $pipelinePath -PathType Leaf) {

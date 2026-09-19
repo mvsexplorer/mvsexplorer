@@ -1,3 +1,8 @@
+0.1.1 / project 0.17.1 - 2026-09-07
+- Fixes Windows PowerShell 5.1 parsing of ordinal string sorting.
+- Replaces `[Array]::Sort[string](...)` with the PS5.1-compatible non-generic overload.
+- No browser hierarchy, payload, filtering, evidence or output-format change.
+
 0.1.0 / project 0.17.0 - 2026-09-07
 - Initial standalone self-contained HTML browser builder.
 - Consumes an existing compact product-family index and emits one offline HTML file.

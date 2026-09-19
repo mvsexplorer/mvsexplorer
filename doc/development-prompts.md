@@ -1670,3 +1670,21 @@ and in the next list, you might have the various products themselves, maybe with
 
 and below that you would display information about each selections, up to including lists of applicable file list & hashes for the current selection/filters, display applicable notes
 ```
+
+## Prompt 20 — first native 0.17.0 browser-builder result
+
+The user ran the documented builder command against the real compact family
+database. Windows PowerShell 5.1 rejected the embedded browser builder before
+database ingestion with:
+
+```text
+Exception calling "Create" with "1" argument(s):
+At line:101 char:19
++     [Array]::Sort[string]($a,[StringComparer]::OrdinalIgnoreCase)
+Array index expression is missing or not valid.
+Unexpected token 'string]' in expression or statement.
+```
+
+This establishes the 0.17.1 compatibility requirement: delivered embedded
+PowerShell must use syntax accepted by Windows PowerShell 5.1.
+

@@ -98,7 +98,7 @@ function Json {
 function Sort-Ordinal {
     param([System.Collections.IEnumerable]$Values)
     [string[]]$a=@($Values)
-    [Array]::Sort[string]($a,[StringComparer]::OrdinalIgnoreCase)
+    [Array]::Sort($a,[StringComparer]::OrdinalIgnoreCase)
     return ,$a
 }
 function Update-ObservedRange {

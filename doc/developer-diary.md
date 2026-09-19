@@ -1,3 +1,16 @@
+## 0.17.1 - native browser-builder parser correction
+
+The first native execution of the 0.17.0 browser builder failed before reading
+the compact database because Windows PowerShell 5.1 could not parse
+`[Array]::Sort[string](...)`. This was a development-environment gap: the
+generated JavaScript and static builder guards were valid, but they did not
+exercise the embedded PowerShell parser used by the delivered BAT.
+
+The maintained builder now uses the non-generic `Array.Sort` overload with
+`StringComparer.OrdinalIgnoreCase`. A structure assertion and the generated
+validator explicitly reject the old generic syntax. The browser model itself is
+unchanged; 0.17.1 is a compatibility repair, not a taxonomy or UI redesign.
+
 ## 0.17.0 - first self-contained browser surface
 
 The next product step is deliberately browser-first rather than pipeline-first.

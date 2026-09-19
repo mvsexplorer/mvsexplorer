@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone HTML browser builder embeds PowerShell.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.0"
+set "app.version=0.1.1"
 set "app.name=build_mvs_html_browser"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -192,7 +192,7 @@ function Json {
 function Sort-Ordinal {
     param([System.Collections.IEnumerable]$Values)
     [string[]]$a=@($Values)
-    [Array]::Sort[string]($a,[StringComparer]::OrdinalIgnoreCase)
+    [Array]::Sort($a,[StringComparer]::OrdinalIgnoreCase)
     return ,$a
 }
 function Update-ObservedRange {

@@ -1,6 +1,18 @@
-# MVS Explorer Toolkit 0.17.0
+# MVS Explorer Toolkit 0.17.1
 
 
+
+## 0.17.1 Windows PowerShell 5.1 browser-builder compatibility fix
+
+0.17.1 fixes the native Windows failure in `build_mvs_html_browser.bat` discovered
+during the first 0.17.0 acceptance run. The browser builder used generic static
+method invocation syntax (`[Array]::Sort[string](...)`) that is not accepted by
+Windows PowerShell 5.1. It now calls the PS5.1-compatible non-generic array-sort
+overload while retaining ordinal, case-insensitive ordering.
+
+A dedicated structure regression rejects the unsupported generic syntax and
+requires the compatible sort marker. Browser behavior, hierarchy, evidence
+semantics and payload format are otherwise unchanged from 0.17.0.
 
 ## 0.17.0 self-contained MVS HTML browser
 

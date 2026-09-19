@@ -22,7 +22,7 @@ failures.
 
 ## Resume already-built databases
 
-0.17.0 retains the recovery path introduced in 0.16.1 for a late-stage validator/packaging failure after
+0.17.1 retains the recovery path introduced in 0.16.1 for a late-stage validator/packaging failure after
 the three reusable databases were already generated:
 
 ```bat
@@ -148,4 +148,4 @@ filename.
 
 ## HTML browser
 
-0.17.0 adds `build_mvs_html_browser.bat` as an independent public tool. Browser generation is intentionally not inserted into this fail-gated pipeline during the first browser UX cycle.
+0.17.0 added `build_mvs_html_browser.bat` as an independent public tool; 0.17.1 fixes its Windows PowerShell 5.1 parser compatibility. Browser generation remains intentionally outside this fail-gated pipeline during the first browser UX cycle.
