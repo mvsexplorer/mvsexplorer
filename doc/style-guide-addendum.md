@@ -1,6 +1,6 @@
 # MVS Explorer Toolkit — Batch Style Guide Addendum
 
-**Addendum version:** 0.3.0  
+**Addendum version:** 0.4.0  
 **Applies with:** Batch File Style Guide v1.8.0
 
 This addendum supplements the supplied guide with project-specific conventions.
@@ -99,3 +99,32 @@ Tests should verify actual stdout, stderr, and return codes rather than only fil
 When practical, expected results are reconstructed directly from the selected dump in a test-specific parser instead of being obtained by calling another toolkit public tool.
 
 The suite should fail closed: any assertion failure yields a nonzero final return code.
+
+
+## 14. Test result bundles
+
+Every generated test script owns one result directory per invocation.
+
+Use the locale-independent sortable name:
+
+```text
+test-results-YYYYMMDD-HHMMSS
+```
+
+with a numeric collision suffix if needed.
+
+All result files from that invocation stay beneath the same directory. Machine-readable TSV result files contain no ANSI.
+
+Behavioral failure artifacts preserve complete streams; console text may be abbreviated only for readability.
+
+## 15. Embedded PowerShell nonzero contract exits
+
+The current `:RunPowerShellFromLabel` bridge can normalize a script-block-local nonzero `exit` after control returns to the wrapper.
+
+When a documented nonzero code must reach `cmd.exe` without adding unwanted stderr, terminate the embedded PowerShell process explicitly:
+
+```powershell
+[Environment]::Exit(code)
+```
+
+This is a focused exception used for public contract exits such as lookup no-match (`1`) and documented fatal validation codes.

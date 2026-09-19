@@ -1,4 +1,4 @@
-# MVS Explorer Toolkit 0.4.0
+# MVS Explorer Toolkit 0.5.0
 
 MVS Explorer Toolkit is a growing collection of console tools for exploring MVS dump snapshots, intended to culminate in the graphical **MVS Explorer** application.
 
@@ -151,3 +151,41 @@ The test suite covers:
 - standalone injected-code structure.
 
 All four test `.bat` files are themselves fully standalone; `test_all.bat` does not require the other test files to execute.
+
+
+## Timestamped test result bundles
+
+Every test invocation creates a single result directory beneath `test\`:
+
+```text
+test\test-results-YYYYMMDD-HHMMSS\
+```
+
+If two runs start in the same second, `-01`, `-02`, etc. is appended.
+
+The normal full-suite command remains:
+
+```text
+test\test_all.bat path_to_mvs_dump_folder
+```
+
+Each result directory contains:
+
+```text
+README.txt
+run-info.txt
+console.log
+summary.txt
+all-results.tsv
+general-results.tsv
+structure-results.tsv
+scalar-results.tsv
+lookup-results.tsv
+failures\
+```
+
+`all-results.tsv` records every assertion. The scope-specific TSV files make it easy to inspect just structure, scalar, or lookup testing.
+
+When a behavioral comparison fails, `failures\` contains the complete expected stdout, actual stdout, stderr, and metadata for that case. Console messages may abbreviate long differences, but these failure files do not.
+
+Version 0.5.0 also fixes the lookup no-match return-code defect found by the first external Windows run: a lookup that finds no non-empty associated result now returns code `1` while keeping stdout/stderr empty.

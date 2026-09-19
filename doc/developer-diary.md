@@ -52,3 +52,16 @@ Rather than testing one tool by comparing it with another public tool, the test 
 The scalar test matrix executes all 120 scalar tools. The lookup tests exercise every lookup tool with exact, wildcard-all, and no-match cases, plus explicit prefix/suffix/contains wildcard cases for ID lookup.
 
 Each test batch is generated from shared development-time test source but contains the complete injected harness in the delivered file.
+
+
+## 2026-08-27 — First external Windows test run
+
+The user ran the 0.4.0 full suite against `mvs_2021-01-12-1901`, which the test expectation parser counted as 2003 products.
+
+The run reported 265 passes and 7 failures. All standalone checks and all scalar behavioral checks passed. Successful lookup and wildcard lookup cases passed.
+
+Every failure was the same no-result lookup return-code issue: empty output was correct, but the command returned `0` rather than `1`.
+
+Version 0.5.0 changes these nonzero contract paths to explicit process-level exits.
+
+The same run demonstrated that a full-suite console transcript is too large to rely on scrollback. Test scripts now create timestamped result bundles containing persistent console, summary, environment, TSV assertion, and failure-artifact files.

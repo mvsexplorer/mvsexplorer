@@ -1,5 +1,9 @@
 Tool Version History: dev\generate_tests.py
 
+0.2.0 - 2026-08-27
+  - Regenerated tests with timestamped result-bundle support.
+  - Injected console/TSV/summary/run-info/failure-artifact persistence.
+
 0.1.0 - 2026-08-27
   - Initial version.
   - Injects the maintained standalone Windows test harness into four test

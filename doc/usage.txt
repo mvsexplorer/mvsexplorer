@@ -1,4 +1,4 @@
-MVS Explorer Toolkit 0.4.0
+MVS Explorer Toolkit 0.5.0
 Usage Summary
 
 SCALAR SOURCE-ORDER
@@ -66,3 +66,21 @@ AUTOMATED TESTS
     0  all executed tests passed
     1  one or more tests failed
     2  invalid/missing required test argument
+
+
+TEST RESULT DIRECTORY
+  Every test invocation creates:
+
+    test\test-results-YYYYMMDD-HHMMSS\
+
+  Main files:
+    README.txt
+    run-info.txt
+    console.log
+    summary.txt
+    all-results.tsv
+    general-results.tsv
+    structure-results.tsv
+    scalar-results.tsv
+    lookup-results.tsv
+    failures\

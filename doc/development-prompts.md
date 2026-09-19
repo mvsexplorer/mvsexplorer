@@ -341,3 +341,25 @@ and from root I should be able to run them like
 
 test\test_all.bat path_to_mvs_dump_folder
 ```
+
+## Prompt 7
+
+The user supplied the full Windows console results from:
+
+```text
+test\test_all.bat ..\mvs_dumps_archive\mvs_2021-01-12-1901
+```
+
+The supplied run parsed 2003 products and ended:
+
+```text
+SUMMARY: passed=265 failed=7 skipped=0
+```
+
+All seven failures were lookup no-match return-code mismatches (`expected 1, got 0`); the complete findings are recorded in `doc\test-run-analysis-0.4.0.md`.
+
+The user's requested test-output change was:
+
+```text
+These test should create test results files we can observed, all in one test\test-results-datestamp-timestamp folder
+```

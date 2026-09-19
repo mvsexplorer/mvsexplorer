@@ -1,5 +1,9 @@
 Tool Version History: dev\generate_tools.py
 
+0.3.0 - 2026-08-27
+  - Regenerated public tools for project 0.5.0.
+  - Injected explicit nonzero PowerShell process-exit behavior.
+
 0.2.0 - 2026-08-27
   - Updated generated public tool versions for project 0.4.0.
   - Regenerates the Windows-PowerShell-compatible date-sort helper.

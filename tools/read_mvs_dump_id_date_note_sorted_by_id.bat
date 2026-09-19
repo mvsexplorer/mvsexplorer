@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone tool embeds PowerShell and should not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.2.0"
+set "app.version=0.3.0"
 set "app.name=read_mvs_dump_id_date_note_sorted_by_id"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -288,7 +288,7 @@ function Fail {
     } else {
         Write-Err ('ERROR: ' + $Message)
     }
-    exit $Code
+    [Environment]::Exit($Code)
 }
 
 if ([string]::IsNullOrWhiteSpace($Dump) -or (@('--help','-h','-?','/h','/?') -contains $Dump)) { Show-Usage; exit 0 }

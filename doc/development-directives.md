@@ -97,3 +97,15 @@ These directives are distilled from the user's project prompts.
 56. Lookup tests must cover exact, wildcard, no-match, and multiple-result behavior.
 57. Test success returns `0`; any failed assertion returns nonzero.
 58. Keep subset test entry points for structural, scalar, and lookup testing.
+
+
+## Test result retention
+
+59. Every automated test invocation creates one timestamped result directory beneath `test\`.
+60. Result directory naming is `test-results-YYYYMMDD-HHMMSS`, with a collision suffix when necessary.
+61. Preserve the complete harness console transcript in `console.log`.
+62. Preserve machine-readable assertion results in `all-results.tsv` and scope-specific TSV files.
+63. Preserve run path/platform/version information in `run-info.txt`.
+64. Preserve the final totals in `summary.txt`.
+65. For each behavioral comparison failure, preserve complete expected stdout, actual stdout, stderr, and failure metadata.
+66. Keep all files belonging to one test invocation inside that single result directory.

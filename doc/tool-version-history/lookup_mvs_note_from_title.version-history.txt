@@ -7,6 +7,11 @@ Purpose
   Multiple-match ordering: natural TITLE ordering
   Output: distinct non-empty NOTE values, one per line
 
+0.3.0 - 2026-08-27
+  - Regenerated for project 0.5.0.
+  - Updated embedded nonzero process-exit behavior for reliable return-code
+    propagation through the PowerShell bridge.
+
 0.2.0 - 2026-08-27
   - Regenerated from maintained common source for project 0.4.0.
   - Updated embedded date-sort helper to use UtcDateTime.Ticks for

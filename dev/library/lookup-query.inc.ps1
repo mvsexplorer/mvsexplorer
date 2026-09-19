@@ -189,7 +189,7 @@ function Show-Usage {
 function Fail {
     param([int]$Code, [string]$Message)
     Write-Err ('ERROR: ' + $Message)
-    exit $Code
+    [Environment]::Exit($Code)
 }
 
 if ([string]::IsNullOrWhiteSpace($Dump) -or (@('--help','-h','-?','/h','/?') -contains $Dump)) { Show-Usage; exit 0 }
@@ -222,5 +222,5 @@ foreach ($record in $matches) {
         $emitted++
     }
 }
-if ($emitted -eq 0) { exit 1 }
+if ($emitted -eq 0) { [Environment]::Exit(1) }
 exit 0

@@ -4,6 +4,12 @@ Purpose
   Test mode: all
   Standalone: yes; contains complete injected test harness
 
+0.2.0 - 2026-08-27
+  - Added timestamped result directory per invocation.
+  - Added persistent console, TSV assertions, summary, run-info, and detailed
+    behavioral failure artifacts.
+  - Added explicit process-level nonzero final exit when assertions fail.
+
 0.1.0 - 2026-08-27
   - Initial version.
   - Added automated Windows validation for the all test scope.

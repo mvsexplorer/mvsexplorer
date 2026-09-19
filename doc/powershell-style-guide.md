@@ -1,6 +1,6 @@
 # MVS Explorer Toolkit — Embedded PowerShell Style Guide
 
-**Guide version:** 0.3.0  
+**Guide version:** 0.4.0  
 **Context:** Companion to Batch File Style Guide v1.8.0 and the MVS Explorer Toolkit addendum.
 
 ## 1. Role
@@ -125,3 +125,33 @@ Read redirected stdout/stderr asynchronously before/while waiting for process co
 Normalize captured line endings only for comparison; do not otherwise alter expected protocol text.
 
 Test expected-value logic uses test-specific helper names and derives expectations from dump source files, reducing accidental dependence on another public toolkit command.
+
+
+## 15. Nonzero return codes through the embedded bridge
+
+A local `exit N` in a dynamically executed embedded script block can be normalized by the outer bridge.
+
+For a documented nonzero public contract that must reach the calling batch:
+
+```powershell
+[Environment]::Exit(N)
+```
+
+Emit any intended stderr before that call.
+
+A normal lookup no-result exit code `1` emits no stdout/stderr.
+
+## 16. Test result files
+
+The test harness writes result files as UTF-8 without BOM.
+
+Maintain separate files for:
+
+- run metadata;
+- complete console transcript;
+- final summary;
+- all assertion rows;
+- scope-specific assertion rows;
+- complete behavioral failure artifacts.
+
+Failure artifact streams are lossless; only the console comparison preview is abbreviated.

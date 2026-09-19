@@ -5,6 +5,11 @@ Purpose
   Output: headerless TSV output
   Ordering: source order from mvs_ids.txt
 
+0.5.0 - 2026-08-27
+  - Regenerated for project 0.5.0.
+  - Documented fatal error return paths now terminate at PowerShell process
+    level so nonzero codes are not normalized by the embedded bridge.
+
 0.4.0 - 2026-08-27
   - Regenerated from maintained common source for project 0.4.0.
   - Updated embedded date-sort helper to use UtcDateTime.Ticks for

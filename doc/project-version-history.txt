@@ -1,5 +1,20 @@
 MVS Explorer Toolkit Project Version History
 
+0.5.0 - 2026-08-27
+  - Analyzed the supplied Windows 0.4.0 run against mvs_2021-01-12-1901:
+    265 passed, 7 failed, 0 skipped.
+  - Isolated all seven failures to lookup no-match return-code propagation.
+  - Fixed lookup no-match to return 1 while keeping stdout/stderr empty.
+  - Made documented scalar/lookup fatal nonzero exits explicit at PowerShell
+    process level for reliable propagation through the batch bridge.
+  - Added timestamped per-invocation test result directories under test\.
+  - Added console.log, summary.txt, run-info.txt, all-results.tsv, and
+    general/structure/scalar/lookup TSV result files.
+  - Added complete expected/actual/stderr/meta files for behavioral failures.
+  - Added doc\test-run-analysis-0.4.0.md.
+  - Updated project testing/style/development documentation.
+  - Regenerated all public and test batch files from maintained source.
+
 0.4.0 - 2026-08-27
   - Added standalone automated Windows test suite under test\.
   - Added test\test_all.bat as the full-suite root entry point.

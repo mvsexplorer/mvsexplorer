@@ -194,7 +194,7 @@ function Fail {
     } else {
         Write-Err ('ERROR: ' + $Message)
     }
-    exit $Code
+    [Environment]::Exit($Code)
 }
 
 if ([string]::IsNullOrWhiteSpace($Dump) -or (@('--help','-h','-?','/h','/?') -contains $Dump)) { Show-Usage; exit 0 }

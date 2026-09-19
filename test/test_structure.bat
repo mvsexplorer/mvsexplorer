@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.0"
+set "app.version=0.2.0"
 set "app.name=test_structure"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -103,28 +103,155 @@ $Version = [string]$env:mvst_version
 $script:Passed = 0
 $script:Failed = 0
 $script:Skipped = 0
+$script:CurrentScope = 'general'
+$script:ResultsFolder = $null
+$script:ConsoleLog = $null
+$script:AllResults = $null
+$script:ScopeFiles = @{}
+$script:FailuresFolder = $null
+$script:CaseIndex = 0
+$script:RunStart = Get-Date
+$script:DumpForTools = $DumpArgument
+
+function Convert-TsvField {
+    param([AllowNull()][AllowEmptyString()][string]$Value)
+    if ($null -eq $Value) { return '' }
+    return $Value.Replace("`t", ' ').Replace("`r", ' ').Replace("`n", ' ')
+}
+
+function Write-TextUtf8 {
+    param([string]$Path, [AllowEmptyString()][string]$Text)
+    [IO.File]::WriteAllText($Path, $Text, $utf8)
+}
+
+function Add-TextUtf8 {
+    param([string]$Path, [AllowEmptyString()][string]$Text)
+    [IO.File]::AppendAllText($Path, $Text, $utf8)
+}
+
+function New-ResultsFolder {
+    $testRoot = Join-Path $Root 'test'
+    if (-not (Test-Path -LiteralPath $testRoot -PathType Container)) {
+        [void](New-Item -ItemType Directory -Path $testRoot -Force)
+    }
+    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    $candidate = Join-Path $testRoot ('test-results-' + $stamp)
+    $n = 1
+    while (Test-Path -LiteralPath $candidate) {
+        $candidate = Join-Path $testRoot ('test-results-' + $stamp + '-' + $n.ToString('D2'))
+        $n++
+    }
+    [void](New-Item -ItemType Directory -Path $candidate)
+    $script:ResultsFolder = $candidate
+    $script:FailuresFolder = Join-Path $candidate 'failures'
+    [void](New-Item -ItemType Directory -Path $script:FailuresFolder)
+    $script:ConsoleLog = Join-Path $candidate 'console.log'
+    $script:AllResults = Join-Path $candidate 'all-results.tsv'
+    $script:ScopeFiles = @{
+        general = Join-Path $candidate 'general-results.tsv'
+        structure = Join-Path $candidate 'structure-results.tsv'
+        scalar = Join-Path $candidate 'scalar-results.tsv'
+        lookup = Join-Path $candidate 'lookup-results.tsv'
+    }
+    Write-TextUtf8 $script:ConsoleLog ''
+    $header = "index`tscope`tstatus`tcase`treason`texpected_rc`tactual_rc`n"
+    Write-TextUtf8 $script:AllResults $header
+    foreach ($resultPath in $script:ScopeFiles.Values) { Write-TextUtf8 $resultPath $header }
+    $readme = @'
+MVS Explorer Toolkit Test Results
+
+Files:
+  run-info.txt           Test mode, paths, platform, PowerShell version.
+  console.log            Complete test-harness console transcript.
+  summary.txt            Final pass/fail/skip totals.
+  all-results.tsv        Every assertion in execution order.
+  general-results.tsv    General/setup assertions.
+  structure-results.tsv  Standalone/public-file assertions.
+  scalar-results.tsv     Scalar behavioral assertions.
+  lookup-results.tsv     Lookup behavioral assertions.
+  failures\              Full expected/actual/stderr/meta files for
+                         behavioral failures. Empty when none fail.
+'@
+    Write-TextUtf8 (Join-Path $candidate 'README.txt') $readme
+}
 
 function Write-Line {
     param([AllowEmptyString()][string]$Text)
     [Console]::Out.WriteLine($Text)
+    if ($null -ne $script:ConsoleLog) {
+        Add-TextUtf8 $script:ConsoleLog ($Text + [Environment]::NewLine)
+    }
+}
+
+function Add-Result {
+    param([string]$Status, [string]$Name, [AllowEmptyString()][string]$Reason, [AllowEmptyString()][string]$ExpectedRc, [AllowEmptyString()][string]$ActualRc)
+    $script:CaseIndex++
+    $fields = @([string]$script:CaseIndex,$script:CurrentScope,$Status,$Name,$Reason,$ExpectedRc,$ActualRc) | ForEach-Object { Convert-TsvField ([string]$_) }
+    $line = ($fields -join [char]9) + [Environment]::NewLine
+    Add-TextUtf8 $script:AllResults $line
+    $scopePath = $script:ScopeFiles[$script:CurrentScope]
+    if ($null -eq $scopePath) { $scopePath = $script:ScopeFiles['general'] }
+    Add-TextUtf8 $scopePath $line
 }
 
 function Write-Pass {
-    param([string]$Name)
+    param([string]$Name, [AllowEmptyString()][string]$ExpectedRc='', [AllowEmptyString()][string]$ActualRc='')
     $script:Passed++
+    Add-Result 'PASS' $Name '' $ExpectedRc $ActualRc
     Write-Line ('[PASS] ' + $Name)
 }
 
 function Write-Skip {
     param([string]$Name, [string]$Reason)
     $script:Skipped++
+    Add-Result 'SKIP' $Name $Reason '' ''
     Write-Line ('[SKIP] ' + $Name + ' - ' + $Reason)
 }
 
 function Write-Fail {
-    param([string]$Name, [string]$Reason)
+    param([string]$Name, [string]$Reason, [AllowEmptyString()][string]$ExpectedRc='', [AllowEmptyString()][string]$ActualRc='')
     $script:Failed++
+    Add-Result 'FAIL' $Name $Reason $ExpectedRc $ActualRc
     Write-Line ('[FAIL] ' + $Name + ' - ' + $Reason)
+}
+
+function Write-RunInfo {
+    param([AllowNull()][string]$ResolvedDump)
+    $info = @(
+        'MVS Explorer Toolkit test run',
+        ('Started: ' + $script:RunStart.ToString('o')),
+        ('Test script: ' + $Caller),
+        ('Test version: ' + $Version),
+        ('Mode: ' + $Mode),
+        ('Project root: ' + $Root),
+        ('Original dump argument: ' + $DumpArgument),
+        ('Resolved dump: ' + [string]$ResolvedDump),
+        ('Current directory: ' + (Get-Location).Path),
+        ('Computer: ' + $env:COMPUTERNAME),
+        ('User: ' + $env:USERNAME),
+        ('OS: ' + [Environment]::OSVersion.VersionString),
+        ('PowerShell: ' + $PSVersionTable.PSVersion.ToString()),
+        ('CLR: ' + [Environment]::Version.ToString()),
+        ('Result folder: ' + $script:ResultsFolder)
+    )
+    Write-TextUtf8 (Join-Path $script:ResultsFolder 'run-info.txt') (($info -join [Environment]::NewLine) + [Environment]::NewLine)
+}
+
+function Write-Summary {
+    $end = Get-Date
+    $summary = @(
+        'MVS Explorer Toolkit Test Summary',
+        ('Started: ' + $script:RunStart.ToString('o')),
+        ('Finished: ' + $end.ToString('o')),
+        ('Duration: ' + (($end - $script:RunStart).ToString())),
+        ('Mode: ' + $Mode),
+        ('Passed: ' + $script:Passed),
+        ('Failed: ' + $script:Failed),
+        ('Skipped: ' + $script:Skipped),
+        ('Total assertions: ' + ($script:Passed + $script:Failed + $script:Skipped)),
+        ('Result folder: ' + $script:ResultsFolder)
+    )
+    Write-TextUtf8 (Join-Path $script:ResultsFolder 'summary.txt') (($summary -join [Environment]::NewLine) + [Environment]::NewLine)
 }
 
 function Show-Usage {
@@ -345,6 +472,30 @@ function Invoke-PublicTool {
     }
 }
 
+function Get-SafeCaseName {
+    param([string]$Name)
+    $safe = [regex]::Replace($Name, '[^A-Za-z0-9._-]+', '_').Trim('_')
+    if ([string]::IsNullOrWhiteSpace($safe)) { $safe = 'case' }
+    if ($safe.Length -gt 120) { $safe = $safe.Substring(0,120) }
+    return ($script:CaseIndex.ToString('D4') + '-' + $safe)
+}
+
+function Save-FailureArtifacts {
+    param([string]$Name, [object]$Run, [int]$ExpectedRc, [string]$ExpectedStdout, [string]$Reason)
+    $base = Get-SafeCaseName $Name
+    Write-TextUtf8 (Join-Path $script:FailuresFolder ($base + '.expected.txt')) $ExpectedStdout
+    Write-TextUtf8 (Join-Path $script:FailuresFolder ($base + '.actual.txt')) $Run.stdout
+    Write-TextUtf8 (Join-Path $script:FailuresFolder ($base + '.stderr.txt')) $Run.stderr
+    $meta = @(
+        ('Case: ' + $Name),
+        ('Scope: ' + $script:CurrentScope),
+        ('Reason: ' + $Reason),
+        ('Expected return code: ' + $ExpectedRc),
+        ('Actual return code: ' + $Run.rc)
+    )
+    Write-TextUtf8 (Join-Path $script:FailuresFolder ($base + '.meta.txt')) (($meta -join [Environment]::NewLine) + [Environment]::NewLine)
+}
+
 function Compare-Run {
     param([string]$Name, [object]$Run, [int]$ExpectedRc, [string]$ExpectedStdout)
     $reasons = New-Object System.Collections.ArrayList
@@ -355,7 +506,13 @@ function Compare-Run {
     if (-not [string]::IsNullOrEmpty($Run.stderr)) {
         [void]$reasons.Add(('stderr=' + (Short-Text $Run.stderr)))
     }
-    if ($reasons.Count -eq 0) { Write-Pass $Name } else { Write-Fail $Name ($reasons -join '; ') }
+    if ($reasons.Count -eq 0) {
+        Write-Pass $Name ([string]$ExpectedRc) ([string]$Run.rc)
+    } else {
+        $reason = $reasons -join '; '
+        Write-Fail $Name $reason ([string]$ExpectedRc) ([string]$Run.rc)
+        Save-FailureArtifacts $Name $Run $ExpectedRc $ExpectedStdout $reason
+    }
 }
 
 function Get-ScalarExpected {
@@ -412,6 +569,7 @@ function Get-LookupExpected {
 }
 
 function Test-Structure {
+    $script:CurrentScope = 'structure'
     Write-Line '=== Structure tests ==='
     $expected = New-Object System.Collections.ArrayList
     foreach ($projection in Get-Projections) {
@@ -444,6 +602,7 @@ function Test-Structure {
 
 function Test-Scalar {
     param([object[]]$Products)
+    $script:CurrentScope = 'scalar'
     Write-Line '=== Scalar tool tests ==='
     foreach ($projection in Get-Projections) {
         foreach ($family in @(
@@ -456,7 +615,7 @@ function Test-Scalar {
                 $path = Join-Path $Root ($name + '.bat')
                 $ordered = Sort-TestProducts $Products $sortKey
                 $expected = Get-ScalarExpected $ordered $projection.fields $family.mode
-                $run = Invoke-PublicTool $path $DumpArgument $null $false
+                $run = Invoke-PublicTool $path $script:DumpForTools $null $false
                 Compare-Run $name $run 0 $expected
             }
         }
@@ -467,12 +626,13 @@ function Test-OneLookupPattern {
     param([object[]]$Products, [object]$Lookup, [string]$Pattern, [string]$CaseName)
     $expected = Get-LookupExpected $Products $Lookup.source $Lookup.target $Pattern
     $path = Join-Path $Root ($Lookup.name + '.bat')
-    $run = Invoke-PublicTool $path $DumpArgument $Pattern $true
+    $run = Invoke-PublicTool $path $script:DumpForTools $Pattern $true
     Compare-Run ($Lookup.name + ' [' + $CaseName + ': ' + $Pattern + ']') $run $expected.rc $expected.stdout
 }
 
 function Test-Lookups {
     param([object[]]$Products)
+    $script:CurrentScope = 'lookup'
     Write-Line '=== Lookup tool tests ==='
     foreach ($lookup in Get-Lookups) {
         $candidate = @($Products | Where-Object {
@@ -503,34 +663,58 @@ function Test-Lookups {
     }
 }
 
+New-ResultsFolder
+Write-Line ('Test results: ' + $script:ResultsFolder)
+
 if (@('all','structure','scalar','lookup') -notcontains $Mode) {
+    $script:CurrentScope = 'general'
     Show-Usage
-    exit 2
+    Write-Fail 'test mode' ('unsupported mode: ' + $Mode)
+    Write-RunInfo $null
+    Write-Summary
+    [Environment]::Exit(2)
 }
 
+$DumpFolder = $null
 if ($Mode -ne 'structure') {
-    if ([string]::IsNullOrWhiteSpace($DumpArgument)) { Show-Usage; exit 2 }
+    if ([string]::IsNullOrWhiteSpace($DumpArgument)) {
+        $script:CurrentScope = 'general'
+        Show-Usage
+        Write-Fail 'dump folder' 'missing required dump argument'
+        Write-RunInfo $null
+        Write-Summary
+        [Environment]::Exit(2)
+    }
     $DumpFolder = Resolve-TestDump $DumpArgument
     if ($null -eq $DumpFolder) {
+        $script:CurrentScope = 'general'
         Write-Fail 'dump folder' ('not found: ' + $DumpArgument)
-        Write-Line ('SUMMARY: passed=' + $script:Passed + ' failed=' + $script:Failed + ' skipped=' + $script:Skipped)
-        exit 1
+        Write-RunInfo $null
+        Write-Summary
+        [Environment]::Exit(1)
     }
+    $script:DumpForTools = $DumpFolder
     try {
         $Products = Read-TestProducts $DumpFolder
     } catch {
+        $script:CurrentScope = 'general'
         Write-Fail 'parse dump' $_.Exception.Message
-        Write-Line ('SUMMARY: passed=' + $script:Passed + ' failed=' + $script:Failed + ' skipped=' + $script:Skipped)
-        exit 1
+        Write-RunInfo $DumpFolder
+        Write-Summary
+        [Environment]::Exit(1)
     }
     if ($Products.Count -eq 0) {
+        $script:CurrentScope = 'general'
         Write-Fail 'parse dump' 'zero products'
-        Write-Line ('SUMMARY: passed=' + $script:Passed + ' failed=' + $script:Failed + ' skipped=' + $script:Skipped)
-        exit 1
+        Write-RunInfo $DumpFolder
+        Write-Summary
+        [Environment]::Exit(1)
     }
     Write-Line ('Dump: ' + $DumpFolder)
     Write-Line ('Products parsed for expectations: ' + $Products.Count)
 }
+
+Write-RunInfo $DumpFolder
 
 if ($Mode -eq 'all' -or $Mode -eq 'structure') { Test-Structure }
 if ($Mode -eq 'all' -or $Mode -eq 'scalar') { Test-Scalar $Products }
@@ -538,6 +722,9 @@ if ($Mode -eq 'all' -or $Mode -eq 'lookup') { Test-Lookups $Products }
 
 Write-Line ''
 Write-Line ('SUMMARY: passed=' + $script:Passed + ' failed=' + $script:Failed + ' skipped=' + $script:Skipped)
-if ($script:Failed -gt 0) { exit 1 }
+Write-Line ('Results: ' + $script:ResultsFolder)
+Write-Summary
+
+if ($script:Failed -gt 0) { [Environment]::Exit(1) }
 exit 0
 :_MVSTest_end

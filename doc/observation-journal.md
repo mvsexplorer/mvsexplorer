@@ -60,3 +60,18 @@ Dump paths and lookup patterns may contain spaces or parser-sensitive characters
 ### Exact output tests intentionally include empty machine fields/lines
 
 For projections such as NOTE-only machine output, missing notes legitimately create empty records. Whole-stream comparison preserves those cases instead of using `for /f`, which would silently discard empty lines.
+
+
+### The first Windows run isolated a bridge return-code defect
+
+The 0.4.0 run passed structure, scalar output, exact lookup, and wildcard lookup behavior. Only lookup no-result return codes failed.
+
+This demonstrates why behavioral tests must assert return code as well as stdout.
+
+### Full-suite console scrollback is not a durable test record
+
+A long run should leave a self-contained timestamped bundle. This makes failures reproducible, comparable, and shareable without copying terminal output manually.
+
+### Failure artifacts should remain lossless
+
+The console may abbreviate a large expected/actual mismatch, but stored expected/actual/stderr files should preserve the complete streams.
