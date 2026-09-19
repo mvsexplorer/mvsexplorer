@@ -8,7 +8,6 @@ MVS Explorer Toolkit Project Version History
   - Added a static validator guard rejecting the PowerShell-5.1-sensitive unparenthesized form.
   - Recorded 0.14.0 Windows public regression: 1053 pass / 0 fail / 3 skip.
   - Recorded that the 0.14.0 fast executor itself completed 1306/1306 logical checks with FAIL=0 before the metadata assertion failed.
-  - Added a formal development handoff and expanded user design directives covering uninterrupted full acceptance, recurring performance optimization, non-destructive bad-dump handling, future dumps, note preservation, and HTML sanity checking.
 
 0.14.0 - 2026-08-30
   - Kept all 443 public root tools byte-for-byte identical to the supplied 0.13.3 baseline.

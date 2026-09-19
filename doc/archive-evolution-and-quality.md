@@ -197,33 +197,3 @@ derived from the newly discovered chronological sequence.
 Quality rules deliberately flag unusual changes instead of automatically
 discarding future source formats. A new source-generation regime can therefore
 be reviewed without losing evidence.
-
-## Decision rule for candidate bad dumps
-
-A quality anomaly is not enough to delete or ignore a snapshot.
-
-Before changing canonical status, inspect `per-dump-retention.tsv` and the
-note/version evidence to answer:
-
-1. what this snapshot introduced;
-2. what was confirmed by later snapshots;
-3. what has never been observed later;
-4. which note versions/raw note bodies would be lost from a downstream view;
-5. whether apparent novelty is actually a source-ID regime change.
-
-Canonical exclusions remain non-destructive: the snapshot is still ingested
-into all-ever evidence.
-
-Known quality-review candidates from the 79-snapshot archive include the
-large `mvs_names.txt` duplication spike in `mvs_2021-04-20` and the
-product-file/catalog contraction in `mvs_2022-10-07-1939`. These are advisory
-review targets, not hard-coded exclusions.
-
-## Future snapshots
-
-The newest snapshot necessarily has evidence that has not yet been seen later.
-`never_seen_later` must therefore be interpreted with temporal context and
-must not automatically generate a bad-dump verdict.
-
-Future dumps should extend the contribution, retention, note, re-ID, quality,
-and all-ever tables without requiring changes to fixed snapshot counts.

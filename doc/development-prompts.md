@@ -1642,20 +1642,3 @@ FAIL rows; only the two archive-wide builder rows remained. This led to the
 
 > Include a tester bat which runs test on all tools including quality and performance checking so performance outliers can be found and optimized and the test run again to ensure no regression.
 > Include the suggested optimizations, interactive HTML report, and the other suggested additions.
-
-## 2026-08-30 — archive understanding, performance, quality, and handoff direction
-
-User direction distilled from the latest development cycle:
-
-- rerun the complete archive until there is a clean start-to-finish run;
-- quantify what kind and how much information every dump adds to the running total;
-- detect duplication and cases where the same substantive products/variants receive new IDs;
-- support an exclusion list for known bad/non-canonical dumps without losing unique information;
-- preserve every unique note/version, including information present in only one dump;
-- work with future dumps without fixed snapshot-count assumptions;
-- make fresh archive runs fast enough for frequent weekly testing;
-- provide a self-contained interactive HTML summary with per-dump sanity-check tabs;
-- provide one tester `.bat` that exercises all public tools plus quality and performance checks;
-- surface performance outliers, optimize them, and rerun the same tests to prove no regression;
-- include indexed lookups, bounded workers, caching, interruption safety, non-destructive
-  exclusions, archive evolution/retention analysis, and report generation.

@@ -269,20 +269,3 @@ These directives are distilled from the user's project prompts.
 180. The comprehensive tester must run functional regression before performance interpretation so optimization cannot mask behavior regression.
 181. Interactive archive reporting must be self-contained and require no external web service.
 182. Future snapshot discovery must remain dynamic; no runtime path may assume exactly 79 dumps.
-
-## 0.14.x acceptance, recurring-testing, and handoff directives
-
-183. Require at least one fresh, start-to-finish, uninterrupted real-archive acceptance run before declaring the fast archive path fully validated.
-184. Treat `FAIL=0` as necessary but insufficient; archive acceptance also requires ledger/source-integrity and quality checks.
-185. The recurring tester must exercise the public functional suite, fast archive behavior, archive quality checks, and performance measurement from one top-level `.bat`.
-186. Performance outliers must be emitted as explicit machine-readable work items so the slowest tools/operations/batches can be optimized and the same tests rerun for regression proof.
-187. Preserve a true fresh-run performance path that bypasses content cache; cached recurring runs and fresh performance acceptance serve different purposes.
-188. The optimization target is regular full-archive testing during the week rather than rare multi-day runs.
-189. Re-ID analysis must compare substantive product/variant fingerprints independently of source IDs and must report source-ID regime changes rather than treating them as automatically new content.
-190. A candidate "bad dump" must be evaluated for unique information before canonical exclusion; report introduced-here, seen-later, and never-seen-later evidence by domain.
-191. Never make canonical exclusion synonymous with ingestion exclusion; preserve notes and all other evidence from non-canonical snapshots.
-192. The interactive HTML report must make per-dump additions, re-ID behavior, duplicates/quality, note uniqueness, exclusion impact, all-ever growth, and performance inspectable without external services.
-193. Preserve all distinct note versions and raw HTML evidence across snapshots, including one-snapshot versions.
-194. Future dumps must work without source-code changes to fixed snapshot counts/dates and should benefit automatically from content caching and existing quality rules.
-195. When a test/archive infrastructure maintenance release does not intentionally change public tools, verify all 443 public root `.bat` files remain byte-for-byte identical to the validated baseline.
-196. Maintain a project handoff document containing current validation state, open issues, exact next commands, key data-model invariants, release gates, and design directives.

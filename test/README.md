@@ -199,27 +199,3 @@ test\build_archive_html_report.bat result-folder
 
 `test\archive-exclusions.tsv` is an optional non-destructive canonical
 interpretation file. Excluded snapshots remain tested and fully ingested.
-
-## Acceptance versus recovery
-
-`--resume` is a recovery mechanism. It is not the final acceptance standard.
-
-The project requires at least one clean fresh real-archive run that completes
-start-to-finish without interruption. After that run, use:
-
-```bat
-test\check_archive_sweep_quality.bat result-folder --strict-performance
-```
-
-and inspect/generate:
-
-```bat
-test\build_archive_html_report.bat result-folder
-```
-
-A sweep with `FAIL=0` can still be invalid if source availability changed
-mid-batch or if the ledger contains unexpected `SOURCE_MISSING`; the quality
-checker is therefore part of acceptance.
-
-For recurring development, use `test\test_everything.bat` so functional,
-quality, and performance regression remain tied together.

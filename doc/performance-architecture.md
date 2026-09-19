@@ -199,19 +199,3 @@ warnings to a nonzero quality-check result.
 The one-pass archive worker was also changed from per-line scriptblock callbacks
 to direct buffered `StreamReader` loops. Its runtime should be measured on
 Windows before setting tighter release thresholds.
-
-## Performance acceptance policy
-
-Performance is part of the development gate, not an after-the-fact statistic.
-
-The comprehensive tester must surface the slowest public tools, logical
-operations, and whole-snapshot batches. Those rows become optimization work
-items. After an optimization, rerun the same functional and performance gates
-to prove that speed improved without changing behavior.
-
-Use cached execution for frequent development runs and `--no-cache` for a
-fresh performance baseline. At least one full fresh archive run must complete
-start-to-finish before an archive-performance release is considered accepted.
-
-The target is to make complete testing practical often enough for repeated
-weekly use.

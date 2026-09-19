@@ -1,30 +1,5 @@
 # MVS Explorer Toolkit 0.14.1
 
-## Current development handoff
-
-The detailed continuation state is recorded in:
-
-```text
-doc\HANDOFF.md
-```
-
-Key current boundary:
-
-- 0.14.0 public regression is clean on Windows: 1,053 pass / 0 fail / 3 skip.
-- The 0.14.0 fast executor completed the three-snapshot 1,306-check sweep with
-  FAIL=0 and generated the interactive HTML report.
-- The 0.14.0 acceptance harness then exposed PowerShell 5.1 metadata
-  serialization: `Executor:` and its value were split onto separate physical
-  lines.
-- 0.14.1 fixes the metadata producer with parenthesized concatenations while
-  retaining the strict assertion.
-- Native Windows validation of that 0.14.1 maintenance fix is the next gate.
-
-The project requires a complete fresh start-to-finish real-archive run, followed
-by quality/integrity and performance verification, before the fast archive path
-is considered fully accepted.
-
-
 
 ## 0.14.1 PowerShell 5.1 archive-metadata serialization fix
 
