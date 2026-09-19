@@ -1,0 +1,5 @@
+generate_performance_tools.py
+
+0.1.2 - 2026-08-28
+  - Generates test_fast_archive_sweep.bat from maintained template source.
+

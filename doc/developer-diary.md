@@ -337,3 +337,15 @@ The optimized public tools passed the complete Windows regression suite, but the
 snapshot worker failed at `[ScriptBlock]::Create()` on Windows PowerShell 5.1. The failure was
 isolated to the `Test-HashResult` nested boolean expression. The fast runtime was corrected by
 using explicit branch-based matching and the validator now rejects the old expression form.
+
+## 2026-08-28 — 0.13.2 fast acceptance metadata check
+
+The 0.13.1 fast worker cleared the earlier PowerShell parser defect, but the
+small acceptance harness stopped at its first metadata assertion. The harness
+used `findstr /x` against UTF-8-generated summary metadata. The actual archive
+sweep had already returned success, so the brittle assertion layer—not a
+missing prerequisite—was the next defect.
+
+The acceptance test now reads metadata using PowerShell `Get-Content -Encoding
+UTF8`, and any assertion failure automatically prints and preserves its temp
+evidence. The test remains self-contained.

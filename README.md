@@ -740,3 +740,16 @@ test\test_fast_archive_sweep.bat
 ```
 
 See `doc\performance-architecture.md`.
+
+## 0.13.2 fast-sweep acceptance-test maintenance
+
+`test\test_fast_archive_sweep.bat` is self-contained and does **not** require
+`test\test_all.bat` to be run first. It uses `test\test-mvs-dump-history\`
+directly.
+
+The acceptance test now validates UTF-8 metadata with PowerShell rather than
+`findstr /x`. On any failure it retains and prints the temporary result folder,
+`summary.txt`, `run-info.txt`, and captured sweep log so the failure can be
+diagnosed immediately.
+
+The 443 public root tools are unchanged from 0.13.1.

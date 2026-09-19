@@ -60,6 +60,7 @@ dev/single-dump-tool-spec.json
 dev/templates/archive-sweep.bat.tpl
 dev/templates/compare.bat.tpl
 dev/templates/diagnostic.bat.tpl
+dev/templates/fast-archive-test.bat.tpl
 dev/templates/fast-sweep.bat.tpl
 dev/templates/history.bat.tpl
 dev/templates/lookup.bat.tpl
@@ -209,6 +210,7 @@ doc/tool-version-history/generate_expected_relationship_outputs.version-history.
 doc/tool-version-history/generate_expected_single_dump_outputs.version-history.txt
 doc/tool-version-history/generate_history_fixture.py.txt
 doc/tool-version-history/generate_history_tools.py.txt
+doc/tool-version-history/generate_performance_tools.py.txt
 doc/tool-version-history/generate_performance_tools.py.version-history.txt
 doc/tool-version-history/generate_relationship_fixture.version-history.txt
 doc/tool-version-history/generate_relationship_tools.version-history.txt
@@ -583,6 +585,7 @@ doc/tool-version-history/test_all.version-history.txt
 doc/tool-version-history/test_all_dumps.version-history.txt
 doc/tool-version-history/test_compare_tools.version-history.txt
 doc/tool-version-history/test_diagnostic_tools.version-history.txt
+doc/tool-version-history/test_fast_archive_sweep.bat.txt
 doc/tool-version-history/test_fast_archive_sweep.version-history.txt
 doc/tool-version-history/test_history_tools.bat.txt
 doc/tool-version-history/test_lookup_tools.version-history.txt

@@ -147,3 +147,16 @@ tools on 78 adjacent transitions, and two archive builders.
 The archive sweep writes `plan.tsv`, `runs.tsv`, `summary.txt`, a resumable
 plan SHA-256, failure artifacts, and retained history/all-ever output. See
 `doc\archive-sweep.md`.
+
+
+## Fast archive-sweep acceptance test
+
+```bat
+test\test_fast_archive_sweep.bat
+```
+
+This test has no prerequisite. It directly uses the packaged three-snapshot
+history fixture. Its working folders are created under `%TEMP%`, not under
+`test\`. Successful runs clean those temporary folders. Failed runs retain
+them and print their exact locations together with summary/run-info/log
+contents.

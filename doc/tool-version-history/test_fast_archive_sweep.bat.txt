@@ -1,0 +1,10 @@
+test_fast_archive_sweep.bat
+
+0.1.2 - 2026-08-28
+  - Replaced FINDSTR exact-line metadata checks with PowerShell UTF-8 checks.
+  - Failure paths retain and print temporary artifacts and logs.
+  - Clarified that no test_all.bat prerequisite exists.
+
+0.1.1 - 2026-08-28
+  - Fast-combined three-snapshot acceptance test for 1,306 logical checks.
+  - External-public plan-only verification.

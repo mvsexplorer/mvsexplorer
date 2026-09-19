@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validation for the dual-executor archive-wide sweep.
 
-Version: 0.2.1
+Version: 0.2.2
 """
 from pathlib import Path
 import re
@@ -53,9 +53,13 @@ def main():
     analyzer=check_batch(ROOT/"test"/"analyze_archive_sweep_performance.bat",(
         ':_MVSPerformance_start','performance-by-tool.tsv','fast-batches.tsv'
     ))
-    check_batch(ROOT/"test"/"test_fast_archive_sweep.bat",(
-        'fast-combined 1306 logical checks','--external-tools','--plan-only'
+    fast_test=check_batch(ROOT/"test"/"test_fast_archive_sweep.bat",(
+        'fast-combined 1306 logical checks','--external-tools','--plan-only',
+        ':AssertMetadataLine','Get-Content -LiteralPath $env:mvs_assert_file -Encoding UTF8',
+        'Artifacts retained at:'
     ))
+    if 'findstr /x /c:"Executor:' in fast_test:
+        fail("fast acceptance test still uses brittle FINDSTR exact metadata checks")
 
     public=sorted(ROOT.glob("*.bat"))
     compare=[p for p in public if p.name.startswith("compare_mvs_dump_")]
@@ -80,6 +84,7 @@ def main():
         ROOT/"dev"/"templates"/"archive-sweep.bat.tpl",
         ROOT/"dev"/"templates"/"fast-sweep.bat.tpl",
         ROOT/"dev"/"templates"/"performance-analyzer.bat.tpl",
+        ROOT/"dev"/"templates"/"fast-archive-test.bat.tpl",
         ROOT/"doc"/"archive-sweep.md",
         ROOT/"doc"/"performance-architecture.md",
     )

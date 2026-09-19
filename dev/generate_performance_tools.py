@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate archive-sweep high-performance workers and analyzer.
 
-Version: 0.1.1
+Version: 0.1.2
 """
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
@@ -29,4 +29,6 @@ def main():
     ptpl=read(DEV/"templates"/"performance-analyzer.bat.tpl")
     write_bat(ROOT/"test"/"analyze_archive_sweep_performance.bat",inject(ptpl,{
       "VERSION":"0.1.0","BATCH_COMMON":common,"PERFORMANCE_POWERSHELL":perf}))
+    fast_test=read(DEV/"templates"/"fast-archive-test.bat.tpl")
+    write_bat(ROOT/"test"/"test_fast_archive_sweep.bat",fast_test)
 if __name__=="__main__": main()

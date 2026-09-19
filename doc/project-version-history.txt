@@ -1,5 +1,14 @@
 MVS Explorer Toolkit Project Version History
 
+0.13.2 - 2026-08-28
+  - Maintenance release for test_fast_archive_sweep.bat metadata validation.
+  - 443 public root tools are byte-for-byte unchanged from 0.13.1.
+  - No prerequisite test_all.bat run is required before test_fast_archive_sweep.bat.
+  - Replaced brittle FINDSTR exact-line metadata assertions with PowerShell UTF-8 content checks.
+  - Fast acceptance-test failures now print and retain the temporary results folder, summary, run-info, and captured sweep log.
+  - Added dev\templates\fast-archive-test.bat.tpl so the acceptance test is generated from maintained source.
+  - Added a static regression guard rejecting the old FINDSTR executor metadata check.
+
 0.13.1 - 2026-08-28
   - Maintenance release for the fast-combined archive sweep.
   - 443 public root tools are unchanged from 0.13.0.

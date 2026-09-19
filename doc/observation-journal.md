@@ -341,3 +341,10 @@ The combined executor is appropriate for status-level archive coverage. Literal 
 A clean regression run of all public tools does not exercise the embedded PowerShell inside
 `test\fast\` workers. Parser-sensitive constructs in combined workers therefore need dedicated
 Windows acceptance and static regression guards in addition to the normal public-tool suite.
+
+### Acceptance-test diagnostics must survive assertion failures
+
+A wrapper-level test can fail after the system under test has already
+succeeded. Metadata assertions therefore need their own robust encoding-aware
+reader, and failure paths must expose the temporary result directory instead
+of silently leaving it under `%TEMP%`.
