@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validator for generated public batch files.
 
-Version: 0.6.0
+Version: 0.7.0
 """
 from pathlib import Path
 import collections
@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     issues = []
     files = sorted(ROOT.glob("*.bat"))
+    optimized = {"scalar":0,"lookup":0,"relationship":0,"single":0}
     for path in files:
         raw = path.read_bytes()
         if raw.startswith(b"\xef\xbb\xbf"):
@@ -20,6 +21,22 @@ def main():
         if b"\n" in raw.replace(b"\r\n", b""):
             issues.append(f"{path.name}: non-CRLF newline")
         text = raw.decode("utf-8").replace("\r\n", "\n")
+        if ":_MVSQuery_start" in text:
+            optimized["scalar"] += 1
+            if "$needsDate" not in text or "$needsNote" not in text:
+                issues.append(f"{path.name}: scalar projection-aware enrichment optimization missing")
+        if ":_MVSLookup_start" in text:
+            optimized["lookup"] += 1
+            if "$needsDate" not in text or "$needsNote" not in text:
+                issues.append(f"{path.name}: lookup projection-aware enrichment optimization missing")
+        if ":_MVSRelationship_start" in text:
+            optimized["relationship"] += 1
+            if "$needsDate = $Fields -contains 'date'" not in text or "$HashFilenameSeen" not in text:
+                issues.append(f"{path.name}: relationship optimization missing")
+        if ":_MVSSingleDump_start" in text:
+            optimized["single"] += 1
+            if "$needed.Contains('mvs_names.txt')" not in text or "hash_by_filename" not in text or "New-IgnoreCaseSet" not in text:
+                issues.append(f"{path.name}: single-dump lazy/index/hashset optimization missing")
         for label in (":setup", ":main", ":end", ":RunPowerShellFromLabel", ":SetErrorLevel"):
             if label not in text:
                 issues.append(f"{path.name}: missing {label}")
@@ -68,10 +85,14 @@ def main():
             issues.append(f"{path.name}: duplicate labels {dup}")
     if len(files) != 443:
         issues.append(f"root public .bat count expected 443, got {len(files)}")
+    expected_optimized = {"scalar":120,"lookup":7,"relationship":96,"single":154}
+    if optimized != expected_optimized:
+        issues.append(f"optimized family counts expected {expected_optimized}, got {optimized}")
     if issues:
         print("\n".join(issues), file=sys.stderr)
         return 1
     print(f"PASS: {len(files)} public standalone batch files")
+    print(f"PASS: 377 optimized generated public tools ({optimized})")
     return 0
 
 if __name__ == "__main__":

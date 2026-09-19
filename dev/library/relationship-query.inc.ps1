@@ -133,6 +133,7 @@ function Read-NotesByTitle {
 function Add-HashFilename {
     param(
         [hashtable]$HashIndex,
+        [hashtable]$HashFilenameSeen,
         [System.Collections.ArrayList]$HashOrder,
         [string]$Hash,
         [string]$Filename
@@ -142,15 +143,14 @@ function Add-HashFilename {
     $hashKey = $Hash.ToLowerInvariant()
     if (-not $HashIndex.ContainsKey($hashKey)) {
         $HashIndex[$hashKey] = New-Object System.Collections.ArrayList
+        $HashFilenameSeen[$hashKey] = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
         [void]$HashOrder.Add($hashKey)
     }
-    $filenameKey = $Filename.Trim().ToLowerInvariant()
-    foreach ($existing in $HashIndex[$hashKey]) {
-        if ($existing.key -eq $filenameKey) { return }
-    }
+    $filename = $Filename.Trim()
+    if (-not $HashFilenameSeen[$hashKey].Add($filename)) { return }
     [void]$HashIndex[$hashKey].Add([pscustomobject]@{
-        key = $filenameKey
-        filename = $Filename.Trim()
+        key = $filename.ToLowerInvariant()
+        filename = $filename
     })
 }
 
@@ -182,13 +182,18 @@ function Read-RelationshipData {
     $sha1Path = Join-Path $DumpFolder 'mvs.sha1'
     $sha256Path = Join-Path $DumpFolder 'mvs.sha256'
 
-    $dates = Read-DatesById $datesPath
-    $notes = Read-NotesByTitle $notesPath
+    # Only enrich owners with fields that the selected projection emits.
+    # mvs.txt remains the same required ownership source.
+    $needsDate = $Fields -contains 'date'
+    $needsNote = $Fields -contains 'note'
+    $dates = if ($needsDate) { Read-DatesById $datesPath } else { @{} }
+    $notes = if ($needsNote) { Read-NotesByTitle $notesPath } else { @{} }
 
     $ownersByFilename = @{}
     $filenameCatalog = @{}
     $filenameOrder = New-Object System.Collections.ArrayList
     $hashIndex = @{}
+    $hashFilenameSeen = @{}
     $hashOrder = New-Object System.Collections.ArrayList
     $ownerOrder = 0
 
@@ -233,7 +238,7 @@ function Read-RelationshipData {
                 $filenameKey = $filename.ToLowerInvariant()
 
                 Add-FilenameCatalog $filenameCatalog $filenameOrder $filename
-                Add-HashFilename $hashIndex $hashOrder $hash $filename
+                Add-HashFilename $hashIndex $hashFilenameSeen $hashOrder $hash $filename
 
                 if (-not $ownersByFilename.ContainsKey($filenameKey)) {
                     $ownersByFilename[$filenameKey] = New-Object System.Collections.ArrayList
@@ -259,7 +264,7 @@ function Read-RelationshipData {
             if ($line -match $pattern) {
                 $filename = $Matches.filename.Trim()
                 Add-FilenameCatalog $filenameCatalog $filenameOrder $filename
-                Add-HashFilename $hashIndex $hashOrder $Matches.hash $filename
+                Add-HashFilename $hashIndex $hashFilenameSeen $hashOrder $Matches.hash $filename
             }
         }
     }

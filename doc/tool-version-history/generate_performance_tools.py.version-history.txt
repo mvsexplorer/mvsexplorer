@@ -1,0 +1,4 @@
+generate_performance_tools.py Version History
+
+0.1.0 - 2026-08-28
+  - Initial generator for combined fast runners and archive-sweep performance analyzer.

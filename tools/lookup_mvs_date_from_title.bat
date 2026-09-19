@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone tool embeds PowerShell and should not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.4.0"
+set "app.version=0.4.1"
 set "app.name=lookup_mvs_date_from_title"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -221,15 +221,24 @@ function Read-Products {
         throw [System.IO.FileNotFoundException]::new(('Missing required file: ' + $datesPath))
     }
 
+    # Keep the same required files/return-code contract, but parse only
+    # enrichment fields that participate in this lookup.
+    $sourceField = ([string]$env:mvsl_source).Trim().ToLowerInvariant()
+    $targetField = ([string]$env:mvsl_target).Trim().ToLowerInvariant()
+    $needsDate = ($sourceField -eq 'date') -or ($targetField -eq 'date')
+    $needsNote = ($sourceField -eq 'note') -or ($targetField -eq 'note')
+
     $datesById = @{}
-    foreach ($line in Get-Content -LiteralPath $datesPath -Encoding UTF8) {
-        if ($line -match '^(?<date>.*?)\s+-\s+.*?\[ID:\s*(?<id>\d+)\]\s*$') {
-            $datesById[[int]$Matches.id] = $Matches.date.Trim()
+    if ($needsDate) {
+        foreach ($line in Get-Content -LiteralPath $datesPath -Encoding UTF8) {
+            if ($line -match '^(?<date>.*?)\s+-\s+.*?\[ID:\s*(?<id>\d+)\]\s*$') {
+                $datesById[[int]$Matches.id] = $Matches.date.Trim()
+            }
         }
     }
 
     $notesByTitle = @{}
-    if (Test-Path -LiteralPath $notesPath -PathType Leaf) {
+    if ($needsNote -and (Test-Path -LiteralPath $notesPath -PathType Leaf)) {
         $html = Get-Content -LiteralPath $notesPath -Raw -Encoding UTF8
         $noteMatches = [regex]::Matches($html, '(?is)<h1>(.*?)</h1>(.*?)(?=<h1>|\z)')
         foreach ($match in $noteMatches) {

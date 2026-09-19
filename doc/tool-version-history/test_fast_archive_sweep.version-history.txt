@@ -1,0 +1,6 @@
+test_fast_archive_sweep.bat Version History
+
+0.1.0 - 2026-08-28
+  - Initial Windows acceptance test for fast-combined archive execution.
+  - Uses the three-snapshot synthetic history fixture (1,306 logical checks).
+  - Also verifies external-public plan-only mode for the same logical plan size.

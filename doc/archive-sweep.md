@@ -175,3 +175,33 @@ clean fixed test suite does not prove that every historical snapshot parses
 without runtime errors.
 
 `test_all.bat` deliberately does **not** invoke the archive sweep; otherwise the normal regression suite would expand from 1,056 assertions into tens of thousands of real-data process launches.
+
+## 0.13.0 execution modes
+
+The default executor is `fast-combined`:
+
+```bat
+test\test_all_dumps.bat ..\mvs_dumps_archive
+```
+
+It evaluates the same deterministic logical plan in snapshot/pair batches and records the executor in `plan.tsv`, `runs.tsv`, `run-info.txt`, and the plan hash.
+
+Force literal standalone public-tool execution with:
+
+```bat
+test\test_all_dumps.bat ..\mvs_dumps_archive --external-tools
+```
+
+That executor is recorded as `external-public`.
+
+`--plan-only` and `--resume` remain supported in both modes. Resume rejects a results folder created by the other executor.
+
+In `external-public` mode, successful stdout is discarded rather than persisted to a temporary file. If a logical invocation fails, the tool is rerun with full stdout/stderr capture for the failure artifacts.
+
+For performance measurements from an existing result directory:
+
+```bat
+test\analyze_archive_sweep_performance.bat test\archive-sweep-results-YYYYMMDD-HHMMSS
+```
+
+See `doc\performance-architecture.md`.

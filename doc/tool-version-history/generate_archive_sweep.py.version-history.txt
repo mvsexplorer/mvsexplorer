@@ -1,5 +1,9 @@
 generate_archive_sweep.py Version History
 
+0.2.0 - 2026-08-28
+  - Generates dual-executor archive sweep with fast-combined default and --external-tools compatibility mode.
+  - Adds executor-aware plan hashing/resume and fast batch result integration.
+
 0.1.0 - 2026-08-27
   - Initial generator for standalone test\test_all_dumps.bat.
   - Injects common batch functions and archive-sweep PowerShell source.

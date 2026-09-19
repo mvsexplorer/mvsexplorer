@@ -1,4 +1,4 @@
-# MVS Explorer Toolkit 0.12.0
+# MVS Explorer Toolkit 0.13.0
 
 MVS Explorer Toolkit is a growing collection of console tools for exploring MVS dump snapshots, intended to culminate in the graphical **MVS Explorer** application.
 
@@ -702,3 +702,32 @@ test\test_history_tools.bat
 The history-only suite contributes **65 assertions**. With the two new
 standalone structure checks, the 0.11.0 full suite contains **1,056 total
 assertions**; NOTE lookup pass/skip distribution remains data-dependent.
+
+## 0.13.0 performance update
+
+The public root remains 443 standalone tools. 377 generated public tools received performance-only internal changes without changing their interfaces or scopes.
+
+The archive-wide sweep now defaults to a combined executor:
+
+```bat
+test\test_all_dumps.bat ..\mvs_dumps_archive
+```
+
+Use the literal public tools instead with:
+
+```bat
+test\test_all_dumps.bat ..\mvs_dumps_archive --external-tools
+```
+
+The combined path records `executor=fast-combined`; the literal path records `executor=external-public`. Executor identity is part of the deterministic plan hash and resume safety.
+
+Additional performance utilities:
+
+```text
+test\fast\run_snapshot_tools_fast.bat
+test\fast\run_compare_tools_fast.bat
+test\analyze_archive_sweep_performance.bat
+test\test_fast_archive_sweep.bat
+```
+
+See `doc\performance-architecture.md`.

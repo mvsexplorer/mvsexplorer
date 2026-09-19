@@ -1,87 +1,91 @@
 #!/usr/bin/env python3
-"""Static validation for the archive-wide sweep harness.
+"""Static validation for the dual-executor archive-wide sweep.
 
-Version: 0.1.0
+Version: 0.2.0
 """
 from pathlib import Path
-import hashlib
+import re
 import sys
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT=Path(__file__).resolve().parents[1]
 
 def fail(message):
-    print("FAIL:", message)
+    print("FAIL:",message,file=sys.stderr)
     raise SystemExit(1)
 
-def main():
-    batch = ROOT / "test" / "test_all_dumps.bat"
-    if not batch.is_file():
-        fail("missing test/test_all_dumps.bat")
-
-    raw = batch.read_bytes()
-    if raw.startswith(b"\xef\xbb\xbf"):
-        fail("test_all_dumps.bat has UTF-8 BOM")
-    if b"\n" in raw.replace(b"\r\n", b""):
-        fail("test_all_dumps.bat contains non-CRLF newlines")
-    text = raw.decode("utf-8")
-
-    for marker in (
-        "@echo off\r\n:setup\r\n",
-        "\r\n:main\r\n",
-        "\r\n:end\r\n",
-        "\r\nGoTo :EOF\r\n",
-        "\r\n:_MVSArchiveSweep_start\r\n",
-        "\r\n:_MVSArchiveSweep_end\r\n",
-    ):
-        if marker not in text:
-            fail("missing batch marker: " + repr(marker))
-    if "@@" in text:
-        fail("unresolved template marker")
+def check_batch(path,markers=()):
+    if not path.is_file(): fail("missing "+str(path.relative_to(ROOT)))
+    raw=path.read_bytes()
+    if raw.startswith(b"\xef\xbb\xbf"): fail(str(path.relative_to(ROOT))+" has UTF-8 BOM")
+    if b"\n" in raw.replace(b"\r\n",b""): fail(str(path.relative_to(ROOT))+" contains non-CRLF newlines")
+    text=raw.decode("utf-8")
+    if "@@" in text: fail(str(path.relative_to(ROOT))+" has unresolved template marker")
     if any(line.rstrip("\r\n").endswith("^") for line in text.splitlines(True)):
-        fail("trailing-caret continuation found")
+        fail(str(path.relative_to(ROOT))+" has trailing-caret continuation")
+    for marker in markers:
+        if marker not in text: fail(str(path.relative_to(ROOT))+" missing token "+marker)
+    return text
 
-    for token in (
-        "--plan-only",
-        "--resume",
-        "plan-sha256.txt",
-        "runs.tsv",
-        "SOURCE_MISSING",
-        "NO_RESULT",
-        "archive-output",
-        "mvs_dmp",
-        "compare_mvs_dump_*.bat",
-        "build_mvs_dump_change_history.bat",
-        "build_mvs_dump_all_ever.bat",
-    ):
-        if token not in text:
-            fail("missing archive-sweep feature token: " + token)
+def main():
+    batch=ROOT/"test"/"test_all_dumps.bat"
+    text=check_batch(batch,(
+        "@echo off\r\n:setup\r\n", "\r\n:main\r\n", "\r\n:end\r\n", "\r\nGoTo :EOF\r\n",
+        "\r\n:_MVSArchiveSweep_start\r\n", "\r\n:_MVSArchiveSweep_end\r\n",
+        "--plan-only","--resume","--external-tools","fast-combined","external-public",
+        "plan-sha256.txt","runs.tsv","fast-batches.tsv","SOURCE_MISSING","NO_RESULT",
+        "archive-output","mvs_dmp","run_snapshot_tools_fast.bat","run_compare_tools_fast.bat",
+        "1> $null","Executor: "
+    ))
+    if 'executor`tscope`tsnapshot' not in text:
+        fail("plan/runs executor identity is not serialized")
 
-    public = sorted(ROOT.glob("*.bat"))
-    compare = [p for p in public if p.name.startswith("compare_mvs_dump_")]
-    archive_names = {"build_mvs_dump_change_history.bat", "build_mvs_dump_all_ever.bat"}
-    archive = [p for p in public if p.name in archive_names]
-    single = [p for p in public if p not in compare and p not in archive]
-    if len(public) != 443:
-        fail("expected 443 public root tools, got %d" % len(public))
-    if len(single) != 422 or len(compare) != 19 or len(archive) != 2:
-        fail("unexpected scope counts: single=%d compare=%d archive=%d" %
-             (len(single), len(compare), len(archive)))
+    snap=check_batch(ROOT/"test"/"fast"/"run_snapshot_tools_fast.bat",(
+        ':_MVSFastSweep_start','mvsf_mode=snapshot','Get-SingleStatus','Read-FastModel'
+    ))
+    comp=check_batch(ROOT/"test"/"fast"/"run_compare_tools_fast.bat",(
+        ':_MVSFastSweep_start','mvsf_mode=compare','Get-CompareStatus'
+    ))
+    analyzer=check_batch(ROOT/"test"/"analyze_archive_sweep_performance.bat",(
+        ':_MVSPerformance_start','performance-by-tool.tsv','fast-batches.tsv'
+    ))
+    check_batch(ROOT/"test"/"test_fast_archive_sweep.bat",(
+        'fast-combined 1306 logical checks','--external-tools','--plan-only'
+    ))
 
-    supplied_snapshot_count = 79
-    planned = len(single) * supplied_snapshot_count + len(compare) * (supplied_snapshot_count - 1) + len(archive)
-    if planned != 34822:
-        fail("79-snapshot plan count mismatch: %d" % planned)
+    public=sorted(ROOT.glob("*.bat"))
+    compare=[p for p in public if p.name.startswith("compare_mvs_dump_")]
+    archive_names={"build_mvs_dump_change_history.bat","build_mvs_dump_all_ever.bat"}
+    archive=[p for p in public if p.name in archive_names]
+    single=[p for p in public if p not in compare and p not in archive]
+    if (len(public),len(single),len(compare),len(archive)) != (443,422,19,2):
+        fail("unexpected public scope counts: public=%d single=%d compare=%d archive=%d" %
+             (len(public),len(single),len(compare),len(archive)))
 
-    generator = ROOT / "dev" / "generate_archive_sweep.py"
-    library = ROOT / "dev" / "library" / "archive-sweep.inc.ps1"
-    template = ROOT / "dev" / "templates" / "archive-sweep.bat.tpl"
-    for path in (generator, library, template, ROOT / "doc" / "archive-sweep.md"):
-        if not path.is_file():
-            fail("missing maintained file: " + str(path.relative_to(ROOT)))
+    planned=len(single)*79+len(compare)*78+len(archive)
+    if planned != 34822: fail("79-snapshot plan count mismatch: %d"%planned)
+    synthetic=len(single)*3+len(compare)*2+len(archive)
+    if synthetic != 1306: fail("3-snapshot fast-test plan mismatch: %d"%synthetic)
 
-    print("PASS: archive sweep static validation")
+    maintained=(
+        ROOT/"dev"/"generate_archive_sweep.py",
+        ROOT/"dev"/"generate_performance_tools.py",
+        ROOT/"dev"/"library"/"archive-sweep.inc.ps1",
+        ROOT/"dev"/"library"/"fast-sweep.inc.ps1",
+        ROOT/"dev"/"library"/"archive-performance.inc.ps1",
+        ROOT/"dev"/"templates"/"archive-sweep.bat.tpl",
+        ROOT/"dev"/"templates"/"fast-sweep.bat.tpl",
+        ROOT/"dev"/"templates"/"performance-analyzer.bat.tpl",
+        ROOT/"doc"/"archive-sweep.md",
+        ROOT/"doc"/"performance-architecture.md",
+    )
+    for p in maintained:
+        if not p.is_file(): fail("missing maintained file: "+str(p.relative_to(ROOT)))
+
+    print("PASS: archive sweep/performance static validation")
     print("public tools: 443 (single=422 compare=19 archive=2)")
-    print("supplied archive plan: 34,822 invocations for 79 snapshots")
+    print("executors: fast-combined (default), external-public (--external-tools)")
+    print("supplied archive plan: 34,822 logical checks for 79 snapshots")
+    print("fast-test plan: 1,306 logical checks for 3 snapshots")
 
-if __name__ == "__main__":
+if __name__=="__main__":
     main()

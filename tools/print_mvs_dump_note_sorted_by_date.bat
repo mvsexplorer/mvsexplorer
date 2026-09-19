@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone tool embeds PowerShell and should not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.4.0"
+set "app.version=0.4.1"
 set "app.name=print_mvs_dump_note_sorted_by_date"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -221,15 +221,24 @@ function Read-Products {
         throw [System.IO.FileNotFoundException]::new(('Missing required file: ' + $datesPath))
     }
 
+    # Preserve the historical source-file requirement while avoiding enrichment
+    # work that the current projection/sort cannot observe.
+    $requestedFields = @(([string]$env:mvsq_fields).Split(',') | ForEach-Object { $_.Trim().ToLowerInvariant() })
+    $requestedSort = ([string]$env:mvsq_sort).Trim().ToLowerInvariant()
+    $needsDate = ($requestedFields -contains 'date') -or ($requestedSort -eq 'date')
+    $needsNote = $requestedFields -contains 'note'
+
     $datesById = @{}
-    foreach ($line in Get-Content -LiteralPath $datesPath -Encoding UTF8) {
-        if ($line -match '^(?<date>.*?)\s+-\s+.*?\[ID:\s*(?<id>\d+)\]\s*$') {
-            $datesById[[int]$Matches.id] = $Matches.date.Trim()
+    if ($needsDate) {
+        foreach ($line in Get-Content -LiteralPath $datesPath -Encoding UTF8) {
+            if ($line -match '^(?<date>.*?)\s+-\s+.*?\[ID:\s*(?<id>\d+)\]\s*$') {
+                $datesById[[int]$Matches.id] = $Matches.date.Trim()
+            }
         }
     }
 
     $notesByTitle = @{}
-    if (Test-Path -LiteralPath $notesPath -PathType Leaf) {
+    if ($needsNote -and (Test-Path -LiteralPath $notesPath -PathType Leaf)) {
         $html = Get-Content -LiteralPath $notesPath -Raw -Encoding UTF8
         $noteMatches = [regex]::Matches($html, '(?is)<h1>(.*?)</h1>(.*?)(?=<h1>|\z)')
         foreach ($match in $noteMatches) {

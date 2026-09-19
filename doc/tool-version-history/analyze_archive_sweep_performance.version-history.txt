@@ -1,0 +1,5 @@
+analyze_archive_sweep_performance.bat Version History
+
+0.1.0 - 2026-08-28
+  - Initial analyzer for existing archive-sweep runs.tsv timing/status data.
+  - Produces tool/family timing reports without rerunning public tools.

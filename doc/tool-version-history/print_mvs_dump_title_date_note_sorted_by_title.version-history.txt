@@ -5,6 +5,11 @@ Purpose
   Output: human-readable labeled output
   Ordering: natural/alphanumeric TITLE ascending, ID tie-break
 
+0.4.1 - 2026-08-28
+  - Performance-only regeneration for project 0.13.0.
+  - Parses date/note enrichment only when requested by the projection/sort.
+  - Public arguments, stdout ordering/format, and return-code contract are unchanged.
+
 0.4.0 - 2026-08-27
   - Regenerated for project 0.6.0.
   - Uses RunPowerShellFromLabel 1.2.0 direct child-process return.

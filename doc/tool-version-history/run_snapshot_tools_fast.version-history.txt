@@ -1,0 +1,6 @@
+run_snapshot_tools_fast.bat Version History
+
+0.1.0 - 2026-08-28
+  - Initial combined fast executor for the 422 logical single-snapshot checks.
+  - Parses/reuses one snapshot model per batch and emits logical status rows.
+  - Non-public test utility under test\fast.

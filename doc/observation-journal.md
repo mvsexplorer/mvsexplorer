@@ -324,3 +324,15 @@ Archive-builder datasets are durable outputs and should be retained.
 Resuming by row number alone is unsafe if snapshots or tools have changed.
 Hashing the complete deterministic plan makes an interrupted run resumable
 without silently changing its work definition.
+
+### Literal standalone execution is not the right unit for a 34,822-check archive audit
+
+The 0.12.0 partial run established that wrapper-level process startup, repeated parsing, repeated enrichment, and large temporary stdout writes compound dramatically over tens of thousands of calls. Correct public tools can remain independently executable while a separate bulk executor reuses parsing for the archive-wide task.
+
+### Summary/statistics exposed quadratic-style membership work
+
+Early snapshots showed roughly 13.4–14.1 minute summary/statistics calls. Repeated PowerShell array membership inside large loops is unsuitable for this scale; HashSet-backed membership is the correct primitive for repeated existence checks.
+
+### Fast logical validation and literal wrapper validation are different guarantees
+
+The combined executor is appropriate for status-level archive coverage. Literal wrapper output/return-code behavior remains covered by the normal regression suite and, when desired, the archive sweep's `--external-tools` mode. Result metadata must make that distinction visible.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the standalone archive-wide tool sweep harness.
 
-Version: 0.1.0
+Version: 0.2.0
 """
 from pathlib import Path
 
@@ -20,7 +20,7 @@ def main():
     powershell = read(DEV / "library" / "archive-sweep.inc.ps1")
     text = template
     values = {
-        "TOOL_VERSION": "0.1.0",
+        "TOOL_VERSION": "0.2.0",
         "BATCH_COMMON": batch_common,
         "ARCHIVE_SWEEP_POWERSHELL": powershell,
     }

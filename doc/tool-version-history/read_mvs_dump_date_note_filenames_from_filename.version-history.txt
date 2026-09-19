@@ -8,6 +8,11 @@ Purpose
   Hash index sources: mvs.txt, mvs.sha1, mvs.sha256
   Standalone: yes; complete batch/PowerShell implementation is injected
 
+0.1.1 - 2026-08-28
+  - Performance-only regeneration for project 0.13.0.
+  - Skips unused date/note enrichment and uses HashSet-backed hash/filename deduplication.
+  - Public arguments, relationship semantics, output, and return codes are unchanged.
+
 0.1.0 - 2026-08-27
   - Initial version.
   - Added filename/hash relationship traversal to product metadata.

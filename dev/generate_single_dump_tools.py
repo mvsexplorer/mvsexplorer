@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate standalone single-dump completeness tools.
 
-Version: 0.1.1
+Version: 0.1.2
 
 Development-time only. Generated root .bat files contain all batch and
 PowerShell implementation required at runtime.

@@ -216,3 +216,21 @@ TWO-DUMP COMPARISON
 
 COMPARISON TEST
   test\test_compare_tools.bat
+
+Archive-wide performance sweep (0.13.0)
+---------------------------------------
+Default combined executor:
+  test\test_all_dumps.bat mvs-dumps-root
+
+Literal public-tool executor:
+  test\test_all_dumps.bat mvs-dumps-root --external-tools
+
+Plan only:
+  test\test_all_dumps.bat mvs-dumps-root --plan-only
+  test\test_all_dumps.bat mvs-dumps-root --plan-only --external-tools
+
+Analyze an existing sweep:
+  test\analyze_archive_sweep_performance.bat result-folder
+
+Fast executor acceptance test:
+  test\test_fast_archive_sweep.bat

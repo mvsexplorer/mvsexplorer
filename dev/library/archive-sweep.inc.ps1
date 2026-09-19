@@ -3,8 +3,13 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 [Console]::OutputEncoding = $utf8
 
 $ArchiveInput = [string]$env:mvsa_archive_root
-$OutputInput = [string]$env:mvsa_output_root
-$Option = [string]$env:mvsa_option
+$Arg2 = [string]$env:mvsa_arg2
+$Arg3 = [string]$env:mvsa_arg3
+$Arg4 = [string]$env:mvsa_arg4
+$OutputInput = ''
+$PlanOnly = $false
+$Resume = $false
+$Executor = 'fast-combined'
 $Caller = [string]$env:mvsa_caller
 $ScriptRoot = ([string]$env:mvsa_script_root).TrimEnd('\','/')
 $Version = [string]$env:mvsa_version
@@ -30,13 +35,14 @@ function Fail {
 
 function Show-Usage {
     Write-Line ('MVS Explorer Toolkit archive-wide tool sweep ' + $Version)
-    Write-Line ('Usage: ' + $Caller + ' mvs-dumps-root [results-folder] [--plan-only|--resume]')
-    Write-Line 'Runs every public root .bat tool against the archive at its natural scope.'
-    Write-Line 'Single-dump tools run once per snapshot; compare tools run on adjacent snapshots.'
-    Write-Line 'Archive history/all-ever builders run once against the complete archive.'
+    Write-Line ('Usage: ' + $Caller + ' mvs-dumps-root [results-folder] [--plan-only] [--resume] [--external-tools]')
+    Write-Line 'Default executor: fast-combined (shared parse, logical status validation).'
+    Write-Line '--external-tools executes every public .bat wrapper literally.'
+    Write-Line 'Single-dump logical checks run once per snapshot; compare checks use adjacent snapshots.'
+    Write-Line 'Archive history/all-ever builders are always executed literally once against the complete archive.'
     Write-Line 'Return codes 1 and 4 are recorded as NO_RESULT and SOURCE_MISSING, not runtime failures.'
-    Write-Line 'Use --plan-only to build the complete invocation plan without launching public tools.'
-    Write-Line 'Use --resume with an existing results folder to continue an interrupted matching plan.'
+    Write-Line '--plan-only writes the deterministic plan without executing checks.'
+    Write-Line '--resume requires an existing matching results folder; executor identity is part of the plan hash.'
 }
 
 function Write-TextUtf8 {
@@ -305,29 +311,70 @@ function Get-ToolMetadata {
     param([IO.FileInfo]$Tool)
     $name = [IO.Path]::GetFileNameWithoutExtension($Tool.Name)
     $text = [IO.File]::ReadAllText($Tool.FullName)
+
+    function Get-SetValue {
+        param([string]$Variable)
+        $m = [regex]::Match($text, '(?im)^set "' + [regex]::Escape($Variable) + '=([^"]*)"')
+        if ($m.Success) { return $m.Groups[1].Value }
+        return ''
+    }
+
     $operation = ''
     $searchSource = ''
     $family = 'other'
-    $m = [regex]::Match($text, '(?im)^set "mvsx_operation=([^"]*)"')
-    if ($m.Success) {
+    $fields = ''
+    $algorithmFilter = ''
+    $sourceFile = ''
+    $diagnosticKind = ''
+    $targetField = ''
+
+    $operation = Get-SetValue 'mvsx_operation'
+    if (-not [string]::IsNullOrEmpty($operation)) {
         $family = 'single-complete'
-        $operation = $m.Groups[1].Value
-        $s = [regex]::Match($text, '(?im)^set "mvsx_search_source=([^"]*)"')
-        if ($s.Success) { $searchSource = $s.Groups[1].Value }
+        $searchSource = Get-SetValue 'mvsx_search_source'
+        $fields = Get-SetValue 'mvsx_fields'
+        $algorithmFilter = Get-SetValue 'mvsx_algorithm_filter'
+        $sourceFile = Get-SetValue 'mvsx_source_file'
+        $diagnosticKind = Get-SetValue 'mvsx_diagnostic_kind'
     } else {
-        $r = [regex]::Match($text, '(?im)^set "mvsr_source=([^"]*)"')
-        if ($r.Success) {
+        $relationshipSource = Get-SetValue 'mvsr_source'
+        if (-not [string]::IsNullOrEmpty($relationshipSource)) {
             $family = 'relationship'
-            $searchSource = $r.Groups[1].Value
-        } elseif ($name -match '^lookup_mvs_.+_from_(id|title|date)$') {
-            $family = 'lookup'
-            $searchSource = $Matches[1]
-        } elseif ($name -match '^(?:print|read)_mvs_dump_') {
-            $family = 'scalar'
-        } elseif ($name -match '^find_mvs_') {
-            $family = 'diagnostic'
+            $searchSource = $relationshipSource
+            $fields = Get-SetValue 'mvsr_fields'
+        } else {
+            $lookupSource = Get-SetValue 'mvsl_source'
+            if (-not [string]::IsNullOrEmpty($lookupSource)) {
+                $family = 'lookup'
+                $searchSource = $lookupSource
+                $targetField = Get-SetValue 'mvsl_target'
+            } else {
+                $scalarFields = Get-SetValue 'mvsq_fields'
+                if (-not [string]::IsNullOrEmpty($scalarFields)) {
+                    $family = 'scalar'
+                    $fields = $scalarFields
+                } else {
+                    $compareSource = Get-SetValue 'mvsc_source_file'
+                    if (-not [string]::IsNullOrEmpty($compareSource)) {
+                        $family = 'compare'
+                        $sourceFile = $compareSource
+                    } else {
+                    $diagSource = Get-SetValue 'mvsd_source'
+                    if (-not [string]::IsNullOrEmpty($diagSource)) {
+                        $family = 'diagnostic'
+                        $sourceFile = $diagSource
+                        $target = Get-SetValue 'mvsd_target'
+                        if (-not [string]::IsNullOrEmpty($target)) {
+                            $sourceFile = $sourceFile + '|' + $target
+                        }
+                        $diagnosticKind = Get-SetValue 'mvsd_operation'
+                    }
+                    }
+                }
+            }
         }
     }
+
     return [pscustomobject]@{
         name = $name
         file = $Tool.Name
@@ -335,6 +382,11 @@ function Get-ToolMetadata {
         family = $family
         operation = $operation
         search_source = $searchSource
+        fields = $fields
+        algorithm_filter = $algorithmFilter
+        source_file = $sourceFile
+        diagnostic_kind = $diagnosticKind
+        target_field = $targetField
     }
 }
 
@@ -423,6 +475,7 @@ function Add-PlanEntry {
     )
     [void]$Plan.Add([pscustomobject]@{
         index = $Plan.Count + 1
+        executor = $Executor
         scope = $Scope
         snapshot = $Snapshot
         next_snapshot = $NextSnapshot
@@ -433,6 +486,11 @@ function Add-PlanEntry {
         tool_path = $Tool.path
         family = $Tool.family
         operation = $Tool.operation
+        fields = $Tool.fields
+        algorithm_filter = $Tool.algorithm_filter
+        source_file = $Tool.source_file
+        diagnostic_kind = $Tool.diagnostic_kind
+        target_field = $Tool.target_field
         search_source = $Search.source
         search_value = $Search.value
         search_origin = $Search.origin
@@ -440,23 +498,20 @@ function Add-PlanEntry {
 }
 
 function Get-PlanText {
-    param([System.Collections.ArrayList]$Plan)
+    param([object[]]$Plan)
+    $columns = @(
+        'index','executor','scope','snapshot','next_snapshot','tool','family','operation',
+        'fields','algorithm_filter','source_file','diagnostic_kind','target_field',
+        'search_source','search_value','search_origin'
+    )
     $sb = New-Object Text.StringBuilder
-    [void]$sb.Append("index`tscope`tsnapshot`tnext_snapshot`ttool`tfamily`toperation`tsearch_source`tsearch_value`tsearch_origin`n")
+    [void]$sb.Append(($columns -join [char]9) + "`n")
     foreach ($entry in $Plan) {
-        $fields = @(
-            [string]$entry.index,
-            $entry.scope,
-            $entry.snapshot,
-            $entry.next_snapshot,
-            $entry.tool,
-            $entry.family,
-            $entry.operation,
-            $entry.search_source,
-            $entry.search_value,
-            $entry.search_origin
-        ) | ForEach-Object { Convert-TsvField ([string]$_) }
-        [void]$sb.Append(($fields -join [char]9) + "`n")
+        $values = New-Object System.Collections.ArrayList
+        foreach ($column in $columns) {
+            [void]$values.Add((Convert-TsvField ([string]$entry.$column)))
+        }
+        [void]$sb.Append((@($values) -join [char]9) + "`n")
     }
     return $sb.ToString()
 }
@@ -522,6 +577,7 @@ function Add-RunRow {
     param([string]$RunsPath, [object]$Entry, [string]$Status, [int]$Rc, [long]$StdoutBytes, [long]$StderrBytes, [long]$ElapsedMs)
     $fields = @(
         [string]$Entry.index,
+        $Entry.executor,
         $Entry.scope,
         $Entry.snapshot,
         $Entry.next_snapshot,
@@ -538,12 +594,8 @@ function Add-RunRow {
     Add-TextUtf8 $RunsPath (($fields -join [char]9) + [Environment]::NewLine)
 }
 
-function Invoke-One {
-    param([object]$Entry, [string]$ResultsFolder, [string]$ArchiveRoot, [string]$ArchiveOutput, [string]$RunsPath, [string]$FailureFolder)
-    $stdoutTemp = Join-Path $ResultsFolder '_current.stdout.tmp'
-    $stderrTemp = Join-Path $ResultsFolder '_current.stderr.tmp'
-    Remove-Item -LiteralPath $stdoutTemp,$stderrTemp -Force -ErrorAction SilentlyContinue
-
+function Get-ToolArguments {
+    param([object]$Entry,[string]$ArchiveRoot,[string]$ArchiveOutput)
     $toolArgs = New-Object System.Collections.ArrayList
     if ($Entry.scope -eq 'single') {
         [void]$toolArgs.Add($Entry.data_path)
@@ -557,7 +609,20 @@ function Invoke-One {
     } else {
         throw ('Unknown plan scope: ' + $Entry.scope)
     }
+    return @($toolArgs)
+}
 
+function Invoke-OneExternal {
+    param([object]$Entry, [string]$ResultsFolder, [string]$ArchiveRoot, [string]$ArchiveOutput, [string]$RunsPath, [string]$FailureFolder)
+
+    $stdoutTemp = Join-Path $ResultsFolder '_current.stdout.tmp'
+    $stderrTemp = Join-Path $ResultsFolder '_current.stderr.tmp'
+    Remove-Item -LiteralPath $stdoutTemp,$stderrTemp -Force -ErrorAction SilentlyContinue
+    $toolArgs = Get-ToolArguments $Entry $ArchiveRoot $ArchiveOutput
+
+    # Fast successful path: do not write potentially tens of megabytes of
+    # stdout merely to measure and delete it. stderr is retained long enough
+    # to record byte size and diagnose nonzero status.
     $sw = [Diagnostics.Stopwatch]::StartNew()
     $rc = 5
     try {
@@ -565,7 +630,7 @@ function Invoke-One {
         $oldPreference = $ErrorActionPreference
         $ErrorActionPreference = 'Continue'
         try {
-            & $Entry.tool_path @toolArgs 1> $stdoutTemp 2> $stderrTemp
+            & $Entry.tool_path @toolArgs 1> $null 2> $stderrTemp
             if ($null -eq $LASTEXITCODE) { $rc = 0 } else { $rc = [int]$LASTEXITCODE }
         } finally {
             $ErrorActionPreference = $oldPreference
@@ -577,16 +642,138 @@ function Invoke-One {
         $sw.Stop()
     }
 
-    $stdoutBytes = Get-FileByteLength $stdoutTemp
-    $stderrBytes = Get-FileByteLength $stderrTemp
     $status = Get-RunStatus $Entry.scope $rc
-    Add-RunRow $RunsPath $Entry $status $rc $stdoutBytes $stderrBytes $sw.ElapsedMilliseconds
+    $stdoutBytes = 0
+    $stderrBytes = Get-FileByteLength $stderrTemp
+
     if ($status -eq 'FAIL') {
+        # Rerun only a genuine failure to preserve complete stdout/stderr
+        # artifacts. The recorded elapsed time remains the first execution.
+        Remove-Item -LiteralPath $stdoutTemp -Force -ErrorAction SilentlyContinue
+        $rerunStderr = Join-Path $ResultsFolder '_current.failure.stderr.tmp'
+        Remove-Item -LiteralPath $rerunStderr -Force -ErrorAction SilentlyContinue
+        try {
+            $global:LASTEXITCODE = 0
+            $oldPreference = $ErrorActionPreference
+            $ErrorActionPreference = 'Continue'
+            try {
+                & $Entry.tool_path @toolArgs 1> $stdoutTemp 2> $rerunStderr
+            } finally {
+                $ErrorActionPreference = $oldPreference
+            }
+        } catch {
+            Add-TextUtf8 $rerunStderr (($_ | Out-String) + [Environment]::NewLine)
+        }
+        if (Test-Path -LiteralPath $rerunStderr -PathType Leaf) {
+            Move-Item -LiteralPath $rerunStderr -Destination $stderrTemp -Force
+        }
+        $stdoutBytes = Get-FileByteLength $stdoutTemp
+        $stderrBytes = Get-FileByteLength $stderrTemp
         Save-FailureArtifacts $Entry $rc $stdoutTemp $stderrTemp $FailureFolder
         Write-Line ('[FAIL] #' + $Entry.index + ' ' + $Entry.scope + ' ' + $Entry.snapshot + ' ' + $Entry.tool + ' rc=' + $rc)
     }
+
+    Add-RunRow $RunsPath $Entry $status $rc $stdoutBytes $stderrBytes $sw.ElapsedMilliseconds
     Remove-Item -LiteralPath $stdoutTemp,$stderrTemp -Force -ErrorAction SilentlyContinue
     return $status
+}
+
+function Add-FastBatchRow {
+    param([string]$Path,[string]$Scope,[string]$Snapshot,[string]$NextSnapshot,[int]$LogicalChecks,[string]$Worker,[long]$ElapsedMs,[int]$Rc)
+    $fields=@($Scope,$Snapshot,$NextSnapshot,[string]$LogicalChecks,$Worker,[string]$ElapsedMs,[string]$Rc) |
+        ForEach-Object { Convert-TsvField ([string]$_) }
+    Add-TextUtf8 $Path (($fields -join [char]9) + [Environment]::NewLine)
+}
+
+function Invoke-FastWorker {
+    param(
+        [object[]]$Entries,
+        [string]$WorkerPath,
+        [string]$FirstData,
+        [string]$SecondData,
+        [string]$ResultsFolder,
+        [string]$RunsPath,
+        [string]$FastBatchesPath,
+        [string]$FailureFolder
+    )
+    if ($Entries.Count -eq 0) { return @() }
+
+    $slicePath=Join-Path $ResultsFolder '_fast.current.plan.tsv'
+    $outputPath=Join-Path $ResultsFolder '_fast.current.results.tsv'
+    $stderrPath=Join-Path $ResultsFolder '_fast.current.stderr.txt'
+    Remove-Item -LiteralPath $slicePath,$outputPath,$stderrPath -Force -ErrorAction SilentlyContinue
+    Write-TextUtf8 $slicePath (Get-PlanText $Entries)
+
+    $scope=[string]$Entries[0].scope
+    $snapshot=[string]$Entries[0].snapshot
+    $nextSnapshot=[string]$Entries[0].next_snapshot
+    $workerName=[IO.Path]::GetFileName($WorkerPath)
+
+    $sw=[Diagnostics.Stopwatch]::StartNew()
+    $rc=5
+    try {
+        $global:LASTEXITCODE=0
+        $oldPreference=$ErrorActionPreference
+        $ErrorActionPreference='Continue'
+        try {
+            if ($scope -eq 'single') {
+                & $WorkerPath $FirstData $slicePath $outputPath 1> $null 2> $stderrPath
+            } elseif ($scope -eq 'compare') {
+                & $WorkerPath $FirstData $SecondData $slicePath $outputPath 1> $null 2> $stderrPath
+            } else {
+                throw ('Fast worker cannot execute scope: ' + $scope)
+            }
+            if ($null -eq $LASTEXITCODE) {$rc=0}else{$rc=[int]$LASTEXITCODE}
+        } finally {
+            $ErrorActionPreference=$oldPreference
+        }
+    } catch {
+        $rc=5
+        Add-TextUtf8 $stderrPath (($_ | Out-String) + [Environment]::NewLine)
+    } finally {
+        $sw.Stop()
+    }
+
+    Add-FastBatchRow $FastBatchesPath $scope $snapshot $nextSnapshot $Entries.Count $workerName $sw.ElapsedMilliseconds $rc
+
+    if ($rc -ne 0 -or -not (Test-Path -LiteralPath $outputPath -PathType Leaf)) {
+        $safe=(($scope + '__' + $snapshot + '__' + $nextSnapshot) -replace '[^A-Za-z0-9._-]+','_')
+        $target=Join-Path $FailureFolder ('fast-batch__' + $safe + '.stderr.txt')
+        if(Test-Path -LiteralPath $stderrPath -PathType Leaf){Copy-Item -LiteralPath $stderrPath -Destination $target -Force}
+        else{Write-TextUtf8 $target ('Fast worker failed with rc ' + $rc + [Environment]::NewLine)}
+        Remove-Item -LiteralPath $slicePath,$outputPath,$stderrPath -Force -ErrorAction SilentlyContinue
+        Fail 5 ('Fast combined worker failed for ' + $snapshot + $(if($nextSnapshot){' -> ' + $nextSnapshot}else{''}) + '; see ' + $target)
+    }
+
+    $rows=@(Import-Csv -LiteralPath $outputPath -Delimiter "`t")
+    if($rows.Count -ne $Entries.Count){
+        Remove-Item -LiteralPath $slicePath,$outputPath,$stderrPath -Force -ErrorAction SilentlyContinue
+        Fail 5 ('Fast worker row count mismatch for ' + $snapshot + ': expected ' + $Entries.Count + ', got ' + $rows.Count)
+    }
+
+    $entryByIndex=@{}
+    foreach($entry in $Entries){$entryByIndex[[string]$entry.index]=$entry}
+    $seen=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+    $statuses=New-Object System.Collections.ArrayList
+    foreach($row in $rows){
+        $idx=[string]$row.index
+        if(-not $entryByIndex.ContainsKey($idx) -or -not $seen.Add($idx)){
+            Remove-Item -LiteralPath $slicePath,$outputPath,$stderrPath -Force -ErrorAction SilentlyContinue
+            Fail 5 ('Fast worker returned unexpected/duplicate plan index: ' + $idx)
+        }
+        $entry=$entryByIndex[$idx]
+        $status=[string]$row.status
+        $logicalRc=0
+        $logicalMs=0L
+        if(-not [int]::TryParse([string]$row.rc,[ref]$logicalRc)){Fail 5 ('Invalid fast worker rc for index ' + $idx)}
+        if(-not [long]::TryParse([string]$row.elapsed_ms,[ref]$logicalMs)){Fail 5 ('Invalid fast worker elapsed_ms for index ' + $idx)}
+        if(@('PASS','NO_RESULT','SOURCE_MISSING','FAIL') -notcontains $status){Fail 5 ('Invalid fast worker status for index ' + $idx + ': ' + $status)}
+        Add-RunRow $RunsPath $entry $status $logicalRc 0 0 $logicalMs
+        [void]$statuses.Add($status)
+    }
+
+    Remove-Item -LiteralPath $slicePath,$outputPath,$stderrPath -Force -ErrorAction SilentlyContinue
+    return @($statuses)
 }
 
 function Get-ExistingRunState {
@@ -612,6 +799,7 @@ function Write-Summary {
         'MVS Explorer Toolkit archive-wide tool sweep',
         '',
         'Mode: ' + $Mode,
+        'Executor: ' + $Executor,
         'Snapshots: ' + $Snapshots,
         'Single-snapshot public tools: ' + $SingleTools,
         'Compare public tools: ' + $CompareTools,
@@ -637,15 +825,30 @@ if ([string]::IsNullOrWhiteSpace($ArchiveInput)) {
     Fail 2 'Missing mvs-dumps-root.'
 }
 
-if ($OutputInput -in @('--plan-only','--resume')) {
-    if (-not [string]::IsNullOrWhiteSpace($Option)) { Fail 2 'Too many options.' }
-    $Option = $OutputInput
-    $OutputInput = ''
+foreach ($arg in @($Arg2,$Arg3,$Arg4)) {
+    if ([string]::IsNullOrWhiteSpace($arg)) { continue }
+    switch ($arg) {
+        '--plan-only' {
+            if ($PlanOnly) { Fail 2 'Duplicate --plan-only option.' }
+            $PlanOnly = $true
+        }
+        '--resume' {
+            if ($Resume) { Fail 2 'Duplicate --resume option.' }
+            $Resume = $true
+        }
+        '--external-tools' {
+            if ($Executor -eq 'external-public') { Fail 2 'Duplicate --external-tools option.' }
+            $Executor = 'external-public'
+        }
+        default {
+            if ($arg.StartsWith('--')) { Fail 2 ('Unknown option: ' + $arg) }
+            if (-not [string]::IsNullOrWhiteSpace($OutputInput)) { Fail 2 'More than one results-folder was supplied.' }
+            $OutputInput = $arg
+        }
+    }
 }
-if (-not [string]::IsNullOrWhiteSpace($Option) -and $Option -notin @('--plan-only','--resume')) {
-    Fail 2 ('Unknown option: ' + $Option)
-}
-if ($Option -eq '--resume' -and [string]::IsNullOrWhiteSpace($OutputInput)) {
+if ($PlanOnly -and $Resume) { Fail 2 '--plan-only and --resume cannot be combined.' }
+if ($Resume -and [string]::IsNullOrWhiteSpace($OutputInput)) {
     Fail 2 '--resume requires an existing results-folder argument.'
 }
 
@@ -678,7 +881,7 @@ if ([string]::IsNullOrWhiteSpace($OutputInput)) {
     $ResultsFolder = New-UniqueResultsFolder
 } else {
     $ResultsFolder = Resolve-PathFromCurrent $OutputInput
-    if ($Option -eq '--resume') {
+    if ($Resume) {
         if (-not (Test-Path -LiteralPath $ResultsFolder -PathType Container)) { Fail 3 ('Resume results folder does not exist: ' + $ResultsFolder) }
     } else {
         if (Test-Path -LiteralPath $ResultsFolder) { Fail 2 ('Results folder already exists; use --resume or choose a new folder: ' + $ResultsFolder) }
@@ -690,6 +893,7 @@ $script:ConsoleLog = Join-Path $ResultsFolder 'console.log'
 $planPath = Join-Path $ResultsFolder 'plan.tsv'
 $planHashPath = Join-Path $ResultsFolder 'plan-sha256.txt'
 $runsPath = Join-Path $ResultsFolder 'runs.tsv'
+$fastBatchesPath = Join-Path $ResultsFolder 'fast-batches.tsv'
 $summaryPath = Join-Path $ResultsFolder 'summary.txt'
 $snapshotsPath = Join-Path $ResultsFolder 'snapshots.tsv'
 $runInfoPath = Join-Path $ResultsFolder 'run-info.txt'
@@ -697,7 +901,7 @@ $failureFolder = Join-Path $ResultsFolder 'failures'
 $archiveOutput = Join-Path $ResultsFolder 'archive-output'
 if (-not (Test-Path -LiteralPath $failureFolder -PathType Container)) { [void](New-Item -ItemType Directory -Path $failureFolder -Force) }
 
-if ($Option -ne '--resume') {
+if (-not $Resume) {
     Write-TextUtf8 $script:ConsoleLog ''
     $readme = @(
         'MVS Explorer Toolkit Archive Sweep Results',
@@ -705,15 +909,20 @@ if ($Option -ne '--resume') {
         'plan.tsv          Complete deterministic invocation plan.',
         'plan-sha256.txt   SHA-256 of plan.tsv content.',
         'snapshots.tsv     Snapshot names and resolved data directories.',
-        'runs.tsv          One row per completed public-tool invocation.',
+        'runs.tsv          One row per completed logical check.',
+        'fast-batches.tsv  Combined-worker wall times (fast executor only).',
         'summary.txt       Aggregate status counts.',
         'run-info.txt      Environment and archive/project paths.',
         'console.log       Progress/failure transcript.',
         'failures\         stdout/stderr/meta retained only for FAIL rows.',
         'archive-output\   Change-history and all-ever builder output.',
         '',
+        'Executor meanings:',
+        '  fast-combined    Shared-parse logical status validation; public stdout is not produced.',
+        '  external-public  Literal execution of every public .bat wrapper.',
+        '',
         'Status meanings:',
-        '  PASS            return code 0.',
+        '  PASS            return code/logical status 0.',
         '  NO_RESULT       return code 1 from single/compare scope.',
         '  SOURCE_MISSING  return code 4 from single/compare scope.',
         '  FAIL            any other code, or any nonzero archive-builder code.'
@@ -723,22 +932,14 @@ if ($Option -ne '--resume') {
 
 Write-Line ('Archive: ' + $ArchiveRoot)
 Write-Line ('Project: ' + $ProjectRoot)
+Write-Line ('Executor: ' + $Executor)
 Write-Line ('Snapshots discovered: ' + $snapshotDirs.Count)
 Write-Line ('Public tools: single=' + $singleFiles.Count + ' compare=' + $compareFiles.Count + ' archive=' + $archiveFiles.Count)
 
 $singleMetadata = New-Object System.Collections.ArrayList
 foreach ($file in $singleFiles) { [void]$singleMetadata.Add((Get-ToolMetadata $file)) }
 $compareMetadata = New-Object System.Collections.ArrayList
-foreach ($file in $compareFiles) {
-    [void]$compareMetadata.Add([pscustomobject]@{
-        name=[IO.Path]::GetFileNameWithoutExtension($file.Name)
-        file=$file.Name
-        path=$file.FullName
-        family='compare'
-        operation=''
-        search_source=''
-    })
-}
+foreach ($file in $compareFiles) { [void]$compareMetadata.Add((Get-ToolMetadata $file)) }
 $archiveMetadata = New-Object System.Collections.ArrayList
 foreach ($file in $archiveFiles) {
     [void]$archiveMetadata.Add([pscustomobject]@{
@@ -748,6 +949,11 @@ foreach ($file in $archiveFiles) {
         family='archive'
         operation=''
         search_source=''
+        fields=''
+        algorithm_filter=''
+        source_file=''
+        diagnostic_kind=''
+        target_field=''
     })
 }
 
@@ -794,7 +1000,7 @@ foreach ($tool in $archiveMetadata) {
 
 $planText = Get-PlanText $plan
 $planHash = Get-Sha256Text $planText
-if ($Option -eq '--resume') {
+if ($Resume) {
     if (-not (Test-Path -LiteralPath $planHashPath -PathType Leaf)) { Fail 2 'Resume folder has no plan-sha256.txt.' }
     $existingHash = ([IO.File]::ReadAllText($planHashPath)).Trim()
     if ($existingHash -ne $planHash) { Fail 2 'Resume plan does not match the current archive/project/tool set.' }
@@ -806,7 +1012,8 @@ if ($Option -eq '--resume') {
 $runInfo = @(
     'Sweep script: ' + $Caller,
     'Sweep version: ' + $Version,
-    'Mode: ' + $(if ($Option -eq '--plan-only') { 'plan-only' } elseif ($Option -eq '--resume') { 'resume' } else { 'execute' }),
+    'Mode: ' + $(if ($PlanOnly) { 'plan-only' } elseif ($Resume) { 'resume' } else { 'execute' }),
+    'Executor: ' + $Executor,
     'Archive root: ' + $ArchiveRoot,
     'Project root: ' + $ProjectRoot,
     'Results folder: ' + $ResultsFolder,
@@ -825,51 +1032,118 @@ $runInfo = @(
 Write-TextUtf8 $runInfoPath ($runInfo + [Environment]::NewLine)
 
 $emptyCounts = @{ PASS=0; NO_RESULT=0; SOURCE_MISSING=0; FAIL=0 }
-if ($Option -eq '--plan-only') {
+if ($PlanOnly) {
     Write-Summary $summaryPath 'plan-only' $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $emptyCounts 0
     Write-Line ('Plan-only complete: ' + $plan.Count + ' invocations.')
     Write-Line ('Results: ' + $ResultsFolder)
     [Environment]::Exit(0)
 }
 
-if ($Option -ne '--resume') {
-    $runsHeader = "index`tscope`tsnapshot`tnext_snapshot`ttool`tsearch_source`tsearch_value`tsearch_origin`tstatus`trc`tstdout_bytes`tstderr_bytes`telapsed_ms`n"
+if (-not $Resume) {
+    $runsHeader = "index`texecutor`tscope`tsnapshot`tnext_snapshot`ttool`tsearch_source`tsearch_value`tsearch_origin`tstatus`trc`tstdout_bytes`tstderr_bytes`telapsed_ms`n"
     Write-TextUtf8 $runsPath $runsHeader
+    Write-TextUtf8 $fastBatchesPath "scope`tsnapshot`tnext_snapshot`tlogical_checks`tworker`telapsed_ms`trc`n"
+} elseif (-not (Test-Path -LiteralPath $fastBatchesPath -PathType Leaf)) {
+    Write-TextUtf8 $fastBatchesPath "scope`tsnapshot`tnext_snapshot`tlogical_checks`tworker`telapsed_ms`trc`n"
 }
+
 $state = Get-ExistingRunState $runsPath
 $done = $state.done
 $counts = $state.counts
 $completed = $done.Count
 
 Write-Line ('Planned invocations: ' + $plan.Count)
-if ($Option -eq '--resume') { Write-Line ('Already completed: ' + $completed) }
+if ($Resume) { Write-Line ('Already completed: ' + $completed) }
 
-$currentSnapshot = ''
-foreach ($entry in $plan) {
-    if ($done.Contains([int]$entry.index)) { continue }
-    if ($entry.scope -eq 'single' -and $entry.snapshot -ne $currentSnapshot) {
-        $currentSnapshot = $entry.snapshot
-        Write-Line ('=== Snapshot ' + $currentSnapshot + ' ===')
-    } elseif ($entry.scope -eq 'compare' -and ($entry.snapshot + ' -> ' + $entry.next_snapshot) -ne $currentSnapshot) {
-        $currentSnapshot = $entry.snapshot + ' -> ' + $entry.next_snapshot
-        Write-Line ('=== Compare ' + $currentSnapshot + ' ===')
-    } elseif ($entry.scope -eq 'archive' -and $currentSnapshot -ne '(archive)') {
-        $currentSnapshot = '(archive)'
-        Write-Line '=== Archive builders ==='
-        if (-not (Test-Path -LiteralPath $archiveOutput -PathType Container)) { [void](New-Item -ItemType Directory -Path $archiveOutput -Force) }
+$summaryMode=$(if($Resume){'resume'}else{'execute'})
+
+if ($Executor -eq 'external-public') {
+    $currentSnapshot = ''
+    foreach ($entry in $plan) {
+        if ($done.Contains([int]$entry.index)) { continue }
+
+        if ($entry.scope -eq 'single' -and $entry.snapshot -ne $currentSnapshot) {
+            $currentSnapshot = $entry.snapshot
+            Write-Line ('=== Snapshot ' + $currentSnapshot + ' [external-public] ===')
+        } elseif ($entry.scope -eq 'compare' -and ($entry.snapshot + ' -> ' + $entry.next_snapshot) -ne $currentSnapshot) {
+            $currentSnapshot = $entry.snapshot + ' -> ' + $entry.next_snapshot
+            Write-Line ('=== Compare ' + $currentSnapshot + ' [external-public] ===')
+        } elseif ($entry.scope -eq 'archive' -and $currentSnapshot -ne '(archive)') {
+            $currentSnapshot = '(archive)'
+            Write-Line '=== Archive builders [literal] ==='
+            if (-not (Test-Path -LiteralPath $archiveOutput -PathType Container)) { [void](New-Item -ItemType Directory -Path $archiveOutput -Force) }
+        }
+
+        $status = Invoke-OneExternal $entry $ResultsFolder $ArchiveRoot $archiveOutput $runsPath $failureFolder
+        if ($counts.ContainsKey($status)) { $counts[$status]++ }
+        [void]$done.Add([int]$entry.index)
+        $completed++
+
+        if (($completed % 100) -eq 0 -or $completed -eq $plan.Count -or $status -eq 'FAIL') {
+            Write-Line ('Progress: ' + $completed + '/' + $plan.Count + ' PASS=' + $counts.PASS + ' NO_RESULT=' + $counts.NO_RESULT + ' SOURCE_MISSING=' + $counts.SOURCE_MISSING + ' FAIL=' + $counts.FAIL)
+            Write-Summary $summaryPath $summaryMode $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
+        }
     }
+} else {
+    $snapshotWorker = Join-Path (Join-Path $ScriptRoot 'fast') 'run_snapshot_tools_fast.bat'
+    $compareWorker = Join-Path (Join-Path $ScriptRoot 'fast') 'run_compare_tools_fast.bat'
+    if (-not (Test-Path -LiteralPath $snapshotWorker -PathType Leaf)) { Fail 4 ('Missing fast snapshot worker: ' + $snapshotWorker) }
+    if (-not (Test-Path -LiteralPath $compareWorker -PathType Leaf)) { Fail 4 ('Missing fast compare worker: ' + $compareWorker) }
 
-    $status = Invoke-One $entry $ResultsFolder $ArchiveRoot $archiveOutput $runsPath $failureFolder
-    if ($counts.ContainsKey($status)) { $counts[$status]++ }
-    [void]$done.Add([int]$entry.index)
-    $completed++
-    if (($completed % 100) -eq 0 -or $completed -eq $plan.Count) {
+    foreach ($snapshot in $snapshots) {
+        $pending=@($plan | Where-Object {
+            $_.scope -eq 'single' -and $_.snapshot -eq $snapshot.name -and -not $done.Contains([int]$_.index)
+        })
+        if($pending.Count -eq 0){continue}
+
+        Write-Line ('=== Snapshot ' + $snapshot.name + ' [fast-combined ' + $pending.Count + ' checks] ===')
+        $statuses=@(Invoke-FastWorker $pending $snapshotWorker $snapshot.data_path '' $ResultsFolder $runsPath $fastBatchesPath $failureFolder)
+        for($n=0;$n-lt$pending.Count;$n++){
+            $status=[string]$statuses[$n]
+            if($counts.ContainsKey($status)){$counts[$status]++}
+            [void]$done.Add([int]$pending[$n].index)
+            $completed++
+        }
         Write-Line ('Progress: ' + $completed + '/' + $plan.Count + ' PASS=' + $counts.PASS + ' NO_RESULT=' + $counts.NO_RESULT + ' SOURCE_MISSING=' + $counts.SOURCE_MISSING + ' FAIL=' + $counts.FAIL)
+        Write-Summary $summaryPath $summaryMode $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
     }
-    Write-Summary $summaryPath $(if ($Option -eq '--resume') { 'resume' } else { 'execute' }) $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
+
+    for($i=0;$i-lt($snapshots.Count-1);$i++){
+        $from=$snapshots[$i]
+        $to=$snapshots[$i+1]
+        $pending=@($plan | Where-Object {
+            $_.scope -eq 'compare' -and $_.snapshot -eq $from.name -and $_.next_snapshot -eq $to.name -and -not $done.Contains([int]$_.index)
+        })
+        if($pending.Count -eq 0){continue}
+
+        Write-Line ('=== Compare ' + $from.name + ' -> ' + $to.name + ' [fast-combined ' + $pending.Count + ' checks] ===')
+        $statuses=@(Invoke-FastWorker $pending $compareWorker $from.data_path $to.data_path $ResultsFolder $runsPath $fastBatchesPath $failureFolder)
+        for($n=0;$n-lt$pending.Count;$n++){
+            $status=[string]$statuses[$n]
+            if($counts.ContainsKey($status)){$counts[$status]++}
+            [void]$done.Add([int]$pending[$n].index)
+            $completed++
+        }
+        Write-Line ('Progress: ' + $completed + '/' + $plan.Count + ' PASS=' + $counts.PASS + ' NO_RESULT=' + $counts.NO_RESULT + ' SOURCE_MISSING=' + $counts.SOURCE_MISSING + ' FAIL=' + $counts.FAIL)
+        Write-Summary $summaryPath $summaryMode $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
+    }
+
+    $archiveEntries=@($plan | Where-Object {$_.scope -eq 'archive' -and -not $done.Contains([int]$_.index)})
+    if($archiveEntries.Count -gt 0){
+        Write-Line '=== Archive builders [literal] ==='
+        if(-not(Test-Path -LiteralPath $archiveOutput -PathType Container)){[void](New-Item -ItemType Directory -Path $archiveOutput -Force)}
+    }
+    foreach($entry in $archiveEntries){
+        $status=Invoke-OneExternal $entry $ResultsFolder $ArchiveRoot $archiveOutput $runsPath $failureFolder
+        if($counts.ContainsKey($status)){$counts[$status]++}
+        [void]$done.Add([int]$entry.index)
+        $completed++
+        Write-Line ('Progress: ' + $completed + '/' + $plan.Count + ' PASS=' + $counts.PASS + ' NO_RESULT=' + $counts.NO_RESULT + ' SOURCE_MISSING=' + $counts.SOURCE_MISSING + ' FAIL=' + $counts.FAIL)
+        Write-Summary $summaryPath $summaryMode $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
+    }
 }
 
-Write-Summary $summaryPath $(if ($Option -eq '--resume') { 'resume' } else { 'execute' }) $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
+Write-Summary $summaryPath $summaryMode $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
 Write-Line ('SUMMARY: PASS=' + $counts.PASS + ' NO_RESULT=' + $counts.NO_RESULT + ' SOURCE_MISSING=' + $counts.SOURCE_MISSING + ' FAIL=' + $counts.FAIL)
 Write-Line ('Results: ' + $ResultsFolder)
 if ($counts.FAIL -gt 0) { [Environment]::Exit(1) }

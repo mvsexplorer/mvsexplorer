@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate standalone filename/hash relationship query tools.
 
-Version: 0.1.0
+Version: 0.1.1
 
 Development-time only. Generated root .bat files contain all batch and
 PowerShell implementation required at runtime.

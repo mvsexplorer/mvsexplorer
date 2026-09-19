@@ -227,3 +227,17 @@ These directives are distilled from the user's project prompts.
 145. Both archive builders may target the same output directory without erasing each other's outputs.
 146. Maintain a synthetic multi-snapshot history fixture and fixed independently generated expected files for every history domain.
 147. `test\test_all.bat` and `test\test_history_tools.bat` must execute both public history builders on Windows.
+
+## Performance / archive-sweep directives
+
+148. Public performance optimizations must not change a public tool's name, command-line arguments, scope, stdout contract, or return-code contract.
+149. Keep the public root count at 443 unless a separately approved public feature changes it.
+150. Fast archive-sweep utilities belong under `test\fast` and are not public root tools.
+151. `test\test_all_dumps.bat` defaults to `fast-combined`; `--external-tools` forces literal public-tool execution.
+152. Serialize executor identity into plan/run metadata and include it in the plan hash used for resume safety.
+153. Combined execution may reuse parsed models across logical checks but must preserve PASS/NO_RESULT/SOURCE_MISSING/FAIL classification semantics.
+154. External sweep mode should not materialize successful stdout merely to measure it; capture full payloads only when needed for failures.
+155. Optimize source loading by operation: do not parse unrelated sources or enrichment fields.
+156. Prefer indexed/HashSet membership for large repeated lookup operations.
+157. Preserve a dedicated small synthetic acceptance path for the combined executor.
+158. Preserve elapsed-time data and provide an analyzer so performance regressions can be investigated without another full archive run.

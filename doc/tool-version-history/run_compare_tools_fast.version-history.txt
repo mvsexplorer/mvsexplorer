@@ -1,0 +1,6 @@
+run_compare_tools_fast.bat Version History
+
+0.1.0 - 2026-08-28
+  - Initial combined fast executor for the 19 logical adjacent-dump comparisons.
+  - Parses/reuses the pair models per batch and emits logical status rows.
+  - Non-public test utility under test\fast.

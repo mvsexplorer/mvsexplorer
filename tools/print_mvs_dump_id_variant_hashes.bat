@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone single-dump tool embeds PowerShell.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.2"
+set "app.version=0.1.3"
 set "app.name=print_mvs_dump_id_variant_hashes"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -445,19 +445,86 @@ function Read-Notes {
 function New-MvsModel {
     param([string]$DumpFolder)
 
+    # Build only the portions of the model that this operation can observe.
+    # Missing-source return-code checks remain outside this function and are
+    # unchanged; this is strictly a performance optimization.
+    $needed = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    function Need-Source {
+        param([string]$Name)
+        if (-not [string]::IsNullOrWhiteSpace($Name)) { [void]$needed.Add($Name) }
+    }
+
+    switch ($Operation) {
+        'summary_query' {
+            foreach ($name in @('mvs_ids.txt','mvs_dates.txt','mvs.txt','mvs_names.txt','mvs_notes.html','mvs.sha1','mvs.sha256')) { Need-Source $name }
+        }
+        'detail_query' {
+            foreach ($name in @('mvs.txt','mvs_names.txt','mvs.sha1','mvs.sha256')) { Need-Source $name }
+            if ($Fields -contains 'date') { Need-Source 'mvs_dates.txt' }
+            if ($Fields -contains 'note') { Need-Source 'mvs_notes.html' }
+        }
+        'variant_query' {
+            Need-Source 'mvs_names.txt'
+        }
+        'hash_query' {
+            foreach ($name in @('mvs.txt','mvs_names.txt','mvs.sha1','mvs.sha256')) { Need-Source $name }
+        }
+        'product_file_query' {
+            Need-Source 'mvs.txt'
+            if ($Fields -contains 'date') { Need-Source 'mvs_dates.txt' }
+            if ($Fields -contains 'note') { Need-Source 'mvs_notes.html' }
+        }
+        'product_section_query' {
+            Need-Source 'mvs.txt'
+        }
+        'note_query' {
+            Need-Source 'mvs_notes.html'
+        }
+        'unparsed_query' {
+            Need-Source $SourceFile
+        }
+        'hash_diagnostic' {
+            foreach ($part in $SourceFile.Split('|')) { Need-Source $part }
+        }
+        default {
+            foreach ($name in @('mvs_ids.txt','mvs_dates.txt','mvs.txt','mvs_names.txt','mvs_notes.html','mvs.sha1','mvs.sha256')) { Need-Source $name }
+        }
+    }
+
     $unparsed = @{}
     foreach ($name in @('mvs.txt','mvs_names.txt','mvs.sha1','mvs.sha256','mvs_ids.txt','mvs_dates.txt')) {
         $unparsed[$name] = New-ArrayList
     }
 
     $hashRecords = New-ArrayList
-    $ids = @(Read-OneLineSource (Join-Path $DumpFolder 'mvs_ids.txt') 'mvs_ids.txt' $unparsed)
-    $dates = @(Read-OneLineSource (Join-Path $DumpFolder 'mvs_dates.txt') 'mvs_dates.txt' $unparsed)
-    $productData = Read-SectionFile (Join-Path $DumpFolder 'mvs.txt') 'mvs.txt' $unparsed $hashRecords
-    $variantData = Read-SectionFile (Join-Path $DumpFolder 'mvs_names.txt') 'mvs_names.txt' $unparsed $hashRecords
-    $sha1 = @(Read-Manifest (Join-Path $DumpFolder 'mvs.sha1') 'mvs.sha1' 40 $unparsed $hashRecords)
-    $sha256 = @(Read-Manifest (Join-Path $DumpFolder 'mvs.sha256') 'mvs.sha256' 64 $unparsed $hashRecords)
-    $notes = @(Read-Notes (Join-Path $DumpFolder 'mvs_notes.html'))
+    $ids = if ($needed.Contains('mvs_ids.txt')) {
+        @(Read-OneLineSource (Join-Path $DumpFolder 'mvs_ids.txt') 'mvs_ids.txt' $unparsed)
+    } else { @() }
+    $dates = if ($needed.Contains('mvs_dates.txt')) {
+        @(Read-OneLineSource (Join-Path $DumpFolder 'mvs_dates.txt') 'mvs_dates.txt' $unparsed)
+    } else { @() }
+
+    $productData = if ($needed.Contains('mvs.txt')) {
+        Read-SectionFile (Join-Path $DumpFolder 'mvs.txt') 'mvs.txt' $unparsed $hashRecords
+    } else {
+        [pscustomobject]@{ sections=@(); files=@() }
+    }
+
+    $variantData = if ($needed.Contains('mvs_names.txt')) {
+        Read-SectionFile (Join-Path $DumpFolder 'mvs_names.txt') 'mvs_names.txt' $unparsed $hashRecords
+    } else {
+        [pscustomobject]@{ sections=@(); files=@() }
+    }
+
+    $sha1 = if ($needed.Contains('mvs.sha1')) {
+        @(Read-Manifest (Join-Path $DumpFolder 'mvs.sha1') 'mvs.sha1' 40 $unparsed $hashRecords)
+    } else { @() }
+    $sha256 = if ($needed.Contains('mvs.sha256')) {
+        @(Read-Manifest (Join-Path $DumpFolder 'mvs.sha256') 'mvs.sha256' 64 $unparsed $hashRecords)
+    } else { @() }
+    $notes = if ($needed.Contains('mvs_notes.html')) {
+        @(Read-Notes (Join-Path $DumpFolder 'mvs_notes.html'))
+    } else { @() }
 
     $dateById = @{}
     foreach ($row in $dates) {
@@ -497,6 +564,27 @@ function New-MvsModel {
             hash=$row.hash
             algorithm=$row.algorithm
         })
+    }
+
+    # Detail queries previously rescanned all hash records for every seed
+    # filename. Build source-order-preserving indexes once for that operation.
+    $hashByFilename = @{}
+    $hashByHash = @{}
+    $productFilesByFilename = @{}
+    if ($Operation -eq 'detail_query') {
+        foreach ($record in $hashRecords) {
+            $filenameKey = $record.filename.ToLowerInvariant()
+            if (-not $hashByFilename.ContainsKey($filenameKey)) { $hashByFilename[$filenameKey] = New-ArrayList }
+            [void]$hashByFilename[$filenameKey].Add($record)
+            $hashKey = $record.hash.ToLowerInvariant()
+            if (-not $hashByHash.ContainsKey($hashKey)) { $hashByHash[$hashKey] = New-ArrayList }
+            [void]$hashByHash[$hashKey].Add($record)
+        }
+        foreach ($file in $productFiles) {
+            $filenameKey = $file.filename.ToLowerInvariant()
+            if (-not $productFilesByFilename.ContainsKey($filenameKey)) { $productFilesByFilename[$filenameKey] = New-ArrayList }
+            [void]$productFilesByFilename[$filenameKey].Add($file)
+        }
     }
 
     $variantSectionsWithFiles = @{}
@@ -539,6 +627,9 @@ function New-MvsModel {
         variant_sections=@($variantData.sections)
         variants=@($variants)
         hash_records=@($hashRecords)
+        hash_by_filename=$hashByFilename
+        hash_by_hash=$hashByHash
+        product_files_by_filename=$productFilesByFilename
         sha1=@($sha1)
         sha256=@($sha256)
         notes=@($notes)
@@ -630,6 +721,26 @@ function Get-DetailRows {
     $seeds = New-ArrayList
     $seedSeen = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
 
+    function Add-SeedsForFilename {
+        param([string]$Filename)
+        $key = $Filename.ToLowerInvariant()
+        $owners = @()
+        if ($Model.product_files_by_filename.ContainsKey($key)) {
+            $ownerSeen = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+            $ownerList = New-ArrayList
+            foreach ($owner in $Model.product_files_by_filename[$key]) {
+                $ownerKey = [string]$owner.section_occurrence
+                if ($ownerSeen.Add($ownerKey)) { [void]$ownerList.Add($owner) }
+            }
+            $owners = @($ownerList)
+        }
+        if ($owners.Count -eq 0) {
+            [void]$seeds.Add([pscustomobject]@{ owner=$null; filename=$Filename })
+        } else {
+            foreach ($owner in $owners) { [void]$seeds.Add([pscustomobject]@{ owner=$owner; filename=$Filename }) }
+        }
+    }
+
     if ($SourceName -eq 'id' -or $SourceName -eq 'title') {
         foreach ($file in $Model.product_files) {
             $match = if ($SourceName -eq 'id') {
@@ -640,54 +751,36 @@ function Get-DetailRows {
             if (-not $match) { continue }
             $seedKey = ([string]$file.section_occurrence) + [char]0x1F + $file.filename
             if ($seedSeen.Add($seedKey)) {
-                [void]$seeds.Add([pscustomobject]@{
-                    owner=$file
-                    filename=$file.filename
-                })
+                [void]$seeds.Add([pscustomobject]@{ owner=$file; filename=$file.filename })
             }
         }
     } elseif ($SourceName -eq 'filename') {
-        $candidateFilenames = New-ArrayList
-        $candidateSeen = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
-        foreach ($record in $Model.hash_records) {
-            if (Matches-Exact $record.filename $Needle) {
-                if ($candidateSeen.Add($record.filename)) { [void]$candidateFilenames.Add($record.filename) }
-            }
-        }
-        foreach ($filename in $candidateFilenames) {
-            $owners = @($Model.product_files | Where-Object { Matches-Exact $_.filename $filename } |
-                Group-Object section_occurrence | ForEach-Object { $_.Group[0] })
-            if ($owners.Count -eq 0) {
-                [void]$seeds.Add([pscustomobject]@{ owner=$null; filename=$filename })
-            } else {
-                foreach ($owner in $owners) { [void]$seeds.Add([pscustomobject]@{ owner=$owner; filename=$filename }) }
-            }
+        $key = $Needle.Trim().ToLowerInvariant()
+        if ($Model.hash_by_filename.ContainsKey($key)) {
+            $display = [string]$Model.hash_by_filename[$key][0].filename
+            Add-SeedsForFilename $display
         }
     } elseif ($SourceName -eq 'hash') {
-        $candidateFilenames = New-ArrayList
-        $candidateSeen = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
-        foreach ($record in $Model.hash_records) {
-            if (Matches-Exact $record.hash $Needle) {
-                if ($candidateSeen.Add($record.filename)) { [void]$candidateFilenames.Add($record.filename) }
-            }
-        }
-        foreach ($filename in $candidateFilenames) {
-            $owners = @($Model.product_files | Where-Object { Matches-Exact $_.filename $filename } |
-                Group-Object section_occurrence | ForEach-Object { $_.Group[0] })
-            if ($owners.Count -eq 0) {
-                [void]$seeds.Add([pscustomobject]@{ owner=$null; filename=$filename })
-            } else {
-                foreach ($owner in $owners) { [void]$seeds.Add([pscustomobject]@{ owner=$owner; filename=$filename }) }
+        $hashKey = $Needle.Trim().ToLowerInvariant()
+        if ($Model.hash_by_hash.ContainsKey($hashKey)) {
+            $candidateSeen = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+            foreach ($record in $Model.hash_by_hash[$hashKey]) {
+                if ($candidateSeen.Add($record.filename)) { Add-SeedsForFilename $record.filename }
             }
         }
     }
 
     $rows = New-ArrayList
     foreach ($seed in $seeds) {
-        $records = @($Model.hash_records | Where-Object {
-            (Matches-Exact $_.filename $seed.filename) -and
-            ([string]::IsNullOrEmpty($Algorithm) -or $_.algorithm -eq $Algorithm)
-        })
+        $records = @()
+        $filenameKey = $seed.filename.ToLowerInvariant()
+        if ($Model.hash_by_filename.ContainsKey($filenameKey)) {
+            if ([string]::IsNullOrEmpty($Algorithm)) {
+                $records = @($Model.hash_by_filename[$filenameKey])
+            } else {
+                $records = @($Model.hash_by_filename[$filenameKey] | Where-Object { $_.algorithm -eq $Algorithm })
+            }
+        }
 
         if ($records.Count -eq 0) {
             [void]$rows.Add([pscustomobject]@{
@@ -899,6 +992,15 @@ function Get-SummaryRows {
         [void]$rows.Add([pscustomobject]@{ key=$Key; value=$Value })
     }
 
+    function New-IgnoreCaseSet {
+        param([object[]]$Values)
+        $set = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+        foreach ($value in @($Values)) {
+            if ($null -ne $value) { [void]$set.Add([string]$value) }
+        }
+        return ,$set
+    }
+
     $present = @{}
     foreach ($name in @('mvs_ids.txt','mvs_dates.txt','mvs.txt','mvs_names.txt','mvs_notes.html','mvs.sha1','mvs.sha256')) {
         $present[$name] = Test-Path -LiteralPath (Join-Path $Model.root $name) -PathType Leaf
@@ -918,8 +1020,10 @@ function Get-SummaryRows {
 
     $productIds = @($Model.product_sections | Select-Object -ExpandProperty id -Unique)
     $productFileIds = @($Model.product_files | Select-Object -ExpandProperty id -Unique)
+    $productIdSet = New-IgnoreCaseSet $productIds
+    $productFileIdSet = New-IgnoreCaseSet $productFileIds
     Add-Metric 'product_files.product_ids_with_files' ([string]$productFileIds.Count)
-    Add-Metric 'product_files.product_ids_without_files' ([string](@($productIds | Where-Object { $productFileIds -notcontains $_ }).Count))
+    Add-Metric 'product_files.product_ids_without_files' ([string](@($productIds | Where-Object { -not $productFileIdSet.Contains([string]$_) }).Count))
     $fileGroupsById = @($Model.product_files | Group-Object id)
     $maxFilesPerId = 0
     foreach ($group in $fileGroupsById) { if ($group.Count -gt $maxFilesPerId) { $maxFilesPerId = $group.Count } }
@@ -959,8 +1063,8 @@ function Get-SummaryRows {
     Add-Metric 'variants.unique_filenames' ([string](@($Model.variants | Where-Object {$_.filename} | Select-Object -ExpandProperty filename -Unique).Count))
     $variantIds = @($Model.variant_sections | Select-Object -ExpandProperty id -Unique)
     Add-Metric 'variants.unique_ids' ([string]$variantIds.Count)
-    Add-Metric 'variants.ids_matching_product_ids' ([string](@($variantIds | Where-Object { $productIds -contains $_ }).Count))
-    Add-Metric 'variants.ids_not_in_product_ids' ([string](@($variantIds | Where-Object { $productIds -notcontains $_ }).Count))
+    Add-Metric 'variants.ids_matching_product_ids' ([string](@($variantIds | Where-Object { $productIdSet.Contains([string]$_) }).Count))
+    Add-Metric 'variants.ids_not_in_product_ids' ([string](@($variantIds | Where-Object { -not $productIdSet.Contains([string]$_) }).Count))
     $variantGroupsById = @($Model.variant_sections | Group-Object id)
     $maxVariantsPerId = 0
     foreach ($group in $variantGroupsById) { if ($group.Count -gt $maxVariantsPerId) { $maxVariantsPerId = $group.Count } }
@@ -970,9 +1074,11 @@ function Get-SummaryRows {
     Add-Metric 'notes.records' ([string]$Model.notes.Count)
     Add-Metric 'notes.unique_titles' ([string](@($Model.notes | Select-Object -ExpandProperty title -Unique).Count))
     $noteTitleKeys = @($Model.notes | Where-Object {$_.note} | ForEach-Object {$_.title.ToLowerInvariant()} | Select-Object -Unique)
-    $productsWithNotes = @($Model.product_sections | Where-Object { $noteTitleKeys -contains $_.title.ToLowerInvariant() } | Select-Object -ExpandProperty id -Unique)
+    $noteTitleSet = New-IgnoreCaseSet $noteTitleKeys
+    $productsWithNotes = @($Model.product_sections | Where-Object { $noteTitleSet.Contains([string]$_.title) } | Select-Object -ExpandProperty id -Unique)
+    $productsWithNotesSet = New-IgnoreCaseSet $productsWithNotes
     Add-Metric 'notes.product_ids_with_notes' ([string]$productsWithNotes.Count)
-    Add-Metric 'notes.product_ids_without_notes' ([string](@($productIds | Where-Object { $productsWithNotes -notcontains $_ }).Count))
+    Add-Metric 'notes.product_ids_without_notes' ([string](@($productIds | Where-Object { -not $productsWithNotesSet.Contains([string]$_) }).Count))
     Add-Metric 'notes.duplicate_title_groups' ([string](@($Model.notes | Group-Object { $_.title.ToLowerInvariant() } | Where-Object {$_.Count -gt 1}).Count))
 
     Add-Metric 'sha1.rows' ([string]$Model.sha1.Count)
@@ -996,20 +1102,27 @@ function Get-SummaryRows {
     $idsFromDates = @($Model.dates | Select-Object -ExpandProperty id -Unique)
     $idsFromMvs = @($Model.product_sections | Select-Object -ExpandProperty id -Unique)
     $idsFromNames = @($Model.variant_sections | Select-Object -ExpandProperty id -Unique)
-    Add-Metric 'integrity.orphan_ids_ids_to_dates' ([string](@($idsFromIds | Where-Object {$idsFromDates -notcontains $_}).Count))
-    Add-Metric 'integrity.orphan_ids_ids_to_mvs' ([string](@($idsFromIds | Where-Object {$idsFromMvs -notcontains $_}).Count))
-    Add-Metric 'cross_domain.product_ids_not_in_mvs_names_ids' ([string](@($idsFromIds | Where-Object {$idsFromNames -notcontains $_}).Count))
+    $idsFromDatesSet = New-IgnoreCaseSet $idsFromDates
+    $idsFromMvsSet = New-IgnoreCaseSet $idsFromMvs
+    $idsFromNamesSet = New-IgnoreCaseSet $idsFromNames
+    Add-Metric 'integrity.orphan_ids_ids_to_dates' ([string](@($idsFromIds | Where-Object {-not $idsFromDatesSet.Contains([string]$_)}).Count))
+    Add-Metric 'integrity.orphan_ids_ids_to_mvs' ([string](@($idsFromIds | Where-Object {-not $idsFromMvsSet.Contains([string]$_)}).Count))
+    Add-Metric 'cross_domain.product_ids_not_in_mvs_names_ids' ([string](@($idsFromIds | Where-Object {-not $idsFromNamesSet.Contains([string]$_)}).Count))
 
     $mvsFilenames = @($Model.product_files | Select-Object -ExpandProperty filename -Unique)
     $nameFilenames = @($Model.variants | Where-Object {$_.filename} | Select-Object -ExpandProperty filename -Unique)
     $sha1Filenames = @($Model.sha1 | Select-Object -ExpandProperty filename -Unique)
     $sha256Filenames = @($Model.sha256 | Select-Object -ExpandProperty filename -Unique)
-    Add-Metric 'integrity.orphan_filenames_mvs_to_names' ([string](@($mvsFilenames | Where-Object {$nameFilenames -notcontains $_}).Count))
-    Add-Metric 'integrity.orphan_filenames_names_to_mvs' ([string](@($nameFilenames | Where-Object {$mvsFilenames -notcontains $_}).Count))
-    Add-Metric 'integrity.orphan_filenames_mvs_to_sha1' ([string](@($mvsFilenames | Where-Object {$sha1Filenames -notcontains $_}).Count))
-    Add-Metric 'integrity.orphan_filenames_names_to_sha1' ([string](@($nameFilenames | Where-Object {$sha1Filenames -notcontains $_}).Count))
-    Add-Metric 'integrity.orphan_filenames_mvs_to_sha256' ([string](@($mvsFilenames | Where-Object {$sha256Filenames -notcontains $_}).Count))
-    Add-Metric 'integrity.orphan_filenames_names_to_sha256' ([string](@($nameFilenames | Where-Object {$sha256Filenames -notcontains $_}).Count))
+    $mvsFilenameSet = New-IgnoreCaseSet $mvsFilenames
+    $nameFilenameSet = New-IgnoreCaseSet $nameFilenames
+    $sha1FilenameSet = New-IgnoreCaseSet $sha1Filenames
+    $sha256FilenameSet = New-IgnoreCaseSet $sha256Filenames
+    Add-Metric 'integrity.orphan_filenames_mvs_to_names' ([string](@($mvsFilenames | Where-Object {-not $nameFilenameSet.Contains([string]$_)}).Count))
+    Add-Metric 'integrity.orphan_filenames_names_to_mvs' ([string](@($nameFilenames | Where-Object {-not $mvsFilenameSet.Contains([string]$_)}).Count))
+    Add-Metric 'integrity.orphan_filenames_mvs_to_sha1' ([string](@($mvsFilenames | Where-Object {-not $sha1FilenameSet.Contains([string]$_)}).Count))
+    Add-Metric 'integrity.orphan_filenames_names_to_sha1' ([string](@($nameFilenames | Where-Object {-not $sha1FilenameSet.Contains([string]$_)}).Count))
+    Add-Metric 'integrity.orphan_filenames_mvs_to_sha256' ([string](@($mvsFilenames | Where-Object {-not $sha256FilenameSet.Contains([string]$_)}).Count))
+    Add-Metric 'integrity.orphan_filenames_names_to_sha256' ([string](@($nameFilenames | Where-Object {-not $sha256FilenameSet.Contains([string]$_)}).Count))
 
     $unparsedTotal = 0
     foreach ($name in @('mvs.txt','mvs_names.txt','mvs.sha1','mvs.sha256','mvs_ids.txt','mvs_dates.txt')) {

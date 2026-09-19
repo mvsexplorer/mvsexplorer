@@ -7,6 +7,11 @@ Purpose
   Multiple-match ordering: natural DATE ordering
   Output: distinct non-empty NOTE values, one per line
 
+0.4.1 - 2026-08-28
+  - Performance-only regeneration for project 0.13.0.
+  - Parses date/note enrichment only when the lookup source/target requires it.
+  - Public arguments, wildcard semantics, output, and return-code contract are unchanged.
+
 0.4.0 - 2026-08-27
   - Regenerated for project 0.6.0.
   - Uses RunPowerShellFromLabel 1.2.0 direct child-process return.

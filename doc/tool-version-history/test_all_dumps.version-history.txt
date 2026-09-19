@@ -1,5 +1,12 @@
 test_all_dumps.bat Version History
 
+0.2.0 - 2026-08-28
+  - Default executor changed to fast-combined for high-throughput archive validation.
+  - Added --external-tools for literal public-tool execution.
+  - Executor identity is serialized into the deterministic plan and resume hash.
+  - external-public mode discards successful stdout and captures full payload only on failure.
+  - Fast batches retain the same 34,822 logical-check plan for the supplied 79-snapshot archive.
+
 0.1.0 - 2026-08-27
   - Initial archive-wide real-dump execution harness.
   - Discovers mvs_* snapshots and resolves nested mvs_dmp source roots.

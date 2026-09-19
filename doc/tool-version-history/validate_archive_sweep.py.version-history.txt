@@ -1,0 +1,4 @@
+validate_archive_sweep.py Version History
+
+0.2.0 - 2026-08-28
+  - Static validation for dual-executor archive sweep, fast utilities, tool counts, and plan counts.

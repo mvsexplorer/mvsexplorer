@@ -321,3 +321,13 @@ little diagnostic value. Actual failures preserve complete stdout/stderr/meta.
 Long sweeps also need restartability. `runs.tsv` is appended after every
 completed invocation and resume is allowed only when a regenerated plan hashes
 identically to the original `plan.tsv`.
+
+## 2026-08-28 — 0.13.0 performance architecture
+
+The first literal 0.12.0 archive sweep proved correctness of the planning layer but exposed a process/algorithm cost that would make 34,822 standalone calls impractical. The first two completed snapshots each consumed roughly 1.8 hours, and summary/statistics alone represented nearly half of observed tool time.
+
+0.13.0 therefore separates compatibility from throughput. Public tools stay authoritative and retain their interfaces, while generated runtimes remove unused parsing and replace expensive membership scans. A second combined executor parses a snapshot once and evaluates the same logical checks in bulk.
+
+The archive sweep now records the executor explicitly. `fast-combined` is the default for the large archive task; `external-public` remains available whenever literal wrapper execution is required. Resume is executor-sensitive so result sets cannot silently mix semantics.
+
+Before Windows release testing, the combined classifier was replayed against all 1,171 rows available from the partial 0.12.0 external run and reproduced every status exactly.

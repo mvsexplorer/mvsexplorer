@@ -464,3 +464,8 @@ test\test_structure.bat	test	console	structure				0.7.0
 build_mvs_dump_change_history.bat	history	file-output	19 source-local domains	chronological	archive-root		0.1.0
 build_mvs_dump_all_ever.bat	history	file-output	19 source-local unions	chronological	archive-root		0.1.0
 test\test_history_tools.bat	test	console	history				0.8.0
+test\test_all_dumps.bat	test	archive-sweep	logical public-tool plan	chronological	archive-root		0.2.0
+test\fast\run_snapshot_tools_fast.bat	test-fast	batch-status	422 single-snapshot checks	source-order	snapshot		0.1.0
+test\fast\run_compare_tools_fast.bat	test-fast	batch-status	19 adjacent comparisons	source-order	dump-pair		0.1.0
+test\analyze_archive_sweep_performance.bat	test	analysis	elapsed/status/output metrics	elapsed	results-folder		0.1.0
+test\test_fast_archive_sweep.bat	test	console	fast archive executor acceptance	chronological	synthetic archive		0.1.0

@@ -1,5 +1,22 @@
 MVS Explorer Toolkit Project Version History
 
+0.13.0 - 2026-08-28
+  - Added dual-executor archive sweep architecture.
+  - test\test_all_dumps.bat now defaults to fast-combined execution.
+  - Added --external-tools to force literal public-tool execution.
+  - Added test\fast\run_snapshot_tools_fast.bat and run_compare_tools_fast.bat.
+  - Added test\analyze_archive_sweep_performance.bat and test\test_fast_archive_sweep.bat.
+  - Public root tool count remains 443.
+  - Performance-only regenerated 377 existing public tools with unchanged interfaces/scopes:
+    120 scalar, 7 lookup, 96 relationship, and 154 single-dump tools.
+  - The remaining 66 public tools are byte-for-byte unchanged from 0.12.0.
+  - Summary/statistics uses HashSet-backed membership instead of repeated array scans.
+  - Single-dump and relationship runtimes avoid parsing/enrichment that the requested operation does not need.
+  - external-public sweep mode discards successful stdout instead of writing temporary payload files.
+  - Executor identity is part of plan.tsv/plan SHA-256 and resume safety.
+  - Combined status logic replayed exactly against 1,171 completed 0.12.0 real Windows sweep rows.
+  - Added performance architecture documentation and static archive-sweep validation.
+
 0.12.0 - 2026-08-27
   - Recorded the clean 0.11.0 Windows baseline: 1053 pass / 0 fail / 3 skip.
   - Added test\test_all_dumps.bat for archive-wide real-snapshot execution.
