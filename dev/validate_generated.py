@@ -187,7 +187,7 @@ def main():
     prepare = component_dir / "02_prepare_archive_update.bat"
     if prepare.exists():
         pt = prepare.read_text(encoding="utf-8")
-        for marker in ("source-fingerprints.tsv","Already done:","Processing from scratch:","toolset-sha256.txt","pending_checks"):
+        for marker in ("source-fingerprints.tsv","reuse-decisions.tsv","Reuse summary:","Processing from scratch:","toolset-sha256.txt","pending_checks"):
             if marker not in pt:
                 issues.append(f"{prepare.relative_to(ROOT)} missing {marker}")
         if "LastWriteTime" in pt or "CreationTime" in pt:

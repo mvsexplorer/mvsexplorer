@@ -1,3 +1,7 @@
+0.3.0 / project 0.21.0 - 2026-09-13
+- Adds a conservative fifth Languages hierarchy from explicit trailing title labels.
+- Adds A-Z/item-count ordering, reverse order, Copy list, Select all, cascading Clear, and all-pages complete-table/single-column clipboard export.
+
 0.2.1 / project 0.19.2 - 2026-09-10
 - Fixes multiple compact-database discovery candidates being wrapped as one nested array.
 - Multiple matches now reach the chooser as distinct rows; exactly-one and Browse fallback behavior are unchanged.

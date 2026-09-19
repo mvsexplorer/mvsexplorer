@@ -8,7 +8,7 @@ set "app.rc=0"
 set "app.self=%~f0"
 set "mvspf_caller=%~nx0"
 set "mvspf_version=%app.version%"
-set "mvspf_project_version=0.20.2"
+set "mvspf_project_version=0.21.0"
 for %%I in ("%~dp0..") do set "mvspf_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSProductFamilyTest"
@@ -100,7 +100,7 @@ $Root = [string]$env:mvspf_root
 $Caller = [string]$env:mvspf_caller
 $Version = [string]$env:mvspf_version
 $ProjectVersion = [string]$env:mvspf_project_version
-$script:Total = 106
+$script:Total = 108
 $script:Index = 0
 $script:Passed = 0
 $script:Failed = 0
@@ -226,6 +226,28 @@ try {
 
     $windowsAlias = @($classifications | Where-Object { $_.product_title -eq 'Windows Server 2019 Standard (English)' })
     Assert-Semantic 'Windows leading alias canonicalizes' ($windowsAlias.Count -eq 1 -and $windowsAlias[0].broad_family -eq 'Microsoft Windows' -and $windowsAlias[0].product_family -eq 'Microsoft Windows Server' -and $windowsAlias[0].rule_id -eq 'CURATED_ALIAS_PREFIX') 'unexpected Windows alias classification'
+
+    $windowsSubproducts = @{
+        'Windows Point of Service SDK 1.0 (English)'='Microsoft Windows Point of Service SDK'
+        'Windows Point of Service Software Development Kit (SDK), version 1.0'='Microsoft Windows Point of Service SDK'
+        'Windows Rights Management Client, version 1.0'='Microsoft Windows Rights Management Client'
+        'Windows Rights Management Services, version 1.0'='Microsoft Windows Rights Management Services'
+        'Windows Services for UNIX 1.0 (English)'='Microsoft Windows Services for UNIX'
+        'Windows Vista Upgrade Advisor 1.0 (Swedish)'='Microsoft Windows Vista Upgrade Advisor'
+    }
+    $windowsSubproductsOk=$true
+    $windowsReleasePollution=$false
+    foreach($entry in $windowsSubproducts.GetEnumerator()){
+        $row=@($classifications | Where-Object { $_.product_title -eq [string]$entry.Key })
+        if($row.Count-ne1 -or $row[0].broad_family-ne'Microsoft Windows' -or $row[0].product_family-ne[string]$entry.Value -or $row[0].rule_id-ne'WINDOWS_BRANDED_SUBPRODUCT' -or $row[0].release-ne'1.0'){
+            $windowsSubproductsOk=$false
+        }
+        if($row.Count-eq1 -and ($row[0].product_family-eq'Microsoft Windows' -or $row[0].broad_release_family-eq'Microsoft Windows 1.0')){
+            $windowsReleasePollution=$true
+        }
+    }
+    Assert-Semantic 'Windows-branded SDK/service/client/tool prefixes remain distinct product families' $windowsSubproductsOk 'one or more Windows subproducts collapsed into generic Windows'
+    Assert-Semantic 'Windows-branded 1.0 subproducts do not create Microsoft Windows 1.0' (-not$windowsReleasePollution) 'generic Microsoft Windows 1.0 branch was polluted by a branded subproduct'
 
     $agentsAlias = @($classifications | Where-Object { $_.product_title -eq 'Agents for Visual Studio 2012 (English)' })
     Assert-Semantic 'Visual Studio agent alias keeps broad and product family' ($agentsAlias.Count -eq 1 -and $agentsAlias[0].broad_family -eq 'Microsoft Visual Studio' -and $agentsAlias[0].product_family -eq 'Microsoft Visual Studio Agents' -and $agentsAlias[0].broad_release_family -eq 'Microsoft Visual Studio 2012') 'unexpected Visual Studio agent classification'
@@ -398,8 +420,8 @@ foreach ($q in $queries) {
 }
 
 Write-Line ('SUMMARY: passed='+$script:Passed+' failed='+$script:Failed)
-if ($script:Passed + $script:Failed -ne 106) {
-    FailCase 'assertion accounting' ('expected 106 assertions, got '+($script:Passed+$script:Failed))
+if ($script:Passed + $script:Failed -ne 108) {
+    FailCase 'assertion accounting' ('expected 108 assertions, got '+($script:Passed+$script:Failed))
 }
 if ($script:Failed -gt 0) {
     Write-Line ('Artifacts retained at: '+$OutputRoot)

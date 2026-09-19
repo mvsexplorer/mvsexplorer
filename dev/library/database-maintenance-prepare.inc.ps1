@@ -20,13 +20,17 @@ Write-Utf8 (Join-Path $staging 'toolset-sha256.txt') ($newToolset+"`r`n")
 
 $fingerprintRows=New-Object System.Collections.ArrayList
 $newFp=New-IgnoreCaseObjectDictionary
-foreach($snap in @(Get-SnapshotDirectories $ArchiveRoot)){
-    Write-Line ('Fingerprinting source content: '+$snap.Name)
+$snapshotDirs=@(Get-SnapshotDirectories $ArchiveRoot)
+$fingerprintClock=[Diagnostics.Stopwatch]::StartNew()
+Write-Line ('Fingerprinting source content: '+$snapshotDirs.Count+' snapshots ...')
+foreach($snap in $snapshotDirs){
     $fp=Get-SnapshotFingerprint $snap.FullName
     $row=[pscustomobject]@{snapshot=$snap.Name;fingerprint=$fp.fingerprint;source_file_count=$fp.file_count;data_path=$fp.data_path}
     [void]$fingerprintRows.Add($row)
     $newFp[$snap.Name]=$row
 }
+$fingerprintClock.Stop()
+Write-Line ('Source fingerprints complete: snapshots='+$snapshotDirs.Count+' duration='+$fingerprintClock.Elapsed.ToString())
 $fpLines=New-Object System.Collections.ArrayList
 [void]$fpLines.Add("snapshot`tfingerprint`tsource_file_count`tdata_path")
 foreach($row in $fingerprintRows){[void]$fpLines.Add(($row.snapshot+"`t"+$row.fingerprint+"`t"+$row.source_file_count+"`t"+(Convert-TsvField $row.data_path)))}
@@ -60,6 +64,8 @@ $seededByNewIndex=New-OrdinalObjectDictionary
 $seededSnapshots=New-IgnoreCaseStringSet
 $pendingSnapshots=New-IgnoreCaseStringSet
 $newSnapshots=0;$changedSnapshots=0;$faultySnapshots=0;$alreadySnapshots=0
+$reuseDecisionLines=New-Object System.Collections.ArrayList
+[void]$reuseDecisionLines.Add("scope`tsnapshot`tnext_snapshot`tdecision`treason`tlogical_checks")
 
 foreach($snapshot in @($newFp.Keys|Sort-Object)){
     $rows=@($newPlan|Where-Object{$_.scope  -eq  'single'   -and   $_.snapshot  -eq  $snapshot})
@@ -88,10 +94,11 @@ foreach($snapshot in @($newFp.Keys|Sort-Object)){
             $seededByNewIndex[[string]$nr.index]=$copy
         }
         [void]$seededSnapshots.Add($snapshot);$alreadySnapshots++
-        Write-Line ('Already done: '+$snapshot+' ('+$rows.Count+'/'+$rows.Count+' checks reusable).')
+        [void]$reuseDecisionLines.Add(("single`t"+$snapshot+"`t`treuse`tunchanged and complete`t"+$rows.Count))
     }else{
         [void]$pendingSnapshots.Add($snapshot)
         if($reason  -like  'prior processing*'){$faultySnapshots++}
+        [void]$reuseDecisionLines.Add(("single`t"+$snapshot+"`t`tprocess`t"+(Convert-TsvField $reason)+"`t"+$rows.Count))
         Write-Line ('Processing from scratch: '+$snapshot+' - '+$reason+'.')
     }
 }
@@ -119,8 +126,11 @@ foreach($group in $compareGroups){
             }
         }
         [void]$seededComparePairs.Add($pair)
-        Write-Line ('Already done compare: '+$from+' -> '+$to+' ('+$rows.Count+' checks reusable).')
-    }else{Write-Line ('Pending compare: '+$from+' -> '+$to+'.')}
+        [void]$reuseDecisionLines.Add(("compare`t"+$from+"`t"+$to+"`treuse`tunchanged endpoints and complete`t"+$rows.Count))
+    }else{
+        [void]$reuseDecisionLines.Add(("compare`t"+$from+"`t"+$to+"`tprocess`tendpoint changed or prior processing incomplete`t"+$rows.Count))
+        Write-Line ('Pending compare: '+$from+' -> '+$to+'.')
+    }
 }
 
 $archiveRows=@($newPlan|Where-Object{$_.scope  -eq  'archive'})
@@ -142,8 +152,17 @@ if($reuseArchive){
             status=[string]$oldRun.status;rc=[string]$oldRun.rc;stdout_bytes=[string]$oldRun.stdout_bytes;stderr_bytes=[string]$oldRun.stderr_bytes;elapsed_ms=[string]$oldRun.elapsed_ms
         }
     }
-    Write-Line 'Already done: archive-wide builders are reusable.'
-}else{Write-Line 'Archive-wide builders will be regenerated after pending dump/compare work.'}
+    [void]$reuseDecisionLines.Add(("archive`t`t`treuse`tall dependencies unchanged and complete`t"+$archiveRows.Count))
+}else{
+    [void]$reuseDecisionLines.Add(("archive`t`t`tprocess`tdependent snapshot/compare/toolset changed`t"+$archiveRows.Count))
+    Write-Line 'Archive-wide builders will be regenerated after pending dump/compare work.'
+}
+$pendingCompareCount=$compareGroups.Count-$seededComparePairs.Count
+$archiveDecision=if($reuseArchive){'reusable'}else{'pending'}
+Write-Line ('Reuse summary: snapshots='+$seededSnapshots.Count+' reusable/'+$pendingSnapshots.Count+' pending | compares='+$seededComparePairs.Count+' reusable/'+$pendingCompareCount+' pending | archive='+$archiveDecision+'.')
+$slotRunLog=Join-Path $RunLogs (Split-Path -Leaf $SlotRoot)
+Ensure-Directory $slotRunLog
+Write-Utf8 (Join-Path $slotRunLog 'reuse-decisions.tsv') (($reuseDecisionLines -join "`r`n")+"`r`n")
 
 $runHeader=@('index','executor','scope','snapshot','next_snapshot','tool','search_source','search_value','search_origin','status','rc','stdout_bytes','stderr_bytes','elapsed_ms')
 $runLines=New-Object System.Collections.ArrayList

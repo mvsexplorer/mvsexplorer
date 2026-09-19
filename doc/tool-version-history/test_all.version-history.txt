@@ -1,3 +1,7 @@
+0.11.19 / project 0.21.0 - 2026-09-13
+- Keeps all 1,119 assertions and detailed result evidence but compacts successful interactive output to one PASS summary per logical section.
+- Adds static guards for transient archive status, richer Explorer controls, compact maintenance reuse reporting, and the 108-assertion family regression.
+
 0.11.18 / project 0.20.2 - 2026-09-12
 - Carries the strengthened caller-root/argument-transport structure regression; all mode remains 1,119 assertions.
 

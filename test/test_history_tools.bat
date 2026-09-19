@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.11.18"
+set "app.version=0.11.19"
 set "app.name=test_history_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -10,7 +10,7 @@ set "mvst_mode=history"
 set "mvst_dump=%~1"
 set "mvst_caller=%~nx0"
 set "mvst_version=%app.version%"
-set "mvst_project_version=0.20.2"
+set "mvst_project_version=0.21.0"
 for %%I in ("%~dp0..") do set "mvst_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSTest"
@@ -130,6 +130,11 @@ $script:FailuresFolder = $null
 $script:CaseIndex = 0
 $script:RunStart = Get-Date
 $script:DumpForTools = $DumpArgument
+$script:ActiveSection = ''
+$script:SectionStarted = $null
+$script:SectionStartPassed = 0
+$script:SectionStartFailed = 0
+$script:SectionStartSkipped = 0
 
 function Convert-TsvField {
     param([AllowNull()][AllowEmptyString()][string]$Value)
@@ -213,6 +218,37 @@ function Write-Line {
     }
 }
 
+function Write-DetailLog {
+    param([AllowEmptyString()][string]$Text)
+    if ($null -ne $script:ConsoleLog) {
+        Add-TextUtf8 $script:ConsoleLog ($Text + [Environment]::NewLine)
+    }
+}
+
+function Start-TestSection {
+    param([string]$Name)
+    if (-not [string]::IsNullOrWhiteSpace($script:ActiveSection)) { End-TestSection }
+    $script:ActiveSection = $Name
+    $script:SectionStarted = Get-Date
+    $script:SectionStartPassed = $script:Passed
+    $script:SectionStartFailed = $script:Failed
+    $script:SectionStartSkipped = $script:Skipped
+    Write-Line ('=== '+$Name+' ===')
+}
+
+function End-TestSection {
+    if ([string]::IsNullOrWhiteSpace($script:ActiveSection)) { return }
+    $elapsed = (Get-Date) - $script:SectionStarted
+    $passed = $script:Passed - $script:SectionStartPassed
+    $failed = $script:Failed - $script:SectionStartFailed
+    $skipped = $script:Skipped - $script:SectionStartSkipped
+    $status = if($failed -gt 0){'FAIL'}else{'PASS'}
+    Write-Line (('[{0}] {1}: assertions={2} passed={3} failed={4} skipped={5} duration={6}' -f
+        $status,$script:ActiveSection,($passed+$failed+$skipped),$passed,$failed,$skipped,$elapsed.ToString()))
+    $script:ActiveSection = ''
+    $script:SectionStarted = $null
+}
+
 function Add-Result {
     param([string]$Status, [string]$Name, [AllowEmptyString()][string]$Reason, [AllowEmptyString()][string]$ExpectedRc, [AllowEmptyString()][string]$ActualRc, [AllowEmptyString()][string]$ElapsedMs='')
     $script:CaseIndex++
@@ -234,7 +270,8 @@ function Write-Pass {
     param([string]$Name, [AllowEmptyString()][string]$ExpectedRc='', [AllowEmptyString()][string]$ActualRc='', [AllowEmptyString()][string]$ElapsedMs='')
     $script:Passed++
     Add-Result 'PASS' $Name '' $ExpectedRc $ActualRc $ElapsedMs
-    Write-Line ((Get-TestProgressPrefix) + ' [PASS] ' + $Name)
+    $line=((Get-TestProgressPrefix) + ' [PASS] ' + $Name)
+    if ([string]::IsNullOrWhiteSpace($script:ActiveSection)) { Write-Line $line } else { Write-DetailLog $line }
 }
 
 function Write-Skip {
@@ -1018,7 +1055,6 @@ function Get-ProductFamilyToolNames {
 
 function Test-Structure {
     $script:CurrentScope = 'structure'
-    Write-Line '=== Structure tests ==='
     $expectedTools = New-Object System.Collections.ArrayList
     foreach ($projection in Get-Projections) {
         foreach ($prefix in @('print','read')) {
@@ -1119,7 +1155,9 @@ function Test-Structure {
         $archiveSweepText = [IO.File]::ReadAllText($archiveSweepPath,[Text.Encoding]::UTF8)
         if ($archiveSweepText.Contains('Starting snapshot ') -and $archiveSweepText.Contains('Completed snapshot ') -and
             $archiveSweepText.Contains('Starting compare ') -and $archiveSweepText.Contains('Completed compare ') -and
-            $archiveSweepText.Contains('Elapsed.TotalSeconds')) {
+            $archiveSweepText.Contains('Elapsed.TotalSeconds') -and
+            $archiveSweepText.Contains('__MVS_TRANSIENT__') -and $archiveSweepText.Contains('Write-Transient') -and
+            $archiveSweepText.Contains('SNAPSHOT ANALYSIS START') -and $archiveSweepText.Contains('SNAPSHOT ANALYSIS END')) {
             Write-Pass 'archive sweep reports paired start/completion progress with durations'
         } else {
             Write-Fail 'archive sweep reports paired start/completion progress with durations' 'start/completion duration markers missing'
@@ -1170,10 +1208,12 @@ function Test-Structure {
     $everythingPath = Join-Path $Root 'test\test_everything.bat'
     if (Test-Path -LiteralPath $everythingPath -PathType Leaf) {
         $everythingText = [IO.File]::ReadAllText($everythingPath,[Text.Encoding]::UTF8)
-        if ($everythingText.Contains("'--quiet-plan'")) {
+        if ($everythingText.Contains("'--quiet-plan'") -and
+            $everythingText.Contains('--skip-real-archive-plan') -and
+            $everythingText.Contains('stronger full plan + execution phase')) {
             Write-Pass 'comprehensive suite uses concise archive plan preflight'
         } else {
-            Write-Fail 'comprehensive suite uses concise archive plan preflight' 'quiet plan preflight marker missing'
+            Write-Fail 'comprehensive suite uses concise archive plan preflight' 'quiet/skip-aware plan preflight marker missing'
         }
     } else {
         Write-Fail 'comprehensive suite uses concise archive plan preflight' 'test_everything.bat missing'
@@ -1256,6 +1296,13 @@ function Test-Structure {
             $guiText.Contains('Find-CompactIndexCandidates') -and
             $guiText.Contains('Choose-CompactIndex') -and
             $guiText.Contains('mvs_databases') -and
+            $guiText.Contains('5. Languages') -and
+            $guiText.Contains('Get-ExplicitLanguageLabel') -and
+            $guiText.Contains('Item count') -and
+            $guiText.Contains('Copy complete table - all pages') -and
+            $guiText.Contains('Copy column:') -and
+            $guiText.Contains('Select all') -and
+            $guiText.Contains('Copy list') -and
             $guiText.Contains('[Array]::Sort($a,[StringComparer]::OrdinalIgnoreCase)') -and
             -not $guiText.Contains('[Array]::Sort[string]') -and
             -not $guiText.Contains('dev\library')) {
@@ -1294,7 +1341,7 @@ function Test-Structure {
         foreach ($marker in @('mvs_dumps_archive*','create-or-update-','CreateFromDirectory','archives.tsv','08_write_database_summary.bat')) {
             if (-not $maintenanceText.Contains($marker)) { [void]$maintenanceProblems.Add('launcher missing ' + $marker) }
         }
-        foreach ($marker in @('source-fingerprints.tsv','Already done:','Processing from scratch:','toolset-sha256.txt','pending_checks')) {
+        foreach ($marker in @('source-fingerprints.tsv','reuse-decisions.tsv','Reuse summary:','Processing from scratch:','toolset-sha256.txt','pending_checks')) {
             if (-not $prepareText.Contains($marker)) { [void]$maintenanceProblems.Add('prepare missing ' + $marker) }
         }
         foreach ($marker in @('OVERALL HEALTH:','Completeness:','mvs_databases*','ForegroundColor','source-fingerprints.tsv')) {
@@ -1431,7 +1478,6 @@ function Test-Structure {
 function Test-Scalar {
     param([object[]]$Products)
     $script:CurrentScope = 'scalar'
-    Write-Line '=== Scalar tool tests ==='
     foreach ($projection in Get-Projections) {
         foreach ($family in @(
             [pscustomobject]@{prefix='print'; mode='human'},
@@ -1461,7 +1507,6 @@ function Test-OneLookupPattern {
 function Test-Lookups {
     param([object[]]$Products)
     $script:CurrentScope = 'lookup'
-    Write-Line '=== Lookup tool tests ==='
     foreach ($lookup in Get-Lookups) {
         $candidate = @($Products | Where-Object {
             -not [string]::IsNullOrEmpty([string]$_.$($lookup.source)) -and
@@ -1494,7 +1539,6 @@ function Test-Lookups {
 
 function Test-Diagnostics {
     $script:CurrentScope = 'diagnostic'
-    Write-Line '=== Duplicate/orphan diagnostic tests ==='
 
     $fixture = Join-Path (Join-Path $Root 'test') 'test-mvs-dump-diagnostics'
     $expectedRoot = Join-Path (Join-Path $Root 'test') 'expected-diagnostics'
@@ -1560,7 +1604,6 @@ function Test-RelationshipCase {
 
 function Test-Relationships {
     $script:CurrentScope = 'relationship'
-    Write-Line '=== Filename/hash relationship tests ==='
 
     $fixture = Join-Path (Join-Path $Root 'test') 'test-mvs-dump-relationships'
     $expectedRoot = Join-Path (Join-Path $Root 'test') 'expected-relationships'
@@ -1643,7 +1686,6 @@ function Test-SingleDumpNoResult {
 
 function Test-SingleDumpTools {
     $script:CurrentScope = 'single_dump'
-    Write-Line '=== Single-dump completeness tests ==='
 
     $fixture = Join-Path (Join-Path $Root 'test') 'test-mvs-dump-single-complete'
     $expectedRoot = Join-Path (Join-Path $Root 'test') 'expected-single-dump'
@@ -1710,7 +1752,6 @@ function Test-SingleDumpTools {
 
 function Test-CompareTools {
     $script:CurrentScope = 'compare'
-    Write-Line '=== Two-dump comparison tests ==='
 
     $fixtureRoot = Join-Path (Join-Path $Root 'test') 'test-mvs-dump-compare'
     $before = Join-Path $fixtureRoot 'before'
@@ -1780,7 +1821,6 @@ function Test-HistoryBuilderRun {
 
 function Test-HistoryTools {
     $script:CurrentScope = 'history'
-    Write-Line '=== Archive change-history/all-ever tests ==='
 
     $fixture = Join-Path (Join-Path $Root 'test') 'test-mvs-dump-history'
     $expectedRoot = Join-Path (Join-Path $Root 'test') 'expected-history'
@@ -1837,19 +1877,18 @@ function Test-HistoryTools {
 
 function Test-ProductFamilyFeature {
     $script:CurrentScope = 'family'
-    Write-Line '=== Product-family hierarchy/query tests ==='
     $path = Join-Path (Join-Path $Root 'test') 'test_product_family_tools.bat'
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
         Write-Fail 'product-family regression' ('missing: ' + $path)
         return
     }
     $run = Invoke-PublicTool $path '' $null $false
-    if ($run.rc -eq 0 -and [string]::IsNullOrWhiteSpace($run.stderr) -and $run.stdout -match 'SUMMARY: passed=106 failed=0') {
-        Write-Pass 'product-family regression 106 assertions' '0' ([string]$run.rc) ([string]$run.elapsed_ms)
+    if ($run.rc -eq 0 -and [string]::IsNullOrWhiteSpace($run.stderr) -and $run.stdout -match 'SUMMARY: passed=108 failed=0') {
+        Write-Pass 'product-family regression 108 assertions' '0' ([string]$run.rc) ([string]$run.elapsed_ms)
     } else {
         $reason = 'rc=' + $run.rc + '; stdout=' + (Short-Text $run.stdout) + '; stderr=' + (Short-Text $run.stderr)
-        Write-Fail 'product-family regression 106 assertions' $reason '0' ([string]$run.rc) ([string]$run.elapsed_ms)
-        Save-FailureArtifacts 'product-family regression' $run 0 'SUMMARY: passed=106 failed=0' $reason
+        Write-Fail 'product-family regression 108 assertions' $reason '0' ([string]$run.rc) ([string]$run.elapsed_ms)
+        Save-FailureArtifacts 'product-family regression' $run 0 'SUMMARY: passed=108 failed=0' $reason
     }
 }
 
@@ -1909,15 +1948,15 @@ if (@('all','scalar','lookup') -contains $Mode) {
 
 Write-RunInfo $DumpFolder
 
-if ($Mode -eq 'all' -or $Mode -eq 'structure') { Test-Structure }
-if ($Mode -eq 'all' -or $Mode -eq 'scalar') { Test-Scalar $Products }
-if ($Mode -eq 'all' -or $Mode -eq 'lookup') { Test-Lookups $Products }
-if ($Mode -eq 'all' -or $Mode -eq 'diagnostic') { Test-Diagnostics }
-if ($Mode -eq 'all' -or $Mode -eq 'relationship') { Test-Relationships }
-if ($Mode -eq 'all' -or $Mode -eq 'single_dump') { Test-SingleDumpTools }
-if ($Mode -eq 'all' -or $Mode -eq 'compare') { Test-CompareTools }
-if ($Mode -eq 'all' -or $Mode -eq 'history') { Test-HistoryTools }
-if ($Mode -eq 'all') { Test-ProductFamilyFeature }
+if ($Mode -eq 'all' -or $Mode -eq 'structure') { Start-TestSection 'Structure tests'; Test-Structure; End-TestSection }
+if ($Mode -eq 'all' -or $Mode -eq 'scalar') { Start-TestSection 'Scalar tool tests'; Test-Scalar $Products; End-TestSection }
+if ($Mode -eq 'all' -or $Mode -eq 'lookup') { Start-TestSection 'Lookup tool tests'; Test-Lookups $Products; End-TestSection }
+if ($Mode -eq 'all' -or $Mode -eq 'diagnostic') { Start-TestSection 'Duplicate/orphan diagnostic tests'; Test-Diagnostics; End-TestSection }
+if ($Mode -eq 'all' -or $Mode -eq 'relationship') { Start-TestSection 'Filename/hash relationship tests'; Test-Relationships; End-TestSection }
+if ($Mode -eq 'all' -or $Mode -eq 'single_dump') { Start-TestSection 'Single-dump completeness tests'; Test-SingleDumpTools; End-TestSection }
+if ($Mode -eq 'all' -or $Mode -eq 'compare') { Start-TestSection 'Two-dump comparison tests'; Test-CompareTools; End-TestSection }
+if ($Mode -eq 'all' -or $Mode -eq 'history') { Start-TestSection 'Archive change-history/all-ever tests'; Test-HistoryTools; End-TestSection }
+if ($Mode -eq 'all') { Start-TestSection 'Product-family hierarchy/query tests'; Test-ProductFamilyFeature; End-TestSection }
 
 Write-Line ''
 Write-Line ('SUMMARY: passed=' + $script:Passed + ' failed=' + $script:Failed + ' skipped=' + $script:Skipped)

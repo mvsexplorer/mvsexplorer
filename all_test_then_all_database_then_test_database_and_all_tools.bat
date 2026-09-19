@@ -6,7 +6,7 @@ set "app.version=1.1.0"
 set "app.name=all_test_then_all_database_then_test_database_and_all_tools"
 set "app.rc=0"
 set "app.self=%~f0"
-set "mvspipe_project_version=0.20.2"
+set "mvspipe_project_version=0.21.0"
 set "mvspipe_project_root=%~dp0"
 set "mvspipe_caller=%~nx0"
 set "mvspipe_arg1=%~1"
@@ -130,6 +130,8 @@ $script:DbValidationRoot = ''
 $script:ArchiveDatabase = ''
 $script:FamilyDatabase = ''
 $script:CompactDatabase = ''
+$script:TransientWidth = 0
+$script:TransientPrefix = '__MVS_TRANSIENT__'
 $StrictPerformance = $false
 $LogicalCores = [Math]::Max(1,[Environment]::ProcessorCount)
 $WorkerStart = [Math]::Max(1,[int][Math]::Ceiling($LogicalCores / 4.0))
@@ -146,6 +148,27 @@ $ResumeFamilyInput = ''
 $ResumeCompactInput = ''
 $ResumeTestResultsInput = ''
 
+function Clear-TransientConsole {
+    if($script:TransientWidth-le0){return}
+    if(-not[Console]::IsOutputRedirected){
+        try{[Console]::Out.Write("`r"+(' ' * $script:TransientWidth)+"`r")}catch{}
+    }
+    $script:TransientWidth=0
+}
+function Write-TransientConsole {
+    param([AllowEmptyString()][string]$Text)
+    if([Console]::IsOutputRedirected){return}
+    try{
+        $width=[Math]::Max($script:TransientWidth,$Text.Length)
+        [Console]::Out.Write("`r"+$Text+(' ' * ($width-$Text.Length)))
+        $script:TransientWidth=$width
+    }catch{$script:TransientWidth=0}
+}
+function Write-TransientLog {
+    param([AllowEmptyString()][string]$Text)
+    Write-TransientConsole $Text
+    if($null-ne$script:MasterWriter){$script:MasterWriter.WriteLine($Text);$script:MasterWriter.Flush()}
+}
 function Get-StatusTokenColor {
     param([string]$Token,[string]$Suffix)
     $t=$Token.ToUpperInvariant()
@@ -166,6 +189,7 @@ function Get-StatusTokenColor {
 }
 function Write-ConsoleTokenized {
     param([AllowEmptyString()][string]$Text,[switch]$ErrorStream)
+    Clear-TransientConsole
     $writer=if($ErrorStream){[Console]::Error}else{[Console]::Out}
     $redirected=if($ErrorStream){[Console]::IsErrorRedirected}else{[Console]::IsOutputRedirected}
     if($redirected){$writer.WriteLine($Text);return}
@@ -268,10 +292,23 @@ function Invoke-ChildPhase {
         Write-Log ('Command: '+$Tool+' '+(@($ToolArgs)-join' '))
         $global:LASTEXITCODE=0
         $oldPreference=$ErrorActionPreference
+        $oldTransientProtocol=[string]$env:MVS_TRANSIENT_PROTOCOL
         $ErrorActionPreference='Continue'
-        & $Tool @ToolArgs 2>&1 | ForEach-Object { Write-Log ([string]$_) }
-        $ErrorActionPreference=$oldPreference
-        $rc=if($null-eq$LASTEXITCODE){0}else{[int]$LASTEXITCODE}
+        $env:MVS_TRANSIENT_PROTOCOL='1'
+        try{
+            & $Tool @ToolArgs 2>&1 | ForEach-Object {
+                $childLine=[string]$_
+                if($childLine.StartsWith($script:TransientPrefix,[StringComparison]::Ordinal)){
+                    Write-TransientLog $childLine.Substring($script:TransientPrefix.Length)
+                } else {
+                    Write-Log $childLine
+                }
+            }
+            $rc=if($null-eq$LASTEXITCODE){0}else{[int]$LASTEXITCODE}
+        } finally {
+            $ErrorActionPreference=$oldPreference
+            if([string]::IsNullOrEmpty($oldTransientProtocol)){Remove-Item Env:MVS_TRANSIENT_PROTOCOL -ErrorAction SilentlyContinue}else{$env:MVS_TRANSIENT_PROTOCOL=$oldTransientProtocol}
+        }
         if($rc-ne0){
             Record-Phase $Name 'FAIL' $sw $rc ('child returned '+$rc)
             throw ($Name+' failed with return code '+$rc)
@@ -675,7 +712,7 @@ try{
     }else{
         $testParent=Join-Path $ProjectRoot 'test'
         $beforeTests=@(Get-ChildItem -LiteralPath $testParent -Directory -Filter 'test-results-*' -ErrorAction SilentlyContinue|ForEach-Object{$_.FullName})
-        $testArgs=@($ArchiveRoot)+@(Get-WorkerArguments)
+        $testArgs=@($ArchiveRoot,'--skip-real-archive-plan')+@(Get-WorkerArguments)
         if($StrictPerformance){$testArgs+=@('--strict-performance')}
         try{
             Invoke-ChildPhase 'ALL TESTS' $testEverything $testArgs

@@ -54,14 +54,14 @@ def main():
         "run_archive_tools_fast.bat","Start-FastWorkerJob","Complete-FastWorkerJob",
         "build_archive_html_report.bat","Content cache:","Family tools:",
         "build_mvs_product_family_index.bat","build_mvs_product_family_compact_index.bat","^(?:print|read)_mvs_product_",
-        "Starting snapshot ","Completed snapshot ","Starting compare ","Completed compare ","Elapsed.TotalSeconds"
+        "Starting snapshot ","Completed snapshot ","Starting compare ","Completed compare ","Elapsed.TotalSeconds","__MVS_TRANSIENT__","Write-Transient","SNAPSHOT ANALYSIS START","SNAPSHOT ANALYSIS END"
     ))
     if "'index','executor','engine_version','scope','snapshot'" not in text:
         fail("plan engine/executor identity is not serialized")
     if "& $WorkerPath $ArchiveRoot $ArchiveOutput 1> $null 2> $stderrPath" in text:
         fail("fast archive worker progress is still suppressed")
-    if "& $WorkerPath $ArchiveRoot $ArchiveOutput 2> $stderrPath | ForEach-Object { Write-Line ([string]$_) }" not in text:
-        fail("fast archive worker progress is not streamed through the sweep logger")
+    if "& $WorkerPath $ArchiveRoot $ArchiveOutput 2> $stderrPath | ForEach-Object {" not in text or "Write-Transient $childLine" not in text or "Write-Line $childLine" not in text:
+        fail("fast archive worker progress is not streamed through transient/permanent sweep logging")
 
     snap=check_batch(ROOT/"test"/"fast"/"run_snapshot_tools_fast.bat",(
         ':_MVSFastSweep_start','mvsf_mode=snapshot','Get-SingleStatus','Read-FastModel',
@@ -104,7 +104,7 @@ def main():
     ))
     everything=check_batch(ROOT/"test"/"test_everything.bat",(
         ':_MVSTestEverything_start','--full-archive','--strict-performance','--archive-results',
-        'test_all.bat','test_fast_archive_sweep.bat','check_archive_sweep_quality.bat','--no-cache','--quiet-plan',
+        'test_all.bat','test_fast_archive_sweep.bat','check_archive_sweep_quality.bat','--no-cache','--quiet-plan','--skip-real-archive-plan',
         'param([string]$Tool,[object[]]$ToolArgs)','& $Tool @ToolArgs'
     ))
     if 'param([string]$Tool,[object[]]$Args)' in everything or '& $Tool @Args' in everything:
@@ -252,19 +252,19 @@ def main():
         "[string[]]$names=@()","$names=@(([string]$r.snapshots)-split"
     ))
     family_test=check_batch(ROOT/"test"/"test_product_family_tools.bat",(
-        ":_MVSProductFamilyTest_start","SUMMARY: passed=","expected 106 assertions",
+        ":_MVSProductFamilyTest_start","SUMMARY: passed=","expected 108 assertions",
         "embedded Office reference is not ownership","raw note HTML references are content-addressed",
         "Office Online update stamp is not a release",
         ".NET semantic version beats referenced year",
         "explicit non-year version beats update timestamp",
-        "mvspf_project_version=0.20.2"
+        "mvspf_project_version=0.21.0"
     ))
     test_all_text=(ROOT/"test"/"test_all.bat").read_text(encoding="utf-8")
     if ("public layout = tools\\ 478 BATs, root 4 launchers, create/update 8 components" not in test_all_text or
-        "product-family regression 106 assertions" not in test_all_text or
-        "SUMMARY: passed=106 failed=0" not in test_all_text or
+        "product-family regression 108 assertions" not in test_all_text or
+        "SUMMARY: passed=108 failed=0" not in test_all_text or
         ("SUMMARY: passed=96 failed=0" in test_all_text or "SUMMARY: passed=92 failed=0" in test_all_text)):
-        fail("test_all.bat is not integrated with the 106-assertion product-family regression")
+        fail("test_all.bat is not integrated with the 108-assertion product-family regression")
 
     exclusions=ROOT/"test"/"archive-exclusions.tsv"
     if not exclusions.is_file(): fail("missing test/archive-exclusions.tsv")
@@ -279,10 +279,10 @@ def main():
         fail("test_all_dumps.bat still truncates options at cmd.exe positional argument 9")
 
     # Test harness must capture per-invocation elapsed time.
-    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","Project: MVS Explorer Toolkit","mvst_project_version=0.20.2"))
+    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","Project: MVS Explorer Toolkit","mvst_project_version=0.21.0"))
     if "expected_rc`tactual_rc`telapsed_ms" not in test_all:
         fail("test result TSV does not include elapsed_ms")
-    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","Project version:","0.20.2","--start-workers","--max-workers"))
+    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","Project version:","0.21.0","--start-workers","--max-workers"))
 
     maintained=(
         "dev/generate_archive_sweep.py","dev/generate_performance_tools.py","dev/generate_report_tools.py",

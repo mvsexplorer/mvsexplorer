@@ -74,7 +74,7 @@ function New-Utf8Writer {
     if (-not (Test-Path -LiteralPath $parent -PathType Container)) {
         [void](New-Item -ItemType Directory -Path $parent -Force)
     }
-    $writer = New-Object System.IO.StreamWriter -ArgumentList @($Path,$false,$utf8,65536)
+    $writer = New-Object System.IO.StreamWriter -ArgumentList @($Path,$false,$utf8,262144)
     $writer.WriteLine($Header)
     return $writer
 }
@@ -236,6 +236,7 @@ $RuleRows = @(
     [pscustomobject]@{rule_id='OFFICE_COMPONENT';priority='35';confidence='high';description='Curated Microsoft Office component/edition prefix'},
     [pscustomobject]@{rule_id='OFFICE_GENERIC';priority='40';confidence='high';description='Microsoft Office or Office YEAR prefix'},
     [pscustomobject]@{rule_id='CURATED_MICROSOFT';priority='50';confidence='high';description='Curated Microsoft product-family prefix'},
+    [pscustomobject]@{rule_id='WINDOWS_BRANDED_SUBPRODUCT';priority='55';confidence='high';description='Curated Windows-branded SDK/service/client/tool subproduct kept distinct from the generic Windows product family'},
     [pscustomobject]@{rule_id='CURATED_ALIAS_PREFIX';priority='60';confidence='high';description='Curated leading alias mapped to canonical Microsoft broad/product family'},
     [pscustomobject]@{rule_id='GENERIC_MICROSOFT_REVIEW';priority='900';confidence='review';description='Generic Microsoft-leading title; review before canonical use'}
 )
@@ -286,6 +287,25 @@ $OfficeComponentPrefixes = @(
     'Microsoft Office OneNote',
     'Microsoft Office Groove',
     'Microsoft Office InfoPath'
+)
+
+# Windows is both an operating-system family name and a branding prefix used by
+# independent SDKs/services/tools. These source-backed prefixes are curated
+# before the generic "Windows" alias so "Windows Services for UNIX 1.0" does
+# not become a variant of a fictitious "Microsoft Windows 1.0" release.
+$WindowsSubproductRules = @(
+    [pscustomobject]@{prefix='Microsoft Windows Point of Service Software Development Kit (SDK)';family='Microsoft Windows Point of Service SDK'},
+    [pscustomobject]@{prefix='Windows Point of Service Software Development Kit (SDK)';family='Microsoft Windows Point of Service SDK'},
+    [pscustomobject]@{prefix='Microsoft Windows Point of Service SDK';family='Microsoft Windows Point of Service SDK'},
+    [pscustomobject]@{prefix='Windows Point of Service SDK';family='Microsoft Windows Point of Service SDK'},
+    [pscustomobject]@{prefix='Microsoft Windows Rights Management Client';family='Microsoft Windows Rights Management Client'},
+    [pscustomobject]@{prefix='Windows Rights Management Client';family='Microsoft Windows Rights Management Client'},
+    [pscustomobject]@{prefix='Microsoft Windows Rights Management Services';family='Microsoft Windows Rights Management Services'},
+    [pscustomobject]@{prefix='Windows Rights Management Services';family='Microsoft Windows Rights Management Services'},
+    [pscustomobject]@{prefix='Microsoft Windows Services for UNIX';family='Microsoft Windows Services for UNIX'},
+    [pscustomobject]@{prefix='Windows Services for UNIX';family='Microsoft Windows Services for UNIX'},
+    [pscustomobject]@{prefix='Microsoft Windows Vista Upgrade Advisor';family='Microsoft Windows Vista Upgrade Advisor'},
+    [pscustomobject]@{prefix='Windows Vista Upgrade Advisor';family='Microsoft Windows Vista Upgrade Advisor'}
 )
 
 # These are structural aliases only: they must occur at the beginning of the
@@ -490,6 +510,21 @@ function Classify-TitleAutomatic {
         return New-Classification $title $broad $broad $release $broadRelease $broadRelease 'high' 'curated-alias-prefix' 'OFFICE_GENERIC'
     }
 
+    foreach ($windowsRule in $WindowsSubproductRules) {
+        $prefix = [string]$windowsRule.prefix
+        if (-not $title.StartsWith($prefix,[StringComparison]::OrdinalIgnoreCase)) { continue }
+        if ($title.Length -gt $prefix.Length) {
+            $next = $title.Substring($prefix.Length,1)
+            if ($next -notmatch '[\s:,\-\(\[]') { continue }
+        }
+        $broad = 'Microsoft Windows'
+        $family = [string]$windowsRule.family
+        $release = Get-ReleaseToken $title $prefix $family
+        $specific = if ([string]::IsNullOrEmpty($release)) { '' } else { $family + ' ' + $release }
+        $broadRelease = if ($release -match '^(?:19|20)\d{2}$') { $broad + ' ' + $release } else { '' }
+        return New-Classification $title $broad $family $release $specific $broadRelease 'high' 'curated-prefix' 'WINDOWS_BRANDED_SUBPRODUCT'
+    }
+
     foreach ($aliasRule in $AliasPrefixRules) {
         $prefix = [string]$aliasRule.prefix
         if (-not $title.StartsWith($prefix,[StringComparison]::OrdinalIgnoreCase)) { continue }
@@ -595,6 +630,16 @@ function Write-UniqueRow {
         $Writers[$Table].WriteLine($line)
         $Counts[$Table] = [int64]$Counts[$Table] + 1L
     }
+}
+
+$SnapshotScopedTables=@(
+    'product-ids.tsv','product-dates.tsv','product-files.tsv','product-hashes.tsv','product-notes.tsv','product-snapshots.tsv'
+)
+function Reset-SnapshotSeenRows {
+    # Every row in these tables begins with the snapshot key. Cross-snapshot
+    # duplicates are therefore impossible by construction, so retaining their
+    # dedupe HashSets for all 79 snapshots only wastes memory.
+    foreach($table in $SnapshotScopedTables){$SeenRows[$table]=New-OrdinalSet}
 }
 
 Add-Table 'product-classifications.tsv' "product_title`tbroad_family`tproduct_family`trelease`tspecific_release_family`tbroad_release_family`tconfidence`tbasis`trule_id`tstatus"
@@ -732,7 +777,7 @@ function Add-SnapshotEvidence {
 
 function Parse-ProductFile {
     param([object]$Snapshot,[string]$Path,[hashtable]$Evidence,[System.Collections.ArrayList]$Order)
-    $reader = New-Object System.IO.StreamReader -ArgumentList @($Path,$utf8,$true,65536)
+    $reader = New-Object System.IO.StreamReader -ArgumentList @($Path,$utf8,$true,262144)
     $title = ''
     $id = ''
     try {
@@ -749,8 +794,22 @@ function Parse-ProductFile {
                 $hash = ([string]$Matches.hash).ToLowerInvariant()
                 $filename = Normalize-Scalar ([string]$Matches.filename)
                 $algorithm = if ($hash.Length -eq 40) { 'sha1' } else { 'sha256' }
-                Write-UniqueRow 'product-files.tsv' @([string]$Snapshot.name,'mvs.txt',$title,$id,$filename)
-                Write-UniqueRow 'product-hashes.tsv' @([string]$Snapshot.name,'mvs.txt',$title,$id,$filename,$algorithm,$hash)
+
+                # Hot path: these two fact tables contain millions of rows.
+                # All variable fields are already normalized to one-line scalar
+                # text, so build the TSV key directly and avoid two PowerShell
+                # function/array allocations per source hash line.
+                $snapshotName=[string]$Snapshot.name
+                $fileLine=$snapshotName+"`tmvs.txt`t"+$title+"`t"+$id+"`t"+$filename
+                if($SeenRows['product-files.tsv'].Add($fileLine)){
+                    $Writers['product-files.tsv'].WriteLine($fileLine)
+                    $Counts['product-files.tsv']=[int64]$Counts['product-files.tsv']+1L
+                }
+                $hashLine=$fileLine+"`t"+$algorithm+"`t"+$hash
+                if($SeenRows['product-hashes.tsv'].Add($hashLine)){
+                    $Writers['product-hashes.tsv'].WriteLine($hashLine)
+                    $Counts['product-hashes.tsv']=[int64]$Counts['product-hashes.tsv']+1L
+                }
             }
         }
     } finally {
@@ -760,7 +819,7 @@ function Parse-ProductFile {
 
 function Parse-IdsFile {
     param([object]$Snapshot,[string]$Path,[hashtable]$Evidence,[System.Collections.ArrayList]$Order)
-    $reader = New-Object System.IO.StreamReader -ArgumentList @($Path,$utf8,$true,65536)
+    $reader = New-Object System.IO.StreamReader -ArgumentList @($Path,$utf8,$true,262144)
     try {
         while (($line = $reader.ReadLine()) -ne $null) {
             if ($line -match '^(?<title>.*?)\s*\[ID:\s*(?<id>[^\]]+?)\s*\]\s*$') {
@@ -777,7 +836,7 @@ function Parse-IdsFile {
 
 function Parse-DatesFile {
     param([object]$Snapshot,[string]$Path,[hashtable]$Evidence,[System.Collections.ArrayList]$Order)
-    $reader = New-Object System.IO.StreamReader -ArgumentList @($Path,$utf8,$true,65536)
+    $reader = New-Object System.IO.StreamReader -ArgumentList @($Path,$utf8,$true,262144)
     try {
         while (($line = $reader.ReadLine()) -ne $null) {
             if ($line -match '^(?<date>.*?)\s+-\s+(?<title>.*?)\s*\[ID:\s*(?<id>[^\]]+?)\s*\]\s*$') {
@@ -831,8 +890,16 @@ try {
     Write-Line ('Snapshots discovered: ' + $Snapshots.Count)
     if (-not [string]::IsNullOrEmpty($OverridePath)) { Write-Line ('Overrides: ' + $OverridePath) }
 
+    $ingestSw=[Diagnostics.Stopwatch]::StartNew()
+    Write-Line ('=== FAMILY EVIDENCE INGEST START | snapshots='+$Snapshots.Count+' ===')
     for ($i=0; $i -lt $Snapshots.Count; $i++) {
         $snapshot = $Snapshots[$i]
+        $snapshotSw=[Diagnostics.Stopwatch]::StartNew()
+        Reset-SnapshotSeenRows
+        $fileBefore=[int64]$Counts['product-files.tsv']
+        $hashBefore=[int64]$Counts['product-hashes.tsv']
+        $noteBefore=[int64]$Counts['product-notes.tsv']
+        $idBefore=[int64]$Counts['product-ids.tsv']
         $evidence = @{}
         $order = New-Object System.Collections.ArrayList
 
@@ -849,12 +916,21 @@ try {
             Write-UniqueRow 'product-snapshots.tsv' @([string]$snapshot.name,[string]$title,($evidence[$title] -join '|'))
         }
         foreach ($writer in $Writers.Values) { $writer.Flush() }
-        Write-Line ('Family index snapshot ' + ($i+1) + '/' + $Snapshots.Count + ': ' + $snapshot.name)
+        $snapshotSw.Stop()
+        Write-Line (('Family index snapshot {0}/{1}: {2} | duration={3} titles={4} ids={5} files={6} hashes={7} notes={8}' -f
+            ($i+1),$Snapshots.Count,$snapshot.name,$snapshotSw.Elapsed.ToString(),$order.Count,
+            ([int64]$Counts['product-ids.tsv']-$idBefore),([int64]$Counts['product-files.tsv']-$fileBefore),
+            ([int64]$Counts['product-hashes.tsv']-$hashBefore),([int64]$Counts['product-notes.tsv']-$noteBefore)))
     }
+    $ingestSw.Stop()
+    Write-Line (('=== FAMILY EVIDENCE INGEST END | snapshots={0} products={1} files={2} hashes={3} notes={4} duration={5} ===' -f
+        $Snapshots.Count,$Classifications.Count,$Counts['product-files.tsv'],$Counts['product-hashes.tsv'],$Counts['product-notes.tsv'],$ingestSw.Elapsed.ToString()))
 
     foreach ($writer in $Writers.Values) { $writer.Dispose() }
     $Writers = @{}
 
+    $finalizeSw=[Diagnostics.Stopwatch]::StartNew()
+    Write-Line ('=== FAMILY TAXONOMY FINALIZATION START | nodes='+$NodeRows.Count+' relationships='+$RelationRows.Count+' ===')
     $nodeWriter = New-Utf8Writer (Join-Path $stage 'family-nodes.tsv') "family`tnode_type`tbroad_family`trelease`tconfidence`tbasis"
     try {
         foreach ($row in @($NodeRows | Sort-Object family,node_type,broad_family,release)) {
@@ -881,6 +957,8 @@ try {
             $rulesWriter.WriteLine(($fields -join [char]9))
         }
     } finally { $rulesWriter.Dispose() }
+    $finalizeSw.Stop()
+    Write-Line ('=== FAMILY TAXONOMY FINALIZATION END | nodes='+$NodeRows.Count+' relationships='+$RelationRows.Count+' rules='+$RuleRows.Count+' duration='+$finalizeSw.Elapsed.ToString()+' ===')
 
     $elapsed = [int64]((Get-Date)-$runStart).TotalMilliseconds
     $summary = @(
@@ -905,7 +983,7 @@ try {
 
     Move-Item -LiteralPath $stage -Destination $OutputRoot
     $success = $true
-    Write-Line ('Family index complete: products=' + $Counts['product-classifications.tsv'] + ' memberships=' + $Counts['product-family-memberships.tsv'])
+    Write-Line ('Family index complete: products=' + $Counts['product-classifications.tsv'] + ' memberships=' + $Counts['product-family-memberships.tsv'] + ' duration=' + ([TimeSpan]::FromMilliseconds($elapsed)).ToString())
     Write-Line ('Results: ' + $OutputRoot)
     exit 0
 } catch {

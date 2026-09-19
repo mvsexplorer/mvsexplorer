@@ -1,3 +1,6 @@
+0.4.5 / project 0.21.0 - 2026-09-13
+- Project metadata advances with the 0.21.0 reporting release; the three synthetic acceptance assertions and 1,306-check fast plan remain unchanged.
+
 0.4.5 / project 0.20.2 - 2026-09-12
 - Project metadata updated; native fast sweep continues to exercise the archive wrapper from `test\` and catches toolkit-root regressions.
 

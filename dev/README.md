@@ -1,3 +1,26 @@
+## 0.21.0 reporting/UI/taxonomy/performance rules
+
+`test-harness.inc.ps1` owns section-level interactive PASS compaction; do not
+remove assertion rows from the result files or detailed test log.
+
+`archive-sweep.inc.ps1` and `all-pipeline.inc.ps1` share the
+`__MVS_TRANSIENT__` protocol. The child always keeps detailed archive logging;
+the parent turns protocol rows into one overwriteable console line while
+preserving them in the pipeline master log.
+
+`database-maintenance-prepare.inc.ps1` aggregates unchanged reuse decisions on
+screen and writes per-slot `reuse-decisions.tsv`; processing-from-scratch
+reasons remain permanent console messages.
+
+`powershell-gui.inc.ps1` treats language only as explicit title evidence.
+Hierarchy sorting/copying and all-pages result export must not change checked
+selection semantics. Clear is cascading to the right.
+
+`product-family-builder.inc.ps1` applies `WINDOWS_BRANDED_SUBPRODUCT` before
+generic Windows aliases. Prefer narrow curated rules over guessed lexical
+splits. Snapshot-local dedupe optimization is valid only for rows whose identity
+already contains the snapshot key.
+
 ## 0.20.2 caller-root hotfix
 
 `templates\archive-sweep.bat.tpl` must freeze `mvsa_caller` and

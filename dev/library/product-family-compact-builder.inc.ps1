@@ -39,7 +39,7 @@ function Clean-Field {
 }
 function New-Writer {
     param([string]$Path,[string[]]$Header)
-    $sw=New-Object IO.StreamWriter($Path,$false,$utf8,65536)
+    $sw=New-Object IO.StreamWriter($Path,$false,$utf8,262144)
     $sw.NewLine="`r`n"
     $sw.WriteLine(($Header -join $Tab))
     return $sw
@@ -117,7 +117,7 @@ function Read-SnapshotCatalog {
     param([string]$Path)
     $list=New-Object System.Collections.ArrayList
     $seen=New-StringSet
-    $sr=New-Object IO.StreamReader($Path,$utf8,$true,65536)
+    $sr=New-Object IO.StreamReader($Path,$utf8,$true,262144)
     try {
         $header=$sr.ReadLine()
         if($null -eq $header){Fail 3 'product-snapshots.tsv is empty'}
@@ -133,11 +133,12 @@ function Read-SnapshotCatalog {
 }
 function Read-FactTable {
     param([string]$FileName,[string[]]$KeyFields)
+    $tableSw=[Diagnostics.Stopwatch]::StartNew()
     $path=Join-Path $IndexRoot $FileName
     if(-not(Test-Path -LiteralPath $path -PathType Leaf)){Fail 3 ('Family index table missing: '+$FileName)}
     $dict=New-MaskDictionary
     $rows=0L
-    $sr=New-Object IO.StreamReader($path,$utf8,$true,65536)
+    $sr=New-Object IO.StreamReader($path,$utf8,$true,262144)
     try {
         $headerLine=$sr.ReadLine()
         if($null -eq $headerLine){Fail 3 ($FileName+' is empty')}
@@ -145,6 +146,7 @@ function Read-FactTable {
         $index=@{}
         for($i=0;$i-lt$headers.Count;$i++){$index[$headers[$i]]=$i}
         if(-not $index.ContainsKey('snapshot')){Fail 3 ($FileName+' lacks snapshot column')}
+        $snapshotColumn=[int]$index['snapshot']
         $selected=New-Object 'int[]' $KeyFields.Count
         for($j=0;$j-lt$KeyFields.Count;$j++){
             if(-not $index.ContainsKey($KeyFields[$j])){Fail 3 ($FileName+' lacks '+$KeyFields[$j]+' column')}
@@ -154,16 +156,23 @@ function Read-FactTable {
             $line=$sr.ReadLine()
             if([string]::IsNullOrEmpty($line)){continue}
             $parts=$line.Split($Tab)
-            $snap=$parts[[int]$index['snapshot']]
+            $snap=$parts[$snapshotColumn]
             if(-not $SnapshotIndex.ContainsKey($snap)){Fail 3 ('Unknown snapshot in '+$FileName+': '+$snap)}
-            $fields=New-Object 'string[]' $KeyFields.Count
-            for($j=0;$j-lt$selected.Count;$j++){$fields[$j]=$parts[$selected[$j]]}
-            $key=$fields -join $US
+
+            # Avoid allocating a temporary string[] for every source fact row.
+            # The key is the exact same unit-separator concatenation as before.
+            $key=[string]$parts[$selected[0]]
+            for($j=1;$j-lt$selected.Count;$j++){$key += $US+[string]$parts[$selected[$j]]}
+
             if($dict.ContainsKey($key)){[UInt64[]]$mask=$dict[$key]}else{[UInt64[]]$mask=New-Mask;$dict.Add($key,$mask)}
-            Or-SnapshotIntoMask $mask ([int]$SnapshotIndex[$snap])
+            $snapshotNumber=[int]$SnapshotIndex[$snap]
+            $segment=[int]$script:SnapshotSegment[$snapshotNumber]
+            $mask[$segment]=[uint64]($mask[$segment] -bor [uint64]$script:SnapshotBit[$snapshotNumber])
             $rows++
         }
     } finally {$sr.Dispose()}
+    $tableSw.Stop()
+    Write-Line (('Compact fact table {0} | rows={1} facts={2} duration={3}' -f $FileName,$rows,$dict.Count,$tableSw.Elapsed.ToString()))
     return [pscustomobject]@{Rows=$rows;Facts=$dict;Fields=$KeyFields}
 }
 function Get-MaskInfo {
@@ -225,18 +234,31 @@ try {
     $SnapshotIndex=@{}
     for($i=0;$i-lt$Snapshots.Count;$i++){$SnapshotIndex[[string]$Snapshots[$i]]=$i}
     $script:MaskSegments=[int][Math]::Ceiling($Snapshots.Count/64.0)
+    $script:SnapshotSegment=New-Object 'System.Int32[]' $Snapshots.Count
+    $script:SnapshotBit=New-Object 'System.UInt64[]' $Snapshots.Count
+    for($i=0;$i-lt$Snapshots.Count;$i++){
+        $script:SnapshotSegment[$i]=[int][Math]::Floor($i/64)
+        $script:SnapshotBit[$i]=[uint64][Math]::Pow(2,($i%64))
+    }
 
     Write-Line ('Source family index: '+$IndexRoot)
     Write-Line ('Output: '+$OutputFull)
     Write-Line ('Snapshots: '+$Snapshots.Count)
 
+    $collapseSw=[Diagnostics.Stopwatch]::StartNew()
+    Write-Line ('=== COMPACT FACT COLLAPSE START | snapshots='+$Snapshots.Count+' ===')
     $Ids=Read-FactTable 'product-ids.tsv' @('source_file','product_title','id')
     $Dates=Read-FactTable 'product-dates.tsv' @('source_file','product_title','date','id')
     $Files=Read-FactTable 'product-files.tsv' @('source_file','product_title','product_id','filename')
     $Hashes=Read-FactTable 'product-hashes.tsv' @('source_file','product_title','product_id','filename','algorithm','hash')
     $Notes=Read-FactTable 'product-notes.tsv' @('source_file','product_title','source_id','note_text','raw_html_sha256')
     $Presence=Read-FactTable 'product-snapshots.tsv' @('product_title','evidence_sources')
+    $collapseSw.Stop()
+    Write-Line (('=== COMPACT FACT COLLAPSE END | ids={0} dates={1} files={2} hashes={3} notes={4} presence={5} duration={6} ===' -f
+        $Ids.Facts.Count,$Dates.Facts.Count,$Files.Facts.Count,$Hashes.Facts.Count,$Notes.Facts.Count,$Presence.Facts.Count,$collapseSw.Elapsed.ToString()))
 
+    $materializeSw=[Diagnostics.Stopwatch]::StartNew()
+    Write-Line ('=== COMPACT MATERIALIZATION START ===')
     $GlobalHashes=New-MaskDictionary
     $FileAlgFirst=New-StringDictionary
     $FileAlgConflicts=New-Object 'System.Collections.Generic.Dictionary[string,object]' ([StringComparer]::Ordinal)
@@ -377,10 +399,13 @@ try {
             [IO.File]::Copy($f.FullName,(Join-Path $rawTarget $f.Name),$false);$rawCount++
         }
     }
+    $materializeSw.Stop()
+    Write-Line (('=== COMPACT MATERIALIZATION END | snapshot_sets={0} global_hashes={1} conflicts={2} raw_notes={3} duration={4} ===' -f
+        $sortedMasks.Count,$GlobalHashes.Count,$FileAlgConflicts.Count,$rawCount,$materializeSw.Elapsed.ToString()))
 
     $started.Stop()
     $summaryPath=Join-Path $TempRoot 'compact-index-summary.txt'
-    $sw=New-Object IO.StreamWriter($summaryPath,$false,$utf8,65536);$sw.NewLine="`r`n"
+    $sw=New-Object IO.StreamWriter($summaryPath,$false,$utf8,262144);$sw.NewLine="`r`n"
     try{
         $sw.WriteLine('MVS Explorer Toolkit compact product-family index '+$Version)
         $sw.WriteLine('Source family index: '+$IndexRoot)
@@ -410,7 +435,7 @@ try {
 
     $bytes=Get-DirectoryBytes $TempRoot
     Move-Item -LiteralPath $TempRoot -Destination $OutputFull
-    Write-Line ('Compact family index complete: files='+$Files.Facts.Count+' product-file-hashes='+$Hashes.Facts.Count+' global-file-hashes='+$GlobalHashes.Count+' conflicts='+$FileAlgConflicts.Count)
+    Write-Line ('Compact family index complete: files='+$Files.Facts.Count+' product-file-hashes='+$Hashes.Facts.Count+' global-file-hashes='+$GlobalHashes.Count+' conflicts='+$FileAlgConflicts.Count+' duration='+$started.Elapsed.ToString())
     Write-Line ('Output bytes: '+$bytes)
     Write-Line ('Results: '+$OutputFull)
     exit 0

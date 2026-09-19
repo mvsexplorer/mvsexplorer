@@ -1,3 +1,15 @@
+## 0.21.0 console/performance behavior
+
+When the complete fresh pipeline invokes `test_everything.bat`, it passes
+`--skip-real-archive-plan` because Phase 2 immediately performs the stronger
+real-archive plan plus full execution. Standalone `test_everything.bat` still
+performs its normal real-archive plan-only preflight.
+
+Archive in-flight starts and adaptive-worker decisions are transient console
+status when a live console is available; they remain retained in detailed logs
+and `worker-scaling.tsv`. Long-running phases retain permanent start/end
+summaries and durations.
+
 ## 0.20.2 caller-root hotfix
 
 0.20.2 fixes archive-sweep toolkit-root discovery after the 0.20.1 argument-transport change. Pipeline gating, worker policy, and database semantics are unchanged.

@@ -428,7 +428,21 @@ $summary=@(
 if($warnings.Count-gt0){$summary+='';$summary+='Warnings:';foreach($w in $warnings){$summary+='- '+$w}}
 if($errors.Count-gt0){$summary+='';$summary+='Errors:';foreach($e in $errors){$summary+='- '+$e}}
 Write-Utf8 (Join-Path $out 'summary.txt') (($summary-join[Environment]::NewLine)+[Environment]::NewLine)
-foreach($line in $summary){[Console]::Out.WriteLine($line)}
+
+# The file keeps the stable detailed key/value format. The interactive console
+# uses horizontal space so a healthy run is readable at a glance.
+[Console]::Out.WriteLine('MVS Explorer Toolkit archive quality/performance check')
+[Console]::Out.WriteLine('Results: '+$Results)
+[Console]::Out.WriteLine(('Ledger: plan={0} run={1} | PASS={2} NO_RESULT={3} SOURCE_MISSING={4} FAIL={5}' -f $plan.Count,$runs.Count,$status.PASS,$status.NO_RESULT,$status.SOURCE_MISSING,$status.FAIL))
+[Console]::Out.WriteLine(('Source coverage: expected_missing={0} unexpected_missing={1}' -f $expectedMissing.Count,$unexpected.Count))
+[Console]::Out.WriteLine(('Quality: flagged_dumps={0} warnings={1} errors={2}' -f $flagRows.Count,$warnings.Count,$errors.Count))
+[Console]::Out.WriteLine(('Performance: tool_outliers={0} snapshot_batch_outliers={1} archive_batch_outliers={2} strict={3}' -f $outliers.Count,$batchOutliers.Count,$archiveBatchOutliers.Count,$StrictPerformance))
+[Console]::Out.WriteLine('Batch performance: '+$batchSummary)
+[Console]::Out.WriteLine('Snapshot batches: '+$singleBatchSummary)
+[Console]::Out.WriteLine('Compare batches: '+$compareBatchSummary)
+[Console]::Out.WriteLine('Archive batches: '+$archiveBatchSummary)
+if($warnings.Count-gt0){[Console]::Out.WriteLine('Warnings:');foreach($w in $warnings){[Console]::Out.WriteLine('- '+$w)}}
+if($errors.Count-gt0){[Console]::Out.WriteLine('Errors:');foreach($e in $errors){[Console]::Out.WriteLine('- '+$e)}}
 if($errors.Count-gt0){exit 1}
 exit 0
 :_MVSArchiveQuality_end

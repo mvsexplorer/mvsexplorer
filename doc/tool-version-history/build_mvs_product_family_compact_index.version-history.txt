@@ -1,3 +1,7 @@
+0.2.0 / project 0.21.0 - 2026-09-13
+- Reports fact-collapse/materialization/table durations.
+- Precomputes snapshot mask segments/bits and removes per-row helper/temporary-key overhead from the dominant compacting loop without changing compact provenance semantics.
+
 Project 0.19.0 layout note - 2026-09-07
 - Delivery path moves from the project root to `tools\`.
 - Arguments, stdout/stderr, return codes, standalone runtime behavior, and evidence semantics are unchanged.

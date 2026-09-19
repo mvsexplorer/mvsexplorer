@@ -19,6 +19,7 @@ $WorkersOptionSeen=$false
 $StartWorkersOptionSeen=$false
 $MaxWorkersOptionSeen=$false
 $ExistingResults=''
+$SkipRealArchivePlan=$false
 
 function Fail {param([int]$Code,[string]$Message)[Console]::Error.WriteLine('[FAIL] '+$Message);exit $Code}
 function Run {
@@ -40,7 +41,7 @@ function New-TempFolder {
 
 if(@('--help','-h','-?','/h','/?')-contains$ArchiveInput){
     [Console]::Out.WriteLine('MVS Explorer Toolkit comprehensive quality/performance tester '+$Version)
-    [Console]::Out.WriteLine('Usage: '+$Caller+' mvs-dumps-root [--full-archive] [--start-workers N] [--max-workers N] [--workers N] [--strict-performance] [--archive-results DIR]')
+    [Console]::Out.WriteLine('Usage: '+$Caller+' mvs-dumps-root [--skip-real-archive-plan] [--full-archive] [--start-workers N] [--max-workers N] [--workers N] [--strict-performance] [--archive-results DIR]')
     [Console]::Out.WriteLine('Default: public regression + public performance analysis + fast synthetic acceptance + full archive plan validation.')
     [Console]::Out.WriteLine('Default worker policy is adaptive: start=ceil(logical CPUs / 4), max=logical CPUs; --workers N retains fixed mode.')
     [Console]::Out.WriteLine('--full-archive additionally performs a fresh no-cache archive sweep, quality check, and HTML report.')
@@ -52,6 +53,7 @@ $args=New-Object System.Collections.ArrayList;foreach($a in $RawArgs){if(-not[st
 for($i=0;$i-lt$args.Count;$i++){
     $a=[string]$args[$i]
     if($a-eq'--full-archive'){$FullArchive=$true;continue}
+    if($a-eq'--skip-real-archive-plan'){$SkipRealArchivePlan=$true;continue}
     if($a-eq'--strict-performance'){$StrictPerformance=$true;continue}
     if($a-eq'--workers'){
         if($StartWorkersOptionSeen -or $MaxWorkersOptionSeen){Fail 2 '--workers cannot be combined with --start-workers/--max-workers'}
@@ -76,7 +78,7 @@ if($WorkerMode -eq 'adaptive' -and $MaxWorkersOptionSeen -and -not $StartWorkers
 if($WorkerMode -eq 'adaptive' -and $StartWorkersOptionSeen -and -not $MaxWorkersOptionSeen -and $WorkerStart -gt $WorkerMax){$WorkerMax=$WorkerStart}
 if($WorkerStart -gt $WorkerMax){Fail 2 '--start-workers cannot exceed --max-workers'}
 
-$script:SuitePhaseTotal=4
+$script:SuitePhaseTotal=if($SkipRealArchivePlan){3}else{4}
 if(-not[string]::IsNullOrWhiteSpace($ExistingResults)){$script:SuitePhaseTotal++}
 if($FullArchive){$script:SuitePhaseTotal+=2}
 [Console]::Out.WriteLine('MVS Explorer Toolkit comprehensive test suite')
@@ -110,10 +112,14 @@ Run $perf $perfArgs
 
 Run $fastTest @()
 
-$planFolder=New-TempFolder 'mvs-everything-plan'
-try{
-    Run $sweep (@($Archive,$planFolder,'--plan-only','--quiet-plan')+@($workerArgs)+@('--no-report','--no-cache'))
-} finally {if(Test-Path -LiteralPath $planFolder){Remove-Item -LiteralPath $planFolder -Recurse -Force -ErrorAction SilentlyContinue}}
+if(-not $SkipRealArchivePlan){
+    $planFolder=New-TempFolder 'mvs-everything-plan'
+    try{
+        Run $sweep (@($Archive,$planFolder,'--plan-only','--quiet-plan')+@($workerArgs)+@('--no-report','--no-cache'))
+    } finally {if(Test-Path -LiteralPath $planFolder){Remove-Item -LiteralPath $planFolder -Recurse -Force -ErrorAction SilentlyContinue}}
+}else{
+    [Console]::Out.WriteLine('Real-archive plan-only preflight: skipped because the calling fresh-build pipeline will immediately perform the stronger full plan + execution phase.')
+}
 
 if(-not[string]::IsNullOrWhiteSpace($ExistingResults)){
     $qr=@($ExistingResults);if($StrictPerformance){$qr+=@('--strict-performance')};Run $quality $qr

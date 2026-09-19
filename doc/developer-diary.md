@@ -1,3 +1,41 @@
+## 2026-09-13 - 0.21.0 concise reporting, Explorer controls, taxonomy refinement, and family hot paths
+
+The fully successful native 0.20.2 run showed that correctness and gating were
+sound but also made the remaining usability/performance costs visible. A normal
+`test_all` session wrote every one of 1,119 assertions to the console even
+though the same evidence was already retained in TSV/log files. Archive adaptive
+worker samples and in-flight starts were similarly useful as live status but not
+as permanent console history. The harness now summarizes passing sections,
+retains failures/skips visibly, and the archive/pipeline pair implement a
+transient status protocol so detailed worker telemetry remains logged without
+scrolling the terminal.
+
+The full pipeline previously asked `test_everything` to plan the real 34,822-row
+archive and then immediately asked Phase 2 to plan and execute that same archive.
+Only the nested pipeline invocation skips the first plan-only pass; standalone
+`test_everything` still verifies it. The stable updater still fingerprints
+source content as required for safe reuse, but unchanged snapshot/pair decisions
+are aggregated in the console and retained individually in
+`reuse-decisions.tsv`.
+
+The 0.20.2 native timings (about 83 minutes for the full family builder and
+34 minutes for compact) motivated a source-level hot-path review. Snapshot-keyed
+dedupe sets no longer need to retain all snapshot rows simultaneously, and
+millions of simple file/hash and mask operations no longer pay avoidable
+PowerShell helper-call/object-allocation overhead. No evidence relationship was
+strengthened or weakened.
+
+Explorer navigation now has an explicit-language fifth layer, ordering controls,
+copy commands, and correct downstream clearing. Language is parsed only from an
+explicit trailing language parenthetical in the historical title; no locale,
+filename, geography, or neighboring-title inference is allowed.
+
+Finally, the generic Windows alias was proven too broad by Windows-branded
+products that happen to carry version 1.0. Curated prefix rules now keep the
+reported SDK/client/service/tool families distinct below the broad Microsoft
+Windows umbrella. This is intentionally a narrow curated mechanism rather than
+a lexical rule that would guess all `Windows ...` names are separate products.
+
 ## 2026-09-12 - 0.20.2 caller-root preservation hotfix
 
 The first native 0.20.1 run proved that arbitrary argument capture itself worked,

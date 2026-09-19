@@ -383,3 +383,21 @@ These directives are distilled from the user's project prompts.
 264. Any batch wrapper that uses `shift` must capture immutable script identity/path values such as `%~f0`, `%~nx0`, and `%~dp0` before the first shift if later logic depends on the original batch file location.
 265. Arbitrary-length option transport must preserve both the complete argument sequence and the original toolkit-relative runtime root; fixing one must not weaken the other.
 266. Static regressions for batch argument bridges must verify ordering of identity capture relative to `shift`, not only the presence of capture markers.
+
+## 0.21.0 console density, Explorer interaction, language evidence, and curated Windows subproducts
+
+267. Interactive regression consoles should summarize successful assertions by logical section; assertion-level PASS evidence remains in result/log files, while SKIP, WARN, and FAIL evidence remains immediately visible.
+268. In-flight scheduler/adaptive-worker status is transient console state, not permanent history. Preserve every worker/resource/throughput decision in structured logs even when the interactive line is overwritten.
+269. Major long-running phases should print clear start/end banners with treated-item counts, important result counters, and elapsed duration.
+270. Human archive-quality summaries should use horizontal space efficiently without changing stable machine-readable summary files.
+271. When the fresh full pipeline immediately executes the complete real archive plan, it may skip the preceding real-archive plan-only suite check; standalone comprehensive testing must retain that preflight.
+272. Managed maintenance must not hide actionable reprocessing reasons, but unchanged per-snapshot/per-pair reuse chatter may be aggregated on screen if full decisions are retained in a per-archive structured ledger.
+273. Explorer hierarchy columns must support alphabetical order, item-count order, and reverse order without changing selection/evidence semantics.
+274. Explorer must provide a clipboard command for all currently displayed entries of each hierarchy list.
+275. Explorer result views must be able to copy the complete filtered result table across all pages and every row of an individual result column, not merely the currently rendered page.
+276. A hierarchy action that selects every currently available hierarchy value is named `Select all`; do not label it `Select visible` unless it is truly restricted by the visibility filter.
+277. Clearing a hierarchy level must also clear dependent selected levels to its right and immediately recompute downstream availability/results.
+278. Language may be a fifth analytical/UI hierarchy layer only when explicit source title text supports it. Do not infer language from filenames, locale-looking tokens, geography, or neighboring products; use an explicit unspecified bucket otherwise.
+279. Generic brand aliases such as `Windows` must not absorb known branded SDK/client/service/tool products into the generic operating-system product family. Curated subproduct rules take precedence over generic alias rules.
+280. Curated Windows subproduct exceptions preserve `Microsoft Windows` as the broad family while assigning a distinct product family and release branch to the known subproduct; avoid broad lexical heuristics that manufacture product identity.
+281. Performance optimizations may reduce PowerShell helper calls, temporary allocations, buffer overhead, or snapshot-scoped dedupe retention only when row identity, provenance, source coverage, hash-pairing boundaries, and deterministic output semantics remain unchanged.

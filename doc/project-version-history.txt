@@ -1,3 +1,16 @@
+0.21.0 - 2026-09-13
+- Native 0.20.2 acceptance: fresh pipeline PASS in 03:18:28; test_all 1,116 PASS / 0 FAIL / 3 SKIP, archive 34,822/34,822 with 33,903 PASS / 574 NO_RESULT / 345 expected SOURCE_MISSING / 0 FAIL, database validation 57/57 including all 32 family queries, and managed database health PASS.
+- Compacts `test_all.bat` console success output to one summary line per logical section while retaining assertion-level TSV/log evidence and immediate SKIP/FAIL visibility.
+- Makes archive snapshot-start/adaptive-worker/archive-builder progress transient in the interactive console while retaining structured/permanent logs; adds start/end section summaries with durations.
+- Compacts archive-quality console metrics into horizontal summary lines.
+- Adds per-snapshot and phase durations to the full family builder and phase/table durations to the compact family builder.
+- Removes the redundant real-archive plan-only suite pass when the suite is called by the fresh full pipeline; standalone `test_everything.bat` keeps the preflight.
+- Compacts no-op maintenance reuse output and writes per-slot `reuse-decisions.tsv`.
+- Explorer GUI 0.3.0 adds Languages as a conservative fifth layer, alphabetical/count ordering with reverse, hierarchy-list copy, all-pages table/column clipboard export, `Select all`, and cascading Clear behavior.
+- Adds curated `WINDOWS_BRANDED_SUBPRODUCT` rules so Point of Service SDK, Rights Management Client/Services, Services for UNIX, and Vista Upgrade Advisor remain distinct product families under broad Microsoft Windows.
+- Optimizes full/compact family builder hot paths and snapshot-scoped dedupe state without changing evidence pairing/provenance rules.
+- Product-family regression becomes 108 assertions. Outer `test_all` remains 1,119 assertions because the family suite is one wrapper assertion.
+
 0.20.2 - 2026-09-12
 - Fixes the first native 0.20.1 fast-sweep/maintenance failure: `test_all_dumps.bat` now freezes its own caller name and `%~dp0` script directory before any `shift`.
 - Preserves the arbitrary-length argument transport added in 0.20.1 while preventing `SHIFT` from redirecting project-root discovery to the last argument/current directory.

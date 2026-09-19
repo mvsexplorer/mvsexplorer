@@ -41,16 +41,60 @@ $Caller = [string]$env:mvsa_caller
 $ScriptRoot = ([string]$env:mvsa_script_root).TrimEnd('\','/')
 $Version = [string]$env:mvsa_version
 
+$script:TransientWidth = 0
+$script:TransientPrefix = '__MVS_TRANSIENT__'
+
+function Clear-TransientConsole {
+    if($script:TransientWidth -le 0){return}
+    if(-not [Console]::IsOutputRedirected -and [string]::IsNullOrWhiteSpace($env:MVS_TRANSIENT_PROTOCOL)){
+        try{
+            [Console]::Out.Write("`r"+(' ' * $script:TransientWidth)+"`r")
+        }catch{}
+    }
+    $script:TransientWidth=0
+}
+
 function Write-Line {
     param([AllowEmptyString()][string]$Text)
+    Clear-TransientConsole
     [Console]::Out.WriteLine($Text)
     if (-not [string]::IsNullOrWhiteSpace($script:ConsoleLog)) {
         [IO.File]::AppendAllText($script:ConsoleLog, $Text + [Environment]::NewLine, $utf8)
     }
 }
 
+function Write-Transient {
+    param([AllowEmptyString()][string]$Text)
+    if (-not [string]::IsNullOrWhiteSpace($script:ConsoleLog)) {
+        [IO.File]::AppendAllText($script:ConsoleLog, $Text + [Environment]::NewLine, $utf8)
+    }
+
+    # When a parent pipeline is teeing child stdout, emit an explicit protocol
+    # row. The parent keeps it in its detailed log but renders it as an
+    # overwriteable bottom-of-console status line instead of permanent history.
+    if(-not [string]::IsNullOrWhiteSpace($env:MVS_TRANSIENT_PROTOCOL)){
+        [Console]::Out.WriteLine($script:TransientPrefix+$Text)
+        return
+    }
+
+    if([Console]::IsOutputRedirected){
+        [Console]::Out.WriteLine($Text)
+        return
+    }
+
+    try{
+        $width=[Math]::Max($script:TransientWidth,$Text.Length)
+        [Console]::Out.Write("`r"+$Text+(' ' * ($width-$Text.Length)))
+        $script:TransientWidth=$width
+    }catch{
+        [Console]::Out.WriteLine($Text)
+        $script:TransientWidth=0
+    }
+}
+
 function Write-Err {
     param([string]$Text)
+    Clear-TransientConsole
     [Console]::Error.WriteLine($Text)
 }
 
@@ -178,7 +222,7 @@ function Invoke-AdaptiveScaleEvaluation {
         $decision='scale-up'
     }
     Write-WorkerScaleRow $now $ActiveWorkers $script:WorkerTarget $sample $windowChecks $throughput $previous $decision
-    Write-Line ('Adaptive workers: active='+$ActiveWorkers+' target='+$script:WorkerTarget+'/'+$WorkerMax+
+    Write-Transient ('Adaptive workers: active='+$ActiveWorkers+' target='+$script:WorkerTarget+'/'+$WorkerMax+
         ' cpu_headroom='+(Format-OptionalNumber $sample.cpu_headroom)+'% memory_headroom='+(Format-OptionalNumber $sample.memory_headroom)+
         '% io_headroom='+(Format-OptionalNumber $sample.io_headroom)+'% throughput='+(Format-OptionalNumber $throughput 4)+
         ' checks/s decision='+$decision)
@@ -1051,7 +1095,10 @@ function Invoke-FastArchiveWorker {
         $oldPreference=$ErrorActionPreference
         $ErrorActionPreference='Continue'
         try{
-            & $WorkerPath $ArchiveRoot $ArchiveOutput 2> $stderrPath | ForEach-Object { Write-Line ([string]$_) }
+            & $WorkerPath $ArchiveRoot $ArchiveOutput 2> $stderrPath | ForEach-Object {
+                $childLine=[string]$_
+                if($childLine.StartsWith('Fast archive snapshot ',[StringComparison]::Ordinal)){Write-Transient $childLine}else{Write-Line $childLine}
+            }
             if($null -eq $LASTEXITCODE){$rc=0}else{$rc=[int]$LASTEXITCODE}
         }finally{$ErrorActionPreference=$oldPreference}
     }catch{
@@ -1550,13 +1597,16 @@ if ($Executor -eq 'external-public') {
         }
     }
 
+    $snapshotPhaseSw=[Diagnostics.Stopwatch]::StartNew()
+    $snapshotPhaseStart=$completed
+    Write-Line ('=== SNAPSHOT ANALYSIS START | batches='+$snapshotBatches.Count+' workers='+$WorkerMode+' '+$WorkerStart+'-'+$WorkerMax+' ===')
     $active=New-Object System.Collections.ArrayList
     $nextBatch=0
     while($nextBatch-lt$snapshotBatches.Count -or $active.Count -gt 0){
         while($nextBatch-lt$snapshotBatches.Count -and $active.Count-lt$script:WorkerTarget){
             $batch=$snapshotBatches[$nextBatch]
             $nextBatch++
-            Write-Line ('Starting snapshot '+$batch.snapshot.name+' [fast-combined '+$batch.entries.Count+' checks; worker '+($active.Count+1)+'/'+$script:WorkerTarget+'; max '+$WorkerMax+'] ...')
+            Write-Transient ('Starting snapshot '+$batch.snapshot.name+' [fast-combined '+$batch.entries.Count+' checks; worker '+($active.Count+1)+'/'+$script:WorkerTarget+'; max '+$WorkerMax+'] ...')
             $ctx=Start-FastWorkerJob $batch.entries $snapshotWorker $batch.snapshot.data_path '' $ResultsFolder $CachePath
             [void]$active.Add($ctx)
         }
@@ -1585,7 +1635,13 @@ if ($Executor -eq 'external-public') {
         Write-Line ('Completed snapshot '+$ctx.snapshot+' in '+([Math]::Round($ctx.stopwatch.Elapsed.TotalSeconds,3))+' s. Progress: '+$completed+'/'+$plan.Count+' PASS='+$counts.PASS+' NO_RESULT='+$counts.NO_RESULT+' SOURCE_MISSING='+$counts.SOURCE_MISSING+' FAIL='+$counts.FAIL)
         Write-Summary $summaryPath $summaryMode $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
     }
+    $snapshotPhaseSw.Stop()
+    Write-Line ('=== SNAPSHOT ANALYSIS END | batches='+$snapshotBatches.Count+' checks='+($completed-$snapshotPhaseStart)+' duration='+$snapshotPhaseSw.Elapsed.ToString()+' ===')
 
+    $comparePhaseSw=[Diagnostics.Stopwatch]::StartNew()
+    $comparePhaseStart=$completed
+    $comparePairs=0
+    Write-Line ('=== ADJACENT COMPARE ANALYSIS START | possible_pairs='+[Math]::Max(0,$snapshots.Count-1)+' tools_per_pair='+$compareFiles.Count+' ===')
     for($i=0;$i-lt($snapshots.Count-1);$i++){
         $from=$snapshots[$i]
         $to=$snapshots[$i+1]
@@ -1594,7 +1650,8 @@ if ($Executor -eq 'external-public') {
         })
         if($pending.Count -eq 0){continue}
 
-        Write-Line ('Starting compare ' + $from.name + ' -> ' + $to.name + ' [fast-combined ' + $pending.Count + ' checks] ...')
+        $comparePairs++
+        Write-Transient ('Starting compare ' + $from.name + ' -> ' + $to.name + ' [fast-combined ' + $pending.Count + ' checks] ...')
         $compareSw=[Diagnostics.Stopwatch]::StartNew()
         $statuses=@(Invoke-FastWorker $pending $compareWorker $from.data_path $to.data_path $ResultsFolder $runsPath $fastBatchesPath $failureFolder)
         $compareSw.Stop()
@@ -1604,13 +1661,15 @@ if ($Executor -eq 'external-public') {
             [void]$done.Add([int]$pending[$n].index)
             $completed++
         }
-        Write-Line ('Completed compare ' + $from.name + ' -> ' + $to.name + ' in ' + ([Math]::Round($compareSw.Elapsed.TotalSeconds,3)) + ' s. Progress: ' + $completed + '/' + $plan.Count + ' PASS=' + $counts.PASS + ' NO_RESULT=' + $counts.NO_RESULT + ' SOURCE_MISSING=' + $counts.SOURCE_MISSING + ' FAIL=' + $counts.FAIL)
+        Write-Transient ('Completed compare ' + $from.name + ' -> ' + $to.name + ' in ' + ([Math]::Round($compareSw.Elapsed.TotalSeconds,3)) + ' s. Progress: ' + $completed + '/' + $plan.Count + ' PASS=' + $counts.PASS + ' NO_RESULT=' + $counts.NO_RESULT + ' SOURCE_MISSING=' + $counts.SOURCE_MISSING + ' FAIL=' + $counts.FAIL)
         Write-Summary $summaryPath $summaryMode $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
     }
+    $comparePhaseSw.Stop()
+    Write-Line ('=== ADJACENT COMPARE ANALYSIS END | pairs='+$comparePairs+' checks='+($completed-$comparePhaseStart)+' duration='+$comparePhaseSw.Elapsed.ToString()+' ===')
 
     $archiveEntries=@($plan | Where-Object {$_.scope -eq 'archive' -and -not $done.Contains([int]$_.index)})
     if($archiveEntries.Count -gt 0){
-        Write-Line ('Starting archive builders [fast-combined ' + $archiveEntries.Count + ' checks] ...')
+        Write-Line ('=== ARCHIVE BUILDERS START | checks=' + $archiveEntries.Count + ' ===')
         $archiveSw=[Diagnostics.Stopwatch]::StartNew()
         if(-not(Test-Path -LiteralPath $archiveOutput -PathType Container)){[void](New-Item -ItemType Directory -Path $archiveOutput -Force)}
         $archiveWorker=Join-Path (Join-Path $ScriptRoot 'fast') 'run_archive_tools_fast.bat'
@@ -1623,7 +1682,7 @@ if ($Executor -eq 'external-public') {
             $completed++
         }
         $archiveSw.Stop()
-        Write-Line ('Completed archive builders in ' + ([Math]::Round($archiveSw.Elapsed.TotalSeconds,3)) + ' s. Progress: ' + $completed + '/' + $plan.Count + ' PASS=' + $counts.PASS + ' NO_RESULT=' + $counts.NO_RESULT + ' SOURCE_MISSING=' + $counts.SOURCE_MISSING + ' FAIL=' + $counts.FAIL)
+        Write-Line ('=== ARCHIVE BUILDERS END | checks=' + $archiveEntries.Count + ' duration=' + $archiveSw.Elapsed.ToString() + ' progress=' + $completed + '/' + $plan.Count + ' PASS=' + $counts.PASS + ' NO_RESULT=' + $counts.NO_RESULT + ' SOURCE_MISSING=' + $counts.SOURCE_MISSING + ' FAIL=' + $counts.FAIL + ' ===')
         Write-Summary $summaryPath $summaryMode $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
     }
 }

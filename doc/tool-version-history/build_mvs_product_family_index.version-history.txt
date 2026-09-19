@@ -1,3 +1,8 @@
+0.2.0 / project 0.21.0 - 2026-09-13
+- Adds curated Windows-branded subproduct classification before the generic Windows alias.
+- Reports snapshot/phase durations and row deltas.
+- Uses snapshot-scoped dedupe state and inlined product file/hash hot paths while preserving source-backed evidence semantics.
+
 Project 0.19.0 layout note - 2026-09-07
 - Delivery path moves from the project root to `tools\`.
 - Arguments, stdout/stderr, return codes, standalone runtime behavior, and evidence semantics are unchanged.

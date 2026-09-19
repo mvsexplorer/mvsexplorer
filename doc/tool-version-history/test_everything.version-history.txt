@@ -1,3 +1,7 @@
+0.2.2 / project 0.21.0 - 2026-09-13
+- Adds `--skip-real-archive-plan` for the fresh full-pipeline caller so the immediately repeated real-archive plan-only pass can be omitted.
+- Standalone default behavior still includes full archive plan validation.
+
 0.2.1 / project 0.20.2 - 2026-09-12
 - Project metadata updated for the caller-root hotfix; suite orchestration behavior is unchanged.
 

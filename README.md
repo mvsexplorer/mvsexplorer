@@ -1,4 +1,44 @@
-# MVS Explorer Toolkit 0.20.2
+# MVS Explorer Toolkit 0.21.0
+
+
+## 0.21.0 concise console, richer Explorer controls, safer Windows families, and family-build optimization
+
+0.21.0 builds on the fully successful native 0.20.2 run. The 79-snapshot fresh
+pipeline completed all 34,822 archive checks with 33,903 PASS, 574 NO_RESULT,
+345 expected SOURCE_MISSING, and zero FAIL; all 57 generated-database checks and
+all 32 family-query tools passed.
+
+Interactive test output is now section-oriented instead of assertion-oriented:
+successful assertions remain in detailed result/log files, while the normal
+console prints one PASS summary per logical test section plus visible SKIP,
+WARN, and FAIL evidence. Archive scheduler samples and in-flight starts use a
+transient status line, while structured worker-scaling evidence remains
+persistent. Archive-quality summaries use compact horizontal lines, and family
+builders report section/snapshot durations and row counts.
+
+The fresh pipeline no longer performs a redundant real-archive plan-only pass
+immediately before the full archive plan+execution phase. Standalone
+`test_everything.bat` still performs that preflight. Managed maintenance
+preflight also aggregates unchanged reuse decisions on screen and writes the
+per-snapshot/per-pair detail to `reuse-decisions.tsv`.
+
+The WinForms Explorer adds a conservative fifth Languages layer derived only
+from explicit trailing language labels in product titles. All five hierarchy
+columns can order alphabetically or by item count, reverse that order, copy the
+displayed list, and use a real `Select all` action. Clearing a hierarchy column
+also clears dependent selections to its right. Product/file/note result tabs can
+copy the complete filtered result set across all pages or copy one complete
+column.
+
+The family classifier adds curated Windows-branded subproduct rules before the
+generic Windows alias so Point of Service SDK, Rights Management Client/Services,
+Services for UNIX, and Vista Upgrade Advisor no longer collapse into a false
+generic `Microsoft Windows 1.0` product/release branch.
+
+Full and compact family builders also reduce PowerShell hot-path overhead and
+memory retention without weakening source/evidence boundaries. These
+optimizations are static-clean but require native Windows timing before any
+speedup claim is treated as accepted.
 
 ## 0.20.2 caller-root preservation hotfix
 

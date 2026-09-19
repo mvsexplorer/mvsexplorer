@@ -1,3 +1,27 @@
+## 2026-09-13 - Native 0.20.2 acceptance exposed presentation and taxonomy costs rather than correctness failures
+
+The 0.20.2 native fresh pipeline passed end-to-end, including all 34,822 archive
+checks and 57 generated-database validations. Its 03:18:28 duration was
+dominated by the full family index (~83 minutes), archive build (~59 minutes),
+and compact family index (~34 minutes), making those builders the appropriate
+optimization targets rather than weakening validation or reuse rules.
+
+Assertion-level and scheduler-sample evidence is valuable in files but does not
+need to occupy permanent interactive console history. A useful distinction is:
+persistent console messages describe completed sections, actionable warnings,
+errors, and milestones; transient messages describe in-flight scheduling state;
+structured files retain the full telemetry.
+
+A title prefix such as `Windows` is an ecosystem/branding signal, not sufficient
+product identity. `Windows Services for UNIX 1.0` and `Windows Rights Management
+Services 1.0` demonstrate why generic alias rules must yield to explicit curated
+subproduct rules before release grouping.
+
+Language is similarly evidence-sensitive. A title ending in `(English)` can
+support an English analytical/UI layer, while a title without an explicit
+language marker must remain `Language not specified`; filenames or adjacent
+records must not fill the gap.
+
 ## 2026-09-12 - Native adaptive invocation crossed cmd.exe's ninth-argument boundary
 
 Composable CLI options can turn a previously safe `%1`..`%9` batch bridge into

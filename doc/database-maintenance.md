@@ -1,3 +1,11 @@
+## 0.21.0 reuse reporting
+
+Unchanged snapshot and compare reuse decisions are summarized on the interactive
+console instead of printing one line per reusable unit. The complete decisions
+are retained per database slot in the run logs as `reuse-decisions.tsv`.
+Snapshots that are new, changed, incomplete, faulty, or otherwise require
+processing still print their individual reason.
+
 ## 0.20.2 archive-sweep root preservation
 
 Maintenance preflight/update calls may pass archive, staging, worker options, and cache paths in any supported combination; the archive sweep now resolves `tools\` from its own installation path rather than from a shifted argument.

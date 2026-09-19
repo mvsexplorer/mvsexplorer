@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone MVS Explorer GUI embeds PowerShell.
 setlocal DisableDelayedExpansion
-set "app.version=0.2.1"
+set "app.version=0.3.0"
 set "app.name=mvs_explorer_gui"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -100,6 +100,7 @@ $Version = [string]$env:mvsgui_version
 $Tab = [char]9
 $US = [char]31
 $OtherRelease = '(Other / unversioned)'
+$OtherLanguage = '(Language not specified)'
 $Unclassified = '(Unclassified / historical)'
 $started = [Diagnostics.Stopwatch]::StartNew()
 
@@ -299,6 +300,18 @@ function Sort-Strings {
     [Array]::Sort($a,[StringComparer]::OrdinalIgnoreCase)
     return ,$a
 }
+function Get-ExplicitLanguageLabel {
+    param([AllowNull()][AllowEmptyString()][string]$Title)
+    if ([string]::IsNullOrWhiteSpace($Title)) { return '' }
+
+    # Language is a fifth analytical/UI layer only when the source title states it
+    # explicitly in a trailing parenthetical label. Do not infer language from
+    # filenames, locale-looking tokens, geography, or neighbouring titles.
+    $languagePattern = '(?:Arabic|Brazilian Portuguese|Chinese(?:\s*-\s*(?:Simplified|Traditional)|\s+\((?:Simplified|Traditional)\))?|Czech|Danish|Dutch|English|Finnish|French|German|Greek|Hebrew|Hungarian|Italian|Japanese|Korean|Norwegian(?: Bokmal| Nynorsk)?|Polish|Portuguese(?:\s*-\s*Brazil| \(Brazil\))?|Romanian|Russian|Slovak|Slovenian|Spanish|Swedish|Thai|Turkish|Ukrainian|Vietnamese|Multiple Languages|Multi-Language|Multilanguage)'
+    $m = [regex]::Match($Title,'(?i)\((?<language>'+$languagePattern+')\)\s*$')
+    if (-not $m.Success) { return '' }
+    return [string]$m.Groups['language'].Value.Trim()
+}
 function Contains-Text {
     param([AllowNull()][string]$Value,[AllowNull()][string]$Needle)
     if ([string]::IsNullOrWhiteSpace($Needle)) { return $true }
@@ -337,6 +350,8 @@ function Ensure-Product {
             Family=$Unclassified
             Release=''
             ReleaseDisplay=$OtherRelease
+            Language=(Get-ExplicitLanguageLabel $Title)
+            LanguageDisplay=''
             Confidence=''
             Status='unclassified'
             First=''
@@ -344,6 +359,7 @@ function Ensure-Product {
             Ids=(New-OrdinalStringSet)
             Dates=(New-OrdinalStringSet)
         }
+        $p.LanguageDisplay = if([string]::IsNullOrWhiteSpace([string]$p.Language)){$OtherLanguage}else{[string]$p.Language}
         $script:ProductsByTitle[$Title] = $p
         [void]$script:ProductList.Add($p)
     }
@@ -616,7 +632,9 @@ try {
         family=(New-OrdinalStringSet)
         release=(New-OrdinalStringSet)
         title=(New-OrdinalStringSet)
+        language=(New-OrdinalStringSet)
     }
+    $script:HierarchyKinds = @('broad','family','release','title','language')
     $script:ColumnControls = @{}
     $script:SuppressEvents = $false
     $script:MatchedProducts = @()
@@ -636,6 +654,8 @@ try {
         if ($script:Selected.release.Count -gt 0 -and -not $script:Selected.release.Contains([string]$P.ReleaseDisplay)) { return $false }
         if ($UpTo -eq 'release') { return $true }
         if ($script:Selected.title.Count -gt 0 -and -not $script:Selected.title.Contains([string]$P.Title)) { return $false }
+        if ($UpTo -eq 'title') { return $true }
+        if ($script:Selected.language.Count -gt 0 -and -not $script:Selected.language.Contains([string]$P.LanguageDisplay)) { return $false }
         return $true
     }
     function Get-AvailableMap {
@@ -654,6 +674,9 @@ try {
             } elseif($Kind-eq'title') {
                 if(-not(Product-Matches $p 'release')){continue}
                 $v=[string]$p.Title
+            } elseif($Kind-eq'language') {
+                if(-not(Product-Matches $p 'title')){continue}
+                $v=[string]$p.LanguageDisplay
             } else {
                 throw ('Unknown hierarchy column: '+$Kind)
             }
@@ -685,7 +708,8 @@ try {
         $layout=New-Object Windows.Forms.TableLayoutPanel
         $layout.Dock=[Windows.Forms.DockStyle]::Fill
         $layout.ColumnCount=1
-        $layout.RowCount=3
+        $layout.RowCount=4
+        [void]$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle([Windows.Forms.SizeType]::Absolute,28)))
         [void]$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle([Windows.Forms.SizeType]::Absolute,30)))
         [void]$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle([Windows.Forms.SizeType]::Absolute,34)))
         [void]$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle([Windows.Forms.SizeType]::Percent,100)))
@@ -694,18 +718,45 @@ try {
         $filter.Dock=[Windows.Forms.DockStyle]::Fill
         $filter.Tag=$Placeholder
 
+        $sortControls=New-Object Windows.Forms.FlowLayoutPanel
+        $sortControls.Dock=[Windows.Forms.DockStyle]::Fill
+        $sortControls.FlowDirection=[Windows.Forms.FlowDirection]::LeftToRight
+        $sortControls.WrapContents=$false
+        $sortLabel=New-Object Windows.Forms.Label
+        $sortLabel.Text='Order:'
+        $sortLabel.AutoSize=$true
+        $sortLabel.Margin=New-Object Windows.Forms.Padding(0,6,2,0)
+        $sortBox=New-Object Windows.Forms.ComboBox
+        $sortBox.DropDownStyle=[Windows.Forms.ComboBoxStyle]::DropDownList
+        $sortBox.Width=82
+        [void]$sortBox.Items.Add('A-Z')
+        [void]$sortBox.Items.Add('Item count')
+        $sortBox.SelectedIndex=0
+        $reverseBox=New-Object Windows.Forms.CheckBox
+        $reverseBox.Text='Reverse'
+        $reverseBox.AutoSize=$true
+        $reverseBox.Margin=New-Object Windows.Forms.Padding(5,5,0,0)
+        [void]$sortControls.Controls.Add($sortLabel)
+        [void]$sortControls.Controls.Add($sortBox)
+        [void]$sortControls.Controls.Add($reverseBox)
+
         $buttons=New-Object Windows.Forms.FlowLayoutPanel
         $buttons.Dock=[Windows.Forms.DockStyle]::Fill
         $buttons.FlowDirection=[Windows.Forms.FlowDirection]::LeftToRight
         $buttons.WrapContents=$false
+        $buttons.Margin=New-Object Windows.Forms.Padding(0)
         $selectButton=New-Object Windows.Forms.Button
-        $selectButton.Text='Select visible'
+        $selectButton.Text='Select all'
         $selectButton.AutoSize=$true
         $clearButton=New-Object Windows.Forms.Button
         $clearButton.Text='Clear'
         $clearButton.AutoSize=$true
+        $copyButton=New-Object Windows.Forms.Button
+        $copyButton.Text='Copy list'
+        $copyButton.AutoSize=$true
         [void]$buttons.Controls.Add($selectButton)
         [void]$buttons.Controls.Add($clearButton)
+        [void]$buttons.Controls.Add($copyButton)
 
         $list=New-Object Windows.Forms.CheckedListBox
         $list.Dock=[Windows.Forms.DockStyle]::Fill
@@ -715,17 +766,45 @@ try {
         $list.HorizontalScrollbar=$true
 
         [void]$layout.Controls.Add($filter,0,0)
-        [void]$layout.Controls.Add($buttons,0,1)
-        [void]$layout.Controls.Add($list,0,2)
+        [void]$layout.Controls.Add($sortControls,0,1)
+        [void]$layout.Controls.Add($buttons,0,2)
+        [void]$layout.Controls.Add($list,0,3)
         [void]$group.Controls.Add($layout)
         return [pscustomobject]@{
             Group=$group
             BaseTitle=$Title
             Filter=$filter
             List=$list
+            SortBox=$sortBox
+            ReverseBox=$reverseBox
             SelectButton=$selectButton
             ClearButton=$clearButton
+            CopyButton=$copyButton
         }
+    }
+    function Get-OrderedHierarchyRows {
+        param([string]$Kind,[object]$Available,[string]$Query)
+        $ctrl=$script:ColumnControls[$Kind]
+        $rows=New-Object 'System.Collections.Generic.List[object]'
+        foreach($key in $Available.Keys){
+            $v=[string]$key
+            if(-not(Contains-Text $v $Query)){continue}
+            [void]$rows.Add([pscustomobject]@{Value=$v;Count=[int]$Available[$v]})
+        }
+        $reverse=[bool]$ctrl.ReverseBox.Checked
+        if($ctrl.SortBox.SelectedIndex-eq 1){
+            # Count order is most-useful-first by default. Reverse means least-first.
+            $countDescending=-not$reverse
+            return @($rows | Sort-Object @{Expression={$_.Count};Descending=$countDescending},@{Expression={$_.Value};Descending=$reverse})
+        }
+        [string[]]$names=@($rows | ForEach-Object {[string]$_.Value})
+        [Array]::Sort($names,[StringComparer]::OrdinalIgnoreCase)
+        if($reverse){[Array]::Reverse($names)}
+        $ordered=New-Object 'System.Collections.Generic.List[object]'
+        foreach($name in $names){
+            [void]$ordered.Add([pscustomobject]@{Value=$name;Count=[int]$Available[$name]})
+        }
+        return ,($ordered.ToArray())
     }
     function Render-Column {
         param([string]$Kind)
@@ -733,18 +812,17 @@ try {
         if($null-eq$ctrl){return}
         $available=Get-AvailableMap $Kind
         $query=[string]$ctrl.Filter.Text
-        $values=Sort-Strings $available.Keys
-        $visible=0
+        $rows=@(Get-OrderedHierarchyRows $Kind $available $query)
+        $visible=$rows.Count
         $script:SuppressEvents=$true
         try {
             $ctrl.List.BeginUpdate()
             $ctrl.List.Items.Clear()
-            foreach($v in $values) {
-                if(-not(Contains-Text $v $query)){continue}
-                $visible++
-                $count=[int]$available[$v]
-                $display=if($count-gt 1){$v+'    ['+$count+']'}else{$v}
-                $item=[pscustomobject]@{Value=$v;Display=$display}
+            foreach($row in $rows) {
+                $v=[string]$row.Value
+                $count=[int]$row.Count
+                $display=$v+'    ['+$count+']'
+                $item=[pscustomobject]@{Value=$v;Display=$display;Count=$count}
                 [void]$ctrl.List.Items.Add($item,$script:Selected[$Kind].Contains($v))
             }
             $ctrl.Group.Text=$ctrl.BaseTitle+'  ('+$visible+'/'+$available.Count+')'
@@ -762,10 +840,9 @@ try {
         Prune-Selection 'release' $r
         $tt=Get-AvailableMap 'title'
         Prune-Selection 'title' $tt
-        Render-Column 'broad'
-        Render-Column 'family'
-        Render-Column 'release'
-        Render-Column 'title'
+        $ll=Get-AvailableMap 'language'
+        Prune-Selection 'language' $ll
+        foreach($kind in $script:HierarchyKinds){Render-Column $kind}
         $script:MatchedProducts=@(Get-MatchedProducts)
         $script:ProductPage=0
         $script:FilePage=0
@@ -785,15 +862,31 @@ try {
         $script:HierarchyTimer.Stop()
         $script:HierarchyTimer.Start()
     }
-    function Select-Visible {
+    function Select-All {
+        param([string]$Kind)
+        $available=Get-AvailableMap $Kind
+        foreach($value in $available.Keys){[void]$script:Selected[$Kind].Add([string]$value)}
+        Refresh-Hierarchy
+    }
+    function Copy-HierarchyList {
         param([string]$Kind)
         $ctrl=$script:ColumnControls[$Kind]
-        foreach($item in $ctrl.List.Items){[void]$script:Selected[$Kind].Add([string]$item.Value)}
-        Refresh-Hierarchy
+        $values=New-Object 'System.Collections.Generic.List[string]'
+        foreach($item in $ctrl.List.Items){[void]$values.Add([string]$item.Value)}
+        if($values.Count-eq 0){return}
+        [Windows.Forms.Clipboard]::SetText([string]::Join([Environment]::NewLine,$values.ToArray()))
+        $script:StatusMatched.Text=('{0:N0} {1} list entr{2} copied to clipboard' -f $values.Count,$Kind,$(if($values.Count-eq1){'y'}else{'ies'}))
     }
     function Clear-Column {
         param([string]$Kind)
-        $script:Selected[$Kind].Clear()
+        $start=[Array]::IndexOf([string[]]$script:HierarchyKinds,$Kind)
+        if($start-lt0){return}
+        # A hierarchy clear is a cascade reset: stale selections to the right
+        # would otherwise continue to constrain the result and make the next
+        # column appear not to refresh.
+        for($i=$start;$i-lt$script:HierarchyKinds.Count;$i++){
+            $script:Selected[[string]$script:HierarchyKinds[$i]].Clear()
+        }
         Refresh-Hierarchy
     }
     function Join-Set {
@@ -863,39 +956,177 @@ try {
         Set-Metric 'idsdates' 'Distinct IDs / dates' (('{0:N0} / {1:N0}' -f $ids.Count,$dates.Count))
         $script:StatusMatched.Text=('{0:N0} exact product title(s) matched' -f $script:MatchedProducts.Count)
     }
+    function Escape-ClipboardCell {
+        param([AllowNull()][AllowEmptyString()][string]$Value)
+        if($null-eq$Value){return ''}
+        return $Value.Replace("`t",' ').Replace("`r",' ').Replace("`n",' ')
+    }
+    function New-ResultRow {
+        param([string[]]$Cells,[AllowNull()][object]$Tag)
+        return [pscustomobject]@{Cells=$Cells;Tag=$Tag}
+    }
+    function Get-ProductResultRows {
+        $rows=New-Object 'System.Collections.Generic.List[object]'
+        $q=$script:ProductDetailFilter
+        foreach($p in $script:MatchedProducts){
+            if(-not((Contains-Text $p.Title $q)-or(Contains-Text $p.Family $q)-or(Contains-Text $p.ReleaseDisplay $q)-or(Contains-Text $p.LanguageDisplay $q))){continue}
+            $class=if($p.Confidence){$p.Confidence}else{$p.Status}
+            [void]$rows.Add((New-ResultRow ([string[]]@(
+                [string]$p.Title,
+                [string]$p.Family,
+                [string]$p.ReleaseDisplay,
+                [string]$p.LanguageDisplay,
+                ([string]$p.First+' -> '+[string]$p.Last),
+                (Join-Set $p.Ids),
+                (Get-DateDisplay $p),
+                [string]$class
+            )) $p))
+        }
+        return ,($rows.ToArray())
+    }
+    function Get-FileResultRows {
+        $rows=New-Object 'System.Collections.Generic.List[object]'
+        $q=$script:FileDetailFilter
+        foreach($p in $script:MatchedProducts){
+            $title=[string]$p.Title
+            if($script:HashesByTitle.ContainsKey($title)){
+                foreach($raw in [string[]]$script:HashesByTitle[$title]){
+                    if($q -and -not(Contains-Text $title $q) -and -not(Contains-Text $raw $q)){continue}
+                    $parts=[string[]]$raw.Split([char]31)
+                    $fn=if($parts.Count-gt 0){$parts[0]}else{''}
+                    $alg=if($parts.Count-gt 1){$parts[1]}else{''}
+                    $hash=if($parts.Count-gt 2){$parts[2]}else{''}
+                    [void]$rows.Add((New-ResultRow ([string[]]@($title,$fn,$alg,$hash)) $null))
+                }
+            }
+            if($script:NoHashFilesByTitle.ContainsKey($title)){
+                foreach($fn in [string[]]$script:NoHashFilesByTitle[$title]){
+                    if($q -and -not(Contains-Text $title $q) -and -not(Contains-Text $fn $q)){continue}
+                    [void]$rows.Add((New-ResultRow ([string[]]@($title,[string]$fn,'','(no product-section hash recorded)')) $null))
+                }
+            }
+        }
+        return ,($rows.ToArray())
+    }
+    function Get-NoteResultRows {
+        $map=New-OrdinalObjectDictionary
+        $q=$script:NoteDetailFilter
+        foreach($p in $script:MatchedProducts){
+            $title=[string]$p.Title
+            if(-not$script:NotesByTitle.ContainsKey($title)){continue}
+            foreach($raw in [string[]]$script:NotesByTitle[$title]){
+                $parts=[string[]]$raw.Split([char]31)
+                $text=if($parts.Count-gt 0){$parts[0]}else{''}
+                if($q -and -not(Contains-Text $text $q) -and -not(Contains-Text $title $q)){continue}
+                $hash=if($parts.Count-gt 1){$parts[1]}else{''}
+                $first=if($parts.Count-gt 2){$parts[2]}else{''}
+                $last=if($parts.Count-gt 3){$parts[3]}else{''}
+                if(-not$map.ContainsKey($text)){
+                    $map[$text]=[pscustomobject]@{
+                        Text=$text
+                        Titles=(New-OrdinalStringSet)
+                        Hashes=(New-OrdinalStringSet)
+                        First=$first
+                        Last=$last
+                    }
+                }
+                $x=$map[$text]
+                [void]$x.Titles.Add($title)
+                if($hash){[void]$x.Hashes.Add($hash)}
+                if($first -and ((-not$x.First)-or[StringComparer]::Ordinal.Compare($first,[string]$x.First)-lt 0)){$x.First=$first}
+                if($last -and ((-not$x.Last)-or[StringComparer]::Ordinal.Compare($last,[string]$x.Last)-gt 0)){$x.Last=$last}
+            }
+        }
+        $rows=New-Object 'System.Collections.Generic.List[object]'
+        foreach($x in @($map.Values | Sort-Object -Property Text)){
+            $hashDisplay=if($x.Hashes.Count){([string]::Join(', ',(Sort-Strings $x.Hashes)))}else{''}
+            [void]$rows.Add((New-ResultRow ([string[]]@(
+                [string]$x.Text,
+                [string]('{0:N0}' -f $x.Titles.Count),
+                ([string]$x.First+' -> '+[string]$x.Last),
+                $hashDisplay
+            )) $x))
+        }
+        return ,($rows.ToArray())
+    }
+    function Get-ResultRows {
+        param([string]$Kind)
+        switch($Kind){
+            'product' { return ,(Get-ProductResultRows) }
+            'file' { return ,(Get-FileResultRows) }
+            'note' { return ,(Get-NoteResultRows) }
+            default { throw ('Unknown result table: '+$Kind) }
+        }
+    }
+    function Copy-ResultData {
+        param([string]$Kind,[int]$ColumnIndex)
+        $rows=@(Get-ResultRows $Kind)
+        $headers=[string[]]$script:ResultHeaders[$Kind]
+        if($ColumnIndex-ge$headers.Count){return}
+        $sb=New-Object Text.StringBuilder
+        if($ColumnIndex-lt0){
+            [void]$sb.AppendLine(([string]::Join([char]9,$headers)))
+            foreach($row in $rows){
+                $cells=[string[]]$row.Cells
+                $clean=New-Object 'System.Collections.Generic.List[string]'
+                foreach($cell in $cells){[void]$clean.Add((Escape-ClipboardCell $cell))}
+                [void]$sb.AppendLine(([string]::Join([char]9,$clean.ToArray())))
+            }
+        } else {
+            foreach($row in $rows){
+                $cells=[string[]]$row.Cells
+                $value=if($ColumnIndex-lt$cells.Count){[string]$cells[$ColumnIndex]}else{''}
+                [void]$sb.AppendLine((Escape-ClipboardCell $value))
+            }
+        }
+        if($sb.Length-eq0){return}
+        [Windows.Forms.Clipboard]::SetText($sb.ToString())
+        $what=if($ColumnIndex-lt0){'complete table'}else{'"'+$headers[$ColumnIndex]+'" column'}
+        $script:StatusMatched.Text=('{0:N0} row(s) copied from {1} {2}' -f $rows.Count,$Kind,$what)
+    }
+    function New-CopyMenuButton {
+        param([string]$Kind,[string[]]$Headers)
+        $button=New-Object Windows.Forms.Button
+        $button.Text='Copy...'
+        $button.AutoSize=$true
+        $menu=New-Object Windows.Forms.ContextMenuStrip
+        $all=$menu.Items.Add('Copy complete table - all pages')
+        $all.Tag=[pscustomobject]@{Kind=$Kind;Column=-1}
+        $all.Add_Click({param($sender,$e) Copy-ResultData ([string]$sender.Tag.Kind) ([int]$sender.Tag.Column)})
+        [void]$menu.Items.Add((New-Object Windows.Forms.ToolStripSeparator))
+        for($i=0;$i-lt$Headers.Count;$i++){
+            $item=$menu.Items.Add('Copy column: '+$Headers[$i])
+            $item.Tag=[pscustomobject]@{Kind=$Kind;Column=$i}
+            $item.Add_Click({param($sender,$e) Copy-ResultData ([string]$sender.Tag.Kind) ([int]$sender.Tag.Column)})
+        }
+        $button.Tag=$menu
+        $button.Add_Click({
+            param($sender,$e)
+            $m=[Windows.Forms.ContextMenuStrip]$sender.Tag
+            $m.Show($sender,0,$sender.Height)
+        })
+        return ,$button
+    }
+
     function Refresh-ProductGrid {
         $grid=$script:UI.ProductGrid
         $grid.SuspendLayout()
         try {
             $grid.Rows.Clear()
-            $q=$script:ProductDetailFilter
-            $matches=New-Object 'System.Collections.Generic.List[object]'
-            foreach($p in $script:MatchedProducts){
-                if((Contains-Text $p.Title $q)-or(Contains-Text $p.Family $q)-or(Contains-Text $p.ReleaseDisplay $q)){
-                    [void]$matches.Add($p)
-                }
-            }
-            $total=$matches.Count
+            $rows=@(Get-ProductResultRows)
+            $total=$rows.Count
             $pages=[Math]::Max(1,[int][Math]::Ceiling($total/[double]$script:PageSize))
             if($script:ProductPage-ge$pages){$script:ProductPage=$pages-1}
-            if($script:ProductPage-lt 0){$script:ProductPage=0}
+            if($script:ProductPage-lt0){$script:ProductPage=0}
             $start=$script:ProductPage*$script:PageSize
             $end=[Math]::Min($total,$start+$script:PageSize)
             for($i=$start;$i-lt$end;$i++){
-                $p=$matches[$i]
-                $class=if($p.Confidence){$p.Confidence}else{$p.Status}
-                [void]$grid.Rows.Add(
-                    [string]$p.Title,
-                    [string]$p.Family,
-                    [string]$p.ReleaseDisplay,
-                    ([string]$p.First+' -> '+[string]$p.Last),
-                    (Join-Set $p.Ids),
-                    (Get-DateDisplay $p),
-                    [string]$class
-                )
+                $row=$rows[$i]
+                $ri=$grid.Rows.Add([object[]]$row.Cells)
+                $grid.Rows[$ri].Tag=$row.Tag
             }
             $script:UI.ProductPageLabel.Text=('Page {0} of {1}  -  {2:N0} rows' -f ($script:ProductPage+1),$pages,$total)
-            $script:UI.ProductPrev.Enabled=$script:ProductPage-gt 0
+            $script:UI.ProductPrev.Enabled=$script:ProductPage-gt0
             $script:UI.ProductNext.Enabled=$script:ProductPage-lt($pages-1)
         } finally {$grid.ResumeLayout()}
     }
@@ -904,42 +1135,18 @@ try {
         $grid.SuspendLayout()
         try {
             $grid.Rows.Clear()
-            $q=$script:FileDetailFilter
-            $start=$script:FilePage*$script:PageSize
-            $limit=$start+$script:PageSize
-            $seen=0
-            foreach($p in $script:MatchedProducts){
-                $title=[string]$p.Title
-                if($script:HashesByTitle.ContainsKey($title)){
-                    foreach($raw in [string[]]$script:HashesByTitle[$title]){
-                        if($q -and -not(Contains-Text $title $q) -and -not(Contains-Text $raw $q)){continue}
-                        if($seen-ge$start -and $seen-lt$limit){
-                            $parts=[string[]]$raw.Split([char]31)
-                            $fn=if($parts.Count-gt 0){$parts[0]}else{''}
-                            $alg=if($parts.Count-gt 1){$parts[1]}else{''}
-                            $hash=if($parts.Count-gt 2){$parts[2]}else{''}
-                            [void]$grid.Rows.Add($title,$fn,$alg,$hash)
-                        }
-                        $seen++
-                    }
-                }
-                if($script:NoHashFilesByTitle.ContainsKey($title)){
-                    foreach($fn in [string[]]$script:NoHashFilesByTitle[$title]){
-                        if($q -and -not(Contains-Text $title $q) -and -not(Contains-Text $fn $q)){continue}
-                        if($seen-ge$start -and $seen-lt$limit){[void]$grid.Rows.Add($title,$fn,'','(no product-section hash recorded)')}
-                        $seen++
-                    }
-                }
-            }
-            $total=$seen
+            $rows=@(Get-FileResultRows)
+            $total=$rows.Count
             $pages=[Math]::Max(1,[int][Math]::Ceiling($total/[double]$script:PageSize))
-            if($script:FilePage-ge$pages -and $total-gt 0){
-                $script:FilePage=$pages-1
-                Refresh-FileGrid
-                return
+            if($script:FilePage-ge$pages){$script:FilePage=$pages-1}
+            if($script:FilePage-lt0){$script:FilePage=0}
+            $start=$script:FilePage*$script:PageSize
+            $end=[Math]::Min($total,$start+$script:PageSize)
+            for($i=$start;$i-lt$end;$i++){
+                [void]$grid.Rows.Add([object[]]$rows[$i].Cells)
             }
             $script:UI.FilePageLabel.Text=('Page {0} of {1}  -  {2:N0} rows' -f ($script:FilePage+1),$pages,$total)
-            $script:UI.FilePrev.Enabled=$script:FilePage-gt 0
+            $script:UI.FilePrev.Enabled=$script:FilePage-gt0
             $script:UI.FileNext.Enabled=$script:FilePage-lt($pages-1)
         } finally {$grid.ResumeLayout()}
     }
@@ -948,50 +1155,16 @@ try {
         $grid.SuspendLayout()
         try {
             $grid.Rows.Clear()
-            $map=New-OrdinalObjectDictionary
-            $q=$script:NoteDetailFilter
-            foreach($p in $script:MatchedProducts){
-                $title=[string]$p.Title
-                if(-not$script:NotesByTitle.ContainsKey($title)){continue}
-                foreach($raw in [string[]]$script:NotesByTitle[$title]){
-                    $parts=[string[]]$raw.Split([char]31)
-                    $text=if($parts.Count-gt 0){$parts[0]}else{''}
-                    if($q -and -not(Contains-Text $text $q) -and -not(Contains-Text $title $q)){continue}
-                    $hash=if($parts.Count-gt 1){$parts[1]}else{''}
-                    $first=if($parts.Count-gt 2){$parts[2]}else{''}
-                    $last=if($parts.Count-gt 3){$parts[3]}else{''}
-                    if(-not$map.ContainsKey($text)){
-                        $map[$text]=[pscustomobject]@{
-                            Text=$text
-                            Titles=(New-OrdinalStringSet)
-                            Hashes=(New-OrdinalStringSet)
-                            First=$first
-                            Last=$last
-                        }
-                    }
-                    $x=$map[$text]
-                    [void]$x.Titles.Add($title)
-                    if($hash){[void]$x.Hashes.Add($hash)}
-                    if($first -and ((-not$x.First)-or[StringComparer]::Ordinal.Compare($first,[string]$x.First)-lt 0)){$x.First=$first}
-                    if($last -and ((-not$x.Last)-or[StringComparer]::Ordinal.Compare($last,[string]$x.Last)-gt 0)){$x.Last=$last}
-                }
-            }
-            $rows=@($map.Values | Sort-Object -Property Text)
+            $rows=@(Get-NoteResultRows)
             $show=[Math]::Min(300,$rows.Count)
             for($i=0;$i-lt$show;$i++){
-                $x=$rows[$i]
-                $hashDisplay=if($x.Hashes.Count){([string]::Join(', ',(Sort-Strings $x.Hashes)))}else{''}
-                $ri=$grid.Rows.Add(
-                    [string]$x.Text,
-                    [string]('{0:N0}' -f $x.Titles.Count),
-                    ([string]$x.First+' -> '+[string]$x.Last),
-                    $hashDisplay
-                )
-                $grid.Rows[$ri].Tag=$x
+                $row=$rows[$i]
+                $ri=$grid.Rows.Add([object[]]$row.Cells)
+                $grid.Rows[$ri].Tag=$row.Tag
             }
-            $suffix=if($rows.Count-gt 300){' (showing first 300; narrow hierarchy or filter)'}else{''}
+            $suffix=if($rows.Count-gt300){' (showing first 300; Copy can export all rows)'}else{''}
             $script:UI.NoteCountLabel.Text=('{0:N0} distinct applicable notes{1}' -f $rows.Count,$suffix)
-            if($grid.Rows.Count-gt 0){$grid.Rows[0].Selected=$true;Update-NoteDetail}else{$script:UI.NoteDetail.Text='No applicable notes.'}
+            if($grid.Rows.Count-gt0){$grid.Rows[0].Selected=$true;Update-NoteDetail}else{$script:UI.NoteDetail.Text='No applicable notes.'}
         } finally {$grid.ResumeLayout()}
     }
     function Update-NoteDetail {
@@ -1028,12 +1201,14 @@ try {
             ('Products: '+(Selected-Label 'family')),
             ('Releases: '+(Selected-Label 'release')),
             ('Variants / exact titles: '+(Selected-Label 'title')),
+            ('Languages: '+(Selected-Label 'language')),
             '',
             ('Matched exact product titles: '+$script:MatchedProducts.Count),
             '',
             'SEMANTICS',
             '',
             'Empty selection in a hierarchy column means all values still available from the columns to its left.',
+            'Language is populated only when the source title explicitly states a recognized trailing language label; otherwise it is shown as language not specified.',
             'Typing in a hierarchy filter changes list visibility only; it does not silently select evidence.',
             '',
             'Family/release membership comes from the analytical product-family classification.',
@@ -1063,7 +1238,7 @@ try {
     $form.Text='MVS Explorer '+$Version
     $form.StartPosition=[Windows.Forms.FormStartPosition]::CenterScreen
     $form.WindowState=[Windows.Forms.FormWindowState]::Maximized
-    $form.MinimumSize=New-Object Drawing.Size(1100,720)
+    $form.MinimumSize=New-Object Drawing.Size(1280,760)
     $form.AutoScaleMode=[Windows.Forms.AutoScaleMode]::Dpi
     $form.Font=New-Object Drawing.Font('Segoe UI',9)
 
@@ -1095,24 +1270,26 @@ try {
     $split=New-Object Windows.Forms.SplitContainer
     $split.Dock=[Windows.Forms.DockStyle]::Fill
     $split.Orientation=[Windows.Forms.Orientation]::Horizontal
-    $split.SplitterDistance=350
-    $split.Panel1MinSize=230
+    $split.SplitterDistance=390
+    $split.Panel1MinSize=270
     $split.Panel2MinSize=260
 
     $hier=New-Object Windows.Forms.TableLayoutPanel
     $hier.Dock=[Windows.Forms.DockStyle]::Fill
-    $hier.ColumnCount=4
+    $hier.ColumnCount=5
     $hier.RowCount=1
-    for($i=0;$i-lt 4;$i++){[void]$hier.ColumnStyles.Add((New-Object Windows.Forms.ColumnStyle([Windows.Forms.SizeType]::Percent,25)))}
+    for($i=0;$i-lt 5;$i++){[void]$hier.ColumnStyles.Add((New-Object Windows.Forms.ColumnStyle([Windows.Forms.SizeType]::Percent,20)))}
 
     $script:ColumnControls.broad=New-HierarchyControls '1. Basic families' 'Filter families'
     $script:ColumnControls.family=New-HierarchyControls '2. Products' 'Filter product families'
     $script:ColumnControls.release=New-HierarchyControls '3. Releases' 'Filter releases / years'
     $script:ColumnControls.title=New-HierarchyControls '4. Variants / exact titles' 'Filter exact product titles'
+    $script:ColumnControls.language=New-HierarchyControls '5. Languages' 'Filter explicit languages'
     [void]$hier.Controls.Add($script:ColumnControls.broad.Group,0,0)
     [void]$hier.Controls.Add($script:ColumnControls.family.Group,1,0)
     [void]$hier.Controls.Add($script:ColumnControls.release.Group,2,0)
     [void]$hier.Controls.Add($script:ColumnControls.title.Group,3,0)
+    [void]$hier.Controls.Add($script:ColumnControls.language.Group,4,0)
     [void]$split.Panel1.Controls.Add($hier)
 
     $detail=New-Object Windows.Forms.Panel
@@ -1134,6 +1311,12 @@ try {
         $lab.Font=New-Object Drawing.Font('Segoe UI',9,[Drawing.FontStyle]::Bold)
         $script:MetricLabels[$metricKeys[$i]]=$lab
         [void]$metricLayout.Controls.Add($lab,$i,0)
+    }
+
+    $script:ResultHeaders=@{
+        product=[string[]]@('Exact product title / variant','Product family','Release','Language','Observed','IDs','Dates','Classification')
+        file=[string[]]@('Product title','Filename','Algorithm','Hash')
+        note=[string[]]@('Note','Applies to titles','Observed','Raw HTML evidence SHA-256')
     }
 
     $tabs=New-Object Windows.Forms.TabControl
@@ -1163,19 +1346,24 @@ try {
     $productPageLabel.AutoSize=$true
     $productPageLabel.Left=595
     $productPageLabel.Top=9
+    $productCopy=New-CopyMenuButton 'product' $script:ResultHeaders.product
+    $productCopy.Left=850
+    $productCopy.Top=3
     [void]$productToolbar.Controls.Add($productFilter)
     [void]$productToolbar.Controls.Add($productPrev)
     [void]$productToolbar.Controls.Add($productNext)
     [void]$productToolbar.Controls.Add($productPageLabel)
+    [void]$productToolbar.Controls.Add($productCopy)
     $productGrid=New-ReadOnlyGrid
-    Add-GridColumns $productGrid @('Exact product title / variant','Product family','Release','Observed','IDs','Dates','Classification')
+    Add-GridColumns $productGrid $script:ResultHeaders.product
     $productGrid.Columns[0].FillWeight=170
     $productGrid.Columns[1].FillWeight=120
-    $productGrid.Columns[2].FillWeight=80
-    $productGrid.Columns[3].FillWeight=90
-    $productGrid.Columns[4].FillWeight=80
-    $productGrid.Columns[5].FillWeight=120
-    $productGrid.Columns[6].FillWeight=70
+    $productGrid.Columns[2].FillWeight=70
+    $productGrid.Columns[3].FillWeight=80
+    $productGrid.Columns[4].FillWeight=90
+    $productGrid.Columns[5].FillWeight=70
+    $productGrid.Columns[6].FillWeight=110
+    $productGrid.Columns[7].FillWeight=70
     [void]$productTab.Controls.Add($productGrid)
     [void]$productTab.Controls.Add($productToolbar)
 
@@ -1202,12 +1390,16 @@ try {
     $filePageLabel.AutoSize=$true
     $filePageLabel.Left=595
     $filePageLabel.Top=9
+    $fileCopy=New-CopyMenuButton 'file' $script:ResultHeaders.file
+    $fileCopy.Left=850
+    $fileCopy.Top=3
     [void]$fileToolbar.Controls.Add($fileFilter)
     [void]$fileToolbar.Controls.Add($filePrev)
     [void]$fileToolbar.Controls.Add($fileNext)
     [void]$fileToolbar.Controls.Add($filePageLabel)
+    [void]$fileToolbar.Controls.Add($fileCopy)
     $fileGrid=New-ReadOnlyGrid
-    Add-GridColumns $fileGrid @('Product title','Filename','Algorithm','Hash')
+    Add-GridColumns $fileGrid $script:ResultHeaders.file
     $fileGrid.Columns[0].FillWeight=120
     $fileGrid.Columns[1].FillWeight=160
     $fileGrid.Columns[2].FillWeight=45
@@ -1229,14 +1421,18 @@ try {
     $noteCountLabel.AutoSize=$true
     $noteCountLabel.Left=440
     $noteCountLabel.Top=9
+    $noteCopy=New-CopyMenuButton 'note' $script:ResultHeaders.note
+    $noteCopy.Left=850
+    $noteCopy.Top=3
     [void]$noteToolbar.Controls.Add($noteFilter)
     [void]$noteToolbar.Controls.Add($noteCountLabel)
+    [void]$noteToolbar.Controls.Add($noteCopy)
     $noteSplit=New-Object Windows.Forms.SplitContainer
     $noteSplit.Dock=[Windows.Forms.DockStyle]::Fill
     $noteSplit.Orientation=[Windows.Forms.Orientation]::Horizontal
     $noteSplit.SplitterDistance=220
     $noteGrid=New-ReadOnlyGrid
-    Add-GridColumns $noteGrid @('Note','Applies to titles','Observed','Raw HTML evidence SHA-256')
+    Add-GridColumns $noteGrid $script:ResultHeaders.note
     $noteGrid.Columns[0].FillWeight=230
     $noteGrid.Columns[1].FillWeight=50
     $noteGrid.Columns[2].FillWeight=90
@@ -1317,25 +1513,27 @@ try {
         if($script:UI.Tabs.SelectedIndex-eq 2){Refresh-Notes}
     })
 
-    $script:ColumnControls.broad.Filter.Add_TextChanged({Render-Column 'broad'})
-    $script:ColumnControls.family.Filter.Add_TextChanged({Render-Column 'family'})
-    $script:ColumnControls.release.Filter.Add_TextChanged({Render-Column 'release'})
-    $script:ColumnControls.title.Filter.Add_TextChanged({Render-Column 'title'})
-    $script:ColumnControls.broad.List.Add_ItemCheck({param($sender,$e) Handle-ItemCheck 'broad' $sender $e})
-    $script:ColumnControls.family.List.Add_ItemCheck({param($sender,$e) Handle-ItemCheck 'family' $sender $e})
-    $script:ColumnControls.release.List.Add_ItemCheck({param($sender,$e) Handle-ItemCheck 'release' $sender $e})
-    $script:ColumnControls.title.List.Add_ItemCheck({param($sender,$e) Handle-ItemCheck 'title' $sender $e})
-    $script:ColumnControls.broad.SelectButton.Add_Click({Select-Visible 'broad'})
-    $script:ColumnControls.family.SelectButton.Add_Click({Select-Visible 'family'})
-    $script:ColumnControls.release.SelectButton.Add_Click({Select-Visible 'release'})
-    $script:ColumnControls.title.SelectButton.Add_Click({Select-Visible 'title'})
-    $script:ColumnControls.broad.ClearButton.Add_Click({Clear-Column 'broad'})
-    $script:ColumnControls.family.ClearButton.Add_Click({Clear-Column 'family'})
-    $script:ColumnControls.release.ClearButton.Add_Click({Clear-Column 'release'})
-    $script:ColumnControls.title.ClearButton.Add_Click({Clear-Column 'title'})
+    foreach($kind in $script:HierarchyKinds){
+        $ctrl=$script:ColumnControls[$kind]
+        $ctrl.Filter.Tag=$kind
+        $ctrl.SortBox.Tag=$kind
+        $ctrl.ReverseBox.Tag=$kind
+        $ctrl.SelectButton.Tag=$kind
+        $ctrl.ClearButton.Tag=$kind
+        $ctrl.CopyButton.Tag=$kind
+
+        $ctrl.Filter.Add_TextChanged({param($sender,$e) Render-Column ([string]$sender.Tag)})
+        $ctrl.SortBox.Add_SelectedIndexChanged({param($sender,$e) Render-Column ([string]$sender.Tag)})
+        $ctrl.ReverseBox.Add_CheckedChanged({param($sender,$e) Render-Column ([string]$sender.Tag)})
+        $ctrl.List.Tag=$kind
+        $ctrl.List.Add_ItemCheck({param($sender,$e) Handle-ItemCheck ([string]$sender.Tag) $sender $e})
+        $ctrl.SelectButton.Add_Click({param($sender,$e) Select-All ([string]$sender.Tag)})
+        $ctrl.ClearButton.Add_Click({param($sender,$e) Clear-Column ([string]$sender.Tag)})
+        $ctrl.CopyButton.Add_Click({param($sender,$e) Copy-HierarchyList ([string]$sender.Tag)})
+    }
 
     $clearAll.Add_Click({
-        foreach($kind in @('broad','family','release','title')){$script:Selected[$kind].Clear();$script:ColumnControls[$kind].Filter.Text=''}
+        foreach($kind in $script:HierarchyKinds){$script:Selected[$kind].Clear();$script:ColumnControls[$kind].Filter.Text=''}
         Refresh-Hierarchy
     })
     $tabs.Add_SelectedIndexChanged({Refresh-ActiveTab})

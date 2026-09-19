@@ -1,3 +1,14 @@
+## 0.21.0 interactive output policy
+
+`test_all.bat` still executes 1,119 assertions, but successful assertions are
+written to the detailed result/log evidence instead of producing 1,119
+permanent console lines. Each logical section prints one aggregate PASS summary
+with assertion/pass/fail/skip counts and duration. SKIP and FAIL assertions
+remain immediately visible.
+
+The nested fresh-pipeline call may use `--skip-real-archive-plan`; standalone
+comprehensive testing does not skip that preflight.
+
 ## 0.20.2 caller-root regression
 
 The 1,119/506 assertion counts are unchanged. The archive transport structure guard now verifies that the batch file root is frozen before `shift`, in addition to verifying arbitrary-length option capture.
