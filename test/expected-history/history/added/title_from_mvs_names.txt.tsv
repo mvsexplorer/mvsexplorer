@@ -1,0 +1,4 @@
+from_dump	to_dump	value
+mvs_2020-01-01	mvs_2020-01-02	Beta Variant
+mvs_2020-01-02	mvs_2020-01-03_2	Alpha Variant
+mvs_2020-01-02	mvs_2020-01-03_2	Gamma Variant

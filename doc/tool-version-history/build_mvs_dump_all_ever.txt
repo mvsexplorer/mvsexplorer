@@ -1,0 +1,6 @@
+build_mvs_dump_all_ever.bat
+
+0.1.0 - 2026-08-27
+  - Initial standalone all-ever archive builder.
+  - Uses the 19 source-local comparison domains.
+  - Preserves archive/snapshot provenance in generated TSV output.

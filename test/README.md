@@ -110,3 +110,14 @@ The compare scope is 19 exact before-to-after comparisons, 19 identical
 before-to-before no-change comparisons, and one fixture-presence assertion.
 
 All eight standalone test entry points are generated at test version 0.7.0.
+
+
+## Archive history
+
+```bat
+test\test_history_tools.bat
+```
+
+This subset needs no real dump argument. It executes both archive builders
+against `test\test-mvs-dump-history\` and validates every generated added,
+removed, and all-ever domain file against independent fixed expectations.

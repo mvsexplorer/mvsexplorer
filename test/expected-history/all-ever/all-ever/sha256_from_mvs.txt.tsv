@@ -1,0 +1,5 @@
+first_seen_dump	last_seen_dump	observed_snapshots	value
+mvs_2020-01-01	mvs_2020-01-03_2	2	aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+mvs_2020-01-01	mvs_2020-01-03_2	3	bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+mvs_2020-01-02	mvs_2020-01-02	1	1111111111111111111111111111111111111111111111111111111111111111
+mvs_2020-01-03_2	mvs_2020-01-03_2	1	4444444444444444444444444444444444444444444444444444444444444444

@@ -1,0 +1,5 @@
+first_seen_dump	last_seen_dump	observed_snapshots	value
+mvs_2020-01-01	mvs_2020-01-03_2	2	alpha.iso
+mvs_2020-01-01	mvs_2020-01-03_2	3	keep.iso
+mvs_2020-01-02	mvs_2020-01-02	1	beta.iso
+mvs_2020-01-03_2	mvs_2020-01-03_2	1	gamma.iso

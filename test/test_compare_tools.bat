@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.7.0"
+set "app.version=0.8.0"
 set "app.name=test_compare_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -159,6 +159,7 @@ function New-ResultsFolder {
         relationship = Join-Path $candidate 'relationship-results.tsv'
         single_dump = Join-Path $candidate 'single-dump-results.tsv'
         compare = Join-Path $candidate 'compare-results.tsv'
+        history = Join-Path $candidate 'history-results.tsv'
     }
     Write-TextUtf8 $script:ConsoleLog ''
     $header = "index`tscope`tstatus`tcase`treason`texpected_rc`tactual_rc`n"
@@ -180,6 +181,7 @@ Files:
   relationship-results.tsv Filename/hash relationship assertions.
   single-dump-results.tsv Single-dump completeness assertions.
   compare-results.tsv     Two-dump comparison assertions.
+  history-results.tsv     Archive-history/all-ever assertions.
   failures\              Full expected/actual/stderr/meta files for
                          behavioral failures. Empty when none fail.
 '@
@@ -247,6 +249,7 @@ function Write-RunInfo {
         ('Relationship fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-relationships')),
         ('Single-dump fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-single-complete')),
         ('Compare fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-compare')),
+        ('History fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-history')),
         ('Result folder: ' + $script:ResultsFolder)
     )
     Write-TextUtf8 (Join-Path $script:ResultsFolder 'run-info.txt') (($info -join [Environment]::NewLine) + [Environment]::NewLine)
@@ -268,6 +271,7 @@ function Write-Summary {
         ('Relationship fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-relationships')),
         ('Single-dump fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-single-complete')),
         ('Compare fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-compare')),
+        ('History fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-history')),
         ('Result folder: ' + $script:ResultsFolder)
     )
     Write-TextUtf8 (Join-Path $script:ResultsFolder 'summary.txt') (($summary -join [Environment]::NewLine) + [Environment]::NewLine)
@@ -275,7 +279,7 @@ function Write-Summary {
 
 function Show-Usage {
     Write-Line ('MVS Explorer Toolkit test ' + $Version)
-    if (@('structure','diagnostic','relationship','single_dump','compare') -contains $Mode) {
+    if (@('structure','diagnostic','relationship','single_dump','compare','history') -contains $Mode) {
         Write-Line ('Usage: ' + $Caller)
     } else {
         Write-Line ('Usage: ' + $Caller + ' dump-folder')
@@ -968,9 +972,10 @@ function Test-Structure {
     foreach ($relationship in Get-Relationships) { [void]$expected.Add($relationship + '.bat') }
     foreach ($single in Get-SingleDumpTools) { [void]$expected.Add($single.name + '.bat') }
     foreach ($compare in Get-CompareTools) { [void]$expected.Add($compare.name + '.bat') }
+    foreach ($historyTool in @('build_mvs_dump_change_history','build_mvs_dump_all_ever')) { [void]$expected.Add($historyTool + '.bat') }
 
     $actual = @(Get-ChildItem -LiteralPath $Root -Filter '*.bat' -File | Select-Object -ExpandProperty Name)
-    if ($actual.Count -eq 441) { Write-Pass 'root public .bat count = 441' } else { Write-Fail 'root public .bat count' ('expected 441, got ' + $actual.Count) }
+    if ($actual.Count -eq 443) { Write-Pass 'root public .bat count = 443' } else { Write-Fail 'root public .bat count' ('expected 443, got ' + $actual.Count) }
 
     foreach ($name in $expected) {
         $path = Join-Path $Root $name
@@ -982,7 +987,7 @@ function Test-Structure {
         foreach ($label in @(':setup',':main',':end',':SetErrorLevel',':RunPowerShellFromLabel')) {
             if (-not $text.Contains($label)) { [void]$problems.Add('missing ' + $label) }
         }
-        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start') -and -not $text.Contains(':_MVSRelationship_start') -and -not $text.Contains(':_MVSSingleDump_start') -and -not $text.Contains(':_MVSCompare_start')) { [void]$problems.Add('missing injected PowerShell block') }
+        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start') -and -not $text.Contains(':_MVSRelationship_start') -and -not $text.Contains(':_MVSSingleDump_start') -and -not $text.Contains(':_MVSCompare_start') -and -not $text.Contains(':_MVSHistory_start')) { [void]$problems.Add('missing injected PowerShell block') }
         if ($text.Contains('dev\library') -or $text.Contains('generate_tools.py')) { [void]$problems.Add('development runtime dependency reference') }
         if ($text.Contains(':_MVSSingleDump_start') -and -not $text.Contains('return ,(New-Object System.Collections.ArrayList)')) {
             [void]$problems.Add('single-dump New-ArrayList can collapse empty collection to null')
@@ -1311,10 +1316,97 @@ function Test-CompareTools {
     }
 }
 
+function Test-HistoryFile {
+    param([string]$Name, [string]$ExpectedPath, [string]$ActualPath)
+    if (-not (Test-Path -LiteralPath $ExpectedPath -PathType Leaf)) {
+        Write-Fail $Name ('missing expected file: ' + $ExpectedPath)
+        return
+    }
+    if (-not (Test-Path -LiteralPath $ActualPath -PathType Leaf)) {
+        Write-Fail $Name ('missing actual file: ' + $ActualPath)
+        return
+    }
+    $expected = Normalize-CapturedText (Get-Content -LiteralPath $ExpectedPath -Raw -Encoding UTF8)
+    $actual = Normalize-CapturedText (Get-Content -LiteralPath $ActualPath -Raw -Encoding UTF8)
+    $run = [pscustomobject]@{ rc=0; stdout=$actual; stderr='' }
+    Compare-Run $Name $run 0 $expected
+}
+
+function Test-HistoryBuilderRun {
+    param([string]$Name, [object]$Run)
+    $reasons = New-Object System.Collections.ArrayList
+    if ($Run.rc -ne 0) { [void]$reasons.Add(('rc expected 0, got ' + $Run.rc)) }
+    if (-not [string]::IsNullOrEmpty($Run.stderr)) { [void]$reasons.Add(('stderr=' + (Short-Text $Run.stderr))) }
+    if ($reasons.Count -eq 0) {
+        Write-Pass $Name '0' ([string]$Run.rc)
+    } else {
+        $reason = $reasons -join '; '
+        Write-Fail $Name $reason '0' ([string]$Run.rc)
+        Save-FailureArtifacts $Name $Run 0 '' $reason
+    }
+}
+
+function Test-HistoryTools {
+    $script:CurrentScope = 'history'
+    Write-Line '=== Archive change-history/all-ever tests ==='
+
+    $fixture = Join-Path (Join-Path $Root 'test') 'test-mvs-dump-history'
+    $expectedRoot = Join-Path (Join-Path $Root 'test') 'expected-history'
+    if (-not (Test-Path -LiteralPath $fixture -PathType Container)) {
+        Write-Fail 'history synthetic archive' ('missing fixture: ' + $fixture)
+        return
+    }
+    if (-not (Test-Path -LiteralPath $expectedRoot -PathType Container)) {
+        Write-Fail 'history expected outputs' ('missing expected folder: ' + $expectedRoot)
+        return
+    }
+    Write-Pass 'history synthetic archive present'
+
+    $outputRoot = Join-Path $script:ResultsFolder 'history-generated'
+    if (Test-Path -LiteralPath $outputRoot) { Remove-Item -LiteralPath $outputRoot -Recurse -Force }
+
+    $historyRun = Invoke-ComparePublicTool (Join-Path $Root 'build_mvs_dump_change_history.bat') $fixture $outputRoot
+    Test-HistoryBuilderRun 'build_mvs_dump_change_history' $historyRun
+
+    $historyExpected = Join-Path $expectedRoot 'history'
+    foreach ($relative in @('history-snapshots.tsv','history-coverage.tsv')) {
+        Test-HistoryFile ('history file ' + $relative) (Join-Path $historyExpected $relative) (Join-Path $outputRoot $relative)
+    }
+    foreach ($tool in Get-CompareTools) {
+        $domain = ([string]$tool.name).Substring('compare_mvs_dump_'.Length)
+        foreach ($kind in @('added','removed')) {
+            $relative = Join-Path $kind ($domain + '.tsv')
+            Test-HistoryFile ('history file ' + ($relative -replace '\\','/')) (Join-Path $historyExpected $relative) (Join-Path $outputRoot $relative)
+        }
+    }
+
+    $allEverRun = Invoke-ComparePublicTool (Join-Path $Root 'build_mvs_dump_all_ever.bat') $fixture $outputRoot
+    Test-HistoryBuilderRun 'build_mvs_dump_all_ever' $allEverRun
+
+    $everExpected = Join-Path $expectedRoot 'all-ever'
+    foreach ($relative in @('all-ever-snapshots.tsv','all-ever-coverage.tsv')) {
+        Test-HistoryFile ('all-ever file ' + $relative) (Join-Path $everExpected $relative) (Join-Path $outputRoot $relative)
+    }
+    foreach ($tool in Get-CompareTools) {
+        $domain = ([string]$tool.name).Substring('compare_mvs_dump_'.Length)
+        $relative = Join-Path 'all-ever' ($domain + '.tsv')
+        Test-HistoryFile ('all-ever file ' + ($relative -replace '\\','/')) (Join-Path $everExpected $relative) (Join-Path $outputRoot $relative)
+    }
+
+    # The second builder must coexist with, rather than erase, the first builder's ledgers.
+    $preserved = $true
+    foreach ($tool in Get-CompareTools) {
+        $domain = ([string]$tool.name).Substring('compare_mvs_dump_'.Length)
+        if (-not (Test-Path -LiteralPath (Join-Path (Join-Path $outputRoot 'added') ($domain + '.tsv')) -PathType Leaf)) { $preserved = $false }
+        if (-not (Test-Path -LiteralPath (Join-Path (Join-Path $outputRoot 'removed') ($domain + '.tsv')) -PathType Leaf)) { $preserved = $false }
+    }
+    if ($preserved) { Write-Pass 'all-ever preserves history ledgers' } else { Write-Fail 'all-ever preserves history ledgers' 'history files disappeared after all-ever build' }
+}
+
 New-ResultsFolder
 Write-Line ('Test results: ' + $script:ResultsFolder)
 
-if (@('all','structure','scalar','lookup','diagnostic','relationship','single_dump','compare') -notcontains $Mode) {
+if (@('all','structure','scalar','lookup','diagnostic','relationship','single_dump','compare','history') -notcontains $Mode) {
     $script:CurrentScope = 'general'
     Show-Usage
     Write-Fail 'test mode' ('unsupported mode: ' + $Mode)
@@ -1371,6 +1463,7 @@ if ($Mode -eq 'all' -or $Mode -eq 'diagnostic') { Test-Diagnostics }
 if ($Mode -eq 'all' -or $Mode -eq 'relationship') { Test-Relationships }
 if ($Mode -eq 'all' -or $Mode -eq 'single_dump') { Test-SingleDumpTools }
 if ($Mode -eq 'all' -or $Mode -eq 'compare') { Test-CompareTools }
+if ($Mode -eq 'all' -or $Mode -eq 'history') { Test-HistoryTools }
 
 Write-Line ''
 Write-Line ('SUMMARY: passed=' + $script:Passed + ' failed=' + $script:Failed + ' skipped=' + $script:Skipped)

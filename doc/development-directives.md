@@ -211,3 +211,19 @@ These directives are distilled from the user's project prompts.
 145. Hash comparison is algorithm-specific and filename comparison is source-specific; do not infer cross-source ownership from a filename-only comparison.
 146. Every comparison tool must be exercised on a synthetic before/after pair and on an identical pair.
 147. Cross-dump comparison must build on the validated 0.9.2 single-dump baseline without changing the existing 422 public tools.
+
+
+## Archive history and all-ever layer
+
+136. Archive-wide history operates on the same 19 source-local domains and normalization rules as the two-dump comparison layer.
+137. History ordering is derived deterministically from recognized `mvs_YYYY-MM-DD` snapshot directory names, including optional time/revision suffixes.
+138. The change-history builder records every adjacent comparable transition in separate added and removed TSV ledgers.
+139. A missing source file is a coverage gap, not an empty source; do not synthesize additions/removals across a missing-source boundary.
+140. Preserve transition provenance (`from_dump`, `to_dump`) on every addition/removal row.
+141. The all-ever builder is a monotonic union: once a normalized value has been observed, later removals do not delete it from the accumulated record.
+142. Seed all-ever unions from the first available snapshot for each source so values already present in the archive baseline are retained.
+143. Preserve first-seen dump, last-seen dump, and observed-snapshot count for every all-ever value.
+144. Keep all-ever records source-local; do not merge `mvs_names.txt` IDs or titles into product-source domains merely because the labels look similar.
+145. Both archive builders may target the same output directory without erasing each other's outputs.
+146. Maintain a synthetic multi-snapshot history fixture and fixed independently generated expected files for every history domain.
+147. `test\test_all.bat` and `test\test_history_tools.bat` must execute both public history builders on Windows.

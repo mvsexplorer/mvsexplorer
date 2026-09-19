@@ -1,0 +1,11 @@
+--- Alpha Variant [ID: VarAlpha] ---
+3333333333333333333333333333333333333333 *variant-alpha.iso
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc *variant-alpha.iso
+
+--- Keep Variant [ID: VarKeep] ---
+4444444444444444444444444444444444444444 *variant-keep.iso
+dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd *variant-keep.iso
+
+--- Gamma Variant [ID: VarGamma] ---
+bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb *variant-gamma.iso
+5555555555555555555555555555555555555555555555555555555555555555 *variant-gamma.iso

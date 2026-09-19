@@ -1,0 +1,7 @@
+--- Alpha Product [ID: 1] ---
+1111111111111111111111111111111111111111 *alpha.iso
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa *alpha.iso
+
+--- Keep Product [ID: 2] ---
+2222222222222222222222222222222222222222 *keep.iso
+bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb *keep.iso

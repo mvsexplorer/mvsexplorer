@@ -1,0 +1,4 @@
+generate_expected_history_outputs.py
+
+0.1.0 - 2026-08-27
+  - Generates fixed history/all-ever expectations using an independent parser.

@@ -461,3 +461,6 @@ test\test_relationship_tools.bat	test	console	relationship				0.7.0
 test\test_scalar_tools.bat	test	console	scalar				0.7.0
 test\test_single_dump_tools.bat	test	console	single-dump				0.7.0
 test\test_structure.bat	test	console	structure				0.7.0
+build_mvs_dump_change_history.bat	history	file-output	19 source-local domains	chronological	archive-root		0.1.0
+build_mvs_dump_all_ever.bat	history	file-output	19 source-local unions	chronological	archive-root		0.1.0
+test\test_history_tools.bat	test	console	history				0.8.0

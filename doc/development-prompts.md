@@ -1586,3 +1586,11 @@ The repeated `mvs_names.txt` ID entry is implemented once; the natural
 `mvs_dates.txt` ID comparison is supplied as the fourth source-specific ID
 form. SHA-1/SHA-256 and filename comparisons are expanded across every source
 that actually contains the corresponding value type.
+
+
+## 2026-08-27 — Archive added/removed records and all-ever accumulation
+
+> Ok now we will need two things
+> I want to create tool that, for each piece of data, create a record of everything added from dump to dump
+> a record of everything removed from dump to dump
+> and also something that will accumulate all the addition from dump to dump, to each of the values, so that we end up with the most complete record of all

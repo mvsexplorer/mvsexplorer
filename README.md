@@ -630,3 +630,31 @@ Total:           989
 
 See `doc\compare-tools.md` and `doc\compare-tool-matrix.tsv` for the exact
 tool list and comparison contract.
+
+
+## 0.11.0 archive history / all-ever accumulation
+
+Two standalone builders now turn an ordered directory of MVS dump snapshots
+into durable source-local history:
+
+```text
+build_mvs_dump_change_history.bat mvs-dumps-root output-folder
+build_mvs_dump_all_ever.bat       mvs-dumps-root output-folder
+```
+
+The first writes separate added/removed TSV ledgers for all 19 comparison
+domains. The second writes an all-ever union for each domain with first-seen,
+last-seen, and observation-count provenance.
+
+Missing source files are recorded as coverage gaps rather than treated as empty
+sets. See `doc\history-tools.md`.
+
+Dedicated Windows regression entry point:
+
+```text
+test\test_history_tools.bat
+```
+
+The history-only suite contributes **65 assertions**. With the two new
+standalone structure checks, the 0.11.0 full suite contains **1,056 total
+assertions**; NOTE lookup pass/skip distribution remains data-dependent.

@@ -1,0 +1,4 @@
+generate_history_tools.py
+
+0.1.0 - 2026-08-27
+  - Generates the two standalone archive-history public batch tools.

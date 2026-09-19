@@ -270,3 +270,25 @@ first-only values as removals, then second-only values as additions.
 Console color is presentation only. The `-`/`+` prefixes are the durable
 machine-visible markers; redirected output is plain text so tests and pipes do
 not inherit console escape sequences.
+
+
+## 2026-08-27 — 0.11.0 archive history and monotonic all-ever record
+
+The first cross-snapshot comparison layer answered one pair at a time. The next
+step turns that primitive into an archive chronology without weakening its
+source-local semantics.
+
+Two builders were chosen instead of multiplying the public surface by another
+38+ wrappers. One builder records additions/removals for all 19 domains across
+every adjacent snapshot; the other produces the monotonic all-ever union.
+
+The important design decision is coverage handling. Older archive snapshots do
+not uniformly contain `mvs_names.txt` or SHA-256 manifests. Treating a missing
+file as an empty set would make file introduction look like a giant addition
+and disappearance look like a giant removal. History therefore skips
+incomparable domain transitions and records the gap explicitly.
+
+The all-ever union processes every source wherever it exists. It is seeded from
+the first available observation, not only from pairwise `+` events, so baseline
+values remain represented. First/last seen and observation counts are retained
+for later timeline and Explorer UI work.

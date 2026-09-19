@@ -1,0 +1,4 @@
+test_history_tools.bat
+
+0.8.0 - 2026-08-27
+  - Initial archive-history/all-ever Windows regression subset.

@@ -260,3 +260,34 @@ Console-aware coloring keeps the durable output contract as plain `- value` /
 The 0.9.x real-dump work proved that `mvs_names.txt` IDs are not universally
 product IDs. Cross-dump comparison therefore treats them as case-insensitive
 text, while product-source IDs continue to use numeric normalization.
+
+
+### Missing source is not equivalent to empty source in archive history
+
+Across a long-lived dump archive, source-file availability changes. Pairwise
+set difference is meaningful only when the source exists on both sides.
+Converting "file unavailable" into "set has zero members" creates artificial
+mass removals/additions that describe collection coverage rather than catalog
+change.
+
+History therefore needs an explicit coverage dimension.
+
+### An all-ever union must include the baseline, not only observed plus events
+
+The oldest available snapshot has no preceding dump, so its values can never
+appear as `+` events. A "complete record of everything ever seen" must seed from
+the first available source snapshot and then monotonically absorb later values.
+
+### Source-local accumulation remains necessary after many snapshots
+
+Accumulating more data does not make incompatible source domains compatible.
+In particular, textual `mvs_names.txt` IDs and variant titles must remain
+separate from product ID/title domains even when both have been observed across
+the full archive.
+
+
+### Archive snapshot roots can contain a nested mvs_dmp source root
+
+The known `mvs_2020-08-20` and `mvs_2020-08-27` snapshots place their source
+files under `mvs_dmp\`. Archive-wide processing must resolve both the ordinary
+snapshot-root layout and this nested layout before declaring a source missing.

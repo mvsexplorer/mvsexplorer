@@ -1,5 +1,21 @@
 MVS Explorer Toolkit Project Version History
 
+0.11.0 - 2026-08-27
+  - Recorded the clean 0.10.0 Windows baseline: 986 pass / 0 fail / 3 skip.
+  - Recorded the dedicated 0.10.0 compare regression: 39 pass / 0 fail / 0 skip.
+  - Added build_mvs_dump_change_history.bat.
+  - Added build_mvs_dump_all_ever.bat.
+  - Reused the 19 source-local comparison domains and exact normalization policy.
+  - Added separate added/removed TSV ledgers with adjacent transition provenance.
+  - Added explicit source-coverage tracking; missing sources are not treated as empty sets.
+  - Resolves source files at snapshot root or nested snapshot\mvs_dmp\ for known archive layouts.
+  - Added monotonic all-ever unions seeded from the first available source snapshot.
+  - All-ever rows retain first seen, last seen, observation count, and display value.
+  - Added three-snapshot synthetic history fixture and independent fixed expected outputs.
+  - Added test\test_history_tools.bat and integrated history checks into test_all.
+  - Bumped generated test harness metadata to 0.8.0.
+  - Increased standalone public root tool count from 441 to 443.
+
 0.10.0 - 2026-08-27
   - Recorded the clean attached 0.9.2 Windows baseline on mvs_2020-04-21:
     928 passed, 0 failed, 3 data-dependent note skips (931 total).

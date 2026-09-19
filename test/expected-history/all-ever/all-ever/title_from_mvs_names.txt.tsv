@@ -1,0 +1,5 @@
+first_seen_dump	last_seen_dump	observed_snapshots	value
+mvs_2020-01-01	mvs_2020-01-03_2	2	Alpha Variant
+mvs_2020-01-01	mvs_2020-01-03_2	3	Keep Variant
+mvs_2020-01-02	mvs_2020-01-02	1	Beta Variant
+mvs_2020-01-03_2	mvs_2020-01-03_2	1	Gamma Variant

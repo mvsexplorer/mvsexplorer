@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate standalone test batch files.
 
-Version: 0.7.0
+Version: 0.8.0
 """
 from pathlib import Path
 
@@ -18,6 +18,7 @@ TESTS = [
     ("test_relationship_tools", "relationship"),
     ("test_single_dump_tools", "single_dump"),
     ("test_compare_tools", "compare"),
+    ("test_history_tools", "history"),
 ]
 
 def read(path):
@@ -33,7 +34,7 @@ def main():
     for name, mode in TESTS:
         text = template
         values = {
-            "TEST_VERSION": "0.7.0",
+            "TEST_VERSION": "0.8.0",
             "TEST_NAME": name,
             "TEST_MODE": mode,
             "BATCH_COMMON": batch_common,

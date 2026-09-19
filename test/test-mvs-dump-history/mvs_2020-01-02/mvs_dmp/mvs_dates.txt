@@ -1,0 +1,2 @@
+2020-01-02T00:00:00Z - Keep Product [ID: 002]
+2020-01-03T00:00:00Z - Beta Product [ID: 3]

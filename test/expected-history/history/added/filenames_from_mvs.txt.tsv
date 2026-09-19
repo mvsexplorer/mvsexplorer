@@ -1,0 +1,4 @@
+from_dump	to_dump	value
+mvs_2020-01-01	mvs_2020-01-02	beta.iso
+mvs_2020-01-02	mvs_2020-01-03_2	alpha.iso
+mvs_2020-01-02	mvs_2020-01-03_2	gamma.iso

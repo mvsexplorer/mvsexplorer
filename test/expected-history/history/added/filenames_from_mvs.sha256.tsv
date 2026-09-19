@@ -1,0 +1,4 @@
+from_dump	to_dump	value
+mvs_2020-01-01	mvs_2020-01-02	manifest-beta-256.iso
+mvs_2020-01-02	mvs_2020-01-03_2	manifest-alpha-256.iso
+mvs_2020-01-02	mvs_2020-01-03_2	manifest-gamma-256.iso

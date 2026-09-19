@@ -1,0 +1,20 @@
+domain	property	source_file	id_mode
+id_from_mvs.txt	id	mvs.txt	numeric
+id_from_mvs_ids.txt	id	mvs_ids.txt	numeric
+id_from_mvs_names.txt	id	mvs_names.txt	text
+id_from_mvs_dates.txt	id	mvs_dates.txt	numeric
+title_from_mvs.txt	title	mvs.txt	
+title_from_mvs_ids.txt	title	mvs_ids.txt	
+title_from_mvs_names.txt	title	mvs_names.txt	
+title_from_mvs_dates.txt	title	mvs_dates.txt	
+dates_from_mvs_dates.txt	date	mvs_dates.txt	
+sha1_from_mvs.txt	sha1	mvs.txt	
+sha1_from_mvs_names.txt	sha1	mvs_names.txt	
+sha1_from_mvs.sha1	sha1	mvs.sha1	
+sha256_from_mvs.txt	sha256	mvs.txt	
+sha256_from_mvs_names.txt	sha256	mvs_names.txt	
+sha256_from_mvs.sha256	sha256	mvs.sha256	
+filenames_from_mvs.txt	filename	mvs.txt	
+filenames_from_mvs_names.txt	filename	mvs_names.txt	
+filenames_from_mvs.sha1	filename	mvs.sha1	
+filenames_from_mvs.sha256	filename	mvs.sha256
