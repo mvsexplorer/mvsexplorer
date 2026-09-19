@@ -2,12 +2,13 @@
 :setup
 REM Standalone product-family feature regression.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.2"
+set "app.version=0.1.3"
 set "app.name=test_product_family_tools"
 set "app.rc=0"
 set "app.self=%~f0"
 set "mvspf_caller=%~nx0"
 set "mvspf_version=%app.version%"
+set "mvspf_project_version=0.16.1"
 for %%I in ("%~dp0..") do set "mvspf_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSProductFamilyTest"
@@ -98,12 +99,19 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 $Root = [string]$env:mvspf_root
 $Caller = [string]$env:mvspf_caller
 $Version = [string]$env:mvspf_version
+$ProjectVersion = [string]$env:mvspf_project_version
+$script:Total = 106
+$script:Index = 0
 $script:Passed = 0
 $script:Failed = 0
 
 function Write-Line { param([AllowEmptyString()][string]$Text) [Console]::Out.WriteLine($Text) }
-function Pass { param([string]$Name) $script:Passed++; Write-Line ('[PASS] ' + $Name) }
-function FailCase { param([string]$Name,[string]$Reason) $script:Failed++; Write-Line ('[FAIL] ' + $Name + ' - ' + $Reason) }
+function Progress-Prefix {
+    $remaining=[Math]::Max(0,$script:Total-$script:Index)
+    return ('[MVS '+$ProjectVersion+'] [TEST '+$script:Index+'/'+$script:Total+' | remaining='+$remaining+']')
+}
+function Pass { param([string]$Name) $script:Passed++; $script:Index++; Write-Line ((Progress-Prefix) + ' [PASS] ' + $Name) }
+function FailCase { param([string]$Name,[string]$Reason) $script:Failed++; $script:Index++; Write-Line ((Progress-Prefix) + ' [FAIL] ' + $Name + ' - ' + $Reason) }
 
 function Invoke-Batch {
     param([string]$ToolPath,[object[]]$ToolArgs)
@@ -164,6 +172,8 @@ function Assert-QueryNoResult {
     }
 }
 
+Write-Line ('Project: MVS Explorer Toolkit '+$ProjectVersion)
+Write-Line ('Test suite: '+$Caller+' | test version '+$Version+' | expected assertions '+$script:Total)
 $Fixture = Join-Path (Join-Path $Root 'test') 'test-mvs-product-family'
 if (Test-Path -LiteralPath $Fixture -PathType Container) { Pass 'product-family synthetic archive present' } else { FailCase 'product-family synthetic archive present' ('missing: '+$Fixture) }
 

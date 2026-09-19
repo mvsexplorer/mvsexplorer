@@ -6,6 +6,9 @@ $RawArgs=@([string]$env:mvste_arg2,[string]$env:mvste_arg3,[string]$env:mvste_ar
 $ScriptRoot=([string]$env:mvste_script_root).TrimEnd('\','/')
 $Caller=[string]$env:mvste_caller
 $Version=[string]$env:mvste_version
+$ProjectVersion=[string]$env:mvste_project_version
+$script:SuitePhaseIndex=0
+$script:SuitePhaseTotal=0
 $FullArchive=$false
 $StrictPerformance=$false
 $Workers=[Math]::Min(4,[Math]::Max(1,[int][Math]::Ceiling([Environment]::ProcessorCount/2.0)))
@@ -14,7 +17,11 @@ $ExistingResults=''
 function Fail {param([int]$Code,[string]$Message)[Console]::Error.WriteLine('[FAIL] '+$Message);exit $Code}
 function Run {
     param([string]$Tool,[object[]]$ToolArgs)
+    $script:SuitePhaseIndex++
+    $remaining=[Math]::Max(0,$script:SuitePhaseTotal-$script:SuitePhaseIndex)
     [Console]::Out.WriteLine('')
+    [Console]::Out.WriteLine('================================================================================')
+    [Console]::Out.WriteLine('[PROJECT '+$ProjectVersion+'] [SUITE TEST '+$script:SuitePhaseIndex+'/'+$script:SuitePhaseTotal+' | remaining='+$remaining+'] '+[IO.Path]::GetFileName($Tool))
     [Console]::Out.WriteLine('>>> '+[IO.Path]::GetFileName($Tool)+' '+(@($ToolArgs)-join' '))
     $global:LASTEXITCODE=0
     & $Tool @ToolArgs
@@ -44,6 +51,14 @@ for($i=0;$i-lt$args.Count;$i++){
     if($a-eq'--archive-results'){$i++;if($i-ge$args.Count){Fail 2 '--archive-results requires a folder'};$ExistingResults=[string]$args[$i];continue}
     Fail 2 ('Unknown option: '+$a)
 }
+
+$script:SuitePhaseTotal=4
+if(-not[string]::IsNullOrWhiteSpace($ExistingResults)){$script:SuitePhaseTotal++}
+if($FullArchive){$script:SuitePhaseTotal+=2}
+[Console]::Out.WriteLine('MVS Explorer Toolkit comprehensive test suite')
+[Console]::Out.WriteLine('Project version: '+$ProjectVersion)
+[Console]::Out.WriteLine('Suite tool version: '+$Version)
+[Console]::Out.WriteLine('Planned suite tests: '+$script:SuitePhaseTotal)
 
 $testAll=Join-Path $ScriptRoot 'test_all.bat'
 $perf=Join-Path $ScriptRoot 'analyze_test_performance.bat'

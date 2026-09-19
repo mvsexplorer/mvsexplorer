@@ -1,3 +1,13 @@
+0.11.4 / project 0.16.1
+- Adds two pre-build structure assertions for the generated-database validator/pipeline: PowerShell return-token boundaries and DAG unique-family counting.
+- Structure scope is 481 assertions; all mode is 1,094 assertions.
+- On the established representative dump the expected result is 1,091 PASS / 0 FAIL / 3 SKIP.
+
+0.11.3 / project 0.16.0
+- Adds project-version plus TEST n/total/remaining progress output.
+- Adds the one-command pipeline to standalone root structure validation.
+- Structure scope is 479 assertions; all mode is 1,092 assertions.
+
 Tool Version History: test\test_all.bat
 
 0.11.2 - 2026-09-01

@@ -1,5 +1,8 @@
 Tool Version History: test\test_compare_tools.bat
 
+0.11.4 - 2026-09-03
+  - Regenerated for project 0.16.1; compare subset behavior/count remains 39.
+
 Purpose
   Test mode: compare
   Standalone: yes; contains complete injected test harness

@@ -1115,10 +1115,13 @@ $familyFiles = @($publicFiles | Where-Object {
     $_.Name -in @('build_mvs_product_family_index.bat','build_mvs_product_family_compact_index.bat') -or
     $_.Name -match '^(?:print|read)_mvs_product_'
 })
+$pipelineFileNames = @('all_test_then_all_database_then_test_database_and_all_tools.bat')
+$pipelineFiles = @($publicFiles | Where-Object { $_.Name -in $pipelineFileNames })
 $singleFiles = @($publicFiles | Where-Object {
     $_.Name -notlike 'compare_mvs_dump_*.bat' -and
     $_.Name -notin @('build_mvs_dump_change_history.bat','build_mvs_dump_all_ever.bat') -and
     $_.Name -notin @('build_mvs_product_family_index.bat','build_mvs_product_family_compact_index.bat') -and
+    $_.Name -notin $pipelineFileNames -and
     $_.Name -notmatch '^(?:print|read)_mvs_product_'
 })
 $compareFiles = @($publicFiles | Where-Object { $_.Name -like 'compare_mvs_dump_*.bat' })
@@ -1193,6 +1196,7 @@ Write-Line ('Executor: ' + $Executor)
 Write-Line ('Snapshots discovered: ' + $snapshotDirs.Count)
 Write-Line ('Public tools: single=' + $singleFiles.Count + ' compare=' + $compareFiles.Count + ' archive=' + $archiveFiles.Count)
 if ($familyFiles.Count -gt 0) { Write-Line ('Family tools: ' + $familyFiles.Count + ' (separate archive-level feature; excluded from legacy sweep plan)') }
+if ($pipelineFiles.Count -gt 0) { Write-Line ('Pipeline tools: ' + $pipelineFiles.Count + ' (orchestration-only; excluded from legacy sweep plan)') }
 
 $singleMetadata = New-Object System.Collections.ArrayList
 foreach ($file in $singleFiles) { [void]$singleMetadata.Add((Get-ToolMetadata $file)) }

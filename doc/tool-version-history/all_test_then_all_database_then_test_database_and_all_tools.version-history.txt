@@ -1,0 +1,10 @@
+1.0.1 / project 0.16.1
+- Fixes Windows PowerShell 5.1 return-token boundary failures in summary/log helpers.
+- Adds --resume-built ARCHIVE_DB FAMILY_DB COMPACT_DB and optional --resume-test-results DIR.
+- Resume mode first runs the structure-only preflight, then revalidates archive/family/compact databases, runs all 32 family queries, and performs normal ZIP/log/hardlink packaging without rebuilding.
+
+1.0.0
+- Initial one-command production pipeline for project 0.16.0.
+- Fail-gates all database generation on test_everything success.
+- Builds archive, full family and compact family databases; validates them; runs all family queries; packages databases/logs and creates SEND-ME hardlinks.
+- Records ten phase timings and final paths/SHA-256 metadata.

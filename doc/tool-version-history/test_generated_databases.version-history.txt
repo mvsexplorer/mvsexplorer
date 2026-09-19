@@ -1,0 +1,9 @@
+0.1.1 / project 0.16.1
+- Fixes the Windows PowerShell 5.1 lexical regression where compacted `return` statements lost whitespace before variables/type literals.
+- Keeps the same 57 semantic checks: 25 database integrity/reconciliation checks plus 32 real family-query executions.
+- Corrects the DAG acyclicity check to count unique family names rather than duplicate node-role rows.
+- Adds release-time static guarding against a recurrence of `return$...` / `return[...]`.
+
+0.1.0
+- Initial 57-check real generated-database validator.
+- Validates archive run ledgers, family DAG/provenance/raw notes, compact reconstruction/conflicts/aliases, and executes all 32 family query tools with timing.

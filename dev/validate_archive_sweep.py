@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validation for archive sweep, quality, reporting, and performance helpers.
 
-Version: 0.6.2
+Version: 0.7.0
 """
 from pathlib import Path
 import sys
@@ -190,10 +190,11 @@ def main():
     archive=[p for p in public if p.name in archive_names]
     family=[p for p in public if p.name in {"build_mvs_product_family_index.bat","build_mvs_product_family_compact_index.bat"} or
             p.name.startswith("print_mvs_product_") or p.name.startswith("read_mvs_product_")]
-    single=[p for p in public if p not in compare and p not in archive and p not in family]
-    if (len(public),len(single),len(compare),len(archive),len(family)) != (477,422,19,2,34):
-        fail("unexpected public scope counts: public=%d single=%d compare=%d archive=%d family=%d" %
-             (len(public),len(single),len(compare),len(archive),len(family)))
+    pipeline=[p for p in public if p.name=="all_test_then_all_database_then_test_database_and_all_tools.bat"]
+    single=[p for p in public if p not in compare and p not in archive and p not in family and p not in pipeline]
+    if (len(public),len(single),len(compare),len(archive),len(family),len(pipeline)) != (478,422,19,2,34,1):
+        fail("unexpected public scope counts: public=%d single=%d compare=%d archive=%d family=%d pipeline=%d" %
+             (len(public),len(single),len(compare),len(archive),len(family),len(pipeline)))
     planned=len(single)*79+len(compare)*78+len(archive)
     synthetic=len(single)*3+len(compare)*2+len(archive)
     if planned != 34822: fail("79-snapshot plan count mismatch: %d"%planned)
@@ -217,6 +218,16 @@ def main():
         fail("expected 32 product-family query tools, got %d"%len(family_queries))
     for p in family_queries:
         check_batch(p,(":_MVSProductFamilyQuery_start","product-family-memberships.tsv","Matches-Pattern"))
+    pipeline_tool=check_batch(ROOT/"all_test_then_all_database_then_test_database_and_all_tools.bat",(
+        ":_MVSAllPipeline_start","Project version:","ALL TESTS","BUILD ARCHIVE ANALYSIS DATABASE",
+        "BUILD FULL PRODUCT-FAMILY EVIDENCE DATABASE","BUILD COMPACT ALL-EVER PRODUCT-FAMILY DATABASE",
+        "test_generated_databases.bat","phase-performance.tsv","SEND-ME-"
+    ))
+    db_validator=check_batch(ROOT/"test"/"test_generated_databases.bat",(
+        ":_MVSDatabaseValidation_start","DB TEST","all-family-tools-performance.tsv",
+        "snapshot-set dictionary is internally consistent","same-product filename/hash disagreement ledger",
+        "all 32 public family query tools"
+    ))
     family_test=check_batch(ROOT/"test"/"test_product_family_tools.bat",(
         ":_MVSProductFamilyTest_start","SUMMARY: passed=","expected 106 assertions",
         "embedded Office reference is not ownership","raw note HTML references are content-addressed",
@@ -225,7 +236,7 @@ def main():
         "explicit non-year version beats update timestamp"
     ))
     test_all_text=(ROOT/"test"/"test_all.bat").read_text(encoding="utf-8")
-    if ("root public .bat count = 477" not in test_all_text or
+    if ("root public .bat count = 478" not in test_all_text or
         "product-family regression 106 assertions" not in test_all_text or
         "SUMMARY: passed=106 failed=0" not in test_all_text or
         ("SUMMARY: passed=96 failed=0" in test_all_text or "SUMMARY: passed=92 failed=0" in test_all_text)):
@@ -237,9 +248,10 @@ def main():
         fail("archive-exclusions.tsv header mismatch")
 
     # Test harness must capture per-invocation elapsed time.
-    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv"))
+    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","remaining=","Project: MVS Explorer Toolkit","mvst_project_version=0.16.1"))
     if "expected_rc`tactual_rc`telapsed_ms" not in test_all:
         fail("test result TSV does not include elapsed_ms")
+    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","remaining=","Project version:","0.16.1"))
 
     maintained=(
         "dev/generate_archive_sweep.py","dev/generate_performance_tools.py","dev/generate_report_tools.py",
@@ -253,12 +265,14 @@ def main():
         "dev/library/product-family-builder.inc.ps1","dev/library/product-family-compact-builder.inc.ps1","dev/library/product-family-query.inc.ps1",
         "dev/templates/product-family-builder.bat.tpl","dev/templates/product-family-compact-builder.bat.tpl","dev/templates/product-family-query.bat.tpl",
         "test/test_product_family_tools.bat","doc/product-family-tools.md","doc/product-family-tool-matrix.tsv",
+        "dev/generate_all_pipeline.py","dev/library/all-pipeline.inc.ps1","dev/library/database-validation.inc.ps1",
+        "dev/templates/all-pipeline.bat.tpl","dev/templates/database-validation.bat.tpl","test/test_generated_databases.bat",
     )
     for rel in maintained:
         if not (ROOT/rel).is_file(): fail("missing maintained file: "+rel)
 
     print("PASS: archive sweep/quality/performance static validation")
-    print("public tools: 477 (single=422 compare=19 archive=2 family=34)")
+    print("public tools: 478 (single=422 compare=19 archive=2 family=34 pipeline=1)")
     print("fast executor: indexed + source-stable + bounded parallel workers + content cache")
     print("analysis: per-dump contributions, quality, re-ID, notes, exclusions, interactive HTML")
     print("supplied archive plan: 34,822 logical checks for 79 snapshots")

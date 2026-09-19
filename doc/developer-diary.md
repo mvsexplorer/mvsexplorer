@@ -1,3 +1,42 @@
+## 0.16.1 - native pipeline validator hotfix
+
+The first native 0.16.0 end-to-end production run passed the 1,092-assertion
+test matrix (1,089 pass, three known note skips), completed all 34,822 archive
+logical checks with zero failures, passed archive quality validation, and built
+both family databases. The new phase-6 validator then failed because several
+hand-compacted PowerShell `return` statements had been written without a token
+boundary, producing commands such as `return$true` under Windows PowerShell
+5.1. The same defect prevented failure-log packaging through `return$map`.
+
+0.16.1 restores explicit whitespace in both maintained libraries, adds a static
+regression guard, and introduces a resume mode that revalidates and packages
+already-built databases rather than forcing expensive regeneration after a
+late-stage pipeline/tooling defect.
+
+The same native log showed that the DAG test itself compared topological visits
+against raw `family-nodes.tsv` rows. Because one family may legitimately have
+multiple node roles, the accepted real index has 1,229 rows but only 787 unique
+case-insensitive family names. The test now compares against its unique
+indegree-key set. An independent replay of real family/compact tests 6-24 then
+passes all 19 checks, including the corrected DAG test.
+
+## 0.16.0 - one-command production pipeline
+
+Added a fail-gated root pipeline that runs tests, builds archive/full-family/
+compact-family databases to the parent output root, validates real databases,
+executes all 32 family query tools, captures end-to-end performance, ZIPs every
+database/log bundle, and creates SEND-ME hardlinks in the toolkit root.
+
+Progress reporting now exposes project version plus current/remaining assertion
+counts. A new 57-check generated-database gate tests compact reconstructability,
+family DAG/reference integrity, raw-note content addressing, archive plan/run
+alignment and real query-tool execution.
+
+During release hardening, regeneration exposed that the checked-in
+`fast-archive.inc.ps1` and generator version lagged the accepted generated
+0.14.4+ worker. The maintained source and generator were synchronized to the
+accepted byte behavior before 0.16.0 packaging.
+
 # Developer Diary
 
 ## 2026-08-27 — Archive reconnaissance
@@ -542,5 +581,3 @@ The fixture now repeats one exact product-safe file/hash fact across two
 snapshots. This is deliberately a test-only correction: all public tools remain
 unchanged, and the real compact index audit confirms exact snapshot-set
 reconciliation, conflict/alias derivation, and raw-note hash integrity.
-
-

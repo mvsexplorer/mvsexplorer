@@ -1,3 +1,10 @@
+0.1.2 / project 0.16.1
+- Regenerated with project 0.16.1 progress metadata; behavior/assertion scope unchanged from project 0.16.0.
+
+0.1.2 / project 0.16.0
+- Adds project-version and numbered SUITE TEST progress for child phases.
+- Continues to run the public regression/performance, fast synthetic acceptance and real archive plan gate.
+
 test_everything.bat Version History
 
 0.1.1 - 2026-08-30

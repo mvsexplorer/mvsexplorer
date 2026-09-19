@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.11.2"
+set "app.version=0.11.4"
 set "app.name=test_relationship_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -10,6 +10,7 @@ set "mvst_mode=relationship"
 set "mvst_dump=%~1"
 set "mvst_caller=%~nx0"
 set "mvst_version=%app.version%"
+set "mvst_project_version=0.16.1"
 for %%I in ("%~dp0..") do set "mvst_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSTest"
@@ -102,6 +103,19 @@ $Root = [string]$env:mvst_root
 $DumpArgument = [string]$env:mvst_dump
 $Caller = [string]$env:mvst_caller
 $Version = [string]$env:mvst_version
+$ProjectVersion = [string]$env:mvst_project_version
+$script:ExpectedAssertions = switch ($Mode) {
+    'structure' { 481 }
+    'scalar' { 120 }
+    'lookup' { 24 }
+    'diagnostic' { 46 }
+    'relationship' { 151 }
+    'single_dump' { 167 }
+    'compare' { 39 }
+    'history' { 65 }
+    'all' { 1094 }
+    default { 0 }
+}
 
 $script:Passed = 0
 $script:Failed = 0
@@ -209,25 +223,32 @@ function Add-Result {
     Add-TextUtf8 $scopePath $line
 }
 
+function Get-TestProgressPrefix {
+    $total=[int]$script:ExpectedAssertions
+    $current=[int]$script:CaseIndex
+    $remaining=if($total-gt0){[Math]::Max(0,$total-$current)}else{0}
+    return ('[MVS '+$ProjectVersion+'] [TEST '+$current+'/'+$total+' | remaining='+$remaining+']')
+}
+
 function Write-Pass {
     param([string]$Name, [AllowEmptyString()][string]$ExpectedRc='', [AllowEmptyString()][string]$ActualRc='', [AllowEmptyString()][string]$ElapsedMs='')
     $script:Passed++
     Add-Result 'PASS' $Name '' $ExpectedRc $ActualRc $ElapsedMs
-    Write-Line ('[PASS] ' + $Name)
+    Write-Line ((Get-TestProgressPrefix) + ' [PASS] ' + $Name)
 }
 
 function Write-Skip {
     param([string]$Name, [string]$Reason)
     $script:Skipped++
     Add-Result 'SKIP' $Name $Reason '' '' ''
-    Write-Line ('[SKIP] ' + $Name + ' - ' + $Reason)
+    Write-Line ((Get-TestProgressPrefix) + ' [SKIP] ' + $Name + ' - ' + $Reason)
 }
 
 function Write-Fail {
     param([string]$Name, [string]$Reason, [AllowEmptyString()][string]$ExpectedRc='', [AllowEmptyString()][string]$ActualRc='', [AllowEmptyString()][string]$ElapsedMs='')
     $script:Failed++
     Add-Result 'FAIL' $Name $Reason $ExpectedRc $ActualRc $ElapsedMs
-    Write-Line ('[FAIL] ' + $Name + ' - ' + $Reason)
+    Write-Line ((Get-TestProgressPrefix) + ' [FAIL] ' + $Name + ' - ' + $Reason)
 }
 
 function Write-RunInfo {
@@ -236,6 +257,7 @@ function Write-RunInfo {
         'MVS Explorer Toolkit test run',
         ('Started: ' + $script:RunStart.ToString('o')),
         ('Test script: ' + $Caller),
+        ('Project version: ' + $ProjectVersion),
         ('Test version: ' + $Version),
         ('Mode: ' + $Mode),
         ('Project root: ' + $Root),
@@ -269,6 +291,7 @@ function Write-Summary {
         ('Failed: ' + $script:Failed),
         ('Skipped: ' + $script:Skipped),
         ('Total assertions: ' + ($script:Passed + $script:Failed + $script:Skipped)),
+        ('Expected assertions: ' + $script:ExpectedAssertions),
         ('Diagnostic fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-diagnostics')),
         ('Relationship fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-relationships')),
         ('Single-dump fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-single-complete')),
@@ -1011,9 +1034,10 @@ function Test-Structure {
     foreach ($compare in Get-CompareTools) { [void]$expected.Add($compare.name + '.bat') }
     foreach ($historyTool in @('build_mvs_dump_change_history','build_mvs_dump_all_ever')) { [void]$expected.Add($historyTool + '.bat') }
     foreach ($familyTool in Get-ProductFamilyToolNames) { [void]$expected.Add($familyTool + '.bat') }
+    [void]$expected.Add('all_test_then_all_database_then_test_database_and_all_tools.bat')
 
     $actual = @(Get-ChildItem -LiteralPath $Root -Filter '*.bat' -File | Select-Object -ExpandProperty Name)
-    if ($actual.Count -eq 477) { Write-Pass 'root public .bat count = 477' } else { Write-Fail 'root public .bat count' ('expected 477, got ' + $actual.Count) }
+    if ($actual.Count -eq 478) { Write-Pass 'root public .bat count = 478' } else { Write-Fail 'root public .bat count' ('expected 478, got ' + $actual.Count) }
 
     foreach ($name in $expected) {
         $path = Join-Path $Root $name
@@ -1025,12 +1049,38 @@ function Test-Structure {
         foreach ($label in @(':setup',':main',':end',':SetErrorLevel',':RunPowerShellFromLabel')) {
             if (-not $text.Contains($label)) { [void]$problems.Add('missing ' + $label) }
         }
-        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start') -and -not $text.Contains(':_MVSRelationship_start') -and -not $text.Contains(':_MVSSingleDump_start') -and -not $text.Contains(':_MVSCompare_start') -and -not $text.Contains(':_MVSHistory_start') -and -not $text.Contains(':_MVSProductFamily_start') -and -not $text.Contains(':_MVSProductFamilyCompact_start') -and -not $text.Contains(':_MVSProductFamilyQuery_start')) { [void]$problems.Add('missing injected PowerShell block') }
+        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start') -and -not $text.Contains(':_MVSRelationship_start') -and -not $text.Contains(':_MVSSingleDump_start') -and -not $text.Contains(':_MVSCompare_start') -and -not $text.Contains(':_MVSHistory_start') -and -not $text.Contains(':_MVSProductFamily_start') -and -not $text.Contains(':_MVSProductFamilyCompact_start') -and -not $text.Contains(':_MVSProductFamilyQuery_start') -and -not $text.Contains(':_MVSAllPipeline_start')) { [void]$problems.Add('missing injected PowerShell block') }
         if ($text.Contains('dev\library') -or $text.Contains('generate_tools.py')) { [void]$problems.Add('development runtime dependency reference') }
         if ($text.Contains(':_MVSSingleDump_start') -and -not $text.Contains('return ,(New-Object System.Collections.ArrayList)')) {
             [void]$problems.Add('single-dump New-ArrayList can collapse empty collection to null')
         }
         if ($problems.Count -eq 0) { Write-Pass ('standalone ' + $name) } else { Write-Fail ('standalone ' + $name) ($problems -join ', ') }
+    }
+
+    $dbValidatorPath = Join-Path $Root 'test\test_generated_databases.bat'
+    $pipelinePath = Join-Path $Root 'all_test_then_all_database_then_test_database_and_all_tools.bat'
+    $boundaryProblems = New-Object System.Collections.ArrayList
+    foreach ($guardPath in @($dbValidatorPath,$pipelinePath)) {
+        if (-not (Test-Path -LiteralPath $guardPath -PathType Leaf)) {
+            [void]$boundaryProblems.Add('missing ' + $guardPath)
+            continue
+        }
+        $guardText = [IO.File]::ReadAllText($guardPath,[Text.Encoding]::UTF8)
+        if ($guardText.Contains('return$') -or $guardText.Contains('return[')) {
+            [void]$boundaryProblems.Add('invalid PowerShell return token boundary in ' + [IO.Path]::GetFileName($guardPath))
+        }
+    }
+    if ($boundaryProblems.Count -eq 0) { Write-Pass 'database validator/pipeline PowerShell return token boundaries' } else { Write-Fail 'database validator/pipeline PowerShell return token boundaries' ($boundaryProblems -join ', ') }
+
+    if (Test-Path -LiteralPath $dbValidatorPath -PathType Leaf) {
+        $dbValidatorText = [IO.File]::ReadAllText($dbValidatorPath,[Text.Encoding]::UTF8)
+        if ($dbValidatorText.Contains('return ($seen-eq$indegree.Count)') -and -not $dbValidatorText.Contains('return ($seen-eq$Nodes.Count)')) {
+            Write-Pass 'database validator DAG counts unique family names rather than node-role rows'
+        } else {
+            Write-Fail 'database validator DAG counts unique family names rather than node-role rows' 'expected unique indegree-key topological count marker missing'
+        }
+    } else {
+        Write-Fail 'database validator DAG counts unique family names rather than node-role rows' 'test_generated_databases.bat missing'
     }
 }
 
@@ -1460,6 +1510,9 @@ function Test-ProductFamilyFeature {
 }
 
 New-ResultsFolder
+Write-Line ('Project: MVS Explorer Toolkit ' + $ProjectVersion)
+Write-Line ('Test suite: ' + $Caller + ' | test version ' + $Version + ' | mode ' + $Mode)
+Write-Line ('Expected assertions: ' + $script:ExpectedAssertions)
 Write-Line ('Test results: ' + $script:ResultsFolder)
 
 if (@('all','structure','scalar','lookup','diagnostic','relationship','single_dump','compare','history') -notcontains $Mode) {

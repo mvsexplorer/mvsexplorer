@@ -1,3 +1,30 @@
+# 0.16.1 progress and generated-database validation
+
+All assertion-producing test harnesses now print project version plus
+`TEST n/total | remaining=m`. `test_everything.bat` likewise numbers its child
+suite phases.
+
+`test_generated_databases.bat` is intended for the one-command production
+pipeline. It validates a completed archive-analysis database, full family
+index, and compact family index, then executes every one of the 32 family query
+tools against real data while recording elapsed time in
+`all-family-tools-performance.tsv`.
+
+The recommended full rebuild entry point is the root
+`all_test_then_all_database_then_test_database_and_all_tools.bat`; database
+generation is gated on passing tests.
+
+The 0.16.1 `all` matrix is 1,094 assertions: two new structure assertions
+preflight the generated-database validator/pipeline for PowerShell return-token
+boundaries and correct DAG unique-family counting before any real database
+generation begins.
+
+0.16.1 fixes the Windows PowerShell 5.1 token-boundary defect in the initial
+0.16.0 generated-database validator. The validator remains 57 checks; no
+database semantics were relaxed. The root production pipeline can use
+`--resume-built archive-db family-db compact-db` to re-run this gate and package
+already-built databases without repeating generation.
+
 # MVS Explorer Toolkit Tests
 
 From the project root:
@@ -368,4 +395,3 @@ representative real dump, so the established baseline becomes 1087 PASS /
 The 33 family tools are intentionally a separate archive-level class. They do
 not alter the legacy `test_all_dumps.bat` 79-snapshot plan, which remains
 34,822 logical checks.
-

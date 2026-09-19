@@ -1,12 +1,15 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
-set "app.version=0.4.3"
+set "app.version=0.4.4"
+set "project.version=0.16.1"
 set "root=%~dp0"
 set "fixture=%root%test-mvs-dump-history"
 set "tag=%RANDOM%%RANDOM%"
 set "fastout=%TEMP%\mvs-fast-sweep-test-%tag%"
 set "extout=%TEMP%\mvs-external-plan-test-%tag%"
 set "log=%TEMP%\mvs-fast-sweep-test-%tag%.log"
+echo Project: MVS Explorer Toolkit %project.version%
+echo Test suite: test_fast_archive_sweep.bat ^| test version %app.version% ^| expected assertions 3
 
 if not exist "%fixture%\" (
   echo [FAIL] history fixture missing: %fixture%
@@ -63,7 +66,7 @@ if errorlevel 1 (
   call :ShowFailure "%fastout%"
   exit /b 1
 )
-echo [PASS] fast-combined 1306 logical checks and archive outputs
+echo [MVS %project.version%] [TEST 1/3 remaining=2] [PASS] fast-combined 1306 logical checks and archive outputs
 findstr /c:"Fast archive snapshot 1/3: mvs_2020-01-01" "%fastout%\console.log" >nul
 if errorlevel 1 (
   echo [FAIL] fast archive progress not retained in console.log
@@ -165,7 +168,7 @@ if errorlevel 1 (
   call :ShowFailure "%fastout%"
   exit /b 1
 )
-echo [PASS] evolution, concrete all-ever counts, quality checker, and interactive HTML report
+echo [MVS %project.version%] [TEST 2/3 remaining=1] [PASS] evolution, concrete all-ever counts, quality checker, and interactive HTML report
 
 call "%root%test_all_dumps.bat" "%fixture%" "%extout%" --plan-only --external-tools >"%log%" 2>&1
 if errorlevel 1 (
@@ -197,7 +200,7 @@ if errorlevel 1 (
   call :ShowFailure "%extout%"
   exit /b 1
 )
-echo [PASS] external-public plan-only 1306 logical checks
+echo [MVS %project.version%] [TEST 3/3 remaining=0] [PASS] external-public plan-only 1306 logical checks
 
 rmdir /s /q "%fastout%" 2>nul
 rmdir /s /q "%extout%" 2>nul

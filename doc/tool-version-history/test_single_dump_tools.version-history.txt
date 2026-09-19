@@ -1,5 +1,8 @@
 Tool Version History: test\test_single_dump_tools.bat
 
+0.11.4 - 2026-09-03
+  - Regenerated for project 0.16.1; single-dump subset behavior/count remains 167.
+
 0.7.0 - 2026-08-27
   - Regenerated with two-dump comparison scope support.
   - Structure expectations now cover 441 public tools.

@@ -1,4 +1,141 @@
-# MVS Explorer Toolkit 0.15.3
+# MVS Explorer Toolkit 0.16.1
+
+
+## 0.16.1 Windows PowerShell 5.1 database-validator hotfix and resume mode
+
+Native 0.16.0 production testing completed the full test gate, the 34,822-check
+archive database, archive quality validation, the full family database, and the
+compact family database. Phase 6 then exposed a Windows PowerShell 5.1 lexical
+bug in the newly added generated-database validator: several compacted
+PowerShell `return` statements had lost the required token boundary before a
+variable or type literal (for example `return$true`, `return$map`, and
+`return[pscustomobject]...`). The same source-formatting defect affected the
+pipeline's failure-summary/log-packaging helper.
+
+0.16.1 fixes those maintained PowerShell sources, regenerates the standalone
+validator/pipeline, and adds a static release guard that rejects any future
+missing whitespace immediately after `return` in those new components.
+
+The native failure log also exposed a second validator-only assumption in the
+DAG test. `family-nodes.tsv` legitimately contains multiple rows for one family
+name when that name has multiple node roles. The real index has 1,229 node rows
+but 787 case-insensitive unique family names. The corrected DAG test compares
+its topological visit count with the unique family-key count, while still
+requiring every parent/child reference to resolve and still detecting cycles.
+
+Fresh production runs still use the same one-command entry point:
+
+```bat
+all_test_then_all_database_then_test_database_and_all_tools.bat
+```
+
+A failed 0.16.0 run that already built the three databases can now resume
+without repeating the expensive build phases:
+
+```bat
+all_test_then_all_database_then_test_database_and_all_tools.bat --resume-built ^
+  ..\mvs-archive-database-0.16.0-YYYYMMDD-HHMMSS ^
+  ..\mvs-family-index-0.16.0-YYYYMMDD-HHMMSS ^
+  ..\mvs-family-index-compact-0.16.0-YYYYMMDD-HHMMSS
+```
+
+Optionally preserve a prior successful `test_all` result folder in the new log
+bundle with:
+
+```text
+--resume-test-results DIR
+```
+
+Resume mode first runs the lightweight structure suite (including the two new
+validator/pipeline preflight guards), then re-runs archive quality validation,
+all 57 generated-database checks, and all 32 real family-query smoke executions
+before ZIP/hardlink packaging. It does not rebuild the three supplied databases.
+
+The database formats, the archive/family/compact builders, the 32 family query
+tools, and the 443 legacy public tools are unchanged from 0.16.0. The only
+public-root behavior change is the orchestration tool itself.
+
+The pre-build `test_all` structure gate now contains two additional assertions
+covering these exact late-stage failures. The 0.16.1 all-mode matrix is 1,094
+assertions; on the established representative dump the expected result is
+1,091 PASS / 0 FAIL / 3 data-dependent note SKIP.
+
+
+
+## 0.16.0 one-command validation and database production pipeline
+
+Version 0.16.0 adds
+`all_test_then_all_database_then_test_database_and_all_tools.bat`, a
+fail-gated one-command workflow for rebuilding the reusable databases from the
+original dump archive.
+
+With the normal layout where the toolkit and `mvs_dumps_archive` are sibling
+directories, run this from the toolkit root:
+
+```bat
+all_test_then_all_database_then_test_database_and_all_tools.bat
+```
+
+The default archive is `..\mvs_dumps_archive`; the default output root is
+`..`. Optional arguments are:
+
+```text
+[mvs-dumps-root] [--workers N] [--output-root DIR] [--strict-performance]
+```
+
+The pipeline runs all normal tests first. Database generation does not begin
+unless that test gate passes. It then builds and validates three reusable
+outputs under the output root:
+
+```text
+mvs-archive-database-0.16.0-YYYYMMDD-HHMMSS\
+mvs-family-index-0.16.0-YYYYMMDD-HHMMSS\
+mvs-family-index-compact-0.16.0-YYYYMMDD-HHMMSS\
+```
+
+The archive database is a complete fast-combined archive sweep with plan,
+logical runs, chronology/evolution outputs, quality results and the interactive
+HTML report. The full family index preserves one row per source observation.
+The compact family index collapses repeated facts across dumps while retaining
+exact snapshot provenance through `snapshot_set_id`.
+
+After generation, `test\test_generated_databases.bat` performs 25 structural
+and semantic database checks plus one real-data smoke execution of each of the
+32 public family query tools (57 database tests total). It validates archive
+plan/run alignment and status counters; full-index summary counts, hierarchy
+referential integrity, DAG acyclicity and content-addressed note blobs; compact
+snapshot-set reconstruction, source/compact observation accounting, conflict
+and alias ledgers, taxonomy byte identity and provenance safety flags.
+
+Successful runs ZIP all three databases and the collected log folder. The ZIPs
+are stored beside the generated databases under the output root. Four
+`SEND-ME-*.zip` hardlinks are created in the toolkit root, so the artifacts can
+be grabbed or attached without searching through the output directories.
+
+Progress output now includes project version, current test number, total tests
+and remaining tests. `test_all.bat` has 1,092 assertions in `all` mode for the
+0.16.0 public surface; on the representative historical dump the expected
+baseline remains three data-dependent note skips and no failures. The dedicated
+family suite remains 106 assertions. `test_everything.bat` also numbers its
+top-level child suites, and the one-command pipeline numbers its ten phases.
+
+The pipeline log folder includes `console.log`, `phase-performance.tsv`,
+`pipeline-summary.txt`, `database-paths.tsv`, the complete `test-results`
+folder, archive-database top-level sweep/quality logs and the database
+validation folder containing `database-tests.tsv` and
+`all-family-tools-performance.tsv`.
+
+The public root now contains 478 tools: the established 443 legacy tools, 34
+product-family tools, and one orchestration tool. The orchestration tool is
+excluded from snapshot/compare planning, so the known 79-snapshot archive plan
+remains exactly 34,822 logical checks.
+
+This release also repairs a development-source reproducibility issue discovered
+during hardening: the checked-in fast-archive PowerShell source/generator is
+synchronized to the already accepted optimized 0.15.x generated worker, so
+regenerating performance tools no longer risks reverting the 0.14.4 archive
+speedup.
+
 
 
 ## 0.15.3 compact synthetic-regression maintenance

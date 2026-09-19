@@ -1,5 +1,9 @@
 Tool Version History: test\test_structure.bat
 
+0.11.4 - 2026-09-03
+  - Project 0.16.1 pre-build hardening: adds PowerShell return-token and unique-family DAG validator guards.
+  - Expected public root remains 478 tools; structure scope becomes 481 assertions.
+
 0.11.2 - 2026-09-01
   - Adds the compact family builder to standalone structure validation; expected public root is 477 tools.
 

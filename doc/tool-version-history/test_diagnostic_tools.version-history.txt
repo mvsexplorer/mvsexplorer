@@ -1,5 +1,8 @@
 Tool Version History: test\test_diagnostic_tools.bat
 
+0.11.4 - 2026-09-03
+  - Regenerated for project 0.16.1; diagnostic subset behavior/count remains 46.
+
 Purpose
   Test mode: diagnostic
   Fixture: test\test-mvs-dump-diagnostics

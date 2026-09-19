@@ -1,3 +1,22 @@
+0.16.1 - 2026-09-03
+- Windows PowerShell 5.1 hotfix for the new generated-database validator and pipeline failure-summary helpers.
+- Restores required whitespace after PowerShell `return` before variables/type literals; first native 0.16.0 production run exposed `return$true`, `return$map`, and `return[pscustomobject]...` failures in phase 6.
+- Adds a static release guard so this token-boundary regression cannot be packaged again.
+- Adds two native pre-build structure assertions for return-token safety and unique-family DAG counting; test_all becomes 1,094 assertions (normally 1,091 PASS / 3 SKIP).
+- Fixes the real-index DAG validator false negative by comparing topological visits with unique family names rather than raw family-node role rows (1,229 rows / 787 unique names on the accepted real index).
+- Adds `--resume-built ARCHIVE_DB FAMILY_DB COMPACT_DB` plus optional `--resume-test-results DIR` to revalidate/package databases produced by an interrupted or failed pipeline without rebuilding.
+- Keeps the database formats, 443 legacy tools, 34 family tools, and 34,822 legacy archive plan unchanged; only the orchestration public tool changes behavior.
+- Native 0.16.0 pre-phase-6 acceptance: 1089 PASS / 0 FAIL / 3 SKIP, 34,822/34,822 archive checks with 33903 PASS / 574 NO_RESULT / 345 expected SOURCE_MISSING / 0 FAIL, and successful full/compact family database builds.
+
+0.16.0
+- Adds all_test_then_all_database_then_test_database_and_all_tools.bat as a fail-gated one-command test/build/validate/package workflow.
+- Adds test_generated_databases.bat: 25 database integrity checks plus all 32 family query tools against real generated data.
+- Adds project-version/current/remaining progress counters to the main, family, fast-archive, and comprehensive test harnesses.
+- Writes archive/full-family/compact-family databases to the parent output root by default, ZIPs each database and the logs, and creates SEND-ME hardlinks in the toolkit root.
+- Adds phase-performance.tsv and all-family-tools-performance.tsv for end-to-end production timing.
+- Public root is 478 tools: the prior 477 are byte-for-byte unchanged plus one orchestration tool; the legacy 34,822-row archive plan is unchanged.
+- Synchronizes the maintained fast-archive source/generator to the accepted optimized generated worker so regeneration cannot revert the 0.14.4 performance work.
+
 MVS Explorer Toolkit Project Version History
 
 

@@ -1,5 +1,8 @@
 Tool Version History: test\test_scalar_tools.bat
 
+0.11.4 - 2026-09-03
+  - Regenerated for project 0.16.1; scalar subset behavior/count remains 120.
+
 Purpose
   Test mode: scalar
   Standalone: yes; contains complete injected test harness

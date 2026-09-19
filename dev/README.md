@@ -1,3 +1,22 @@
+## 0.16.1 pipeline maintenance
+
+`generate_all_pipeline.py` maintains the root one-command orchestration batch
+and `test\test_generated_databases.bat` from
+`library\all-pipeline.inc.ps1`, `library\database-validation.inc.ps1` and their
+templates. The pipeline is a separate public orchestration class and must stay
+excluded from the 422 single-snapshot / 19 compare / 2 archive legacy plan.
+
+Test generators inject project version 0.16.1 into progress output. The
+fast-archive maintained PowerShell source is synchronized with the accepted
+optimized generated worker; generator idempotence must retain that worker.
+
+The 0.16.1 release also statically rejects `return` immediately followed by a
+non-whitespace token in `database-validation.inc.ps1`,
+`all-pipeline.inc.ps1`, and their generated batch wrappers. This guards the
+Windows PowerShell 5.1 failure exposed by the first native 0.16.0 production
+pipeline run. Resume-mode parsing/packaging is maintained in the same pipeline
+source and must remain generator-idempotent.
+
 # Development-time source
 
 Files under `dev\` are not runtime dependencies of public tools.
@@ -187,4 +206,3 @@ test\test_product_family_tools.bat
 Family classification is analytical. Development changes must not reinterpret
 `mvs_names.txt` IDs as product identities, infer SHA-1/SHA-256 pairings by
 filename, or turn embedded product-name references into ownership.
-

@@ -1,0 +1,2 @@
+1.0.0
+- Generates the root production pipeline and test_generated_databases.bat from maintained templates/PowerShell sources.

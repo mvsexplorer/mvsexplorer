@@ -1,3 +1,26 @@
+## 0.16.1 recommended production run
+
+For a clean test + database rebuild + database integrity/query sweep + packaging
+run, use the root command:
+
+```bat
+all_test_then_all_database_then_test_database_and_all_tools.bat
+```
+
+See `full-pipeline.md` for output paths, ZIP/hardlink behavior and performance
+logs. The ordinary `test_everything.bat` remains the test-only comprehensive
+gate.
+
+For a previously failed 0.16.0/0.16.1 pipeline where all three databases were
+already built, 0.16.1 can resume validation and packaging without rebuilding:
+
+```bat
+all_test_then_all_database_then_test_database_and_all_tools.bat --resume-built archive-db family-db compact-db
+```
+
+Add `--resume-test-results DIR` when the earlier `test-results-*` folder should
+also be copied into the new log bundle.
+
 # Comprehensive functional, quality, and performance testing
 
 Version 0.14.0 adds one entry point for the recurring optimize/test/retest loop:
@@ -165,4 +188,3 @@ through its normal `test_all.bat` stage.
 The archive sweep deliberately excludes the 33 family tools from per-snapshot
 planning; their semantics require one archive-level index. The established
 legacy plan remains 34,822 logical checks on the known 79-snapshot archive.
-

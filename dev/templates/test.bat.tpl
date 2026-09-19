@@ -10,6 +10,7 @@ set "mvst_mode=@@TEST_MODE@@"
 set "mvst_dump=%~1"
 set "mvst_caller=%~nx0"
 set "mvst_version=%app.version%"
+set "mvst_project_version=@@PROJECT_VERSION@@"
 for %%I in ("%~dp0..") do set "mvst_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSTest"
