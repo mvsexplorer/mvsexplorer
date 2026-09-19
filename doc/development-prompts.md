@@ -1594,3 +1594,17 @@ that actually contains the corresponding value type.
 > I want to create tool that, for each piece of data, create a record of everything added from dump to dump
 > a record of everything removed from dump to dump
 > and also something that will accumulate all the addition from dump to dump, to each of the values, so that we end up with the most complete record of all
+
+
+## Prompt 18
+
+```text
+Ok, now I want to run all the tools on all the dumps
+
+[The complete tree of the 79-snapshot mvs_dumps_archive was supplied,
+including the two nested mvs_dmp snapshots.]
+```
+
+This request is implemented as the scope-aware `test\test_all_dumps.bat`
+archive sweep rather than a blind one-argument loop. The current public surface
+produces 34,822 planned invocations across the supplied archive.

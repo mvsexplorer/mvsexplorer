@@ -291,3 +291,36 @@ the full archive.
 The known `mvs_2020-08-20` and `mvs_2020-08-27` snapshots place their source
 files under `mvs_dmp\`. Archive-wide processing must resolve both the ordinary
 snapshot-root layout and this nested layout before declaring a source missing.
+
+
+### "Run every tool" requires scope-aware dispatch
+
+The public root contains single-snapshot tools, adjacent-pair comparison tools,
+and archive-level builders. Treating every `.bat` as if it accepted the same
+arguments tests the dispatcher rather than the tools.
+
+### Real-archive sweeps need representative search values
+
+Query tools require source-domain values. Product IDs/titles, variant IDs,
+notes, dates, filenames, and hashes cannot be substituted for one another just
+because they are all strings at the batch boundary. One profile per snapshot is
+enough to derive valid representative inputs for all query families.
+
+### Missing historical source and runtime failure are different outcomes
+
+An old snapshot that predates `mvs_names.txt` or `mvs.sha256` can legitimately
+produce the documented source-missing return code. Archive-wide execution should
+record that explicitly rather than count it as a parser/runtime defect.
+
+### Exhaustive validation does not require retaining exhaustive stdout
+
+A 34,822-invocation sweep would duplicate large product/variant listings many
+times if every successful stdout stream were kept. For compatibility testing,
+status, return code, byte counts, and full failure artifacts are sufficient.
+Archive-builder datasets are durable outputs and should be retained.
+
+### Long validation plans should be resumable by immutable plan identity
+
+Resuming by row number alone is unsafe if snapshots or tools have changed.
+Hashing the complete deterministic plan makes an interrupted run resumable
+without silently changing its work definition.

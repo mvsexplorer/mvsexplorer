@@ -1,5 +1,22 @@
 MVS Explorer Toolkit Project Version History
 
+0.12.0 - 2026-08-27
+  - Recorded the clean 0.11.0 Windows baseline: 1053 pass / 0 fail / 3 skip.
+  - Added test\test_all_dumps.bat for archive-wide real-snapshot execution.
+  - Public root tool count remains 443.
+  - Discovers all mvs_* snapshots and resolves ordinary or nested mvs_dmp source roots.
+  - Runs 422 single-snapshot public tools against every snapshot.
+  - Runs all 19 compare tools across every adjacent snapshot transition.
+  - Runs change-history then all-ever builders once against the archive.
+  - For the supplied 79-snapshot archive the deterministic plan is 34,822 invocations.
+  - Derives representative product/date/note/variant/file/hash query values per snapshot.
+  - Records PASS, NO_RESULT, SOURCE_MISSING, and FAIL separately.
+  - Retains full stdout/stderr/meta only for actual failures to limit result volume.
+  - Retains archive builder outputs under archive-output.
+  - Added deterministic plan.tsv plus plan SHA-256 and safe --resume support.
+  - Added --plan-only mode for preflight inspection without launching public tools.
+  - Added maintained archive-sweep library/template/generator and archive-sweep documentation.
+
 0.11.0 - 2026-08-27
   - Recorded the clean 0.10.0 Windows baseline: 986 pass / 0 fail / 3 skip.
   - Recorded the dedicated 0.10.0 compare regression: 39 pass / 0 fail / 0 skip.

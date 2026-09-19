@@ -98,3 +98,16 @@ The synthetic pair under `test\test-mvs-dump-compare\` forces both removals and
 additions for every tool. `generate_expected_compare_outputs.py` is an
 independent Python reference implementation and never invokes the public batch
 files.
+
+
+Archive-wide sweep development files:
+
+```text
+library\archive-sweep.inc.ps1
+templates\archive-sweep.bat.tpl
+generate_archive_sweep.py
+```
+
+`generate_archive_sweep.py` injects the maintained PowerShell implementation
+and common batch functions into `test\test_all_dumps.bat`. The delivered test
+harness is standalone and does not read `dev\` at runtime.

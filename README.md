@@ -1,6 +1,50 @@
-# MVS Explorer Toolkit 0.10.0
+# MVS Explorer Toolkit 0.12.0
 
 MVS Explorer Toolkit is a growing collection of console tools for exploring MVS dump snapshots, intended to culminate in the graphical **MVS Explorer** application.
+
+
+## 0.12.0 archive-wide real-dump sweep
+
+The validated 0.11.0 Windows baseline completed **1053 passes, 0 failures, and
+3 expected data-dependent note skips**. Version 0.12.0 adds a separate
+real-archive integration harness without changing the 443 public root tools.
+
+From the project root:
+
+```bat
+test\test_all_dumps.bat ..\mvs_dumps_archive
+```
+
+For the supplied 79-snapshot archive the deterministic plan contains **34,822
+public-tool invocations**:
+
+```text
+422 single-snapshot tools * 79 snapshots
++ 19 compare tools * 78 adjacent transitions
++ 2 archive builders
+= 34,822
+```
+
+Use plan-only mode before launching the sweep:
+
+```bat
+test\test_all_dumps.bat ..\mvs_dumps_archive --plan-only
+```
+
+Interrupted runs can be resumed safely when the regenerated plan SHA-256
+matches:
+
+```bat
+test\test_all_dumps.bat ..\mvs_dumps_archive path_to_existing_results --resume
+```
+
+The runner resolves both ordinary snapshot roots and the known nested
+`mvs_dmp\` layout. It records `PASS`, `NO_RESULT`, `SOURCE_MISSING`, and `FAIL`
+separately, retains full artifacts only for failures, and preserves the
+archive history/all-ever builder output.
+
+See `doc\archive-sweep.md` for the complete execution and result contract.
+
 
 ## Standalone public tools, shared development source
 

@@ -1,0 +1,12 @@
+test_all_dumps.bat Version History
+
+0.1.0 - 2026-08-27
+  - Initial archive-wide real-dump execution harness.
+  - Discovers mvs_* snapshots and resolves nested mvs_dmp source roots.
+  - Executes all single-snapshot public tools against every snapshot.
+  - Executes compare tools on every adjacent snapshot pair.
+  - Executes history/all-ever builders once at archive scope.
+  - Derives representative query arguments from each snapshot.
+  - Adds deterministic plan, plan SHA-256, plan-only, and safe resume.
+  - Records PASS, NO_RESULT, SOURCE_MISSING, and FAIL separately.
+  - Retains full failure artifacts and archive-builder datasets.

@@ -292,3 +292,32 @@ The all-ever union processes every source wherever it exists. It is seeded from
 the first available observation, not only from pairwise `+` events, so baseline
 values remain represented. First/last seen and observation counts are retained
 for later timeline and Explorer UI work.
+
+
+## 2026-08-27 — 0.12.0 archive-wide real-snapshot sweep
+
+The deterministic regression suite had reached a clean 0.11.0 Windows baseline,
+but most newer families were intentionally exercised against synthetic
+fixtures. That left a different unanswered question: can every delivered batch
+tool traverse every historical real snapshot without parser/runtime failures?
+
+A brute-force loop over root `.bat` files is not sufficient because the public
+surface has three argument scopes. Ordinary tools consume one dump folder,
+comparison tools consume two dump folders, and archive builders consume the
+archive plus an output folder. Query families also require ID/title/date/
+filename/hash search values, and variant IDs are a separate source domain.
+
+The archive sweep therefore profiles each snapshot once, derives representative
+query values by source domain, then builds a deterministic execution plan before
+launching anything. This keeps the run exhaustive while avoiding meaningless
+argument errors.
+
+The supplied archive has 79 snapshots. With 422 single-snapshot tools, 19
+comparison tools, and two archive builders, the current sweep contains 34,822
+invocations. Successful stdout is intentionally temporary; retaining every
+successful scalar/variant dump would create a large duplicate corpus with
+little diagnostic value. Actual failures preserve complete stdout/stderr/meta.
+
+Long sweeps also need restartability. `runs.tsv` is appended after every
+completed invocation and resume is allowed only when a regenerated plan hashes
+identically to the original `plan.tsv`.

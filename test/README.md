@@ -121,3 +121,29 @@ test\test_history_tools.bat
 This subset needs no real dump argument. It executes both archive builders
 against `test\test-mvs-dump-history\` and validates every generated added,
 removed, and all-ever domain file against independent fixed expectations.
+
+
+## Archive-wide real-dump sweep
+
+The ordinary full suite uses fixed/synthetic fixtures where appropriate. To
+exercise every public tool against the real archive, use:
+
+```bat
+test\test_all_dumps.bat ..\mvs_dumps_archive
+```
+
+Plan-only mode discovers snapshots, resolves nested `mvs_dmp\` layouts, derives
+query values, and writes the full invocation plan without launching public
+tools:
+
+```bat
+test\test_all_dumps.bat ..\mvs_dumps_archive --plan-only
+```
+
+For the supplied 79-snapshot archive and current 443 public tools, the plan is
+34,822 invocations: 422 single-snapshot tools on 79 snapshots, 19 comparison
+tools on 78 adjacent transitions, and two archive builders.
+
+The archive sweep writes `plan.tsv`, `runs.tsv`, `summary.txt`, a resumable
+plan SHA-256, failure artifacts, and retained history/all-ever output. See
+`doc\archive-sweep.md`.
