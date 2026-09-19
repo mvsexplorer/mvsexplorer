@@ -1,6 +1,37 @@
-# MVS Explorer Toolkit 0.17.1
+# MVS Explorer Toolkit 0.18.0
 
 
+
+## 0.18.0 standalone PowerShell/WinForms MVS Explorer
+
+0.18.0 adds `mvs_explorer_gui.bat`, a desktop GUI companion to the accepted
+self-contained HTML browser. The delivered application is one standalone BAT
+file with its Windows PowerShell code injected at generation time; it has no
+`dev\` runtime dependency and does not require a companion `.ps1`.
+
+The GUI reads an existing compact product-family database at runtime. With no
+argument it opens a folder picker; with an argument it opens that database
+directly. Its hierarchy mirrors the HTML browser: **basic family -> product
+family -> release -> exact product title/variant**. Every column supports
+filter-as-you-type and multi-selection, with typed text affecting visibility
+only. Empty selection continues to mean all values available from the columns
+to the left.
+
+The lower WinForms area provides Products, Files & hashes, Notes, and Selection
+tabs. Large file/hash tables are indexed into compact per-title string arrays
+during startup rather than materialized as hundreds of thousands of
+`PSCustomObject` rows. Result grids are paged and file/note detail filters are
+debounced. The same conservative evidence rules remain in force: family/release
+membership is analytical classification; files/hashes come only from
+product-backed `mvs.txt` section evidence; notes remain title-level historical
+evidence; unclassified source titles stay visible explicitly.
+
+0.17.1 is now native-accepted for HTML generation. 0.18.0 is a new GUI feature
+candidate pending native Windows UI acceptance. The public root becomes **480**
+standalone BATs: 422 single-snapshot, 19 compare, 2 archive, 34 product-family,
+1 HTML builder, 1 PowerShell GUI, and 1 production pipeline. Both browser tools
+are excluded from the legacy archive sweep, so the established plan remains
+34,822 logical checks. Structure becomes 494 assertions and all mode 1,107.
 
 ## 0.17.1 Windows PowerShell 5.1 browser-builder compatibility fix
 

@@ -1688,3 +1688,11 @@ Unexpected token 'string]' in expression or statement.
 This establishes the 0.17.1 compatibility requirement: delivered embedded
 PowerShell must use syntax accepted by Windows PowerShell 5.1.
 
+## 2026-09-07 — PowerShell GUI companion request
+
+After native acceptance of the corrected HTML builder, continue the browser as
+a PowerShell GUI application. It may use the external database, but all
+PowerShell application source must be self-contained inside one BAT file. The
+desktop browser should expose the same hierarchy and evidence views as the HTML
+browser rather than introducing a different interpretation.
+

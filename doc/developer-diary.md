@@ -1,5 +1,20 @@
 ## 0.17.1 - native browser-builder parser correction
 
+## 2026-09-07 — Native HTML acceptance and first PowerShell GUI
+
+The corrected 0.17.1 HTML builder ran successfully on Windows PowerShell 5.1
+against the production compact index: 8,201 products, 93 basic families,
+150 product families, 61,768 distinct filenames, 80,506 distinct hashes and
+820 distinct note texts were written to one offline HTML file.
+
+0.18.0 uses that accepted browser as the desktop interaction contract rather
+than inventing a second navigation model. `mvs_explorer_gui.bat` keeps all
+PowerShell in the delivered BAT and reads the compact database directly.
+Hierarchy metadata is loaded once; large product-file/hash/note tables are
+deduplicated into per-title string arrays so hierarchy changes do not repeatedly
+scan the database and large evidence views can remain paged.
+
+
 The first native execution of the 0.17.0 browser builder failed before reading
 the compact database because Windows PowerShell 5.1 could not parse
 `[Array]::Sort[string](...)`. This was a development-environment gap: the

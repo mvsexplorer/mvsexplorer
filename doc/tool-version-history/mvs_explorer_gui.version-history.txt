@@ -1,0 +1,9 @@
+mvs_explorer_gui.bat
+
+0.1.0 - 2026-09-07
+- Initial standalone Windows PowerShell 5.1 / WinForms MVS Explorer.
+- Consumes an external compact product-family database or opens a folder picker.
+- Mirrors the HTML browser broad-family -> product-family -> release -> exact-title hierarchy.
+- Adds Products, Files & hashes, Notes and Selection views with paging and debounced large-table filters.
+- Keeps product-backed file/hash and title-level note evidence semantics unchanged.
+- Delivered as one generated BAT with no runtime `dev\` or companion PS1 dependency.

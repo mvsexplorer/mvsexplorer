@@ -1,3 +1,17 @@
+## 0.18.0 standalone PowerShell GUI maintenance
+
+`generate_powershell_gui.py` maintains `mvs_explorer_gui.bat` from
+`templates/powershell-gui.bat.tpl` and `library/powershell-gui.inc.ps1`.
+
+The delivered GUI is one standalone BAT. It reads an external compact family
+database with WinForms under Windows PowerShell 5.1, mirrors the HTML
+broad-family/product-family/release/exact-title hierarchy, and preserves the
+same product-backed file/hash and title-level note boundaries. Large fact rows
+are held as compact per-title strings instead of a PSCustomObject per row.
+
+The GUI is a separate public class, excluded from the legacy archive sweep.
+0.18.0 structure has 494 assertions and all mode has 1,107.
+
 ## 0.17.1 browser-builder PS5.1 compatibility maintenance
 
 The first native 0.17.0 browser-builder run exposed a Windows PowerShell 5.1

@@ -276,3 +276,18 @@ Examples:
 
 See doc\product-family-tools.md and doc\product-family-tool-matrix.tsv.
 
+MVS BROWSERS (0.18.0)
+---------------------
+Build one self-contained offline HTML browser:
+  build_mvs_html_browser.bat compact-family-index [output.html]
+
+Launch the standalone PowerShell/WinForms desktop browser:
+  mvs_explorer_gui.bat compact-family-index
+
+Launch with a folder picker:
+  mvs_explorer_gui.bat
+
+Both browser surfaces use the compact product-family database and preserve the
+same broad-family -> product-family -> release -> exact-title hierarchy and
+conservative product-backed file/hash evidence rules.
+

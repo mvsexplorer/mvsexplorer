@@ -81,3 +81,8 @@ HTML data model and browser UI contract are unchanged.
 inserted into the production pipeline, so browser UX can be refined before a
 future release decides whether browser generation belongs in the fail-gated
 pipeline/package set.
+
+
+## Desktop companion
+
+Project 0.18.0 adds `mvs_explorer_gui.bat`, which exposes the same hierarchy and conservative evidence model as a Windows PowerShell 5.1 / WinForms application reading the compact database directly. See `powershell-gui.md`.

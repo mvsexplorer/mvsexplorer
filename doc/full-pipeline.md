@@ -22,7 +22,7 @@ failures.
 
 ## Resume already-built databases
 
-0.17.1 retains the recovery path introduced in 0.16.1 for a late-stage validator/packaging failure after
+0.18.0 retains the recovery path introduced in 0.16.1 for a late-stage validator/packaging failure after
 the three reusable databases were already generated:
 
 ```bat
@@ -149,3 +149,12 @@ filename.
 ## HTML browser
 
 0.17.0 added `build_mvs_html_browser.bat` as an independent public tool; 0.17.1 fixes its Windows PowerShell 5.1 parser compatibility. Browser generation remains intentionally outside this fail-gated pipeline during the first browser UX cycle.
+
+
+## PowerShell GUI
+
+0.18.0 adds `mvs_explorer_gui.bat` as an independent consumer of an already
+built compact product-family database. Like the HTML browser builder, it is not
+automatically invoked by the fail-gated production pipeline. This keeps desktop
+UI iteration separate from archive/database production while the GUI has its
+native acceptance cycle.

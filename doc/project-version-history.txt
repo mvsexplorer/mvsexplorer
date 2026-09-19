@@ -1,3 +1,13 @@
+0.18.0 - 2026-09-07
+- Adds `mvs_explorer_gui.bat`, a standalone Windows PowerShell 5.1 / WinForms desktop MVS browser that consumes an external compact family database.
+- Mirrors the accepted HTML hierarchy: broad family -> product family -> release -> exact historical product title/variant, with filter-as-you-type and multi-selection.
+- Provides Products, Files & hashes, Notes, and Selection tabs with paging/debounced large-table filters and compact per-title runtime indexes.
+- Preserves conservative source semantics: family membership is analytical classification; file/hash rows remain product-backed `mvs.txt` evidence; notes remain title-level historical evidence; unclassified titles remain explicit.
+- With no database argument the GUI opens a folder picker; with a compact-index path it opens directly.
+- The delivered GUI is one BAT with injected PowerShell and no `dev\` runtime dependency or companion PS1.
+- Public root becomes 480 tools. The GUI and HTML builder remain outside the 34,822-check legacy archive sweep and outside automatic production-pipeline generation.
+- Structure becomes 494 assertions and all mode 1,107. 0.17.1 HTML-browser generation is native-accepted; 0.18.0 requires native GUI acceptance.
+
 0.17.1 - 2026-09-07
 - Fixes the first native 0.17.0 HTML-browser builder failure under Windows PowerShell 5.1.
 - Replaces unsupported generic static-method syntax `[Array]::Sort[string](...)` with the PS5.1-compatible non-generic `Array.Sort` overload while preserving ordinal case-insensitive ordering.

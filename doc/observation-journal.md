@@ -534,3 +534,17 @@ A literal substring scan is safe only as a prefilter. Every candidate is still c
 
 Archive quality output is deterministic in content but is regenerated during validation. Copying its new filesystem timestamps into ZIP entries made the package checksum look unstable. Normalizing ZIP dates fixes this packaging artifact without weakening content-addressed evidence hashes.
 
+### A desktop browser should reuse archive semantics, not re-interpret them
+
+The accepted HTML hierarchy is an interaction layer over the compact family
+database, not a new evidence model. A WinForms version can therefore read that
+database directly and reuse broad family, product family, release, exact title,
+product-backed files/hashes and title-level notes without creating new joins.
+
+### Compact runtime indexes are preferable to row-object materialization
+
+The compact file/hash tables contain hundreds of thousands of facts but only
+need a few fields for browsing. Deduplicated strings grouped by product title
+provide a substantially smaller PowerShell object graph than one PSCustomObject
+per row, while still retaining every exposed filename, algorithm and hash.
+

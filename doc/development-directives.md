@@ -298,3 +298,16 @@ These directives are distilled from the user's project prompts.
 203. Keep browser generation independent from the fail-gated production pipeline until its UX and output contract have had a native acceptance cycle.
 
 204. Embedded PowerShell in public browser builders must parse and run under Windows PowerShell 5.1; avoid generic static-method invocation syntax such as `[Type]::Method[T](...)` when a PS5.1-compatible non-generic overload is available.
+
+## PowerShell GUI continuation
+
+205. The desktop MVS Explorer may consume the external compact product-family database directly, but its delivered application source must remain self-contained in one standalone BAT with injected PowerShell and no `dev\` runtime dependency.
+206. The first desktop GUI hierarchy must mirror the accepted browser hierarchy: broad family -> product family -> release -> exact historical product title/variant.
+207. GUI hierarchy text filters change list visibility only; checked list state is the evidence selection. Empty checked selection means all values available from upstream columns.
+208. GUI selections must cascade left-to-right and must prune downstream selections that become impossible after an upstream change.
+209. The desktop GUI must preserve the same conservative evidence boundaries as the HTML browser: analytical family membership, product-backed `mvs.txt` files/hashes only, title-level notes, and explicit unclassified/historical products.
+210. Public GUI PowerShell must parse and run under Windows PowerShell 5.1 and rely only on Windows/.NET Framework components available there; do not introduce PowerShell 7-only syntax or runtime packages.
+211. Large compact fact tables should be indexed without creating an unbounded PowerShell object graph. Compact string/reference structures, paging, and debounced filtering are preferred when they preserve exact exposed values.
+212. The GUI may use the compact database at runtime rather than embedding a browser payload; no network service or external API is required for browsing.
+213. Keep GUI applications outside the legacy per-snapshot/archive sweep plan because they consume archive-level databases rather than define new snapshot/compare semantics.
+

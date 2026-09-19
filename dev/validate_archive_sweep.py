@@ -193,10 +193,11 @@ def main():
             p.name.startswith("print_mvs_product_") or p.name.startswith("read_mvs_product_")]
     pipeline=[p for p in public if p.name=="all_test_then_all_database_then_test_database_and_all_tools.bat"]
     browser=[p for p in public if p.name=="build_mvs_html_browser.bat"]
-    single=[p for p in public if p not in compare and p not in archive and p not in family and p not in pipeline and p not in browser]
-    if (len(public),len(single),len(compare),len(archive),len(family),len(browser),len(pipeline)) != (479,422,19,2,34,1,1):
-        fail("unexpected public scope counts: public=%d single=%d compare=%d archive=%d family=%d browser=%d pipeline=%d" %
-             (len(public),len(single),len(compare),len(archive),len(family),len(browser),len(pipeline)))
+    gui=[p for p in public if p.name=="mvs_explorer_gui.bat"]
+    single=[p for p in public if p not in compare and p not in archive and p not in family and p not in pipeline and p not in browser and p not in gui]
+    if (len(public),len(single),len(compare),len(archive),len(family),len(browser),len(gui),len(pipeline)) != (480,422,19,2,34,1,1,1):
+        fail("unexpected public scope counts: public=%d single=%d compare=%d archive=%d family=%d browser=%d gui=%d pipeline=%d" %
+             (len(public),len(single),len(compare),len(archive),len(family),len(browser),len(gui),len(pipeline)))
     planned=len(single)*79+len(compare)*78+len(archive)
     synthetic=len(single)*3+len(compare)*2+len(archive)
     if planned != 34822: fail("79-snapshot plan count mismatch: %d"%planned)
@@ -214,6 +215,10 @@ def main():
         ":_MVSProductFamilyCompact_start","snapshot-sets.tsv","product-file-hashes-all-ever.tsv",
         "file-hashes-all-ever.tsv","filename-hash-conflicts.tsv","product-file-hash-conflicts.tsv",
         "hash-filename-aliases.tsv","CROSS_PRODUCT_FILENAME_REUSE","PRODUCT_HASH_DISAGREEMENT"
+    ))
+    gui_tool=check_batch(ROOT/"mvs_explorer_gui.bat",(
+        ":_MVSExplorerGui_start","System.Windows.Forms","FolderBrowserDialog","CheckedListBox","DataGridView",
+        "product-classifications.tsv","product-file-hashes-all-ever.tsv","(Unclassified / historical)","Files & hashes"
     ))
     family_queries=[p for p in public if p.name.startswith("print_mvs_product_") or p.name.startswith("read_mvs_product_")]
     if len(family_queries)!=32:
@@ -252,7 +257,7 @@ def main():
         "explicit non-year version beats update timestamp"
     ))
     test_all_text=(ROOT/"test"/"test_all.bat").read_text(encoding="utf-8")
-    if ("root public .bat count = 479" not in test_all_text or
+    if ("root public .bat count = 480" not in test_all_text or
         "product-family regression 106 assertions" not in test_all_text or
         "SUMMARY: passed=106 failed=0" not in test_all_text or
         ("SUMMARY: passed=96 failed=0" in test_all_text or "SUMMARY: passed=92 failed=0" in test_all_text)):
@@ -264,10 +269,10 @@ def main():
         fail("archive-exclusions.tsv header mismatch")
 
     # Test harness must capture per-invocation elapsed time.
-    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","remaining=","Project: MVS Explorer Toolkit","mvst_project_version=0.17.1"))
+    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","remaining=","Project: MVS Explorer Toolkit","mvst_project_version=0.18.0"))
     if "expected_rc`tactual_rc`telapsed_ms" not in test_all:
         fail("test result TSV does not include elapsed_ms")
-    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","remaining=","Project version:","0.17.1"))
+    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","remaining=","Project version:","0.18.0"))
 
     maintained=(
         "dev/generate_archive_sweep.py","dev/generate_performance_tools.py","dev/generate_report_tools.py",
@@ -288,7 +293,7 @@ def main():
         if not (ROOT/rel).is_file(): fail("missing maintained file: "+rel)
 
     print("PASS: archive sweep/quality/performance static validation")
-    print("public tools: 479 (single=422 compare=19 archive=2 family=34 browser=1 pipeline=1)")
+    print("public tools: 480 (single=422 compare=19 archive=2 family=34 browser=1 gui=1 pipeline=1)")
     print("fast executor: indexed + source-stable + bounded parallel workers + content cache")
     print("analysis: per-dump contributions, quality, re-ID, notes, exclusions, interactive HTML")
     print("supplied archive plan: 34,822 logical checks for 79 snapshots")

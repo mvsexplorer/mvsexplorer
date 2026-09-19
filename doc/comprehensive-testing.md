@@ -1,4 +1,4 @@
-## 0.17.1 recommended production run
+## 0.18.0 recommended production run
 
 For a clean test + database rebuild + database integrity/query sweep + packaging
 run, use the root command:
@@ -12,7 +12,7 @@ logs. The ordinary `test_everything.bat` remains the test-only comprehensive
 gate.
 
 For a previously failed 0.16.0/0.16.1 pipeline where all three databases were
-already built, 0.17.1 can resume validation and packaging without rebuilding:
+already built, 0.18.0 can resume validation and packaging without rebuilding:
 
 ```bat
 all_test_then_all_database_then_test_database_and_all_tools.bat --resume-built archive-db family-db compact-db
@@ -47,7 +47,7 @@ does not print the 79 per-snapshot planning lines. A subsequent production
 archive build prints its own planning pass once because that plan is persisted
 with the generated database.
 
-The current 0.17.1 public regression has 1,105 assertions. The established
+The current 0.18.0 public regression has 1,107 assertions. The established
 baseline includes three data-dependent note exact-match skips on the
 2019-03-19 fixture.
 
@@ -182,7 +182,7 @@ Cached archive runs are useful for frequent catalog validation. Fresh
 
 `test\test_product_family_tools.bat` is an archive-level synthetic regression
 and does not require a real dump argument. It builds the family index from a
-three-snapshot fixture, including one nested `mvs_dmp` layout, then performs 88
+three-snapshot fixture, including one nested `mvs_dmp` layout, then performs 106
 assertions covering normalized output files, hierarchy semantics, false-positive
 guards, exact-title overrides, content-addressed raw notes, every positive
 query wrapper, and every no-result query wrapper.
@@ -191,6 +191,6 @@ The normal `test_all.bat` suite invokes that test once and records one aggregate
 family assertion. `test_everything.bat` therefore exercises the family feature
 through its normal `test_all.bat` stage.
 
-The archive sweep deliberately excludes the 33 family tools from per-snapshot
+The archive sweep deliberately excludes the 34 family tools from per-snapshot
 planning; their semantics require one archive-level index. The established
 legacy plan remains 34,822 logical checks on the known 79-snapshot archive.
