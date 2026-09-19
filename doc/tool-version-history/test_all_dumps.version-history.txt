@@ -1,5 +1,10 @@
 test_all_dumps.bat Version History
 
+0.4.3 - 2026-08-30
+  - Streams fast archive worker progress through Write-Line instead of discarding stdout.
+  - Retains per-snapshot fast archive timing lines in console.log while preserving status-return semantics.
+  - Keeps the 34,822-row logical plan and public-tool interfaces unchanged.
+
 0.4.2 - 2026-08-30
   - Snapshot profiling now recognizes both h1 and historical h3 note headings.
   - Legacy [ID: ...] suffixes are removed before note-title linkage/search selection.

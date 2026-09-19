@@ -1,5 +1,8 @@
 generate_quality_tools.py Version History
 
+0.1.2 - 2026-08-30
+  - Generates check_archive_sweep_quality.bat 0.1.1 with archive-batch outlier reporting.
+
 0.1.1 - 2026-08-30
   - Regenerates test_everything.bat 0.1.1 with safe child-tool argument forwarding.
 

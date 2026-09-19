@@ -1,5 +1,11 @@
 check_archive_sweep_quality.bat Version History
 
+0.1.1 - 2026-08-30
+  - Added explicit archive-scope batch performance outlier detection.
+  - Added performance-archive-outliers.tsv and an advisory one-hour archive-batch threshold.
+  - Reports snapshot, comparison, and archive batch timing separately.
+  - Strict performance mode now also fails on archive-batch outliers.
+
 0.1.0 - 2026-08-30
   - Initial archive ledger/source/evolution integrity checker.
   - Independently validates expected historical SOURCE_MISSING classifications.

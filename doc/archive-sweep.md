@@ -217,8 +217,11 @@ test\fast\run_archive_tools_fast.bat archive-root archive-output-folder
 ```
 
 once, generating both the change-history and all-ever products in one
-streaming pass. Progress is printed once per snapshot. The two logical archive
-rows are appended to `runs.tsv` only after the worker returns success.
+streaming pass. Progress is printed once per snapshot. As of 0.14.3 those
+worker lines are routed through the parent sweep logger, so they are visible
+during the long archive phase and retained in `console.log` rather than being
+discarded. The two logical archive rows are appended to `runs.tsv` only after
+the worker returns success.
 
 `--external-tools` intentionally retains the literal public builders.
 

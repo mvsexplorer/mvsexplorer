@@ -1,5 +1,8 @@
 test_all_dumps.bat
 
+0.4.3 - 2026-08-30
+  - Streams fast archive worker progress into the sweep console/log instead of suppressing stdout.
+
 0.4.2 - 2026-08-30
   - Legacy h3+ID note headings participate in representative note profiling.
   - Current h1 note profiling remains unchanged.

@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone archive sweep harness embeds PowerShell.
 setlocal DisableDelayedExpansion
-set "app.version=0.4.2"
+set "app.version=0.4.3"
 set "app.name=test_all_dumps"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -1031,7 +1031,7 @@ function Invoke-FastArchiveWorker {
         $oldPreference=$ErrorActionPreference
         $ErrorActionPreference='Continue'
         try{
-            & $WorkerPath $ArchiveRoot $ArchiveOutput 1> $null 2> $stderrPath
+            & $WorkerPath $ArchiveRoot $ArchiveOutput 2> $stderrPath | ForEach-Object { Write-Line ([string]$_) }
             if($null -eq $LASTEXITCODE){$rc=0}else{$rc=[int]$LASTEXITCODE}
         }finally{$ErrorActionPreference=$oldPreference}
     }catch{

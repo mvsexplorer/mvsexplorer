@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validation for archive sweep, quality, reporting, and performance helpers.
 
-Version: 0.5.1
+Version: 0.5.2
 """
 from pathlib import Path
 import sys
@@ -55,8 +55,10 @@ def main():
     ))
     if "'index','executor','engine_version','scope','snapshot'" not in text:
         fail("plan engine/executor identity is not serialized")
-    if "& $WorkerPath $ArchiveRoot $ArchiveOutput 1> $null 2> $stderrPath" not in text:
-        fail("fast archive worker stdout is not suppressed before status return")
+    if "& $WorkerPath $ArchiveRoot $ArchiveOutput 1> $null 2> $stderrPath" in text:
+        fail("fast archive worker progress is still suppressed")
+    if "& $WorkerPath $ArchiveRoot $ArchiveOutput 2> $stderrPath | ForEach-Object { Write-Line ([string]$_) }" not in text:
+        fail("fast archive worker progress is not streamed through the sweep logger")
 
     snap=check_batch(ROOT/"test"/"fast"/"run_snapshot_tools_fast.bat",(
         ':_MVSFastSweep_start','mvsf_mode=snapshot','Get-SingleStatus','Read-FastModel',
@@ -80,7 +82,7 @@ def main():
         'per-dump-quality.tsv','variant-id-transitions.tsv','note-versions.tsv',
         'note-observations.tsv','variant_source_ids','note-raw-variants.tsv','per-dump-retention.tsv',
         'suggested-exclusions.tsv','raw-html','noteVersionsSeenThisSnapshot','noteBodiesSeenThisSnapshot',
-        'noteRawSeenThisSnapshot'
+        'noteRawSeenThisSnapshot','$Files.Count -eq 1','BitConverter','New-Object \'string[]\' $Fields.Count'
     ))
     check_batch(ROOT/"test"/"build_archive_html_report.bat",(
         ':_MVSArchiveReport_start','Archive Summary','What This Dump Added','Re-ID / ID Regimes',
@@ -89,8 +91,9 @@ def main():
     ))
     check_batch(ROOT/"test"/"check_archive_sweep_quality.bat",(
         ':_MVSArchiveQuality_start','unexpected SOURCE_MISSING','performance-outliers.tsv',
-        'performance-by-batch.tsv','performance-batch-outliers.tsv','per-dump-retention.tsv',
-        'note_raw_variants_all_ever','summary counter mismatch','strict performance check failed'
+        'performance-by-batch.tsv','performance-batch-outliers.tsv','performance-archive-outliers.tsv',
+        'Archive batch outliers:','per-dump-retention.tsv','note_raw_variants_all_ever',
+        'summary counter mismatch','strict performance check failed'
     ))
     check_batch(ROOT/"test"/"analyze_test_performance.bat",(
         ':_MVSTestPerformance_start','performance-outliers.tsv','performance-by-tool.tsv',
@@ -107,8 +110,8 @@ def main():
         ':_MVSPerformance_start','performance-by-tool.tsv','fast-batches.tsv'
     ))
     fast_test=check_batch(ROOT/"test"/"test_fast_archive_sweep.bat",(
-        'fast-combined 1306 logical checks and archive outputs','--external-tools','--plan-only',
-        '--no-cache','AssertExpectedTree',':AssertMetadataLine',
+        'fast-combined 1306 logical checks and archive outputs','Fast archive snapshot 1/3: mvs_2020-01-01',
+        '--external-tools','--plan-only','--no-cache','AssertExpectedTree',':AssertMetadataLine',
         'Get-Content -LiteralPath $env:mvs_assert_file -Encoding UTF8','Artifacts retained at:'
     ))
     if 'findstr /x /c:"Executor:' in fast_test:

@@ -1,5 +1,8 @@
 test_fast_archive_sweep.bat
 
+0.4.3 - 2026-08-30
+  - Verifies retained fast archive progress in console.log.
+
 0.4.2 - 2026-08-30
   - Uses the extensionless runs.tsv tool key in status assertions.
   - Adds explicit legacy-h3 filtered note-query acceptance.

@@ -199,3 +199,38 @@ warnings to a nonzero quality-check result.
 The one-pass archive worker was also changed from per-line scriptblock callbacks
 to direct buffered `StreamReader` loops. Its runtime should be measured on
 Windows before setting tighter release thresholds.
+
+## 0.14.3 measured archive-builder follow-up
+
+The first clean native 0.14.2 full-archive run supplied the missing measurement.
+With eight snapshot workers, the 79 snapshot batches had a 116.13-second
+median, 173.18-second p95, and 176.742-second maximum. The 78 comparison
+batches together consumed about 25.6 seconds. In contrast,
+`run_archive_tools_fast.bat` consumed 15,224.942 seconds (4 h 13 m 44.942 s).
+
+The archive worker is therefore the dominant remaining wall-time target.
+0.14.3 applies equivalent hot-path substitutions rather than changing the
+evidence model:
+
+- zero- and one-file section states no longer create a PowerShell pipeline and
+  sort solely to construct their state fingerprint;
+- SHA-256 operations reuse one hasher and convert digest bytes with
+  `BitConverter` rather than a per-byte PowerShell pipeline;
+- TSV emission builds a fixed string array directly rather than calling a
+  field-conversion function through an `ArrayList` for every row.
+
+The archive worker's existing per-snapshot timing lines are now routed through
+the parent sweep's `Write-Line`, making them both live console progress and
+persistent `console.log` evidence.
+
+Performance reporting is now scope-aware. `performance-batch-outliers.tsv`
+continues to identify anomalous snapshot batches.
+`performance-archive-outliers.tsv` separately records archive-scope batches
+over the advisory one-hour threshold. The quality summary also reports
+snapshot, comparison, and archive batch distributions separately. Under
+`--strict-performance`, either snapshot or archive batch outliers are errors.
+
+The next fresh 79-snapshot run must compare the archive row in
+`fast-batches.tsv` against 15,224.942 seconds while reproducing the 0.14.2
+logical/evolution baselines exactly.
+

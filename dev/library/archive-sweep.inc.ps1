@@ -929,7 +929,7 @@ function Invoke-FastArchiveWorker {
         $oldPreference=$ErrorActionPreference
         $ErrorActionPreference='Continue'
         try{
-            & $WorkerPath $ArchiveRoot $ArchiveOutput 1> $null 2> $stderrPath
+            & $WorkerPath $ArchiveRoot $ArchiveOutput 2> $stderrPath | ForEach-Object { Write-Line ([string]$_) }
             if($null -eq $LASTEXITCODE){$rc=0}else{$rc=[int]$LASTEXITCODE}
         }finally{$ErrorActionPreference=$oldPreference}
     }catch{

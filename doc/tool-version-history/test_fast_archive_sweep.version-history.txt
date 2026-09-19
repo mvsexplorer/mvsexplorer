@@ -1,5 +1,9 @@
 test_fast_archive_sweep.bat Version History
 
+0.4.3 - 2026-08-30
+  - Verifies that fast archive per-snapshot progress is retained in console.log.
+  - Preserves the 1,306-check synthetic correctness/evolution/quality acceptance chain.
+
 0.4.2 - 2026-08-30
   - Corrected runs.tsv status assertions to use extensionless tool keys.
   - Added a legacy-h3 title-filtered note-record status assertion.

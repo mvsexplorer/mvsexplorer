@@ -1,7 +1,7 @@
 @echo off
 :setup
 setlocal DisableDelayedExpansion
-set "app.version=0.2.0"
+set "app.version=0.3.0"
 set "app.name=run_archive_tools_fast"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -296,9 +296,16 @@ function Add-SectionState {
     param([object]$Model,[string]$Title,[string]$Id,[System.Collections.ArrayList]$Files)
     if($null -eq $Model -or [string]::IsNullOrWhiteSpace($Title)){return}
     $displayTitle=Normalize-Title $Title
-    $parts=[string[]]@($Files | ForEach-Object {[string]$_})
-    [Array]::Sort($parts,[StringComparer]::OrdinalIgnoreCase)
-    $stateKey=$displayTitle.ToLowerInvariant()+[char]0x1f+($parts -join [char]0x1e)
+    if($Files.Count -eq 0){
+        $stateFiles=''
+    } elseif($Files.Count -eq 1) {
+        $stateFiles=[string]$Files[0]
+    } else {
+        [string[]]$parts=$Files.ToArray([string])
+        [Array]::Sort($parts,[StringComparer]::OrdinalIgnoreCase)
+        $stateFiles=$parts -join [char]0x1e
+    }
+    $stateKey=$displayTitle.ToLowerInvariant()+[char]0x1f+$stateFiles
     $Model.section_count=[int64]$Model.section_count+1
     if($Files.Count -eq 0){$Model.zero_file_sections=[int64]$Model.zero_file_sections+1}
     if($Id -match '^\d+$'){$Model.numeric_id_occurrences=[int64]$Model.numeric_id_occurrences+1}
@@ -320,15 +327,14 @@ function Add-SectionState {
     if(-not $Model.exact_section_seen.Add($exactKey)){$Model.exact_duplicate_occurrences=[int64]$Model.exact_duplicate_occurrences+1}
 }
 
+$sha256Hasher=[Security.Cryptography.SHA256]::Create()
+
 function Get-Sha256String {
     param([AllowNull()][AllowEmptyString()][string]$Text)
     if($null -eq $Text){$Text=''}
-    $sha=[Security.Cryptography.SHA256]::Create()
-    try{
-        $bytes=[Text.Encoding]::UTF8.GetBytes($Text)
-        $hash=$sha.ComputeHash($bytes)
-        return -join ($hash | ForEach-Object {$_.ToString('x2')})
-    } finally {$sha.Dispose()}
+    $bytes=[Text.Encoding]::UTF8.GetBytes($Text)
+    $hash=$sha256Hasher.ComputeHash($bytes)
+    return ([BitConverter]::ToString($hash)).Replace('-','').ToLowerInvariant()
 }
 
 function Convert-NoteHtmlToText {
@@ -572,9 +578,12 @@ function New-Utf8Writer {
 
 function Write-TsvLine {
     param([System.IO.StreamWriter]$Writer,[object[]]$Fields)
-    $values=New-Object System.Collections.ArrayList
-    foreach($field in $Fields){[void]$values.Add((Convert-TsvField ([string]$field)))}
-    $Writer.WriteLine((@($values) -join [char]9))
+    $values=New-Object 'string[]' $Fields.Count
+    for($wi=0;$wi-lt$Fields.Count;$wi++){
+        $value=[string]$Fields[$wi]
+        $values[$wi]=$value.Replace("`t",' ').Replace("`r",' ').Replace("`n",' ')
+    }
+    $Writer.WriteLine([string]::Join("`t",$values))
 }
 
 if(@('--help','-h','-?','/h','/?') -contains $ArchiveInput){Show-Usage;exit 0}
@@ -998,6 +1007,7 @@ try{
         'Elapsed milliseconds: '+$sw.ElapsedMilliseconds
     ) -join [Environment]::NewLine
     [IO.File]::WriteAllText((Join-Path $OutputRoot 'fast-archive-summary.txt'),$summary+[Environment]::NewLine,$utf8)
+    $sha256Hasher.Dispose()
     Write-Line ('Fast archive complete: snapshots='+$Snapshots.Count+' added='+$addedCount+' removed='+$removedCount+' all-ever='+$unionRows)
     exit 0
 } catch {
@@ -1006,6 +1016,7 @@ try{
     try{$historyCoverage.Dispose()}catch{}
     try{$allCoverage.Dispose()}catch{}
     foreach($writer in @($domainAddWriter,$contributionWriter,$qualityWriter,$transitionWriter,$noteObservationWriter,$suggestWriter)){try{$writer.Dispose()}catch{}}
+    try{$sha256Hasher.Dispose()}catch{}
     Fail 5 $_.Exception.Message
 }
 :_MVSFastArchive_end

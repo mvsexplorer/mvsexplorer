@@ -1,4 +1,69 @@
-# MVS Explorer Toolkit 0.14.2
+# MVS Explorer Toolkit 0.14.3
+
+## 0.14.3 measured archive-builder performance maintenance
+
+Version 0.14.3 is driven by the first clean native Windows 10 / Windows
+PowerShell 5.1 full-archive acceptance of the 0.14.x architecture. All 443
+public root tools remain byte-for-byte unchanged.
+
+The 0.14.2 full run completed the complete 34,822-row logical plan with:
+
+- `PASS=33903`
+- `NO_RESULT=574`
+- `SOURCE_MISSING=345`
+- `FAIL=0`
+
+All 345 `SOURCE_MISSING` rows were the historically expected source-coverage
+cases; there were zero unexpected missing-source classifications. The public
+regression was also clean at 1,053 pass / 0 fail / 3 data-dependent skips, and
+the synthetic fast archive acceptance was 3 pass / 0 fail.
+
+That run exposed one dominant remaining performance cost. The 79 parallel
+snapshot batches had a 116.13-second median and 176.742-second maximum, while
+the combined archive-history/evolution worker alone took 15,224.942 seconds
+(4 h 13 m 44.942 s). The old quality checker reported that maximum but only
+classified snapshot-scope batch outliers, so the archive bottleneck was not
+itself flagged.
+
+0.14.3 therefore makes three focused archive-layer changes without changing
+the logical plan or archive evidence model:
+
+- archive-worker progress is streamed through the sweep logger instead of
+  being discarded, so `Fast archive snapshot N/79` timing lines are visible
+  live and retained in `console.log`;
+- the archive worker removes several PowerShell-heavy hot paths while
+  preserving the same keys and outputs: zero/one-file section states avoid a
+  pipeline/sort, SHA-256 hashing reuses one hasher and uses `BitConverter`
+  rather than a per-byte PowerShell pipeline, and TSV rows avoid per-field
+  helper/ArrayList construction;
+- the quality checker now reports snapshot, comparison, and archive batch
+  timing separately and emits `performance-archive-outliers.tsv`; an archive
+  batch over one hour is an advisory performance warning (or an error under
+  `--strict-performance`).
+
+The 0.14.2 result archive also established the real historical evidence
+baseline used to verify future optimized runs: 572,143 added records, 474,501
+removed records, 648,293 all-ever source-local records, 12,103 product states,
+100,139 variant states, 3,974 note versions, 820 note bodies, and 6,210
+title/body/raw-markup note variants.
+
+Validate 0.14.3 first with:
+
+```bat
+test\test_fast_archive_sweep.bat
+test\test_everything.bat ..\mvs_dumps_archive
+```
+
+After both pass, benchmark the fresh real archive with:
+
+```bat
+test\test_everything.bat ..\mvs_dumps_archive --full-archive --workers 8
+```
+
+The primary performance comparison is the `archive` row in
+`fast-batches.tsv`; the logical counts and evolution totals above must remain
+unchanged.
+
 
 ## 0.14.2 Windows acceptance-harness maintenance
 

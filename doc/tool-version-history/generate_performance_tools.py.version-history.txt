@@ -1,5 +1,9 @@
 generate_performance_tools.py Version History
 
+0.3.3 - 2026-08-30
+  - Generates run_archive_tools_fast.bat 0.3.0 with measured hot-path optimizations.
+  - Generates the 0.4.3 fast archive acceptance test with progress-retention coverage.
+
 0.3.2 - 2026-08-30
   - Regenerates test_fast_archive_sweep.bat 0.4.2 with corrected runs.tsv tool-key assertions.
 

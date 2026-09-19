@@ -1,7 +1,7 @@
 @echo off
 :setup
 setlocal DisableDelayedExpansion
-set "app.version=0.1.0"
+set "app.version=0.1.1"
 set "app.name=check_archive_sweep_quality"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -341,12 +341,19 @@ if($StrictPerformance-and$outliers.Count-gt0){[void]$errors.Add('strict performa
 
 $batchPath=Join-Path $Results 'fast-batches.tsv'
 $batchSummary=''
+$singleBatchSummary=''
+$compareBatchSummary=''
+$archiveBatchSummary=''
 $batchOutliers=@()
+$archiveBatchOutliers=@()
+$archiveThreshold=3600000.0
 if(Test-Path -LiteralPath $batchPath -PathType Leaf){
     $b=@(Import-Csv -LiteralPath $batchPath -Delimiter "`t")
     $success=@($b|Where-Object{[string]$_.rc-eq'0'})
     $vals=[double[]]@($success|ForEach-Object{[double]$_.elapsed_ms})
-    $batchSummary='successful_batches='+$success.Count+' median_seconds='+[math]::Round((Median $vals)/1000.0,2)+' p95_seconds='+[math]::Round((Percentile $vals 0.95)/1000.0,2)+' max_seconds='+[math]::Round((Percentile $vals 1.0)/1000.0,2)
+    if($vals.Count-gt0){
+        $batchSummary='successful_batches='+$success.Count+' median_seconds='+[math]::Round((Median $vals)/1000.0,2)+' p95_seconds='+[math]::Round((Percentile $vals 0.95)/1000.0,2)+' max_seconds='+[math]::Round((Percentile $vals 1.0)/1000.0,2)
+    }
 
     $batchWriter=New-Object Text.StringBuilder
     [void]$batchWriter.Append("scope`tsnapshot`tnext_snapshot`tlogical_checks`tworker`telapsed_ms`telapsed_seconds`trc`n")
@@ -358,6 +365,9 @@ if(Test-Path -LiteralPath $batchPath -PathType Leaf){
     $singleSuccess=@($success|Where-Object{[string]$_.scope-eq'single'})
     $singleVals=[double[]]@($singleSuccess|ForEach-Object{[double]$_.elapsed_ms})
     $singleMedian=Median $singleVals
+    if($singleVals.Count-gt0){
+        $singleBatchSummary='successful_batches='+$singleSuccess.Count+' median_seconds='+[math]::Round($singleMedian/1000.0,2)+' p95_seconds='+[math]::Round((Percentile $singleVals 0.95)/1000.0,2)+' max_seconds='+[math]::Round((Percentile $singleVals 1.0)/1000.0,2)
+    }
     $batchThreshold=[math]::Max(60000.0,3.0*$singleMedian)
     $batchOutliers=@($singleSuccess|Where-Object{[double]$_.elapsed_ms-gt$batchThreshold}|Sort-Object {[double]$_.elapsed_ms} -Descending)
     $batchOutWriter=New-Object Text.StringBuilder
@@ -368,6 +378,27 @@ if(Test-Path -LiteralPath $batchPath -PathType Leaf){
     Write-Utf8 (Join-Path $out 'performance-batch-outliers.tsv') $batchOutWriter.ToString()
     if($batchOutliers.Count-gt0){[void]$warnings.Add('snapshot batch performance outliers: '+$batchOutliers.Count)}
     if($StrictPerformance-and$batchOutliers.Count-gt0){[void]$errors.Add('strict performance check failed: '+$batchOutliers.Count+' snapshot batch outliers')}
+
+    $compareSuccess=@($success|Where-Object{[string]$_.scope-eq'compare'})
+    $compareVals=[double[]]@($compareSuccess|ForEach-Object{[double]$_.elapsed_ms})
+    if($compareVals.Count-gt0){
+        $compareBatchSummary='successful_batches='+$compareSuccess.Count+' median_seconds='+[math]::Round((Median $compareVals)/1000.0,2)+' p95_seconds='+[math]::Round((Percentile $compareVals 0.95)/1000.0,2)+' max_seconds='+[math]::Round((Percentile $compareVals 1.0)/1000.0,2)
+    }
+
+    $archiveSuccess=@($success|Where-Object{[string]$_.scope-eq'archive'})
+    $archiveVals=[double[]]@($archiveSuccess|ForEach-Object{[double]$_.elapsed_ms})
+    if($archiveVals.Count-gt0){
+        $archiveBatchSummary='successful_batches='+$archiveSuccess.Count+' median_seconds='+[math]::Round((Median $archiveVals)/1000.0,2)+' p95_seconds='+[math]::Round((Percentile $archiveVals 0.95)/1000.0,2)+' max_seconds='+[math]::Round((Percentile $archiveVals 1.0)/1000.0,2)
+    }
+    $archiveBatchOutliers=@($archiveSuccess|Where-Object{[double]$_.elapsed_ms-gt$archiveThreshold}|Sort-Object {[double]$_.elapsed_ms} -Descending)
+    $archiveOutWriter=New-Object Text.StringBuilder
+    [void]$archiveOutWriter.Append("scope`tsnapshot`tlogical_checks`tworker`telapsed_ms`tthreshold_ms`treason`n")
+    foreach($row in $archiveBatchOutliers){
+        [void]$archiveOutWriter.Append((Tsv $row.scope)+"`t"+(Tsv $row.snapshot)+"`t"+(Tsv $row.logical_checks)+"`t"+(Tsv $row.worker)+"`t"+(Tsv $row.elapsed_ms)+"`t"+([math]::Round($archiveThreshold,2))+"`tarchive batch > 1 hour`n")
+    }
+    Write-Utf8 (Join-Path $out 'performance-archive-outliers.tsv') $archiveOutWriter.ToString()
+    if($archiveBatchOutliers.Count-gt0){[void]$warnings.Add('archive batch performance outliers: '+$archiveBatchOutliers.Count)}
+    if($StrictPerformance-and$archiveBatchOutliers.Count-gt0){[void]$errors.Add('strict performance check failed: '+$archiveBatchOutliers.Count+' archive batch outliers')}
 }
 
 $summary=@(
@@ -385,8 +416,12 @@ $summary=@(
     'Quality-flagged dumps: '+$flagRows.Count,
     'Performance outliers: '+$outliers.Count,
     'Snapshot batch outliers: '+$batchOutliers.Count,
+    'Archive batch outliers: '+$archiveBatchOutliers.Count,
     'Performance strict: '+$StrictPerformance,
     'Batch performance: '+$batchSummary,
+    'Snapshot batch performance: '+$singleBatchSummary,
+    'Compare batch performance: '+$compareBatchSummary,
+    'Archive batch performance: '+$archiveBatchSummary,
     'Warnings: '+$warnings.Count,
     'Errors: '+$errors.Count
 )

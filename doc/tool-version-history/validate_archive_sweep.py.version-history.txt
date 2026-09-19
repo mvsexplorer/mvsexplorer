@@ -1,5 +1,9 @@
 validate_archive_sweep.py Version History
 
+0.5.2 - 2026-08-30
+  - Requires streamed fast archive progress instead of stdout suppression.
+  - Guards the archive-worker hot-path optimizations and archive-scope performance outlier report.
+
 0.5.1 - 2026-08-30
   - Requires extensionless fast runs.tsv tool-key assertions.
   - Requires legacy h1/h3 note profiling and legacy ID-suffix stripping.

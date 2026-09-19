@@ -1,5 +1,8 @@
 generate_archive_sweep.py Version History
 
+0.4.3 - 2026-08-30
+  - Generates test_all_dumps.bat 0.4.3 with live/retained fast archive progress.
+
 0.4.2 - 2026-08-30
   - Generates archive sweep 0.4.2 with h1/h3 representative note profiling.
 

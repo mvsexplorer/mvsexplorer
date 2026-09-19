@@ -1,5 +1,11 @@
 run_archive_tools_fast.bat Version History
 
+0.3.0 - 2026-08-30
+  - Optimized section-state construction for zero/one-file sections without changing state keys.
+  - Reused one SHA-256 hasher and replaced per-byte PowerShell hex formatting with BitConverter.
+  - Reduced TSV row-emission overhead while preserving escaping and column formats.
+  - Driven by a measured 0.14.2 full-archive baseline of 15,224.942 seconds.
+
 0.2.0 - 2026-08-30
   - Added direct buffered source parsing for archive-wide evolution analysis.
   - Added 19-domain first-seen additions, per-dump retention, quality, re-ID, product/variant states, and versioned notes.

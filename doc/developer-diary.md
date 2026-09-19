@@ -415,3 +415,40 @@ snapshot argument was lost before `test_all.bat` was invoked.
 0.14.2 fixes both acceptance-harness defects and also brings the archive
 representative-note profiler in line with the existing historical-note model
 by recognizing h3+ID headings as well as h1 headings.
+
+## 2026-08-30 — 0.14.2 full archive acceptance isolated the archive builder
+
+The first complete native 0.14.2 full-archive run was clean end to end:
+34,822/34,822 logical checks, `PASS=33903`, `NO_RESULT=574`,
+`SOURCE_MISSING=345`, and `FAIL=0`. The quality checker independently
+confirmed that all 345 missing-source rows were historically expected.
+
+The parallel snapshot executor is no longer the dominant wall-time problem.
+Across 79 snapshot batches the median was 116.13 seconds and the maximum was
+176.742 seconds; all 78 comparison batches together consumed only about
+25.6 seconds. The combined archive-history/evolution worker took
+15,224.942 seconds (4 h 13 m 44.942 s), making it the clear next optimization
+target.
+
+The worker had already emitted per-snapshot timing lines, but
+`Invoke-FastArchiveWorker` redirected stdout to `$null`. That made the
+four-hour phase look hung even while files were being created. 0.14.3 routes
+those lines through the sweep logger so they are visible and retained.
+
+Inspection of the worker also found PowerShell-heavy inner-loop operations that
+are safe to remove without changing evidence semantics: section-state
+construction used a pipeline and sort even for the overwhelmingly common
+zero/one-file cases; SHA-256 formatting used a PowerShell per-byte pipeline and
+created a hasher per call; and every TSV field passed through an extra helper
+and ArrayList. 0.14.3 replaces those paths with equivalent .NET operations.
+
+The quality checker itself had a blind spot: it reported the 15,224.94-second
+maximum but only classified `single`-scope fast batches as batch outliers.
+0.14.3 adds an explicit archive-scope outlier report and separate per-scope
+batch summaries.
+
+The completed evidence outputs provide the regression baseline for the next
+performance run: 572,143 added records, 474,501 removed records, 648,293
+all-ever source-local records, 12,103 product states, 100,139 variant states,
+3,974 note versions, 820 note bodies, and 6,210 title/body/raw note variants.
+

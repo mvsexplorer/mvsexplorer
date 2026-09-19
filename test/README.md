@@ -162,6 +162,29 @@ them and print their exact locations together with summary/run-info/log
 contents.
 
 
+### 0.14.3 full-archive performance follow-up
+
+The first clean 0.14.2 native full-archive run completed all 34,822 logical
+checks with `FAIL=0` and exactly 345 historically expected `SOURCE_MISSING`
+rows. The remaining dominant cost was the combined archive builder:
+`run_archive_tools_fast.bat` took 15,224.942 seconds.
+
+0.14.3 streams that worker's existing `Fast archive snapshot N/79` lines into
+both the console and `console.log`, applies targeted hot-path optimizations,
+and adds `quality-check\performance-archive-outliers.tsv`. The quality summary
+now reports snapshot, comparison, and archive batch timing separately. An
+archive batch over one hour is advisory unless `--strict-performance` is used.
+
+For the next fresh comparison use:
+
+```bat
+test\test_everything.bat ..\mvs_dumps_archive --full-archive --workers 8
+```
+
+Compare the `archive` row in `fast-batches.tsv` with the 0.14.2 baseline of
+15,224.942 seconds, while verifying the logical and evolution counts are
+unchanged.
+
 ### 0.14.2 native acceptance maintenance
 
 The 0.14.1 native fast sweep proved the metadata fix and completed 1,306/1,306

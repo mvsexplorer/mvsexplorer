@@ -1,5 +1,16 @@
 MVS Explorer Toolkit Project Version History
 
+0.14.3 - 2026-08-30
+  - Performance-maintenance release driven by the completed native 0.14.2 79-snapshot acceptance run.
+  - Kept all 443 public root tools byte-for-byte identical to 0.14.2.
+  - Recorded 34,822/34,822 logical checks with PASS=33903, NO_RESULT=574, SOURCE_MISSING=345, FAIL=0 and zero unexpected missing-source rows.
+  - Recorded public regression 1053 pass / 0 fail / 3 skip and synthetic fast acceptance 3 pass / 0 fail.
+  - Identified run_archive_tools_fast.bat as the dominant measured bottleneck at 15,224.942 seconds (4 h 13 m 44.942 s).
+  - Streamed fast archive per-snapshot progress through the archive sweep logger and retained it in console.log.
+  - Optimized zero/one-file section-state construction, SHA-256 hex conversion/hasher reuse, and TSV row emission in the archive worker without changing evidence keys.
+  - Added archive-scope performance outlier detection and performance-archive-outliers.tsv; snapshot, comparison, and archive batch timings are now summarized separately.
+  - Recorded the full real-archive evolution baseline: 572143 added, 474501 removed, 648293 source-local all-ever, 12103 product states, 100139 variant states, 3974 note versions, 820 note bodies, and 6210 note raw variants.
+
 0.14.2 - 2026-08-30
   - Maintenance release driven by native Windows 10 / Windows PowerShell 5.1 acceptance results from 0.14.1.
   - Kept all 443 public root tools byte-for-byte identical to 0.14.1.

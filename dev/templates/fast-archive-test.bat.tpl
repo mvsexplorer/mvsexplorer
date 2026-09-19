@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
-set "app.version=0.4.2"
+set "app.version=0.4.3"
 set "root=%~dp0"
 set "fixture=%root%test-mvs-dump-history"
 set "tag=%RANDOM%%RANDOM%"
@@ -64,6 +64,12 @@ if errorlevel 1 (
   exit /b 1
 )
 echo [PASS] fast-combined 1306 logical checks and archive outputs
+findstr /c:"Fast archive snapshot 1/3: mvs_2020-01-01" "%fastout%\console.log" >nul
+if errorlevel 1 (
+  echo [FAIL] fast archive progress not retained in console.log
+  call :ShowFailure "%fastout%"
+  exit /b 1
+)
 
 if not exist "%fastout%\archive-output\evolution\per-dump-contributions.tsv" (
   echo [FAIL] evolution per-dump contribution output missing
