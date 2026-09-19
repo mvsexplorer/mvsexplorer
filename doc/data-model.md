@@ -151,7 +151,7 @@ edge independently.
 for this family because its headings are variant/display titles.
 
 
-## Complete single-dump entity model (0.9.1)
+## Complete single-dump entity model (0.9.2)
 
 ```text
 Dump

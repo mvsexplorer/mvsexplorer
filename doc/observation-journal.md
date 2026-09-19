@@ -226,3 +226,16 @@ By contrast, `mvs_2020-09-23` has 46,868 sections but only 1,965 distinct
 Therefore neither universal claim is safe: the field is not always a product
 ID, but it can become product-like in later dump generations. Preserve the
 source value and measure/derive relationships per dump.
+
+
+### Empty collections are not neutral PowerShell function return values
+
+A function that directly returns an empty collection can emit zero pipeline
+objects. The caller can therefore receive `$null` rather than an empty
+collection, and a later method call such as `.Add()` fails.
+
+For helper factories that must return a mutable collection object, suppress
+enumeration explicitly (for example with unary comma) or construct the
+collection directly at the assignment site. Static validation should encode
+this requirement when the helper is injected into hundreds of standalone
+tools.

@@ -1,5 +1,22 @@
 MVS Explorer Toolkit Project Version History
 
+0.9.2 - 2026-08-27
+  - Analyzed the supplied Windows 0.9.1 full run on mvs_2019-10-16:
+    762 passed, 166 failed, 3 data-dependent note skips.
+  - Confirmed the 0.9.0 PowerShell parse-time defect is fixed: all new tools
+    now compile, but all 166 single-dump behavioral checks reached the same
+    runtime null-method failure.
+  - Identified PowerShell collection enumeration in New-ArrayList: returning
+    a bare empty ArrayList emitted no object and assigned $null to callers.
+  - Changed New-ArrayList to return the collection as one object with unary
+    comma.
+  - Regenerated all 154 single-dump tools as version 0.1.2.
+  - Added static and test-harness structure guards for the non-enumerating
+    ArrayList return.
+  - Bumped the seven test entry points to 0.6.2.
+  - Public standalone tool count remains 422; full suite remains 931
+    assertions.
+
 0.9.1 - 2026-08-27
   - Analyzed two supplied Windows 0.9.0 runs.
   - Confirmed all 166 completed-run single-dump failures share one

@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.6.1"
+set "app.version=0.6.2"
 set "app.name=test_scalar_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -924,6 +924,9 @@ function Test-Structure {
         }
         if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start') -and -not $text.Contains(':_MVSRelationship_start') -and -not $text.Contains(':_MVSSingleDump_start')) { [void]$problems.Add('missing injected PowerShell block') }
         if ($text.Contains('dev\library') -or $text.Contains('generate_tools.py')) { [void]$problems.Add('development runtime dependency reference') }
+        if ($text.Contains(':_MVSSingleDump_start') -and -not $text.Contains('return ,(New-Object System.Collections.ArrayList)')) {
+            [void]$problems.Add('single-dump New-ArrayList can collapse empty collection to null')
+        }
         if ($problems.Count -eq 0) { Write-Pass ('standalone ' + $name) } else { Write-Fail ('standalone ' + $name) ($problems -join ', ') }
     }
 }

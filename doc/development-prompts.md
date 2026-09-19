@@ -1522,3 +1522,19 @@ The exact persisted test artifacts are analyzed in
 `doc\test-run-analysis-0.9.0.md`; the uploaded archive contains the full
 console logs and per-failure stderr files.
 
+## Prompt 15
+
+```text
+here are the results
+
+[Complete Windows 0.9.1 test_all console transcript supplied for
+ mvs_2019-10-16.]
+
+SUMMARY: passed=762 failed=166 skipped=3
+Results: C:\Users\user\Downloads\MVS-Explorer-Toolkit-0.9.1\test\test-results-20260827-173744
+```
+
+All 166 single-dump failures in the supplied transcript reported return code 5
+and `ERROR: You cannot call a method on a null-valued expression.` The
+transcript is analyzed in `doc\test-run-analysis-0.9.1.md`.
+

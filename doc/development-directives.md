@@ -194,3 +194,8 @@ These directives are distilled from the user's project prompts.
 131. Preserve `mvs_names.txt` IDs as trimmed source text; do not cast them to integers.
 132. Variant `..._from_id` queries compare source IDs case-insensitively as text; product `..._from_id` queries remain numeric.
 133. Synthetic variant fixtures must use IDs outside the product-ID domain, including an alphanumeric ID and a hyphenated ID.
+
+134. PowerShell helper functions that return empty mutable collections must suppress collection enumeration so callers receive the collection object, not `$null`.
+135. The shared single-dump `New-ArrayList` helper must use a non-enumerating return form and generated-tool validation must enforce it.
+136. A Windows failure shared by every tool in one generated family should first be treated as a common injected-runtime defect before individual operation logic is changed.
+

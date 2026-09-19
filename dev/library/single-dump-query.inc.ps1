@@ -105,7 +105,9 @@ function Get-Algorithm {
 }
 
 function New-ArrayList {
-    return (New-Object System.Collections.ArrayList)
+    # A bare empty collection produces no pipeline output in PowerShell.
+    # Unary comma emits the ArrayList object itself, so callers never receive $null.
+    return ,(New-Object System.Collections.ArrayList)
 }
 
 function Add-Unparsed {

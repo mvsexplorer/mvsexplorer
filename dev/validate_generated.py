@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validator for generated public batch files.
 
-Version: 0.4.1
+Version: 0.4.2
 """
 from pathlib import Path
 import collections
@@ -39,6 +39,8 @@ def main():
                 issues.append(f"{path.name}: missing textual mvs_names ID parser")
             if "$match = Matches-Exact $row.id $Needle" not in text:
                 issues.append(f"{path.name}: missing textual variant ID matcher")
+            if "return ,(New-Object System.Collections.ArrayList)" not in text:
+                issues.append(f"{path.name}: New-ArrayList may collapse empty collection to null")
         labels = []
         for line in text.splitlines():
             if re.match(r"^:[A-Za-z_]", line):

@@ -343,3 +343,29 @@ mvs_names.txt
 ```
 
 Variant-source ID matching is case-insensitive textual equality.
+
+## 32. Returning mutable collections from helper functions
+
+PowerShell enumerates normal function output. A newly constructed empty
+collection therefore must not be returned bare when callers expect the
+collection object itself.
+
+Unsafe for an empty `ArrayList`:
+
+```text
+function New-ArrayList {
+    return (New-Object System.Collections.ArrayList)
+}
+```
+
+Required pattern:
+
+```text
+function New-ArrayList {
+    return ,(New-Object System.Collections.ArrayList)
+}
+```
+
+The unary comma suppresses enumeration of the returned collection. Generated
+single-dump tools must be statically checked for this requirement.
+

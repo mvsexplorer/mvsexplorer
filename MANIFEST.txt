@@ -1,17 +1,15 @@
-MVS Explorer Toolkit 0.9.1
+MVS Explorer Toolkit 0.9.2
 Public standalone batch tools: 422
   unchanged pre-0.9.0 Windows-tested tools: 268
-  regenerated single-dump tools: 154 (tool version 0.1.1)
-Standalone automated test batch files: 7 (test version 0.6.1)
-Single-dump synthetic fixture: test\test-mvs-dump-single-complete\
+  regenerated single-dump tools: 154 (tool version 0.1.2)
+Standalone automated test batch files: 7 (test version 0.6.2)
+Single-dump synthetic fixture: test\test-mvs-dump-single-complete\\
 Fixed single-dump expected outputs: 154
 Expected full-suite assertions: 931
 Independent real-dump reference summaries: 2
 Tool/development version-history files: 441
 
 Files:
-README.md
-dev/README.md
 dev/__pycache__/generate_diagnostic_fixture.cpython-313.pyc
 dev/__pycache__/generate_diagnostic_tools.cpython-313.pyc
 dev/__pycache__/generate_expected_diagnostic_outputs.cpython-313.pyc
@@ -44,6 +42,7 @@ dev/library/relationship-query.inc.ps1
 dev/library/scalar-query.inc.ps1
 dev/library/single-dump-query.inc.ps1
 dev/library/test-harness.inc.ps1
+dev/README.md
 dev/relationship-tool-spec.json
 dev/single-dump-tool-spec.json
 dev/templates/diagnostic.bat.tpl
@@ -82,6 +81,7 @@ doc/test-run-analysis-0.6.0.md
 doc/test-run-analysis-0.7.0.md
 doc/test-run-analysis-0.8.0.md
 doc/test-run-analysis-0.9.0.md
+doc/test-run-analysis-0.9.1.md
 doc/tool-catalog.tsv
 doc/tool-version-history/find_mvs_duplicate_date_in_mvs_date.txt.version-history.txt
 doc/tool-version-history/find_mvs_duplicate_date_in_mvs_dates.txt.version-history.txt
@@ -947,7 +947,7 @@ read_mvs_unparsed_lines_in_mvs.txt.bat
 read_mvs_unparsed_lines_in_mvs_dates.txt.bat
 read_mvs_unparsed_lines_in_mvs_ids.txt.bat
 read_mvs_unparsed_lines_in_mvs_names.txt.bat
-test/README.md
+README.md
 test/expected-diagnostics/find_mvs_duplicate_date_in_mvs_date.txt.expected.txt
 test/expected-diagnostics/find_mvs_duplicate_date_in_mvs_dates.txt.expected.txt
 test/expected-diagnostics/find_mvs_duplicate_filename_in_mvs.txt.expected.txt
@@ -1293,8 +1293,8 @@ test/expected-single-dump/read_mvs_unparsed_lines_in_mvs.txt.expected.txt
 test/expected-single-dump/read_mvs_unparsed_lines_in_mvs_dates.txt.expected.txt
 test/expected-single-dump/read_mvs_unparsed_lines_in_mvs_ids.txt.expected.txt
 test/expected-single-dump/read_mvs_unparsed_lines_in_mvs_names.txt.expected.txt
+test/README.md
 test/test-mvs-dump-diagnostics/EXPECTED-FINDINGS.txt
-test/test-mvs-dump-diagnostics/README.txt
 test/test-mvs-dump-diagnostics/mvs.sha1
 test/test-mvs-dump-diagnostics/mvs.sha256
 test/test-mvs-dump-diagnostics/mvs.txt
@@ -1302,16 +1302,15 @@ test/test-mvs-dump-diagnostics/mvs_dates.txt
 test/test-mvs-dump-diagnostics/mvs_ids.txt
 test/test-mvs-dump-diagnostics/mvs_names.txt
 test/test-mvs-dump-diagnostics/mvs_notes.html
-test/test-mvs-dump-relationships/README.txt
-test/test-mvs-dump-relationships/TEST-VALUES.txt
+test/test-mvs-dump-diagnostics/README.txt
 test/test-mvs-dump-relationships/mvs.sha1
 test/test-mvs-dump-relationships/mvs.sha256
 test/test-mvs-dump-relationships/mvs.txt
 test/test-mvs-dump-relationships/mvs_dates.txt
 test/test-mvs-dump-relationships/mvs_ids.txt
 test/test-mvs-dump-relationships/mvs_notes.html
-test/test-mvs-dump-single-complete/README.txt
-test/test-mvs-dump-single-complete/TEST-VALUES.txt
+test/test-mvs-dump-relationships/README.txt
+test/test-mvs-dump-relationships/TEST-VALUES.txt
 test/test-mvs-dump-single-complete/mvs.sha1
 test/test-mvs-dump-single-complete/mvs.sha256
 test/test-mvs-dump-single-complete/mvs.txt
@@ -1319,6 +1318,8 @@ test/test-mvs-dump-single-complete/mvs_dates.txt
 test/test-mvs-dump-single-complete/mvs_ids.txt
 test/test-mvs-dump-single-complete/mvs_names.txt
 test/test-mvs-dump-single-complete/mvs_notes.html
+test/test-mvs-dump-single-complete/README.txt
+test/test-mvs-dump-single-complete/TEST-VALUES.txt
 test/test_all.bat
 test/test_diagnostic_tools.bat
 test/test_lookup_tools.bat

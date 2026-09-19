@@ -2,7 +2,7 @@
 
 ## Scope
 
-The 0.9.1 single-dump layer makes each source-level entity inside one extracted dump
+The 0.9.2 single-dump layer makes each source-level entity inside one extracted dump
 queryable before cross-dump comparison begins.
 
 ### Product

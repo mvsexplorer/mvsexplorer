@@ -1,5 +1,9 @@
 Tool Version History: dev\validate_generated.py
 
+0.4.2 - 2026-08-27
+  - Rejects generated single-dump tools whose New-ArrayList helper can
+    collapse an empty collection to null through PowerShell output enumeration.
+
 0.4.1 - 2026-08-27
   - Rejects the parser-sensitive single-dump section array form exposed by
     the Windows PowerShell 5.1 0.9.0 run.

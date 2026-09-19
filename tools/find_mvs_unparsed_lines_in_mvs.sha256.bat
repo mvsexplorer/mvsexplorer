@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone single-dump tool embeds PowerShell.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.1"
+set "app.version=0.1.2"
 set "app.name=find_mvs_unparsed_lines_in_mvs.sha256"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -207,7 +207,9 @@ function Get-Algorithm {
 }
 
 function New-ArrayList {
-    return (New-Object System.Collections.ArrayList)
+    # A bare empty collection produces no pipeline output in PowerShell.
+    # Unary comma emits the ArrayList object itself, so callers never receive $null.
+    return ,(New-Object System.Collections.ArrayList)
 }
 
 function Add-Unparsed {

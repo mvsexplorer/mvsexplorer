@@ -327,3 +327,14 @@ array literals.
 
 Static generation checks should encode any concrete parser regression exposed
 by an external Windows test run.
+
+## 31. PowerShell collection factory returns
+
+When an embedded PowerShell helper constructs an empty mutable collection and
+the caller will invoke methods on it, the helper must return the collection as
+one object rather than allow pipeline enumeration to collapse it to no output.
+
+For the shared single-dump runtime, `New-ArrayList` uses unary comma on return.
+Release validation must reject generated single-dump tools that omit this
+behavior.
+

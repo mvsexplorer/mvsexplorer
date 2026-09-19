@@ -1,4 +1,4 @@
-# MVS Explorer Toolkit 0.9.1
+# MVS Explorer Toolkit 0.9.2
 
 MVS Explorer Toolkit is a growing collection of console tools for exploring MVS dump snapshots, intended to culminate in the graphical **MVS Explorer** application.
 
@@ -425,6 +425,43 @@ The 0.9.1 full suite expects **931 assertions** before any data-dependent skips
 from the supplied real dump.
 
 
+
+## 0.9.2 ArrayList runtime bugfix
+
+The first Windows 0.9.1 full run proved that the 0.9.0 parse-time failure was
+fixed: the embedded single-dump script now compiles. It also exposed the next
+shared-runtime defect. All 166 single-dump behavioral checks failed with return
+code 5 and the same stderr:
+
+```text
+ERROR: You cannot call a method on a null-valued expression.
+```
+
+The cause was `New-ArrayList`. Returning a bare empty
+`System.Collections.ArrayList` from a PowerShell function emits no pipeline
+objects, so callers receive `$null`. The first subsequent `.Add()` therefore
+fails.
+
+0.9.2 makes the helper return the collection itself as one object:
+
+```text
+return ,(New-Object System.Collections.ArrayList)
+```
+
+All 154 single-dump tools were regenerated as tool version 0.1.2. The 268
+pre-0.9.0 public tools remain unchanged. The test harness structure check and
+the static release validator now both reject a single-dump runtime that lacks
+this non-enumerating collection return.
+
+The full test matrix remains 931 assertions. For `mvs_2019-10-16`, three exact
+note lookups are data-dependent skips, so the expected clean result is:
+
+```text
+SUMMARY: passed=928 failed=0 skipped=3
+```
+
+Windows runtime execution is still required to confirm this release.
+
 ## 0.9.1 parser bugfix
 
 The first real Windows 0.9.0 executions exposed a Windows PowerShell 5.1 parser
@@ -475,5 +512,5 @@ integrity.unparsed.total: 0
 ```
 
 These files are reference outputs from the independent Python parser. The
-actual standalone Windows batch runtime still requires the external 0.9.1
+actual standalone Windows batch runtime still requires the external 0.9.2
 Windows test run.

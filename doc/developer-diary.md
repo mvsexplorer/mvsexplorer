@@ -236,3 +236,19 @@ preserved as trimmed text.
 
 The synthetic fixture now deliberately uses a separate alphanumeric/hyphenated
 variant-source ID domain.
+
+
+## 2026-08-27 — 0.9.1 compiled, then failed on empty collection return
+
+The external 0.9.1 run moved the failure boundary forward exactly one stage:
+the embedded block now compiled, but every one of the 166 single-dump
+behavioral assertions failed with rc 5 and `You cannot call a method on a
+null-valued expression.`
+
+The shared `New-ArrayList` helper returned a newly constructed but empty
+ArrayList directly. PowerShell function output enumeration turned that empty
+collection into zero pipeline objects, so assignments received `$null`.
+
+The 0.9.2 repair uses unary comma to emit the collection object itself. The
+repair is again made only in maintained shared source and regenerated into all
+154 standalone single-dump tools. Existing output expectations do not change.
