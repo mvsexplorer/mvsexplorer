@@ -1,0 +1,14 @@
+Tool Version History: find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_names.txt.bat
+
+Purpose
+  Find ID occurrences in mvs_dates.txt absent from mvs_names.txt.
+  Source: mvs_dates.txt
+  Target: mvs_names.txt
+  Output: human-readable diagnostic findings; no findings = no stdout
+  Return on successful scan: 0
+
+0.1.0 - 2026-08-27
+  - Initial version.
+  - Generated as a fully standalone diagnostic tool.
+  - Contains injected batch and PowerShell implementation.
+  - Preserves source context appropriate to mvs_dates.txt.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validator for generated public batch files.
 
-Version: 0.1.0
+Version: 0.2.0
 """
 from pathlib import Path
 import collections
@@ -23,7 +23,7 @@ def main():
         for label in (":setup", ":main", ":end", ":RunPowerShellFromLabel", ":SetErrorLevel"):
             if label not in text:
                 issues.append(f"{path.name}: missing {label}")
-        if ":_MVSQuery_start" not in text and ":_MVSLookup_start" not in text:
+        if ":_MVSQuery_start" not in text and ":_MVSLookup_start" not in text and ":_MVSDiagnostic_start" not in text:
             issues.append(f"{path.name}: missing embedded PowerShell block")
         if "dev\\library" in text or "generate_tools.py" in text:
             issues.append(f"{path.name}: development dependency leaked into runtime")

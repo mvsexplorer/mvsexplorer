@@ -84,3 +84,46 @@ TEST RESULT DIRECTORY
     scalar-results.tsv
     lookup-results.tsv
     failures\
+
+
+DUPLICATE DIAGNOSTICS
+  find_mvs_duplicate_<property>_in_<source>.bat dump-folder
+
+  Properties currently covered:
+    ID
+    TITLE
+    DATE
+    FILENAME
+
+  A successful scan returns 0 whether findings exist or not.
+  No findings produce no stdout.
+
+ORPHAN DIAGNOSTICS
+  find_mvs_orphan_<property>_from_<source>_in_<target>.bat dump-folder
+
+  The comparison is directional:
+    each source occurrence is reported if the target lacks the same
+    normalized property value.
+
+DIAGNOSTIC OUTPUT
+  mvs.txt / mvs_names.txt ID/title findings:
+    duplicate/orphan key plus complete source section
+
+  mvs.txt / mvs_names.txt filename findings:
+    owner ID, owner title, exact matched checksum/filename line
+
+  mvs_ids.txt / mvs_dates.txt:
+    original source line
+
+  mvs_notes.html:
+    normalized title/note text; literal [ID: N] only when present
+
+DIAGNOSTIC TEST
+  test\test_diagnostic_tools.bat
+
+FULL TEST
+  test\test_all.bat path_to_real_mvs_dump_folder
+
+  The full suite uses:
+    real dump -> scalar and lookup regressions
+    test\test-mvs-dump-diagnostics -> duplicate/orphan regressions

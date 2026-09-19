@@ -60,6 +60,7 @@ function New-ResultsFolder {
         structure = Join-Path $candidate 'structure-results.tsv'
         scalar = Join-Path $candidate 'scalar-results.tsv'
         lookup = Join-Path $candidate 'lookup-results.tsv'
+        diagnostic = Join-Path $candidate 'diagnostic-results.tsv'
     }
     Write-TextUtf8 $script:ConsoleLog ''
     $header = "index`tscope`tstatus`tcase`treason`texpected_rc`tactual_rc`n"
@@ -77,6 +78,7 @@ Files:
   structure-results.tsv  Standalone/public-file assertions.
   scalar-results.tsv     Scalar behavioral assertions.
   lookup-results.tsv     Lookup behavioral assertions.
+  diagnostic-results.tsv Duplicate/orphan diagnostic assertions.
   failures\              Full expected/actual/stderr/meta files for
                          behavioral failures. Empty when none fail.
 '@
@@ -140,6 +142,7 @@ function Write-RunInfo {
         ('OS: ' + [Environment]::OSVersion.VersionString),
         ('PowerShell: ' + $PSVersionTable.PSVersion.ToString()),
         ('CLR: ' + [Environment]::Version.ToString()),
+        ('Diagnostic fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-diagnostics')),
         ('Result folder: ' + $script:ResultsFolder)
     )
     Write-TextUtf8 (Join-Path $script:ResultsFolder 'run-info.txt') (($info -join [Environment]::NewLine) + [Environment]::NewLine)
@@ -157,6 +160,7 @@ function Write-Summary {
         ('Failed: ' + $script:Failed),
         ('Skipped: ' + $script:Skipped),
         ('Total assertions: ' + ($script:Passed + $script:Failed + $script:Skipped)),
+        ('Diagnostic fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-diagnostics')),
         ('Result folder: ' + $script:ResultsFolder)
     )
     Write-TextUtf8 (Join-Path $script:ResultsFolder 'summary.txt') (($summary -join [Environment]::NewLine) + [Environment]::NewLine)
@@ -164,8 +168,8 @@ function Write-Summary {
 
 function Show-Usage {
     Write-Line ('MVS Explorer Toolkit test ' + $Version)
-    if ($Mode -eq 'structure') {
-        Write-Line ('Usage: ' + $Caller + ' [dump-folder]')
+    if (@('structure','diagnostic') -contains $Mode) {
+        Write-Line ('Usage: ' + $Caller)
     } else {
         Write-Line ('Usage: ' + $Caller + ' dump-folder')
     }
@@ -324,6 +328,56 @@ function Get-Lookups {
         [pscustomobject]@{name='lookup_mvs_note_from_date'; source='date'; target='note'},
         [pscustomobject]@{name='lookup_mvs_date_from_id'; source='id'; target='date'},
         [pscustomobject]@{name='lookup_mvs_date_from_title'; source='title'; target='date'}
+    )
+}
+
+function Get-Diagnostics {
+    return @(
+        'find_mvs_duplicate_id_in_mvs.txt',
+        'find_mvs_duplicate_id_in_mvs_dates.txt',
+        'find_mvs_duplicate_id_in_mvs_ids.txt',
+        'find_mvs_duplicate_id_in_mvs_names.txt',
+        'find_mvs_duplicate_id_in_mvs_notes.html',
+        'find_mvs_duplicate_title_in_mvs.txt',
+        'find_mvs_duplicate_title_in_mvs_dates.txt',
+        'find_mvs_duplicate_title_in_mvs_ids.txt',
+        'find_mvs_duplicate_title_in_mvs_names.txt',
+        'find_mvs_duplicate_title_in_mvs_notes.html',
+        'find_mvs_duplicate_date_in_mvs_date.txt',
+        'find_mvs_duplicate_date_in_mvs_dates.txt',
+        'find_mvs_duplicate_filename_in_mvs_names.txt',
+        'find_mvs_duplicate_filename_in_mvs.txt',
+        'find_mvs_orphan_id_from_mvs_ids.txt_in_mvs.txt',
+        'find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_dates.txt',
+        'find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_names.txt',
+        'find_mvs_orphan_title_from_mvs_ids.txt_in_mvs.txt',
+        'find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_dates.txt',
+        'find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_names.txt',
+        'find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_notes.html',
+        'find_mvs_orphan_id_from_mvs_dates.txt_in_mvs.txt',
+        'find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_ids.txt',
+        'find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_names.txt',
+        'find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs.txt',
+        'find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_ids.txt',
+        'find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_names.txt',
+        'find_mvs_orphan_id_from_mvs.txt_in_mvs_ids.txt',
+        'find_mvs_orphan_id_from_mvs.txt_in_mvs_dates.txt',
+        'find_mvs_orphan_id_from_mvs.txt_in_mvs_names.txt',
+        'find_mvs_orphan_titles_from_mvs.txt_in_mvs_ids.txt',
+        'find_mvs_orphan_titles_from_mvs.txt_in_mvs_dates.txt',
+        'find_mvs_orphan_titles_from_mvs.txt_in_mvs_names.txt',
+        'find_mvs_orphan_id_from_mvs_names.txt_in_mvs.txt',
+        'find_mvs_orphan_id_from_mvs_names.txt_in_mvs_ids.txt',
+        'find_mvs_orphan_id_from_mvs_names.txt_in_mvs_dates.txt',
+        'find_mvs_orphan_titles_from_mvs_names.txt_in_mvs.txt',
+        'find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_ids.txt',
+        'find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_dates.txt',
+        'find_mvs_orphan_filenames_from_mvs.txt_in_mvs_names.txt',
+        'find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.txt',
+        'find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha1',
+        'find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.sha1',
+        'find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha256',
+        'find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.sha256'
     )
 }
 
@@ -488,9 +542,10 @@ function Test-Structure {
         }
     }
     foreach ($lookup in Get-Lookups) { [void]$expected.Add($lookup.name + '.bat') }
+    foreach ($diagnostic in Get-Diagnostics) { [void]$expected.Add($diagnostic + '.bat') }
 
     $actual = @(Get-ChildItem -LiteralPath $Root -Filter '*.bat' -File | Select-Object -ExpandProperty Name)
-    if ($actual.Count -eq 127) { Write-Pass 'root public .bat count = 127' } else { Write-Fail 'root public .bat count' ('expected 127, got ' + $actual.Count) }
+    if ($actual.Count -eq 172) { Write-Pass 'root public .bat count = 172' } else { Write-Fail 'root public .bat count' ('expected 172, got ' + $actual.Count) }
 
     foreach ($name in $expected) {
         $path = Join-Path $Root $name
@@ -502,7 +557,7 @@ function Test-Structure {
         foreach ($label in @(':setup',':main',':end',':SetErrorLevel',':RunPowerShellFromLabel')) {
             if (-not $text.Contains($label)) { [void]$problems.Add('missing ' + $label) }
         }
-        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start')) { [void]$problems.Add('missing injected PowerShell block') }
+        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start')) { [void]$problems.Add('missing injected PowerShell block') }
         if ($text.Contains('dev\library') -or $text.Contains('generate_tools.py')) { [void]$problems.Add('development runtime dependency reference') }
         if ($problems.Count -eq 0) { Write-Pass ('standalone ' + $name) } else { Write-Fail ('standalone ' + $name) ($problems -join ', ') }
     }
@@ -571,10 +626,46 @@ function Test-Lookups {
     }
 }
 
+
+function Test-Diagnostics {
+    $script:CurrentScope = 'diagnostic'
+    Write-Line '=== Duplicate/orphan diagnostic tests ==='
+
+    $fixture = Join-Path (Join-Path $Root 'test') 'test-mvs-dump-diagnostics'
+    $expectedRoot = Join-Path (Join-Path $Root 'test') 'expected-diagnostics'
+
+    if (-not (Test-Path -LiteralPath $fixture -PathType Container)) {
+        Write-Fail 'diagnostic synthetic dump' ('missing fixture: ' + $fixture)
+        return
+    }
+    if (-not (Test-Path -LiteralPath $expectedRoot -PathType Container)) {
+        Write-Fail 'diagnostic expected outputs' ('missing expected folder: ' + $expectedRoot)
+        return
+    }
+    Write-Pass 'diagnostic synthetic dump present'
+
+    foreach ($name in Get-Diagnostics) {
+        $toolPath = Join-Path $Root ($name + '.bat')
+        $expectedPath = Join-Path $expectedRoot ($name + '.expected.txt')
+        if (-not (Test-Path -LiteralPath $expectedPath -PathType Leaf)) {
+            Write-Fail $name ('missing expected output: ' + $expectedPath)
+            continue
+        }
+        $expected = Normalize-CapturedText (Get-Content -LiteralPath $expectedPath -Raw -Encoding UTF8)
+        if ([string]::IsNullOrEmpty($expected)) {
+            Write-Fail $name 'synthetic fixture expected output is empty; positive finding was required'
+            continue
+        }
+        $run = Invoke-PublicTool $toolPath $fixture $null $false
+        Compare-Run $name $run 0 $expected
+    }
+}
+
+
 New-ResultsFolder
 Write-Line ('Test results: ' + $script:ResultsFolder)
 
-if (@('all','structure','scalar','lookup') -notcontains $Mode) {
+if (@('all','structure','scalar','lookup','diagnostic') -notcontains $Mode) {
     $script:CurrentScope = 'general'
     Show-Usage
     Write-Fail 'test mode' ('unsupported mode: ' + $Mode)
@@ -584,7 +675,7 @@ if (@('all','structure','scalar','lookup') -notcontains $Mode) {
 }
 
 $DumpFolder = $null
-if ($Mode -ne 'structure') {
+if (@('all','scalar','lookup') -contains $Mode) {
     if ([string]::IsNullOrWhiteSpace($DumpArgument)) {
         $script:CurrentScope = 'general'
         Show-Usage
@@ -627,6 +718,7 @@ Write-RunInfo $DumpFolder
 if ($Mode -eq 'all' -or $Mode -eq 'structure') { Test-Structure }
 if ($Mode -eq 'all' -or $Mode -eq 'scalar') { Test-Scalar $Products }
 if ($Mode -eq 'all' -or $Mode -eq 'lookup') { Test-Lookups $Products }
+if ($Mode -eq 'all' -or $Mode -eq 'diagnostic') { Test-Diagnostics }
 
 Write-Line ''
 Write-Line ('SUMMARY: passed=' + $script:Passed + ' failed=' + $script:Failed + ' skipped=' + $script:Skipped)

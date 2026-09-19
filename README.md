@@ -1,4 +1,4 @@
-# MVS Explorer Toolkit 0.6.0
+# MVS Explorer Toolkit 0.7.0
 
 MVS Explorer Toolkit is a growing collection of console tools for exploring MVS dump snapshots, intended to culminate in the graphical **MVS Explorer** application.
 
@@ -212,3 +212,91 @@ lookup no result
 ```
 
 The existing automated lookup no-match cases remain the acceptance test for this behavior.
+
+
+## 0.7.0 duplicate/orphan diagnostic layer
+
+Version 0.7.0 adds **45 standalone diagnostic finders**:
+
+- 14 duplicate-property tools;
+- 31 directional orphan-reference tools.
+
+Together with the established scalar/lookup layer, the project now contains
+**172 standalone public root `.bat` tools**.
+
+Diagnostic tools use:
+
+```text
+find_mvs_duplicate_<property>_in_<source>.bat dump-folder
+find_mvs_orphan_<property>_from_<source>_in_<target>.bat dump-folder
+```
+
+Findings are human-readable and preserve source context. No findings means no
+stdout and return code `0`. A finding is information, not a process failure.
+
+For `mvs.txt` and `mvs_names.txt`, duplicate/orphan ID or title findings print
+the complete source section: header plus all associated nonblank lines through
+the next blank line/source section. Filename findings print the owning ID,
+title, and exact matching checksum/filename line.
+
+Duplicate title/filename comparisons are case-insensitive after documented
+normalization. IDs compare numerically. Dates compare as trimmed source values.
+
+### Important interpretation notes
+
+Repeated IDs in `mvs_names.txt` are normally expected because one product ID
+can own many variant sections. The requested duplicate-ID finder reports the
+literal repetition; it does not label that relationship corrupt.
+
+Likewise, titles in `mvs_names.txt` are variant/display titles rather than the
+same title domain as product titles in `mvs_ids.txt`, `mvs_dates.txt`, and
+`mvs.txt`. Cross-file title-orphan tools involving `mvs_names.txt` therefore
+report literal title-set differences and can legitimately produce many results.
+
+`mvs_notes.html` normally has no ID field. The requested
+`find_mvs_duplicate_id_in_mvs_notes.html.bat` scans literal `[ID: N]` markers
+if present; ordinary archive note files are expected to yield no ID findings.
+
+The requested filename:
+
+```text
+find_mvs_duplicate_date_in_mvs_date.txt.bat
+```
+
+is supplied exactly and reads the actual source file `mvs_dates.txt`. A
+canonical alias is also supplied:
+
+```text
+find_mvs_duplicate_date_in_mvs_dates.txt.bat
+```
+
+See `doc\diagnostic-tools.md` for the complete matrix and output contract.
+
+## Diagnostic regression fixture
+
+The test suite now includes the intentionally inconsistent synthetic dump:
+
+```text
+test\test-mvs-dump-diagnostics\
+```
+
+and 45 independently generated fixed expected-output files under:
+
+```text
+test\expected-diagnostics\
+```
+
+Run only the diagnostic regression suite with:
+
+```text
+test\test_diagnostic_tools.bat
+```
+
+The full suite remains:
+
+```text
+test\test_all.bat path_to_real_mvs_dump_folder
+```
+
+The real dump is used for scalar/lookup regression tests; the fixed synthetic
+dump is used for duplicate/orphan tests.

@@ -1,0 +1,6 @@
+Tool Version History: dev\generate_expected_diagnostic_outputs.py
+
+0.1.0 - 2026-08-27
+  - Initial version.
+  - Independent Python reference parser generating fixed expected stdout for
+    all diagnostic tools without invoking the public batch files.

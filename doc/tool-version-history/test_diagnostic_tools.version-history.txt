@@ -1,0 +1,12 @@
+Tool Version History: test\test_diagnostic_tools.bat
+
+Purpose
+  Test mode: diagnostic
+  Fixture: test\test-mvs-dump-diagnostics
+  Expected output: test\expected-diagnostics
+  Standalone code: yes; complete test harness is injected
+
+0.4.0 - 2026-08-27
+  - Initial diagnostic test entry point, aligned with test harness 0.4.0.
+  - Executes all 45 duplicate/orphan diagnostic tools.
+  - Compares exact stdout, stderr, and return code against fixed expectations.

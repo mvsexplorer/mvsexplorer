@@ -1,0 +1,55 @@
+Orphan Title: Common One
+Source: mvs.txt
+Target: mvs_names.txt
+  --- Common One [ID: 1] ---
+  1111111111111111111111111111111111111111 *common-one.iso
+
+Orphan Title: Common Two
+Source: mvs.txt
+Target: mvs_names.txt
+  --- Common Two [ID: 2] ---
+  2222222222222222222222222222222222222222 *common-two.iso
+
+Orphan Title: TXT Only
+Source: mvs.txt
+Target: mvs_names.txt
+  --- TXT Only [ID: 103] ---
+  3333333333333333333333333333333333333333 *txt-only.iso
+
+Orphan Title: TXT Duplicate ID A
+Source: mvs.txt
+Target: mvs_names.txt
+  --- TXT Duplicate ID A [ID: 401] ---
+  4444444444444444444444444444444444444444 *txt-dup-id-a.iso
+  4444444444444444444444444444444444444445 *txt-dup-id-a-extra.iso
+
+Orphan Title: TXT Duplicate ID B
+Source: mvs.txt
+Target: mvs_names.txt
+  --- TXT Duplicate ID B [ID: 401] ---
+  5555555555555555555555555555555555555555 *txt-dup-id-b.iso
+
+Orphan Title: TXT Duplicate Title
+Source: mvs.txt
+Target: mvs_names.txt
+  --- TXT Duplicate Title [ID: 402] ---
+  6666666666666666666666666666666666666666 *txt-dup-title-a.iso
+
+Orphan Title: TXT Duplicate Title
+Source: mvs.txt
+Target: mvs_names.txt
+  --- TXT Duplicate Title [ID: 403] ---
+  7777777777777777777777777777777777777777 *txt-dup-title-b.iso
+
+Orphan Title: TXT Filename Owner A
+Source: mvs.txt
+Target: mvs_names.txt
+  --- TXT Filename Owner A [ID: 404] ---
+  8888888888888888888888888888888888888888 *txt-duplicate-filename.iso
+
+Orphan Title: TXT Filename Owner B
+Source: mvs.txt
+Target: mvs_names.txt
+  --- TXT Filename Owner B [ID: 405] ---
+  9999999999999999999999999999999999999999 *txt-duplicate-filename.iso
+

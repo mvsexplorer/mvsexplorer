@@ -1,0 +1,10 @@
+Duplicate Filename: txt-duplicate-filename.iso
+Occurrence 1:
+  ID: 404
+  Title: TXT Filename Owner A
+  8888888888888888888888888888888888888888 *txt-duplicate-filename.iso
+Occurrence 2:
+  ID: 405
+  Title: TXT Filename Owner B
+  9999999999999999999999999999999999999999 *txt-duplicate-filename.iso
+

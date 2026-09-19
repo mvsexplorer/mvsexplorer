@@ -65,3 +65,42 @@ Rules:
 - multiple matching rows are sorted by the search/source field;
 - duplicate target strings are emitted once;
 - no associated value produces no stdout and exit code `1`.
+
+
+## `find_mvs_duplicate_*` output
+
+Findings are human-readable blocks.
+
+For simple one-line sources, the original line is retained:
+
+```text
+Duplicate ID: 201
+Occurrence 1:
+  Duplicate ID First [ID: 201]
+Occurrence 2:
+  Duplicate ID Second [ID: 201]
+```
+
+For section sources (`mvs.txt`, `mvs_names.txt`), ID/title findings retain the
+whole source section.
+
+Filename duplicates report the owning ID/title and exact matching filename
+line.
+
+No duplicates produce no stdout. A duplicate finding does not change the
+successful return code from `0`.
+
+## `find_mvs_orphan_*` output
+
+Each unmatched source occurrence is a block:
+
+```text
+Orphan ID: 101
+Source: mvs_ids.txt
+Target: mvs_dates.txt
+  IDs Only [ID: 101]
+```
+
+The comparison is directional and output remains in source occurrence order.
+
+No orphan findings produce no stdout. Orphan findings themselves return `0`.

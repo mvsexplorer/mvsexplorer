@@ -1,5 +1,53 @@
 tool	family	mode	fields	sort	lookup_source	lookup_target	version
-dev\generate_tests.py	development	generator	tests				0.3.0
+dev\generate_diagnostic_fixture.py	development	generator	diagnostic-fixture				0.1.0
+dev\generate_diagnostic_tools.py	development	generator	diagnostics				0.1.0
+dev\generate_expected_diagnostic_outputs.py	development	generator	diagnostic-expected				0.1.0
+dev\generate_tests.py	development	generator	tests				0.4.0
+find_mvs_duplicate_date_in_mvs_date.txt.bat	diagnostic	human	date	source-order	mvs_dates.txt		0.1.0
+find_mvs_duplicate_date_in_mvs_dates.txt.bat	diagnostic	human	date	source-order	mvs_dates.txt		0.1.0
+find_mvs_duplicate_filename_in_mvs.txt.bat	diagnostic	human	filename	source-order	mvs.txt		0.1.0
+find_mvs_duplicate_filename_in_mvs_names.txt.bat	diagnostic	human	filename	source-order	mvs_names.txt		0.1.0
+find_mvs_duplicate_id_in_mvs.txt.bat	diagnostic	human	id	source-order	mvs.txt		0.1.0
+find_mvs_duplicate_id_in_mvs_dates.txt.bat	diagnostic	human	id	source-order	mvs_dates.txt		0.1.0
+find_mvs_duplicate_id_in_mvs_ids.txt.bat	diagnostic	human	id	source-order	mvs_ids.txt		0.1.0
+find_mvs_duplicate_id_in_mvs_names.txt.bat	diagnostic	human	id	source-order	mvs_names.txt		0.1.0
+find_mvs_duplicate_id_in_mvs_notes.html.bat	diagnostic	human	id	source-order	mvs_notes.html		0.1.0
+find_mvs_duplicate_title_in_mvs.txt.bat	diagnostic	human	title	source-order	mvs.txt		0.1.0
+find_mvs_duplicate_title_in_mvs_dates.txt.bat	diagnostic	human	title	source-order	mvs_dates.txt		0.1.0
+find_mvs_duplicate_title_in_mvs_ids.txt.bat	diagnostic	human	title	source-order	mvs_ids.txt		0.1.0
+find_mvs_duplicate_title_in_mvs_names.txt.bat	diagnostic	human	title	source-order	mvs_names.txt		0.1.0
+find_mvs_duplicate_title_in_mvs_notes.html.bat	diagnostic	human	title	source-order	mvs_notes.html		0.1.0
+find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha1.bat	diagnostic	human	filename	source-order	mvs.txt	mvs.sha1	0.1.0
+find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha256.bat	diagnostic	human	filename	source-order	mvs.txt	mvs.sha256	0.1.0
+find_mvs_orphan_filenames_from_mvs.txt_in_mvs_names.txt.bat	diagnostic	human	filename	source-order	mvs.txt	mvs_names.txt	0.1.0
+find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.sha1.bat	diagnostic	human	filename	source-order	mvs_names.txt	mvs.sha1	0.1.0
+find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.sha256.bat	diagnostic	human	filename	source-order	mvs_names.txt	mvs.sha256	0.1.0
+find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.txt.bat	diagnostic	human	filename	source-order	mvs_names.txt	mvs.txt	0.1.0
+find_mvs_orphan_id_from_mvs.txt_in_mvs_dates.txt.bat	diagnostic	human	id	source-order	mvs.txt	mvs_dates.txt	0.1.0
+find_mvs_orphan_id_from_mvs.txt_in_mvs_ids.txt.bat	diagnostic	human	id	source-order	mvs.txt	mvs_ids.txt	0.1.0
+find_mvs_orphan_id_from_mvs.txt_in_mvs_names.txt.bat	diagnostic	human	id	source-order	mvs.txt	mvs_names.txt	0.1.0
+find_mvs_orphan_id_from_mvs_dates.txt_in_mvs.txt.bat	diagnostic	human	id	source-order	mvs_dates.txt	mvs.txt	0.1.0
+find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_ids.txt.bat	diagnostic	human	id	source-order	mvs_dates.txt	mvs_ids.txt	0.1.0
+find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_names.txt.bat	diagnostic	human	id	source-order	mvs_dates.txt	mvs_names.txt	0.1.0
+find_mvs_orphan_id_from_mvs_ids.txt_in_mvs.txt.bat	diagnostic	human	id	source-order	mvs_ids.txt	mvs.txt	0.1.0
+find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_dates.txt.bat	diagnostic	human	id	source-order	mvs_ids.txt	mvs_dates.txt	0.1.0
+find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_names.txt.bat	diagnostic	human	id	source-order	mvs_ids.txt	mvs_names.txt	0.1.0
+find_mvs_orphan_id_from_mvs_names.txt_in_mvs.txt.bat	diagnostic	human	id	source-order	mvs_names.txt	mvs.txt	0.1.0
+find_mvs_orphan_id_from_mvs_names.txt_in_mvs_dates.txt.bat	diagnostic	human	id	source-order	mvs_names.txt	mvs_dates.txt	0.1.0
+find_mvs_orphan_id_from_mvs_names.txt_in_mvs_ids.txt.bat	diagnostic	human	id	source-order	mvs_names.txt	mvs_ids.txt	0.1.0
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs.txt.bat	diagnostic	human	title	source-order	mvs_ids.txt	mvs.txt	0.1.0
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_dates.txt.bat	diagnostic	human	title	source-order	mvs_ids.txt	mvs_dates.txt	0.1.0
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_names.txt.bat	diagnostic	human	title	source-order	mvs_ids.txt	mvs_names.txt	0.1.0
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_notes.html.bat	diagnostic	human	title	source-order	mvs_ids.txt	mvs_notes.html	0.1.0
+find_mvs_orphan_titles_from_mvs.txt_in_mvs_dates.txt.bat	diagnostic	human	title	source-order	mvs.txt	mvs_dates.txt	0.1.0
+find_mvs_orphan_titles_from_mvs.txt_in_mvs_ids.txt.bat	diagnostic	human	title	source-order	mvs.txt	mvs_ids.txt	0.1.0
+find_mvs_orphan_titles_from_mvs.txt_in_mvs_names.txt.bat	diagnostic	human	title	source-order	mvs.txt	mvs_names.txt	0.1.0
+find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs.txt.bat	diagnostic	human	title	source-order	mvs_dates.txt	mvs.txt	0.1.0
+find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_ids.txt.bat	diagnostic	human	title	source-order	mvs_dates.txt	mvs_ids.txt	0.1.0
+find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_names.txt.bat	diagnostic	human	title	source-order	mvs_dates.txt	mvs_names.txt	0.1.0
+find_mvs_orphan_titles_from_mvs_names.txt_in_mvs.txt.bat	diagnostic	human	title	source-order	mvs_names.txt	mvs.txt	0.1.0
+find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_dates.txt.bat	diagnostic	human	title	source-order	mvs_names.txt	mvs_dates.txt	0.1.0
+find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_ids.txt.bat	diagnostic	human	title	source-order	mvs_names.txt	mvs_ids.txt	0.1.0
 lookup_mvs_date_from_id.bat	lookup	raw-lines	date	by-search-field:id	id	date	0.4.0
 lookup_mvs_date_from_title.bat	lookup	raw-lines	date	by-search-field:title	title	date	0.4.0
 lookup_mvs_note_from_date.bat	lookup	raw-lines	note	by-search-field:date	date	note	0.4.0
@@ -127,7 +175,8 @@ read_mvs_dump_title_note_sorted_by_title.bat	read	machine	title,note	title			0.4
 read_mvs_dump_title_sorted_by_date.bat	read	machine	title	date			0.4.0
 read_mvs_dump_title_sorted_by_id.bat	read	machine	title	id			0.4.0
 read_mvs_dump_title_sorted_by_title.bat	read	machine	title	title			0.4.0
-test\test_all.bat	test	console	all				0.3.0
-test\test_lookup_tools.bat	test	console	lookup				0.3.0
-test\test_scalar_tools.bat	test	console	scalar				0.3.0
-test\test_structure.bat	test	console	structure				0.3.0
+test\test_all.bat	test	console	all				0.4.0
+test\test_diagnostic_tools.bat	test	console	diagnostic				0.4.0
+test\test_lookup_tools.bat	test	console	lookup				0.4.0
+test\test_scalar_tools.bat	test	console	scalar				0.4.0
+test\test_structure.bat	test	console	structure				0.4.0

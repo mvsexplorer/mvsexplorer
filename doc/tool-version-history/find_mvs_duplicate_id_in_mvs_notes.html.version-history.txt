@@ -1,0 +1,13 @@
+Tool Version History: find_mvs_duplicate_id_in_mvs_notes.html.bat
+
+Purpose
+  Find repeated ID occurrences within mvs_notes.html.
+  Source: mvs_notes.html
+  Output: human-readable diagnostic findings; no findings = no stdout
+  Return on successful scan: 0
+
+0.1.0 - 2026-08-27
+  - Initial version.
+  - Generated as a fully standalone diagnostic tool.
+  - Contains injected batch and PowerShell implementation.
+  - Preserves source context appropriate to mvs_notes.html.

@@ -1,0 +1,25 @@
+Orphan ID: 101
+Source: mvs_ids.txt
+Target: mvs_dates.txt
+  IDs Only [ID: 101]
+
+Orphan ID: 201
+Source: mvs_ids.txt
+Target: mvs_dates.txt
+  Duplicate ID First [ID: 201]
+
+Orphan ID: 201
+Source: mvs_ids.txt
+Target: mvs_dates.txt
+  Duplicate ID Second [ID: 201]
+
+Orphan ID: 202
+Source: mvs_ids.txt
+Target: mvs_dates.txt
+  IDs Duplicate Title [ID: 202]
+
+Orphan ID: 203
+Source: mvs_ids.txt
+Target: mvs_dates.txt
+  IDs Duplicate Title [ID: 203]
+

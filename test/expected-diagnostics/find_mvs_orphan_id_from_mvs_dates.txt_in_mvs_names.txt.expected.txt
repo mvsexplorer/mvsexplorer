@@ -1,0 +1,35 @@
+Orphan ID: 102
+Source: mvs_dates.txt
+Target: mvs_names.txt
+  2010-01-01T00:00:00 - Dates Only [ID: 102]
+
+Orphan ID: 301
+Source: mvs_dates.txt
+Target: mvs_names.txt
+  2011-01-01T00:00:00 - Dates Duplicate ID A [ID: 301]
+
+Orphan ID: 301
+Source: mvs_dates.txt
+Target: mvs_names.txt
+  2012-01-01T00:00:00 - Dates Duplicate ID B [ID: 301]
+
+Orphan ID: 302
+Source: mvs_dates.txt
+Target: mvs_names.txt
+  2013-01-01T00:00:00 - Dates Duplicate Title [ID: 302]
+
+Orphan ID: 303
+Source: mvs_dates.txt
+Target: mvs_names.txt
+  2014-01-01T00:00:00 - Dates Duplicate Title [ID: 303]
+
+Orphan ID: 304
+Source: mvs_dates.txt
+Target: mvs_names.txt
+  2020-01-01T00:00:00 - Dates Duplicate Date A [ID: 304]
+
+Orphan ID: 305
+Source: mvs_dates.txt
+Target: mvs_names.txt
+  2020-01-01T00:00:00 - Dates Duplicate Date B [ID: 305]
+

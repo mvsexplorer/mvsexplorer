@@ -1,6 +1,6 @@
 # MVS Explorer Toolkit — Batch Style Guide Addendum
 
-**Addendum version:** 0.5.0  
+**Addendum version:** 0.6.0  
 **Applies with:** Batch File Style Guide v1.8.0
 
 This addendum supplements the supplied guide with project-specific conventions.
@@ -158,3 +158,38 @@ GoTo :EOF
 ```
 
 This makes the externally observed process/batch contract explicit.
+
+
+## 18. Diagnostic finder contract
+
+`find_mvs_*` tools are reporting filters.
+
+A successful scan returns `0` whether it finds zero, one, or many findings.
+Findings are stdout data, not error conditions. Missing/invalid input remains
+a nonzero error written to stderr.
+
+For section-oriented sources (`mvs.txt`, `mvs_names.txt`), preserve source
+context instead of flattening a duplicate/orphan ID/title into only its key.
+
+## 19. Diagnostic comparison normalization
+
+Use the minimum normalization necessary for stable comparison:
+
+```text
+ID        numeric identity
+TITLE     HTML decode where relevant, collapse whitespace, case-insensitive key
+DATE      trim only
+FILENAME  trim, case-insensitive key
+```
+
+Preserve original/display values in emitted findings.
+
+## 20. Generated diagnostic matrix
+
+The public diagnostic matrix is maintained in
+`dev\diagnostic-tool-spec.json` and generated through
+`dev\generate_diagnostic_tools.py`.
+
+As with scalar/lookup generation, the specification/library/template may be
+shared during development but every resulting root `.bat` contains its full
+runtime implementation.

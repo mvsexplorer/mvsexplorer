@@ -1,0 +1,9 @@
+Duplicate ID: 501
+Occurrence 1:
+  --- Names Duplicate ID A [ID: 501] ---
+  dddddddddddddddddddddddddddddddddddddddd *names-dup-id-a.iso
+  ddddddddddddddddddddddddddddddddddddddde *names-dup-id-a-extra.iso
+Occurrence 2:
+  --- Names Duplicate ID B [ID: 501] ---
+  eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee *names-dup-id-b.iso
+

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate public standalone MVS Explorer Toolkit batch tools.
 
-Version: 0.1.0
+Version: 0.4.0
 
 Development-time only. Generated root .bat files contain the injected
 functions and embedded PowerShell and do not require dev\ at runtime.

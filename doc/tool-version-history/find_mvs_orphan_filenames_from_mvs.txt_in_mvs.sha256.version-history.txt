@@ -1,0 +1,14 @@
+Tool Version History: find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha256.bat
+
+Purpose
+  Find FILENAME occurrences in mvs.txt absent from mvs.sha256.
+  Source: mvs.txt
+  Target: mvs.sha256
+  Output: human-readable diagnostic findings; no findings = no stdout
+  Return on successful scan: 0
+
+0.1.0 - 2026-08-27
+  - Initial version.
+  - Generated as a fully standalone diagnostic tool.
+  - Contains injected batch and PowerShell implementation.
+  - Preserves source context appropriate to mvs.txt.

@@ -21,3 +21,20 @@ The required release invariant is:
 ```text
 shared source during development -> injected code -> standalone delivered .bat
 ```
+
+
+Diagnostic development files:
+
+```text
+diagnostic-tool-spec.json
+library\diagnostic-query.inc.ps1
+templates\diagnostic.bat.tpl
+generate_diagnostic_tools.py
+generate_diagnostic_fixture.py
+```
+
+`generate_diagnostic_tools.py` injects the diagnostic PowerShell implementation
+and common batch functions into every `find_mvs_*` public batch file.
+
+`generate_diagnostic_fixture.py` regenerates the intentionally inconsistent
+synthetic dump source under `test\test-mvs-dump-diagnostics\`.

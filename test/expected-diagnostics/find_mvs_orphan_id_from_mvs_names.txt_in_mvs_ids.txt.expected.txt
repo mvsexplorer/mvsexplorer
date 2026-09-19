@@ -1,0 +1,43 @@
+Orphan ID: 104
+Source: mvs_names.txt
+Target: mvs_ids.txt
+  --- Names Only [ID: 104] ---
+  cccccccccccccccccccccccccccccccccccccccc *names-only.iso
+
+Orphan ID: 501
+Source: mvs_names.txt
+Target: mvs_ids.txt
+  --- Names Duplicate ID A [ID: 501] ---
+  dddddddddddddddddddddddddddddddddddddddd *names-dup-id-a.iso
+  ddddddddddddddddddddddddddddddddddddddde *names-dup-id-a-extra.iso
+
+Orphan ID: 501
+Source: mvs_names.txt
+Target: mvs_ids.txt
+  --- Names Duplicate ID B [ID: 501] ---
+  eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee *names-dup-id-b.iso
+
+Orphan ID: 502
+Source: mvs_names.txt
+Target: mvs_ids.txt
+  --- Names Duplicate Title [ID: 502] ---
+  ffffffffffffffffffffffffffffffffffffffff *names-dup-title-a.iso
+
+Orphan ID: 503
+Source: mvs_names.txt
+Target: mvs_ids.txt
+  --- Names Duplicate Title [ID: 503] ---
+  0123456789012345678901234567890123456789 *names-dup-title-b.iso
+
+Orphan ID: 504
+Source: mvs_names.txt
+Target: mvs_ids.txt
+  --- Names Filename Owner A [ID: 504] ---
+  1123456789012345678901234567890123456789 *names-duplicate-filename.iso
+
+Orphan ID: 505
+Source: mvs_names.txt
+Target: mvs_ids.txt
+  --- Names Filename Owner B [ID: 505] ---
+  2123456789012345678901234567890123456789 *names-duplicate-filename.iso
+

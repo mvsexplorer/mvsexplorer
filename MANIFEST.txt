@@ -1,21 +1,29 @@
-MVS Explorer Toolkit 0.6.0
-Public standalone batch tools: 127
-Standalone automated test batch files: 4
-Tool/development histories: 134
-Full suite: test\test_all.bat dump-folder
-Test results: test\test-results-YYYYMMDD-HHMMSS\
-Return bridge: RunPowerShellFromLabel 1.2.0
+MVS Explorer Toolkit 0.7.0
+Public standalone batch tools: 172
+  established scalar/lookup: 127
+  duplicate/orphan diagnostics: 45
+Standalone automated test batch files: 5
+Diagnostic synthetic fixture: test\test-mvs-dump-diagnostics\
+Diagnostic fixed expected outputs: 45
+Expected full-suite assertions: 363
+Tool/development version-history files: 183
 
 Files:
 README.md
 dev/README.md
+dev/diagnostic-tool-spec.json
+dev/generate_diagnostic_fixture.py
+dev/generate_diagnostic_tools.py
+dev/generate_expected_diagnostic_outputs.py
 dev/generate_tests.py
 dev/generate_tools.py
 dev/library/batch-common.inc.bat
+dev/library/diagnostic-query.inc.ps1
 dev/library/lookup-query.inc.ps1
 dev/library/powershell-common.inc.ps1
 dev/library/scalar-query.inc.ps1
 dev/library/test-harness.inc.ps1
+dev/templates/diagnostic.bat.tpl
 dev/templates/lookup.bat.tpl
 dev/templates/scalar.bat.tpl
 dev/templates/test.bat.tpl
@@ -26,6 +34,9 @@ doc/data-model.md
 doc/developer-diary.md
 doc/development-directives.md
 doc/development-prompts.md
+doc/diagnostic-test-fixture.md
+doc/diagnostic-tool-matrix.tsv
+doc/diagnostic-tools.md
 doc/observation-journal.md
 doc/output-format.md
 doc/powershell-style-guide.md
@@ -33,7 +44,56 @@ doc/project-version-history.txt
 doc/style-guide-addendum.md
 doc/test-run-analysis-0.4.0.md
 doc/test-run-analysis-0.5.0.md
+doc/test-run-analysis-0.6.0.md
 doc/tool-catalog.tsv
+doc/tool-version-history/find_mvs_duplicate_date_in_mvs_date.txt.version-history.txt
+doc/tool-version-history/find_mvs_duplicate_date_in_mvs_dates.txt.version-history.txt
+doc/tool-version-history/find_mvs_duplicate_filename_in_mvs.txt.version-history.txt
+doc/tool-version-history/find_mvs_duplicate_filename_in_mvs_names.txt.version-history.txt
+doc/tool-version-history/find_mvs_duplicate_id_in_mvs.txt.version-history.txt
+doc/tool-version-history/find_mvs_duplicate_id_in_mvs_dates.txt.version-history.txt
+doc/tool-version-history/find_mvs_duplicate_id_in_mvs_ids.txt.version-history.txt
+doc/tool-version-history/find_mvs_duplicate_id_in_mvs_names.txt.version-history.txt
+doc/tool-version-history/find_mvs_duplicate_id_in_mvs_notes.html.version-history.txt
+doc/tool-version-history/find_mvs_duplicate_title_in_mvs.txt.version-history.txt
+doc/tool-version-history/find_mvs_duplicate_title_in_mvs_dates.txt.version-history.txt
+doc/tool-version-history/find_mvs_duplicate_title_in_mvs_ids.txt.version-history.txt
+doc/tool-version-history/find_mvs_duplicate_title_in_mvs_names.txt.version-history.txt
+doc/tool-version-history/find_mvs_duplicate_title_in_mvs_notes.html.version-history.txt
+doc/tool-version-history/find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha1.version-history.txt
+doc/tool-version-history/find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha256.version-history.txt
+doc/tool-version-history/find_mvs_orphan_filenames_from_mvs.txt_in_mvs_names.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.sha1.version-history.txt
+doc/tool-version-history/find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.sha256.version-history.txt
+doc/tool-version-history/find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_id_from_mvs.txt_in_mvs_dates.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_id_from_mvs.txt_in_mvs_ids.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_id_from_mvs.txt_in_mvs_names.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_id_from_mvs_dates.txt_in_mvs.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_ids.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_names.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_id_from_mvs_ids.txt_in_mvs.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_dates.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_names.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_id_from_mvs_names.txt_in_mvs.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_id_from_mvs_names.txt_in_mvs_dates.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_id_from_mvs_names.txt_in_mvs_ids.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_title_from_mvs_ids.txt_in_mvs.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_dates.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_names.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_notes.html.version-history.txt
+doc/tool-version-history/find_mvs_orphan_titles_from_mvs.txt_in_mvs_dates.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_titles_from_mvs.txt_in_mvs_ids.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_titles_from_mvs.txt_in_mvs_names.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_ids.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_names.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_titles_from_mvs_names.txt_in_mvs.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_dates.txt.version-history.txt
+doc/tool-version-history/find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_ids.txt.version-history.txt
+doc/tool-version-history/generate_diagnostic_fixture.version-history.txt
+doc/tool-version-history/generate_diagnostic_tools.version-history.txt
+doc/tool-version-history/generate_expected_diagnostic_outputs.version-history.txt
 doc/tool-version-history/generate_tests.version-history.txt
 doc/tool-version-history/generate_tools.version-history.txt
 doc/tool-version-history/lookup_mvs_date_from_id.version-history.txt
@@ -164,11 +224,57 @@ doc/tool-version-history/read_mvs_dump_title_sorted_by_date.version-history.txt
 doc/tool-version-history/read_mvs_dump_title_sorted_by_id.version-history.txt
 doc/tool-version-history/read_mvs_dump_title_sorted_by_title.version-history.txt
 doc/tool-version-history/test_all.version-history.txt
+doc/tool-version-history/test_diagnostic_tools.version-history.txt
 doc/tool-version-history/test_lookup_tools.version-history.txt
 doc/tool-version-history/test_scalar_tools.version-history.txt
 doc/tool-version-history/test_structure.version-history.txt
 doc/tool-version-history/validate_generated.version-history.txt
 doc/usage.txt
+find_mvs_duplicate_date_in_mvs_date.txt.bat
+find_mvs_duplicate_date_in_mvs_dates.txt.bat
+find_mvs_duplicate_filename_in_mvs.txt.bat
+find_mvs_duplicate_filename_in_mvs_names.txt.bat
+find_mvs_duplicate_id_in_mvs.txt.bat
+find_mvs_duplicate_id_in_mvs_dates.txt.bat
+find_mvs_duplicate_id_in_mvs_ids.txt.bat
+find_mvs_duplicate_id_in_mvs_names.txt.bat
+find_mvs_duplicate_id_in_mvs_notes.html.bat
+find_mvs_duplicate_title_in_mvs.txt.bat
+find_mvs_duplicate_title_in_mvs_dates.txt.bat
+find_mvs_duplicate_title_in_mvs_ids.txt.bat
+find_mvs_duplicate_title_in_mvs_names.txt.bat
+find_mvs_duplicate_title_in_mvs_notes.html.bat
+find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha1.bat
+find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha256.bat
+find_mvs_orphan_filenames_from_mvs.txt_in_mvs_names.txt.bat
+find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.sha1.bat
+find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.sha256.bat
+find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.txt.bat
+find_mvs_orphan_id_from_mvs.txt_in_mvs_dates.txt.bat
+find_mvs_orphan_id_from_mvs.txt_in_mvs_ids.txt.bat
+find_mvs_orphan_id_from_mvs.txt_in_mvs_names.txt.bat
+find_mvs_orphan_id_from_mvs_dates.txt_in_mvs.txt.bat
+find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_ids.txt.bat
+find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_names.txt.bat
+find_mvs_orphan_id_from_mvs_ids.txt_in_mvs.txt.bat
+find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_dates.txt.bat
+find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_names.txt.bat
+find_mvs_orphan_id_from_mvs_names.txt_in_mvs.txt.bat
+find_mvs_orphan_id_from_mvs_names.txt_in_mvs_dates.txt.bat
+find_mvs_orphan_id_from_mvs_names.txt_in_mvs_ids.txt.bat
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs.txt.bat
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_dates.txt.bat
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_names.txt.bat
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_notes.html.bat
+find_mvs_orphan_titles_from_mvs.txt_in_mvs_dates.txt.bat
+find_mvs_orphan_titles_from_mvs.txt_in_mvs_ids.txt.bat
+find_mvs_orphan_titles_from_mvs.txt_in_mvs_names.txt.bat
+find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs.txt.bat
+find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_ids.txt.bat
+find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_names.txt.bat
+find_mvs_orphan_titles_from_mvs_names.txt_in_mvs.txt.bat
+find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_dates.txt.bat
+find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_ids.txt.bat
 lookup_mvs_date_from_id.bat
 lookup_mvs_date_from_title.bat
 lookup_mvs_note_from_date.bat
@@ -296,7 +402,63 @@ read_mvs_dump_title_note_sorted_by_title.bat
 read_mvs_dump_title_sorted_by_date.bat
 read_mvs_dump_title_sorted_by_id.bat
 read_mvs_dump_title_sorted_by_title.bat
+test/README.md
+test/expected-diagnostics/find_mvs_duplicate_date_in_mvs_date.txt.expected.txt
+test/expected-diagnostics/find_mvs_duplicate_date_in_mvs_dates.txt.expected.txt
+test/expected-diagnostics/find_mvs_duplicate_filename_in_mvs.txt.expected.txt
+test/expected-diagnostics/find_mvs_duplicate_filename_in_mvs_names.txt.expected.txt
+test/expected-diagnostics/find_mvs_duplicate_id_in_mvs.txt.expected.txt
+test/expected-diagnostics/find_mvs_duplicate_id_in_mvs_dates.txt.expected.txt
+test/expected-diagnostics/find_mvs_duplicate_id_in_mvs_ids.txt.expected.txt
+test/expected-diagnostics/find_mvs_duplicate_id_in_mvs_names.txt.expected.txt
+test/expected-diagnostics/find_mvs_duplicate_id_in_mvs_notes.html.expected.txt
+test/expected-diagnostics/find_mvs_duplicate_title_in_mvs.txt.expected.txt
+test/expected-diagnostics/find_mvs_duplicate_title_in_mvs_dates.txt.expected.txt
+test/expected-diagnostics/find_mvs_duplicate_title_in_mvs_ids.txt.expected.txt
+test/expected-diagnostics/find_mvs_duplicate_title_in_mvs_names.txt.expected.txt
+test/expected-diagnostics/find_mvs_duplicate_title_in_mvs_notes.html.expected.txt
+test/expected-diagnostics/find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha1.expected.txt
+test/expected-diagnostics/find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha256.expected.txt
+test/expected-diagnostics/find_mvs_orphan_filenames_from_mvs.txt_in_mvs_names.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.sha1.expected.txt
+test/expected-diagnostics/find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.sha256.expected.txt
+test/expected-diagnostics/find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_id_from_mvs.txt_in_mvs_dates.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_id_from_mvs.txt_in_mvs_ids.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_id_from_mvs.txt_in_mvs_names.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_id_from_mvs_dates.txt_in_mvs.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_ids.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_names.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_id_from_mvs_ids.txt_in_mvs.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_dates.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_names.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_id_from_mvs_names.txt_in_mvs.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_id_from_mvs_names.txt_in_mvs_dates.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_id_from_mvs_names.txt_in_mvs_ids.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_title_from_mvs_ids.txt_in_mvs.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_dates.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_names.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_notes.html.expected.txt
+test/expected-diagnostics/find_mvs_orphan_titles_from_mvs.txt_in_mvs_dates.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_titles_from_mvs.txt_in_mvs_ids.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_titles_from_mvs.txt_in_mvs_names.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_ids.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_names.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_titles_from_mvs_names.txt_in_mvs.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_dates.txt.expected.txt
+test/expected-diagnostics/find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_ids.txt.expected.txt
+test/test-mvs-dump-diagnostics/EXPECTED-FINDINGS.txt
+test/test-mvs-dump-diagnostics/README.txt
+test/test-mvs-dump-diagnostics/mvs.sha1
+test/test-mvs-dump-diagnostics/mvs.sha256
+test/test-mvs-dump-diagnostics/mvs.txt
+test/test-mvs-dump-diagnostics/mvs_dates.txt
+test/test-mvs-dump-diagnostics/mvs_ids.txt
+test/test-mvs-dump-diagnostics/mvs_names.txt
+test/test-mvs-dump-diagnostics/mvs_notes.html
 test/test_all.bat
+test/test_diagnostic_tools.bat
 test/test_lookup_tools.bat
 test/test_scalar_tools.bat
 test/test_structure.bat

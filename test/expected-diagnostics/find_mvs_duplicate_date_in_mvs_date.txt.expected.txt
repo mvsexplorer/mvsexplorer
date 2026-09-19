@@ -1,0 +1,6 @@
+Duplicate Date: 2020-01-01T00:00:00
+Occurrence 1:
+  2020-01-01T00:00:00 - Dates Duplicate Date A [ID: 304]
+Occurrence 2:
+  2020-01-01T00:00:00 - Dates Duplicate Date B [ID: 305]
+

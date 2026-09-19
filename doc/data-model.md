@@ -56,3 +56,54 @@ Lookup results are projected target values rather than full product records.
 ## Variant layer
 
 Variant/file/hash relationships remain a later phase.
+
+
+## Diagnostic comparison domains
+
+The diagnostic layer deliberately separates **mechanical equality** from
+**semantic interpretation**.
+
+### Product-level ID/title sources
+
+```text
+mvs_ids.txt
+mvs_dates.txt
+mvs.txt
+```
+
+These sources use product-level IDs/titles.
+
+### Variant-level source
+
+```text
+mvs_names.txt
+```
+
+Its ID references the owning product, so repeated IDs are normally expected.
+Its heading/title is a variant/display title and is not generally equal to the
+product title.
+
+### Notes source
+
+```text
+mvs_notes.html
+```
+
+Known note headings are title-based and normally do not carry IDs.
+
+### Flat filename/hash sources
+
+```text
+mvs.sha1
+mvs.sha256
+```
+
+For 0.7.0 orphan diagnostics, these are treated as filename sets only.
+
+Therefore:
+
+- ID orphan checks across product/variant sources can test reference coverage.
+- title orphan checks involving `mvs_names.txt` are literal title-set checks,
+  not proof of missing product relationships.
+- filename orphan checks answer filename presence only; they do not yet prove
+  algorithm/digest equivalence.

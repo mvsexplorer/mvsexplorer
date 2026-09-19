@@ -1,0 +1,321 @@
+{
+  "project_version": "0.7.0",
+  "tool_version": "0.1.0",
+  "tools": [
+    {
+      "name": "find_mvs_duplicate_id_in_mvs.txt",
+      "operation": "duplicate",
+      "property": "id",
+      "source": "mvs.txt",
+      "target": ""
+    },
+    {
+      "name": "find_mvs_duplicate_id_in_mvs_dates.txt",
+      "operation": "duplicate",
+      "property": "id",
+      "source": "mvs_dates.txt",
+      "target": ""
+    },
+    {
+      "name": "find_mvs_duplicate_id_in_mvs_ids.txt",
+      "operation": "duplicate",
+      "property": "id",
+      "source": "mvs_ids.txt",
+      "target": ""
+    },
+    {
+      "name": "find_mvs_duplicate_id_in_mvs_names.txt",
+      "operation": "duplicate",
+      "property": "id",
+      "source": "mvs_names.txt",
+      "target": ""
+    },
+    {
+      "name": "find_mvs_duplicate_id_in_mvs_notes.html",
+      "operation": "duplicate",
+      "property": "id",
+      "source": "mvs_notes.html",
+      "target": ""
+    },
+    {
+      "name": "find_mvs_duplicate_title_in_mvs.txt",
+      "operation": "duplicate",
+      "property": "title",
+      "source": "mvs.txt",
+      "target": ""
+    },
+    {
+      "name": "find_mvs_duplicate_title_in_mvs_dates.txt",
+      "operation": "duplicate",
+      "property": "title",
+      "source": "mvs_dates.txt",
+      "target": ""
+    },
+    {
+      "name": "find_mvs_duplicate_title_in_mvs_ids.txt",
+      "operation": "duplicate",
+      "property": "title",
+      "source": "mvs_ids.txt",
+      "target": ""
+    },
+    {
+      "name": "find_mvs_duplicate_title_in_mvs_names.txt",
+      "operation": "duplicate",
+      "property": "title",
+      "source": "mvs_names.txt",
+      "target": ""
+    },
+    {
+      "name": "find_mvs_duplicate_title_in_mvs_notes.html",
+      "operation": "duplicate",
+      "property": "title",
+      "source": "mvs_notes.html",
+      "target": ""
+    },
+    {
+      "name": "find_mvs_duplicate_date_in_mvs_date.txt",
+      "operation": "duplicate",
+      "property": "date",
+      "source": "mvs_dates.txt",
+      "target": ""
+    },
+    {
+      "name": "find_mvs_duplicate_date_in_mvs_dates.txt",
+      "operation": "duplicate",
+      "property": "date",
+      "source": "mvs_dates.txt",
+      "target": ""
+    },
+    {
+      "name": "find_mvs_duplicate_filename_in_mvs_names.txt",
+      "operation": "duplicate",
+      "property": "filename",
+      "source": "mvs_names.txt",
+      "target": ""
+    },
+    {
+      "name": "find_mvs_duplicate_filename_in_mvs.txt",
+      "operation": "duplicate",
+      "property": "filename",
+      "source": "mvs.txt",
+      "target": ""
+    },
+    {
+      "name": "find_mvs_orphan_id_from_mvs_ids.txt_in_mvs.txt",
+      "operation": "orphan",
+      "property": "id",
+      "source": "mvs_ids.txt",
+      "target": "mvs.txt"
+    },
+    {
+      "name": "find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_dates.txt",
+      "operation": "orphan",
+      "property": "id",
+      "source": "mvs_ids.txt",
+      "target": "mvs_dates.txt"
+    },
+    {
+      "name": "find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_names.txt",
+      "operation": "orphan",
+      "property": "id",
+      "source": "mvs_ids.txt",
+      "target": "mvs_names.txt"
+    },
+    {
+      "name": "find_mvs_orphan_title_from_mvs_ids.txt_in_mvs.txt",
+      "operation": "orphan",
+      "property": "title",
+      "source": "mvs_ids.txt",
+      "target": "mvs.txt"
+    },
+    {
+      "name": "find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_dates.txt",
+      "operation": "orphan",
+      "property": "title",
+      "source": "mvs_ids.txt",
+      "target": "mvs_dates.txt"
+    },
+    {
+      "name": "find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_names.txt",
+      "operation": "orphan",
+      "property": "title",
+      "source": "mvs_ids.txt",
+      "target": "mvs_names.txt"
+    },
+    {
+      "name": "find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_notes.html",
+      "operation": "orphan",
+      "property": "title",
+      "source": "mvs_ids.txt",
+      "target": "mvs_notes.html"
+    },
+    {
+      "name": "find_mvs_orphan_id_from_mvs_dates.txt_in_mvs.txt",
+      "operation": "orphan",
+      "property": "id",
+      "source": "mvs_dates.txt",
+      "target": "mvs.txt"
+    },
+    {
+      "name": "find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_ids.txt",
+      "operation": "orphan",
+      "property": "id",
+      "source": "mvs_dates.txt",
+      "target": "mvs_ids.txt"
+    },
+    {
+      "name": "find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_names.txt",
+      "operation": "orphan",
+      "property": "id",
+      "source": "mvs_dates.txt",
+      "target": "mvs_names.txt"
+    },
+    {
+      "name": "find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs.txt",
+      "operation": "orphan",
+      "property": "title",
+      "source": "mvs_dates.txt",
+      "target": "mvs.txt"
+    },
+    {
+      "name": "find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_ids.txt",
+      "operation": "orphan",
+      "property": "title",
+      "source": "mvs_dates.txt",
+      "target": "mvs_ids.txt"
+    },
+    {
+      "name": "find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_names.txt",
+      "operation": "orphan",
+      "property": "title",
+      "source": "mvs_dates.txt",
+      "target": "mvs_names.txt"
+    },
+    {
+      "name": "find_mvs_orphan_id_from_mvs.txt_in_mvs_ids.txt",
+      "operation": "orphan",
+      "property": "id",
+      "source": "mvs.txt",
+      "target": "mvs_ids.txt"
+    },
+    {
+      "name": "find_mvs_orphan_id_from_mvs.txt_in_mvs_dates.txt",
+      "operation": "orphan",
+      "property": "id",
+      "source": "mvs.txt",
+      "target": "mvs_dates.txt"
+    },
+    {
+      "name": "find_mvs_orphan_id_from_mvs.txt_in_mvs_names.txt",
+      "operation": "orphan",
+      "property": "id",
+      "source": "mvs.txt",
+      "target": "mvs_names.txt"
+    },
+    {
+      "name": "find_mvs_orphan_titles_from_mvs.txt_in_mvs_ids.txt",
+      "operation": "orphan",
+      "property": "title",
+      "source": "mvs.txt",
+      "target": "mvs_ids.txt"
+    },
+    {
+      "name": "find_mvs_orphan_titles_from_mvs.txt_in_mvs_dates.txt",
+      "operation": "orphan",
+      "property": "title",
+      "source": "mvs.txt",
+      "target": "mvs_dates.txt"
+    },
+    {
+      "name": "find_mvs_orphan_titles_from_mvs.txt_in_mvs_names.txt",
+      "operation": "orphan",
+      "property": "title",
+      "source": "mvs.txt",
+      "target": "mvs_names.txt"
+    },
+    {
+      "name": "find_mvs_orphan_id_from_mvs_names.txt_in_mvs.txt",
+      "operation": "orphan",
+      "property": "id",
+      "source": "mvs_names.txt",
+      "target": "mvs.txt"
+    },
+    {
+      "name": "find_mvs_orphan_id_from_mvs_names.txt_in_mvs_ids.txt",
+      "operation": "orphan",
+      "property": "id",
+      "source": "mvs_names.txt",
+      "target": "mvs_ids.txt"
+    },
+    {
+      "name": "find_mvs_orphan_id_from_mvs_names.txt_in_mvs_dates.txt",
+      "operation": "orphan",
+      "property": "id",
+      "source": "mvs_names.txt",
+      "target": "mvs_dates.txt"
+    },
+    {
+      "name": "find_mvs_orphan_titles_from_mvs_names.txt_in_mvs.txt",
+      "operation": "orphan",
+      "property": "title",
+      "source": "mvs_names.txt",
+      "target": "mvs.txt"
+    },
+    {
+      "name": "find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_ids.txt",
+      "operation": "orphan",
+      "property": "title",
+      "source": "mvs_names.txt",
+      "target": "mvs_ids.txt"
+    },
+    {
+      "name": "find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_dates.txt",
+      "operation": "orphan",
+      "property": "title",
+      "source": "mvs_names.txt",
+      "target": "mvs_dates.txt"
+    },
+    {
+      "name": "find_mvs_orphan_filenames_from_mvs.txt_in_mvs_names.txt",
+      "operation": "orphan",
+      "property": "filename",
+      "source": "mvs.txt",
+      "target": "mvs_names.txt"
+    },
+    {
+      "name": "find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.txt",
+      "operation": "orphan",
+      "property": "filename",
+      "source": "mvs_names.txt",
+      "target": "mvs.txt"
+    },
+    {
+      "name": "find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha1",
+      "operation": "orphan",
+      "property": "filename",
+      "source": "mvs.txt",
+      "target": "mvs.sha1"
+    },
+    {
+      "name": "find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.sha1",
+      "operation": "orphan",
+      "property": "filename",
+      "source": "mvs_names.txt",
+      "target": "mvs.sha1"
+    },
+    {
+      "name": "find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha256",
+      "operation": "orphan",
+      "property": "filename",
+      "source": "mvs.txt",
+      "target": "mvs.sha256"
+    },
+    {
+      "name": "find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.sha256",
+      "operation": "orphan",
+      "property": "filename",
+      "source": "mvs_names.txt",
+      "target": "mvs.sha256"
+    }
+  ]
+}

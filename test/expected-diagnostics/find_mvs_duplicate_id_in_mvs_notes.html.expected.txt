@@ -1,0 +1,10 @@
+Duplicate ID: 601
+Occurrence 1:
+  ID: 601
+  Title: Legacy Note A
+  Note: Legacy note A.
+Occurrence 2:
+  ID: 601
+  Title: Legacy Note B
+  Note: Legacy note B.
+

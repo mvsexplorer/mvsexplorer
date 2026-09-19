@@ -1,0 +1,8 @@
+Duplicate Title: Names Duplicate Title
+Occurrence 1:
+  --- Names Duplicate Title [ID: 502] ---
+  ffffffffffffffffffffffffffffffffffffffff *names-dup-title-a.iso
+Occurrence 2:
+  --- Names Duplicate Title [ID: 503] ---
+  0123456789012345678901234567890123456789 *names-dup-title-b.iso
+

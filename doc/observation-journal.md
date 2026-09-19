@@ -90,3 +90,40 @@ The attached 0.5.0 archive was sufficient to isolate the problem without relying
 ### The return path should be simpler than the cleanup path when no cleanup exists
 
 `RunPowerShellFromLabel` needs no cleanup after `powershell.exe` returns. Directly returning the captured code is clearer and removes one re-entry/parse transition.
+
+
+### Repetition is not the same thing as invalid duplication
+
+`mvs_names.txt` associates many variant sections with one product ID. A
+duplicate-ID finder over that file will therefore intentionally report normal
+one-to-many structure.
+
+Diagnostic naming should describe the mechanical question without overclaiming
+that every result is an integrity defect.
+
+### Title domains differ across source files
+
+Product-level sources (`mvs_ids.txt`, `mvs_dates.txt`, `mvs.txt`) and
+`mvs_names.txt` do not generally use titles at the same semantic level.
+Variant/display headings can differ legitimately from product titles.
+
+A title-orphan result across those domains is a literal string-set difference,
+not automatically a broken product link.
+
+### Section context is necessary for actionable diagnostics
+
+An ID or title by itself is insufficient in `mvs.txt`/`mvs_names.txt`.
+Preserving all associated lines makes duplicate/orphan reports useful for
+hash/filename investigation.
+
+### Positive synthetic inconsistency is valuable
+
+Real dumps may contain no example of a particular defect. A purpose-built test
+dump can force every finder down its reporting path while fixed expected output
+turns those paths into exact regression contracts.
+
+### Flat SHA manifests are filename reference sets in this phase
+
+The current orphan comparisons against `mvs.sha1`/`mvs.sha256` answer whether a
+filename is present in the flat manifest. They do not yet assert variant-level
+hash equivalence.

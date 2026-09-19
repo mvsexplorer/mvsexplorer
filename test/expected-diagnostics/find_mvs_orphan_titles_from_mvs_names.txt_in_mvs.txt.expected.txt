@@ -1,0 +1,55 @@
+Orphan Title: Common One Variant
+Source: mvs_names.txt
+Target: mvs.txt
+  --- Common One Variant [ID: 1] ---
+  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa *common-one.iso
+
+Orphan Title: Common Two Variant
+Source: mvs_names.txt
+Target: mvs.txt
+  --- Common Two Variant [ID: 2] ---
+  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb *common-two.iso
+
+Orphan Title: Names Only
+Source: mvs_names.txt
+Target: mvs.txt
+  --- Names Only [ID: 104] ---
+  cccccccccccccccccccccccccccccccccccccccc *names-only.iso
+
+Orphan Title: Names Duplicate ID A
+Source: mvs_names.txt
+Target: mvs.txt
+  --- Names Duplicate ID A [ID: 501] ---
+  dddddddddddddddddddddddddddddddddddddddd *names-dup-id-a.iso
+  ddddddddddddddddddddddddddddddddddddddde *names-dup-id-a-extra.iso
+
+Orphan Title: Names Duplicate ID B
+Source: mvs_names.txt
+Target: mvs.txt
+  --- Names Duplicate ID B [ID: 501] ---
+  eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee *names-dup-id-b.iso
+
+Orphan Title: Names Duplicate Title
+Source: mvs_names.txt
+Target: mvs.txt
+  --- Names Duplicate Title [ID: 502] ---
+  ffffffffffffffffffffffffffffffffffffffff *names-dup-title-a.iso
+
+Orphan Title: Names Duplicate Title
+Source: mvs_names.txt
+Target: mvs.txt
+  --- Names Duplicate Title [ID: 503] ---
+  0123456789012345678901234567890123456789 *names-dup-title-b.iso
+
+Orphan Title: Names Filename Owner A
+Source: mvs_names.txt
+Target: mvs.txt
+  --- Names Filename Owner A [ID: 504] ---
+  1123456789012345678901234567890123456789 *names-duplicate-filename.iso
+
+Orphan Title: Names Filename Owner B
+Source: mvs_names.txt
+Target: mvs.txt
+  --- Names Filename Owner B [ID: 505] ---
+  2123456789012345678901234567890123456789 *names-duplicate-filename.iso
+

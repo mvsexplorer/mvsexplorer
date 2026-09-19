@@ -663,3 +663,375 @@ see attached results file
 ```
 
 Attached result archive: `test-results-20260827-111852.zip`.
+
+## Prompt 8
+
+```text
+ok here's the output and see results attached
+
+C:\Users\user\Downloads\MVS-Explorer-Toolkit-0.6.0>test\test_all.bat ..\mvs_dumps_archive\mvs_2020-09-15_2
+Test results: C:\Users\user\Downloads\MVS-Explorer-Toolkit-0.6.0\test\test-results-20260827-122202
+Dump: C:\Users\user\Downloads\mvs_dumps_archive\mvs_2020-09-15_2
+Products parsed for expectations: 1984
+=== Structure tests ===
+[PASS] root public .bat count = 127
+[PASS] standalone print_mvs_dump_id.bat
+[PASS] standalone print_mvs_dump_id_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_id_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_id_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_id.bat
+[PASS] standalone read_mvs_dump_id_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_id_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_id_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_id_title.bat
+[PASS] standalone print_mvs_dump_id_title_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_id_title_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_id_title_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_id_title.bat
+[PASS] standalone read_mvs_dump_id_title_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_id_title_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_id_title_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_id_date.bat
+[PASS] standalone print_mvs_dump_id_date_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_id_date_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_id_date_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_id_date.bat
+[PASS] standalone read_mvs_dump_id_date_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_id_date_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_id_date_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_id_note.bat
+[PASS] standalone print_mvs_dump_id_note_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_id_note_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_id_note_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_id_note.bat
+[PASS] standalone read_mvs_dump_id_note_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_id_note_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_id_note_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_id_title_date.bat
+[PASS] standalone print_mvs_dump_id_title_date_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_id_title_date_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_id_title_date_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_id_title_date.bat
+[PASS] standalone read_mvs_dump_id_title_date_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_id_title_date_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_id_title_date_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_id_title_note.bat
+[PASS] standalone print_mvs_dump_id_title_note_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_id_title_note_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_id_title_note_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_id_title_note.bat
+[PASS] standalone read_mvs_dump_id_title_note_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_id_title_note_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_id_title_note_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_id_title_date_note.bat
+[PASS] standalone print_mvs_dump_id_title_date_note_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_id_title_date_note_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_id_title_date_note_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_id_title_date_note.bat
+[PASS] standalone read_mvs_dump_id_title_date_note_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_id_title_date_note_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_id_title_date_note_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_title.bat
+[PASS] standalone print_mvs_dump_title_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_title_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_title_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_title.bat
+[PASS] standalone read_mvs_dump_title_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_title_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_title_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_title_date.bat
+[PASS] standalone print_mvs_dump_title_date_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_title_date_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_title_date_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_title_date.bat
+[PASS] standalone read_mvs_dump_title_date_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_title_date_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_title_date_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_title_note.bat
+[PASS] standalone print_mvs_dump_title_note_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_title_note_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_title_note_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_title_note.bat
+[PASS] standalone read_mvs_dump_title_note_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_title_note_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_title_note_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_title_date_note.bat
+[PASS] standalone print_mvs_dump_title_date_note_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_title_date_note_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_title_date_note_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_title_date_note.bat
+[PASS] standalone read_mvs_dump_title_date_note_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_title_date_note_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_title_date_note_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_date.bat
+[PASS] standalone print_mvs_dump_date_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_date_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_date_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_date.bat
+[PASS] standalone read_mvs_dump_date_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_date_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_date_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_note.bat
+[PASS] standalone print_mvs_dump_note_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_note_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_note_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_note.bat
+[PASS] standalone read_mvs_dump_note_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_note_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_note_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_date_note.bat
+[PASS] standalone print_mvs_dump_date_note_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_date_note_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_date_note_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_date_note.bat
+[PASS] standalone read_mvs_dump_date_note_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_date_note_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_date_note_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_id_date_note.bat
+[PASS] standalone print_mvs_dump_id_date_note_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_id_date_note_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_id_date_note_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_id_date_note.bat
+[PASS] standalone read_mvs_dump_id_date_note_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_id_date_note_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_id_date_note_sorted_by_date.bat
+[PASS] standalone lookup_mvs_title_from_id.bat
+[PASS] standalone lookup_mvs_title_from_date.bat
+[PASS] standalone lookup_mvs_note_from_id.bat
+[PASS] standalone lookup_mvs_note_from_title.bat
+[PASS] standalone lookup_mvs_note_from_date.bat
+[PASS] standalone lookup_mvs_date_from_id.bat
+[PASS] standalone lookup_mvs_date_from_title.bat
+=== Scalar tool tests ===
+[PASS] print_mvs_dump_id
+[PASS] print_mvs_dump_id_sorted_by_id
+[PASS] print_mvs_dump_id_sorted_by_title
+[PASS] print_mvs_dump_id_sorted_by_date
+[PASS] read_mvs_dump_id
+[PASS] read_mvs_dump_id_sorted_by_id
+[PASS] read_mvs_dump_id_sorted_by_title
+[PASS] read_mvs_dump_id_sorted_by_date
+[PASS] print_mvs_dump_id_title
+[PASS] print_mvs_dump_id_title_sorted_by_id
+[PASS] print_mvs_dump_id_title_sorted_by_title
+[PASS] print_mvs_dump_id_title_sorted_by_date
+[PASS] read_mvs_dump_id_title
+[PASS] read_mvs_dump_id_title_sorted_by_id
+[PASS] read_mvs_dump_id_title_sorted_by_title
+[PASS] read_mvs_dump_id_title_sorted_by_date
+[PASS] print_mvs_dump_id_date
+[PASS] print_mvs_dump_id_date_sorted_by_id
+[PASS] print_mvs_dump_id_date_sorted_by_title
+[PASS] print_mvs_dump_id_date_sorted_by_date
+[PASS] read_mvs_dump_id_date
+[PASS] read_mvs_dump_id_date_sorted_by_id
+[PASS] read_mvs_dump_id_date_sorted_by_title
+[PASS] read_mvs_dump_id_date_sorted_by_date
+[PASS] print_mvs_dump_id_note
+[PASS] print_mvs_dump_id_note_sorted_by_id
+[PASS] print_mvs_dump_id_note_sorted_by_title
+[PASS] print_mvs_dump_id_note_sorted_by_date
+[PASS] read_mvs_dump_id_note
+[PASS] read_mvs_dump_id_note_sorted_by_id
+[PASS] read_mvs_dump_id_note_sorted_by_title
+[PASS] read_mvs_dump_id_note_sorted_by_date
+[PASS] print_mvs_dump_id_title_date
+[PASS] print_mvs_dump_id_title_date_sorted_by_id
+[PASS] print_mvs_dump_id_title_date_sorted_by_title
+[PASS] print_mvs_dump_id_title_date_sorted_by_date
+[PASS] read_mvs_dump_id_title_date
+[PASS] read_mvs_dump_id_title_date_sorted_by_id
+[PASS] read_mvs_dump_id_title_date_sorted_by_title
+[PASS] read_mvs_dump_id_title_date_sorted_by_date
+[PASS] print_mvs_dump_id_title_note
+[PASS] print_mvs_dump_id_title_note_sorted_by_id
+[PASS] print_mvs_dump_id_title_note_sorted_by_title
+[PASS] print_mvs_dump_id_title_note_sorted_by_date
+[PASS] read_mvs_dump_id_title_note
+[PASS] read_mvs_dump_id_title_note_sorted_by_id
+[PASS] read_mvs_dump_id_title_note_sorted_by_title
+[PASS] read_mvs_dump_id_title_note_sorted_by_date
+[PASS] print_mvs_dump_id_title_date_note
+[PASS] print_mvs_dump_id_title_date_note_sorted_by_id
+[PASS] print_mvs_dump_id_title_date_note_sorted_by_title
+[PASS] print_mvs_dump_id_title_date_note_sorted_by_date
+[PASS] read_mvs_dump_id_title_date_note
+[PASS] read_mvs_dump_id_title_date_note_sorted_by_id
+[PASS] read_mvs_dump_id_title_date_note_sorted_by_title
+[PASS] read_mvs_dump_id_title_date_note_sorted_by_date
+[PASS] print_mvs_dump_title
+[PASS] print_mvs_dump_title_sorted_by_id
+[PASS] print_mvs_dump_title_sorted_by_title
+[PASS] print_mvs_dump_title_sorted_by_date
+[PASS] read_mvs_dump_title
+[PASS] read_mvs_dump_title_sorted_by_id
+[PASS] read_mvs_dump_title_sorted_by_title
+[PASS] read_mvs_dump_title_sorted_by_date
+[PASS] print_mvs_dump_title_date
+[PASS] print_mvs_dump_title_date_sorted_by_id
+[PASS] print_mvs_dump_title_date_sorted_by_title
+[PASS] print_mvs_dump_title_date_sorted_by_date
+[PASS] read_mvs_dump_title_date
+[PASS] read_mvs_dump_title_date_sorted_by_id
+[PASS] read_mvs_dump_title_date_sorted_by_title
+[PASS] read_mvs_dump_title_date_sorted_by_date
+[PASS] print_mvs_dump_title_note
+[PASS] print_mvs_dump_title_note_sorted_by_id
+[PASS] print_mvs_dump_title_note_sorted_by_title
+[PASS] print_mvs_dump_title_note_sorted_by_date
+[PASS] read_mvs_dump_title_note
+[PASS] read_mvs_dump_title_note_sorted_by_id
+[PASS] read_mvs_dump_title_note_sorted_by_title
+[PASS] read_mvs_dump_title_note_sorted_by_date
+[PASS] print_mvs_dump_title_date_note
+[PASS] print_mvs_dump_title_date_note_sorted_by_id
+[PASS] print_mvs_dump_title_date_note_sorted_by_title
+[PASS] print_mvs_dump_title_date_note_sorted_by_date
+[PASS] read_mvs_dump_title_date_note
+[PASS] read_mvs_dump_title_date_note_sorted_by_id
+[PASS] read_mvs_dump_title_date_note_sorted_by_title
+[PASS] read_mvs_dump_title_date_note_sorted_by_date
+[PASS] print_mvs_dump_date
+[PASS] print_mvs_dump_date_sorted_by_id
+[PASS] print_mvs_dump_date_sorted_by_title
+[PASS] print_mvs_dump_date_sorted_by_date
+[PASS] read_mvs_dump_date
+[PASS] read_mvs_dump_date_sorted_by_id
+[PASS] read_mvs_dump_date_sorted_by_title
+[PASS] read_mvs_dump_date_sorted_by_date
+[PASS] print_mvs_dump_note
+[PASS] print_mvs_dump_note_sorted_by_id
+[PASS] print_mvs_dump_note_sorted_by_title
+[PASS] print_mvs_dump_note_sorted_by_date
+[PASS] read_mvs_dump_note
+[PASS] read_mvs_dump_note_sorted_by_id
+[PASS] read_mvs_dump_note_sorted_by_title
+[PASS] read_mvs_dump_note_sorted_by_date
+[PASS] print_mvs_dump_date_note
+[PASS] print_mvs_dump_date_note_sorted_by_id
+[PASS] print_mvs_dump_date_note_sorted_by_title
+[PASS] print_mvs_dump_date_note_sorted_by_date
+[PASS] read_mvs_dump_date_note
+[PASS] read_mvs_dump_date_note_sorted_by_id
+[PASS] read_mvs_dump_date_note_sorted_by_title
+[PASS] read_mvs_dump_date_note_sorted_by_date
+[PASS] print_mvs_dump_id_date_note
+[PASS] print_mvs_dump_id_date_note_sorted_by_id
+[PASS] print_mvs_dump_id_date_note_sorted_by_title
+[PASS] print_mvs_dump_id_date_note_sorted_by_date
+[PASS] read_mvs_dump_id_date_note
+[PASS] read_mvs_dump_id_date_note_sorted_by_id
+[PASS] read_mvs_dump_id_date_note_sorted_by_title
+[PASS] read_mvs_dump_id_date_note_sorted_by_date
+=== Lookup tool tests ===
+[PASS] lookup_mvs_title_from_id [exact: 1]
+[PASS] lookup_mvs_title_from_id [wildcard-all: *]
+[PASS] lookup_mvs_title_from_id [no-match: __MVS_TEST_NO_MATCH_9E3779B97F4A7C15__]
+[PASS] lookup_mvs_title_from_date [exact: 2004-06-01T16:55:00]
+[PASS] lookup_mvs_title_from_date [wildcard-all: *]
+[PASS] lookup_mvs_title_from_date [no-match: __MVS_TEST_NO_MATCH_9E3779B97F4A7C15__]
+[PASS] lookup_mvs_note_from_id [exact: 18]
+[PASS] lookup_mvs_note_from_id [wildcard-all: *]
+[PASS] lookup_mvs_note_from_id [no-match: __MVS_TEST_NO_MATCH_9E3779B97F4A7C15__]
+[PASS] lookup_mvs_note_from_title [exact: Groove 2007]
+[PASS] lookup_mvs_note_from_title [wildcard-all: *]
+[PASS] lookup_mvs_note_from_title [no-match: __MVS_TEST_NO_MATCH_9E3779B97F4A7C15__]
+[PASS] lookup_mvs_note_from_date [exact: 2007-07-03T20:26:24]
+[PASS] lookup_mvs_note_from_date [wildcard-all: *]
+[PASS] lookup_mvs_note_from_date [no-match: __MVS_TEST_NO_MATCH_9E3779B97F4A7C15__]
+[PASS] lookup_mvs_date_from_id [exact: 1]
+[PASS] lookup_mvs_date_from_id [wildcard-all: *]
+[PASS] lookup_mvs_date_from_id [no-match: __MVS_TEST_NO_MATCH_9E3779B97F4A7C15__]
+[PASS] lookup_mvs_date_from_title [exact: Access 2.0]
+[PASS] lookup_mvs_date_from_title [wildcard-all: *]
+[PASS] lookup_mvs_date_from_title [no-match: __MVS_TEST_NO_MATCH_9E3779B97F4A7C15__]
+[PASS] lookup_mvs_title_from_id [prefix-wildcard: 1*]
+[PASS] lookup_mvs_title_from_id [suffix-wildcard: *0]
+[PASS] lookup_mvs_title_from_id [contains-wildcard: *1*]
+
+SUMMARY: passed=272 failed=0 skipped=0
+Results: C:\Users\user\Downloads\MVS-Explorer-Toolkit-0.6.0\test\test-results-20260827-122202
+
+C:\Users\user\Downloads\MVS-Explorer-Toolkit-0.6.0>
+```
+
+Attached result archive: `test-results-20260827-122202.zip`.
+
+## Prompt 9
+
+```text
+Ok great
+next I want 
+find_mvs_duplicate_id_in_mvs.txt.bat
+find_mvs_duplicate_id_in_mvs_dates.txt.bat
+find_mvs_duplicate_id_in_mvs_ids.txt.bat
+find_mvs_duplicate_id_in_mvs_names.txt.bat
+find_mvs_duplicate_id_in_mvs_notes.html.bat
+This should search all files that have id so mvs.txt  mvs_dates.txt and mvs_ids.txt
+for each file, are there duplicate id, and if so, print them both with the title, or the date or or the hash or the note of each duplicate depending on which file it is 
+
+in the case of mvs.txt and mvs_names.txt, those ID come with a series of lines associated with it , if duplicates are found, print the ID, title and all associated lines after until the next empty line
+
+and also we will need the same but for the properties other than ID
+find_mvs_duplicate_title_in_mvs.txt.bat
+find_mvs_duplicate_title_in_mvs_dates.txt.bat
+find_mvs_duplicate_title_in_mvs_ids.txt.bat
+find_mvs_duplicate_title_in_mvs_names.txt.bat
+find_mvs_duplicate_title_in_mvs_notes.html.bat
+and
+find_mvs_duplicate_date_in_mvs_date.txt.bat
+find_mvs_duplicate_filename_in_mvs_names.txt.bat  (print their associated title & id)
+find_mvs_duplicate_filename_in_mvs.txt.bat   (print their associated title & id)
+
+we will also need 
+find_mvs_orphan
+these will look for a value that should be referenced in another document
+
+example 
+find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_dates.txt.bat
+so for each id in mvs_ids.txt, search in mvs_date.txt if there is one or not, if not that is an orphan to report
+and there are other like this
+find_mvs_orphan_id_from_mvs_ids.txt_in_mvs.txt.bat
+find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_dates.txt.bat
+find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_names.txt.bat
+(the id aren't used in mvs_notes.html)
+
+and for the other variables as well 
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs.txt.bat
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_dates.txt.bat
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_names.txt.bat
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_names.txt.bat
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_notes.html.bat
+
+and it other directions
+find_mvs_orphan_id_from_mvs_dates.txt_in_mvs.txt.bat
+find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_ids.txt.bat
+find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_names.txt.bat
+find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs.txt.bat
+find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_ids.txt.bat
+find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_names.txt.bat
+
+find_mvs_orphan_id_from_mvs.txt_in_mvs_ids.txt.bat
+find_mvs_orphan_id_from_mvs.txt_in_mvs_dates.txt.bat
+find_mvs_orphan_id_from_mvs.txt_in_mvs_names.txt.bat
+find_mvs_orphan_titles_from_mvs.txt_in_mvs_ids.txt.bat
+find_mvs_orphan_titles_from_mvs.txt_in_mvs_dates.txt.bat
+find_mvs_orphan_titles_from_mvs.txt_in_mvs_names.txt.bat
+
+find_mvs_orphan_id_from_mvs_names.txt_in_mvs.txt.bat
+find_mvs_orphan_id_from_mvs_names.txt_in_mvs_ids.txt.bat
+find_mvs_orphan_id_from_mvs_names.txt_in_mvs_dates.txt.bat
+find_mvs_orphan_titles_from_mvs_names.txt_in_mvs.txt.bat
+find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_ids.txt.bat
+find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_dates.txt.bat
+
+find_mvs_orphan_filenames_from_mvs.txt_in_mvs_names.txt.bat
+find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.txt.bat
+find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha1.bat
+find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.sha1.bat
+find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha256.bat
+find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.sha256.bat
+
+and create the tests for these new files
+also create test mvs dump in test\ designed find test all these functions
+```

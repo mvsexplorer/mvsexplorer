@@ -1,0 +1,8 @@
+Duplicate Title: Note Duplicate
+Occurrence 1:
+  Title: Note Duplicate
+  Note: First duplicate note.
+Occurrence 2:
+  Title: Note Duplicate
+  Note: Second duplicate note.
+

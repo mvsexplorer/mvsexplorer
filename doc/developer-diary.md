@@ -85,3 +85,40 @@ The seven failures are still exclusively the deliberate no-match return-code tes
 The 0.5.0 result retention design is therefore validated, while its return-code fix is not.
 
 Version 0.6.0 removes the indirect nonzero return carrier from `:RunPowerShellFromLabel` and returns the captured PowerShell process code directly. It also adds an explicit top-level nonzero `exit /b` before the normal `GoTo :EOF`.
+
+
+## 2026-08-27 — Clean 0.6.0 Windows baseline
+
+The user supplied a second timestamped Windows result bundle, this time for
+0.6.0 against `mvs_2020-09-15_2` (1984 parsed products).
+
+The return-code repair was validated end-to-end:
+
+```text
+272 passed
+0 failed
+0 skipped
+```
+
+This establishes the scalar/lookup layer as a clean regression baseline.
+
+## 2026-08-27 — Duplicate/orphan diagnostic layer
+
+The next milestone expands the toolkit from projection/lookup tools into
+integrity diagnostics.
+
+Forty-five standalone diagnostic tools were generated: fourteen duplicate
+finders (including the requested singular-date filename plus a canonical
+plural alias) and thirty-one directional orphan finders.
+
+The implementation preserves full section context for `mvs.txt` and
+`mvs_names.txt`, rather than reporting only keys.
+
+While defining the tools, a crucial semantic distinction was retained:
+repeated IDs in `mvs_names.txt` are normally expected one-to-many variant
+relationships, and its titles are variant/display titles. The tools report
+literal repetition/set differences without declaring them corrupt.
+
+A deliberately inconsistent synthetic dump and an independent Python
+expected-output generator were added so every diagnostic tool has a positive
+known regression case.

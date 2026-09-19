@@ -1,5 +1,26 @@
 MVS Explorer Toolkit Project Version History
 
+0.7.0 - 2026-08-27
+  - Recorded the clean attached 0.6.0 Windows baseline: 272 passed,
+    0 failed, 0 skipped against mvs_2020-09-15_2.
+  - Added 45 standalone duplicate/orphan diagnostic finders.
+  - Added 14 duplicate finders (13 requested forms plus canonical plural
+    alias for the requested singular mvs_date.txt tool name).
+  - Added 31 directional orphan finders exactly covering the requested
+    ID/title/filename source-target comparisons.
+  - Duplicate/orphan section findings preserve full mvs.txt/mvs_names.txt
+    source sections as appropriate.
+  - Filename findings include owning title/ID and matched filename line.
+  - Added explicit documentation that repeated IDs in mvs_names.txt are
+    normally expected variant relationships.
+  - Added synthetic test\test-mvs-dump-diagnostics fixture.
+  - Added 45 fixed independently generated expected diagnostic outputs.
+  - Added test\test_diagnostic_tools.bat and integrated diagnostics into
+    test\test_all.bat.
+  - Root public standalone tool count is now 172.
+  - Added diagnostic tools/fixture documentation, development generators,
+    histories, directives, style guidance, diary, and observations.
+
 0.6.0 - 2026-08-27
   - Reviewed the attached 0.5.0 Windows timestamped result bundle.
   - Confirmed 128 structure passes, 120 scalar passes, 17 lookup passes,

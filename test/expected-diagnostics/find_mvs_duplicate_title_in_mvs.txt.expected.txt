@@ -1,0 +1,8 @@
+Duplicate Title: TXT Duplicate Title
+Occurrence 1:
+  --- TXT Duplicate Title [ID: 402] ---
+  6666666666666666666666666666666666666666 *txt-dup-title-a.iso
+Occurrence 2:
+  --- TXT Duplicate Title [ID: 403] ---
+  7777777777777777777777777777777777777777 *txt-dup-title-b.iso
+

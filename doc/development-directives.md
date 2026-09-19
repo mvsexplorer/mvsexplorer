@@ -119,3 +119,23 @@ These directives are distilled from the user's project prompts.
 70. At top-level `:end`, explicitly `exit /b` on a nonzero application return code before the normal `GoTo :EOF`.
 71. Lookup no-match remains a normal non-error-output condition: no stdout, no stderr, return code `1`.
 72. The automated no-match lookup tests are mandatory acceptance tests for return-code propagation.
+
+
+## Duplicate/orphan diagnostic layer
+
+73. Duplicate/orphan public tools use the `find_mvs_` prefix and remain fully standalone after generation.
+74. A duplicate scan returning findings is successful and returns `0`; no findings also returns `0`.
+75. Duplicate ID/title findings in `mvs.txt` and `mvs_names.txt` preserve the full source section through its associated nonblank lines.
+76. Duplicate filename findings from section files identify the owning ID/title and exact matched filename line.
+77. Duplicate title and filename keys compare case-insensitively after normalization; IDs compare numerically; dates compare as trimmed source values.
+78. Orphan scans are directional set-membership checks: each source occurrence is reported when its normalized property value is absent from the target.
+79. Orphan section findings preserve full section context for ID/title and owner ID/title plus matched line for filename.
+80. Do not interpret every literal duplicate/orphan as corruption; document source-model cases where repetition or differing title domains are expected.
+81. In `mvs_names.txt`, repeated product IDs are normally expected because one product can have many variant sections.
+82. `mvs_names.txt` heading titles are variant/display titles and are not generally the same title domain as product titles.
+83. `mvs_notes.html` normally has no ID field; an ID diagnostic there recognizes only explicit literal `[ID: N]` markers if present.
+84. SHA-1/SHA-256 orphan diagnostics in this phase compare filenames only.
+85. Maintain a synthetic intentionally inconsistent dump under `test\test-mvs-dump-diagnostics\`.
+86. Every diagnostic public tool must have a positive regression case against that fixture.
+87. Diagnostic expected stdout is fixed and independently generated without invoking the public batch file under test.
+88. `test\test_all.bat` includes diagnostic regression in addition to the established real-dump scalar/lookup regression.

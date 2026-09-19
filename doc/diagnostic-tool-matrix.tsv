@@ -1,0 +1,46 @@
+tool	operation	property	source	target	version
+find_mvs_duplicate_id_in_mvs.txt.bat	duplicate	id	mvs.txt		0.1.0
+find_mvs_duplicate_id_in_mvs_dates.txt.bat	duplicate	id	mvs_dates.txt		0.1.0
+find_mvs_duplicate_id_in_mvs_ids.txt.bat	duplicate	id	mvs_ids.txt		0.1.0
+find_mvs_duplicate_id_in_mvs_names.txt.bat	duplicate	id	mvs_names.txt		0.1.0
+find_mvs_duplicate_id_in_mvs_notes.html.bat	duplicate	id	mvs_notes.html		0.1.0
+find_mvs_duplicate_title_in_mvs.txt.bat	duplicate	title	mvs.txt		0.1.0
+find_mvs_duplicate_title_in_mvs_dates.txt.bat	duplicate	title	mvs_dates.txt		0.1.0
+find_mvs_duplicate_title_in_mvs_ids.txt.bat	duplicate	title	mvs_ids.txt		0.1.0
+find_mvs_duplicate_title_in_mvs_names.txt.bat	duplicate	title	mvs_names.txt		0.1.0
+find_mvs_duplicate_title_in_mvs_notes.html.bat	duplicate	title	mvs_notes.html		0.1.0
+find_mvs_duplicate_date_in_mvs_date.txt.bat	duplicate	date	mvs_dates.txt		0.1.0
+find_mvs_duplicate_date_in_mvs_dates.txt.bat	duplicate	date	mvs_dates.txt		0.1.0
+find_mvs_duplicate_filename_in_mvs_names.txt.bat	duplicate	filename	mvs_names.txt		0.1.0
+find_mvs_duplicate_filename_in_mvs.txt.bat	duplicate	filename	mvs.txt		0.1.0
+find_mvs_orphan_id_from_mvs_ids.txt_in_mvs.txt.bat	orphan	id	mvs_ids.txt	mvs.txt	0.1.0
+find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_dates.txt.bat	orphan	id	mvs_ids.txt	mvs_dates.txt	0.1.0
+find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_names.txt.bat	orphan	id	mvs_ids.txt	mvs_names.txt	0.1.0
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs.txt.bat	orphan	title	mvs_ids.txt	mvs.txt	0.1.0
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_dates.txt.bat	orphan	title	mvs_ids.txt	mvs_dates.txt	0.1.0
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_names.txt.bat	orphan	title	mvs_ids.txt	mvs_names.txt	0.1.0
+find_mvs_orphan_title_from_mvs_ids.txt_in_mvs_notes.html.bat	orphan	title	mvs_ids.txt	mvs_notes.html	0.1.0
+find_mvs_orphan_id_from_mvs_dates.txt_in_mvs.txt.bat	orphan	id	mvs_dates.txt	mvs.txt	0.1.0
+find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_ids.txt.bat	orphan	id	mvs_dates.txt	mvs_ids.txt	0.1.0
+find_mvs_orphan_id_from_mvs_dates.txt_in_mvs_names.txt.bat	orphan	id	mvs_dates.txt	mvs_names.txt	0.1.0
+find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs.txt.bat	orphan	title	mvs_dates.txt	mvs.txt	0.1.0
+find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_ids.txt.bat	orphan	title	mvs_dates.txt	mvs_ids.txt	0.1.0
+find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_names.txt.bat	orphan	title	mvs_dates.txt	mvs_names.txt	0.1.0
+find_mvs_orphan_id_from_mvs.txt_in_mvs_ids.txt.bat	orphan	id	mvs.txt	mvs_ids.txt	0.1.0
+find_mvs_orphan_id_from_mvs.txt_in_mvs_dates.txt.bat	orphan	id	mvs.txt	mvs_dates.txt	0.1.0
+find_mvs_orphan_id_from_mvs.txt_in_mvs_names.txt.bat	orphan	id	mvs.txt	mvs_names.txt	0.1.0
+find_mvs_orphan_titles_from_mvs.txt_in_mvs_ids.txt.bat	orphan	title	mvs.txt	mvs_ids.txt	0.1.0
+find_mvs_orphan_titles_from_mvs.txt_in_mvs_dates.txt.bat	orphan	title	mvs.txt	mvs_dates.txt	0.1.0
+find_mvs_orphan_titles_from_mvs.txt_in_mvs_names.txt.bat	orphan	title	mvs.txt	mvs_names.txt	0.1.0
+find_mvs_orphan_id_from_mvs_names.txt_in_mvs.txt.bat	orphan	id	mvs_names.txt	mvs.txt	0.1.0
+find_mvs_orphan_id_from_mvs_names.txt_in_mvs_ids.txt.bat	orphan	id	mvs_names.txt	mvs_ids.txt	0.1.0
+find_mvs_orphan_id_from_mvs_names.txt_in_mvs_dates.txt.bat	orphan	id	mvs_names.txt	mvs_dates.txt	0.1.0
+find_mvs_orphan_titles_from_mvs_names.txt_in_mvs.txt.bat	orphan	title	mvs_names.txt	mvs.txt	0.1.0
+find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_ids.txt.bat	orphan	title	mvs_names.txt	mvs_ids.txt	0.1.0
+find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_dates.txt.bat	orphan	title	mvs_names.txt	mvs_dates.txt	0.1.0
+find_mvs_orphan_filenames_from_mvs.txt_in_mvs_names.txt.bat	orphan	filename	mvs.txt	mvs_names.txt	0.1.0
+find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.txt.bat	orphan	filename	mvs_names.txt	mvs.txt	0.1.0
+find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha1.bat	orphan	filename	mvs.txt	mvs.sha1	0.1.0
+find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.sha1.bat	orphan	filename	mvs_names.txt	mvs.sha1	0.1.0
+find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha256.bat	orphan	filename	mvs.txt	mvs.sha256	0.1.0
+find_mvs_orphan_filenames_from_mvs_names.txt_in_mvs.sha256.bat	orphan	filename	mvs_names.txt	mvs.sha256	0.1.0

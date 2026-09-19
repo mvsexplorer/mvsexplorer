@@ -1,0 +1,56 @@
+Orphan Filename: txt-only.iso
+Source: mvs.txt
+Target: mvs.sha1
+  ID: 103
+  Title: TXT Only
+  3333333333333333333333333333333333333333 *txt-only.iso
+
+Orphan Filename: txt-dup-id-a.iso
+Source: mvs.txt
+Target: mvs.sha1
+  ID: 401
+  Title: TXT Duplicate ID A
+  4444444444444444444444444444444444444444 *txt-dup-id-a.iso
+
+Orphan Filename: txt-dup-id-a-extra.iso
+Source: mvs.txt
+Target: mvs.sha1
+  ID: 401
+  Title: TXT Duplicate ID A
+  4444444444444444444444444444444444444445 *txt-dup-id-a-extra.iso
+
+Orphan Filename: txt-dup-id-b.iso
+Source: mvs.txt
+Target: mvs.sha1
+  ID: 401
+  Title: TXT Duplicate ID B
+  5555555555555555555555555555555555555555 *txt-dup-id-b.iso
+
+Orphan Filename: txt-dup-title-a.iso
+Source: mvs.txt
+Target: mvs.sha1
+  ID: 402
+  Title: TXT Duplicate Title
+  6666666666666666666666666666666666666666 *txt-dup-title-a.iso
+
+Orphan Filename: txt-dup-title-b.iso
+Source: mvs.txt
+Target: mvs.sha1
+  ID: 403
+  Title: TXT Duplicate Title
+  7777777777777777777777777777777777777777 *txt-dup-title-b.iso
+
+Orphan Filename: txt-duplicate-filename.iso
+Source: mvs.txt
+Target: mvs.sha1
+  ID: 404
+  Title: TXT Filename Owner A
+  8888888888888888888888888888888888888888 *txt-duplicate-filename.iso
+
+Orphan Filename: txt-duplicate-filename.iso
+Source: mvs.txt
+Target: mvs.sha1
+  ID: 405
+  Title: TXT Filename Owner B
+  9999999999999999999999999999999999999999 *txt-duplicate-filename.iso
+

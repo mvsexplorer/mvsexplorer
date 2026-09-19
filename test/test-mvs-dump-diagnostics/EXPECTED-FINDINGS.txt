@@ -1,0 +1,2 @@
+Every diagnostic tool in dev\diagnostic-tool-spec.json is expected to emit at least one finding for this fixture.
+Exact expected stdout is stored in test\expected-diagnostics\.
