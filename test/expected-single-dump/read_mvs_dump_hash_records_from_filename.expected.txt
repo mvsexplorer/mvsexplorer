@@ -1,0 +1,5 @@
+mvs.txt	2	10	Alpha Product		alpha.iso	1111111111111111111111111111111111111111	SHA1
+mvs.txt	3	10	Alpha Product		alpha.iso	2222222222222222222222222222222222222222	SHA1
+mvs.txt	5	10	Alpha Product		alpha.iso	aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa	SHA256
+mvs.sha1	1				alpha.iso	3333333333333333333333333333333333333333	SHA1
+mvs.sha256	1				alpha.iso	bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb	SHA256

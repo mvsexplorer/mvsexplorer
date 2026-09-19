@@ -1,0 +1,4 @@
+Duplicate Hash: 1111111111111111111111111111111111111111
+  Source: mvs.txt | Line: 2 | Filename: alpha.iso
+  Source: mvs.txt | Line: 4 | Filename: alpha-copy.iso
+

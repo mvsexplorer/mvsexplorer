@@ -1,0 +1,12 @@
+Tool Version History: read_mvs_dump_product_files_from_id.bat
+
+Purpose
+  Operation: product_file_query
+  Output mode: machine
+  Search source: id
+  Fields: id, title, date, note, filename, hash, algorithm
+  Source file: 
+  Standalone: yes; complete injected batch/PowerShell runtime
+
+0.1.0 - 2026-08-27
+  - Initial version for the 0.9.0 single-dump completeness milestone.

@@ -144,3 +144,49 @@ edge independently.
 
 `mvs_names.txt` is deliberately not used as a product-title ownership source
 for this family because its headings are variant/display titles.
+
+
+## Complete single-dump entity model (0.9.0)
+
+```text
+Dump
+├─ Product
+│  ├─ ID
+│  ├─ Title
+│  ├─ Date
+│  └─ Note convenience value
+├─ ProductFile
+│  ├─ Product section occurrence
+│  ├─ Product ID / title
+│  ├─ Filename
+│  ├─ Hash
+│  └─ Algorithm
+├─ VariantOccurrence
+│  ├─ Source occurrence
+│  ├─ Product ID
+│  ├─ Variant/display title
+│  ├─ Filename
+│  ├─ Hash
+│  └─ Algorithm
+├─ HashRecord
+│  ├─ Source
+│  ├─ Physical line
+│  ├─ Optional product/variant context
+│  ├─ Filename
+│  ├─ Hash
+│  └─ Algorithm
+├─ NoteOccurrence
+│  ├─ Occurrence
+│  ├─ Heading/title
+│  └─ Note body
+└─ UnparsedLine
+   ├─ Source
+   ├─ Physical line
+   └─ Raw text
+```
+
+Variant occurrence is intentionally distinct from product identity because
+`mvs_names.txt` can repeat the same ID/title pair.
+
+Hash provenance is intentionally distinct from a derived filename relationship
+because the same filename can have multiple observed digests and sources.

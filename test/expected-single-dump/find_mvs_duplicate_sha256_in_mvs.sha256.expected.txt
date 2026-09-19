@@ -1,0 +1,4 @@
+Duplicate Hash: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  Source: mvs.sha256 | Line: 2 | Filename: manifest-one-256.iso
+  Source: mvs.sha256 | Line: 3 | Filename: manifest-two-256.iso
+

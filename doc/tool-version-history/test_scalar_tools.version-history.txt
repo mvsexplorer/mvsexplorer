@@ -4,6 +4,10 @@ Purpose
   Test mode: scalar
   Standalone: yes; contains complete injected test harness
 
+0.6.0 - 2026-08-27
+  - Regenerated with single-dump completeness result scope.
+  - Structure expectations updated for 422 public standalone tools.
+
 0.5.0 - 2026-08-27
   - Regenerated with filename/hash relationship result scope.
   - Structure expectations updated for 268 public standalone tools.

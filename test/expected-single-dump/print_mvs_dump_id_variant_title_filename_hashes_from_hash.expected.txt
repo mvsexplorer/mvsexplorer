@@ -1,0 +1,2 @@
+ID: 10 | Variant: Alpha Variant One | Filename: variant-alpha.iso | Hash: 6666666666666666666666666666666666666666
+ID: 10 | Variant: Alpha Variant One | Filename: variant-alpha-copy.iso | Hash: 6666666666666666666666666666666666666666

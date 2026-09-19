@@ -1,0 +1,19 @@
+Source: mvs.txt | Line: 2 | ID: 10 | Title: Alpha Product | Variant: (none) | Filename: alpha.iso | Hash: 1111111111111111111111111111111111111111 | Algorithm: SHA1
+Source: mvs.txt | Line: 3 | ID: 10 | Title: Alpha Product | Variant: (none) | Filename: alpha.iso | Hash: 2222222222222222222222222222222222222222 | Algorithm: SHA1
+Source: mvs.txt | Line: 4 | ID: 10 | Title: Alpha Product | Variant: (none) | Filename: alpha-copy.iso | Hash: 1111111111111111111111111111111111111111 | Algorithm: SHA1
+Source: mvs.txt | Line: 5 | ID: 10 | Title: Alpha Product | Variant: (none) | Filename: alpha.iso | Hash: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa | Algorithm: SHA256
+Source: mvs.txt | Line: 9 | ID: 20 | Title: Beta Product | Variant: (none) | Filename: shared.iso | Hash: 4444444444444444444444444444444444444444 | Algorithm: SHA1
+Source: mvs.txt | Line: 12 | ID: 30 | Title: Gamma Product | Variant: (none) | Filename: gamma.iso | Hash: 5555555555555555555555555555555555555555 | Algorithm: SHA1
+Source: mvs_names.txt | Line: 2 | ID: 10 | Title: (none) | Variant: Alpha Variant One | Filename: variant-alpha.iso | Hash: 6666666666666666666666666666666666666666 | Algorithm: SHA1
+Source: mvs_names.txt | Line: 3 | ID: 10 | Title: (none) | Variant: Alpha Variant One | Filename: variant-alpha.iso | Hash: 7777777777777777777777777777777777777777 | Algorithm: SHA1
+Source: mvs_names.txt | Line: 4 | ID: 10 | Title: (none) | Variant: Alpha Variant One | Filename: variant-alpha-copy.iso | Hash: 6666666666666666666666666666666666666666 | Algorithm: SHA1
+Source: mvs_names.txt | Line: 5 | ID: 10 | Title: (none) | Variant: Alpha Variant One | Filename: variant-alpha.iso | Hash: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd | Algorithm: SHA256
+Source: mvs_names.txt | Line: 11 | ID: 20 | Title: (none) | Variant: Beta Variant | Filename: shared.iso | Hash: 4444444444444444444444444444444444444444 | Algorithm: SHA1
+Source: mvs_names.txt | Line: 14 | ID: 30 | Title: (none) | Variant: Gamma Variant | Filename: gamma.iso | Hash: 5555555555555555555555555555555555555555 | Algorithm: SHA1
+Source: mvs.sha1 | Line: 1 | ID: (none) | Title: (none) | Variant: (none) | Filename: alpha.iso | Hash: 3333333333333333333333333333333333333333 | Algorithm: SHA1
+Source: mvs.sha1 | Line: 2 | ID: (none) | Title: (none) | Variant: (none) | Filename: manifest-one.iso | Hash: 8888888888888888888888888888888888888888 | Algorithm: SHA1
+Source: mvs.sha1 | Line: 3 | ID: (none) | Title: (none) | Variant: (none) | Filename: manifest-two.iso | Hash: 8888888888888888888888888888888888888888 | Algorithm: SHA1
+Source: mvs.sha1 | Line: 4 | ID: (none) | Title: (none) | Variant: (none) | Filename: shared.iso | Hash: 4444444444444444444444444444444444444444 | Algorithm: SHA1
+Source: mvs.sha256 | Line: 1 | ID: (none) | Title: (none) | Variant: (none) | Filename: alpha.iso | Hash: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb | Algorithm: SHA256
+Source: mvs.sha256 | Line: 2 | ID: (none) | Title: (none) | Variant: (none) | Filename: manifest-one-256.iso | Hash: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc | Algorithm: SHA256
+Source: mvs.sha256 | Line: 3 | ID: (none) | Title: (none) | Variant: (none) | Filename: manifest-two-256.iso | Hash: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc | Algorithm: SHA256

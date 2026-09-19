@@ -1,0 +1,5 @@
+10	variant-alpha.iso
+10	variant-alpha-copy.iso
+10	
+20	shared.iso
+30	gamma.iso

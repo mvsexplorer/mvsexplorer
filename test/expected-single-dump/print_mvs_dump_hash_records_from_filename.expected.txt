@@ -1,0 +1,5 @@
+Source: mvs.txt | Line: 2 | ID: 10 | Title: Alpha Product | Variant: (none) | Filename: alpha.iso | Hash: 1111111111111111111111111111111111111111 | Algorithm: SHA1
+Source: mvs.txt | Line: 3 | ID: 10 | Title: Alpha Product | Variant: (none) | Filename: alpha.iso | Hash: 2222222222222222222222222222222222222222 | Algorithm: SHA1
+Source: mvs.txt | Line: 5 | ID: 10 | Title: Alpha Product | Variant: (none) | Filename: alpha.iso | Hash: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa | Algorithm: SHA256
+Source: mvs.sha1 | Line: 1 | ID: (none) | Title: (none) | Variant: (none) | Filename: alpha.iso | Hash: 3333333333333333333333333333333333333333 | Algorithm: SHA1
+Source: mvs.sha256 | Line: 1 | ID: (none) | Title: (none) | Variant: (none) | Filename: alpha.iso | Hash: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb | Algorithm: SHA256

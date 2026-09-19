@@ -1,5 +1,8 @@
 Tool Version History: dev\generate_tests.py
 
+0.6.0 - 2026-08-27
+  - Added test_single_dump_tools.bat and single-dump result scope.
+
 0.5.0 - 2026-08-27
   - Added test_relationship_tools.bat generation.
   - Regenerates all test entry points with relationship result scope support.

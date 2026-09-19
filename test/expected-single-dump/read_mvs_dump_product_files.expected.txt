@@ -1,0 +1,6 @@
+10	Alpha Product	2020-01-10T00:00:00Z	Alpha note one. || Alpha note two.	alpha.iso	1111111111111111111111111111111111111111	SHA1
+10	Alpha Product	2020-01-10T00:00:00Z	Alpha note one. || Alpha note two.	alpha.iso	2222222222222222222222222222222222222222	SHA1
+10	Alpha Product	2020-01-10T00:00:00Z	Alpha note one. || Alpha note two.	alpha-copy.iso	1111111111111111111111111111111111111111	SHA1
+10	Alpha Product	2020-01-10T00:00:00Z	Alpha note one. || Alpha note two.	alpha.iso	aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa	SHA256
+20	Beta Product	2020-02-20T00:00:00Z	Beta note.	shared.iso	4444444444444444444444444444444444444444	SHA1
+30	Gamma Product	2020-03-30T00:00:00Z	Gamma note.	gamma.iso	5555555555555555555555555555555555555555	SHA1

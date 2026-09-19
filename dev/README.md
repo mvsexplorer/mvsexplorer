@@ -60,3 +60,21 @@ selected SHA-1 exists only in `mvs.sha1`, selected SHA-256 exists only in
 
 Expected outputs are produced by a separate Python reference implementation
 that never invokes the public batch files.
+
+
+Single-dump completeness development files:
+
+```text
+single-dump-tool-spec.json
+library\single-dump-query.inc.ps1
+templates\single-dump.bat.tpl
+generate_single_dump_tools.py
+generate_single_dump_fixture.py
+generate_expected_single_dump_outputs.py
+```
+
+`generate_single_dump_tools.py` injects the complete implementation into all
+154 public 0.9.0 single-dump tools.
+
+`generate_expected_single_dump_outputs.py` is an independent Python reference
+parser and never invokes the public batch files.

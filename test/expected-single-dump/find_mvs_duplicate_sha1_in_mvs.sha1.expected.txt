@@ -1,0 +1,4 @@
+Duplicate Hash: 8888888888888888888888888888888888888888
+  Source: mvs.sha1 | Line: 2 | Filename: manifest-one.iso
+  Source: mvs.sha1 | Line: 3 | Filename: manifest-two.iso
+

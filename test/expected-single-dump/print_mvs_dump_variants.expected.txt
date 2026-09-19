@@ -1,0 +1,7 @@
+Occurrence: 1 | ID: 10 | Variant: Alpha Variant One | Filename: variant-alpha.iso | Hash: 6666666666666666666666666666666666666666 | Algorithm: SHA1
+Occurrence: 1 | ID: 10 | Variant: Alpha Variant One | Filename: variant-alpha.iso | Hash: 7777777777777777777777777777777777777777 | Algorithm: SHA1
+Occurrence: 1 | ID: 10 | Variant: Alpha Variant One | Filename: variant-alpha-copy.iso | Hash: 6666666666666666666666666666666666666666 | Algorithm: SHA1
+Occurrence: 1 | ID: 10 | Variant: Alpha Variant One | Filename: variant-alpha.iso | Hash: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd | Algorithm: SHA256
+Occurrence: 2 | ID: 10 | Variant: Alpha Variant Empty | Filename: (none) | Hash: (none) | Algorithm: (none)
+Occurrence: 3 | ID: 20 | Variant: Beta Variant | Filename: shared.iso | Hash: 4444444444444444444444444444444444444444 | Algorithm: SHA1
+Occurrence: 4 | ID: 30 | Variant: Gamma Variant | Filename: gamma.iso | Hash: 5555555555555555555555555555555555555555 | Algorithm: SHA1

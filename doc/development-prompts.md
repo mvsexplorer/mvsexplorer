@@ -1494,3 +1494,10 @@ print_mvs_dump_date_note_filenames_from_hash
 
 and add all the tests for this as well
 ```
+
+## Prompt 13
+
+```text
+Ok create all suggestion and all versions implied by them
+```
+

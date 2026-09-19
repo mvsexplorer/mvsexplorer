@@ -1,0 +1,1742 @@
+{
+  "project_version": "0.9.0",
+  "tool_version": "0.1.0",
+  "tools": [
+    {
+      "name": "print_mvs_dump_filenames_from_id",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "id",
+      "fields": [
+        "filename"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_filenames_from_id",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "id",
+      "fields": [
+        "filename"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_hashes_from_id",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "id",
+      "fields": [
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_hashes_from_id",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "id",
+      "fields": [
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_filename_hashes_from_id",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "id",
+      "fields": [
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_filename_hashes_from_id",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "id",
+      "fields": [
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_filename_hash_algorithm_source_from_id",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "id",
+      "fields": [
+        "filename",
+        "hash",
+        "algorithm",
+        "source"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_filename_hash_algorithm_source_from_id",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "id",
+      "fields": [
+        "filename",
+        "hash",
+        "algorithm",
+        "source"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_id_title_filenames_from_id",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "id",
+      "fields": [
+        "id",
+        "title",
+        "filename"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_id_title_filenames_from_id",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "id",
+      "fields": [
+        "id",
+        "title",
+        "filename"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_id_title_filenames_hashes_from_id",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "id",
+      "fields": [
+        "id",
+        "title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_id_title_filenames_hashes_from_id",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "id",
+      "fields": [
+        "id",
+        "title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_title_filenames_hashes_from_id",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "id",
+      "fields": [
+        "title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_title_filenames_hashes_from_id",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "id",
+      "fields": [
+        "title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_id_title_date_note_filenames_hashes_from_id",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "id",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "note",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_id_title_date_note_filenames_hashes_from_id",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "id",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "note",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_filenames_from_title",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "title",
+      "fields": [
+        "filename"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_filenames_from_title",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "title",
+      "fields": [
+        "filename"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_hashes_from_title",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "title",
+      "fields": [
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_hashes_from_title",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "title",
+      "fields": [
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_filename_hashes_from_title",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "title",
+      "fields": [
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_filename_hashes_from_title",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "title",
+      "fields": [
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_filename_hash_algorithm_source_from_title",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "title",
+      "fields": [
+        "filename",
+        "hash",
+        "algorithm",
+        "source"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_filename_hash_algorithm_source_from_title",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "title",
+      "fields": [
+        "filename",
+        "hash",
+        "algorithm",
+        "source"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_id_title_filenames_from_title",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "title",
+      "fields": [
+        "id",
+        "title",
+        "filename"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_id_title_filenames_from_title",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "title",
+      "fields": [
+        "id",
+        "title",
+        "filename"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_id_title_filenames_hashes_from_title",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "title",
+      "fields": [
+        "id",
+        "title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_id_title_filenames_hashes_from_title",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "title",
+      "fields": [
+        "id",
+        "title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_title_filenames_hashes_from_title",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "title",
+      "fields": [
+        "title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_title_filenames_hashes_from_title",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "title",
+      "fields": [
+        "title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_id_title_date_note_filenames_hashes_from_title",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "title",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "note",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_id_title_date_note_filenames_hashes_from_title",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "title",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "note",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_hashes_from_filename",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "filename",
+      "fields": [
+        "hash"
+      ],
+      "algorithm_filter": ""
+    },
+    {
+      "name": "read_mvs_dump_hashes_from_filename",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "filename",
+      "fields": [
+        "hash"
+      ],
+      "algorithm_filter": ""
+    },
+    {
+      "name": "print_mvs_dump_filename_hashes_from_filename",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "filename",
+      "fields": [
+        "filename",
+        "hash"
+      ],
+      "algorithm_filter": ""
+    },
+    {
+      "name": "read_mvs_dump_filename_hashes_from_filename",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "filename",
+      "fields": [
+        "filename",
+        "hash"
+      ],
+      "algorithm_filter": ""
+    },
+    {
+      "name": "print_mvs_dump_filename_hash_algorithm_source_from_filename",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "filename",
+      "fields": [
+        "filename",
+        "hash",
+        "algorithm",
+        "source"
+      ],
+      "algorithm_filter": ""
+    },
+    {
+      "name": "read_mvs_dump_filename_hash_algorithm_source_from_filename",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "filename",
+      "fields": [
+        "filename",
+        "hash",
+        "algorithm",
+        "source"
+      ],
+      "algorithm_filter": ""
+    },
+    {
+      "name": "print_mvs_dump_id_title_filenames_hashes_from_filename",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "filename",
+      "fields": [
+        "id",
+        "title",
+        "filename",
+        "hash"
+      ],
+      "algorithm_filter": ""
+    },
+    {
+      "name": "read_mvs_dump_id_title_filenames_hashes_from_filename",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "filename",
+      "fields": [
+        "id",
+        "title",
+        "filename",
+        "hash"
+      ],
+      "algorithm_filter": ""
+    },
+    {
+      "name": "print_mvs_dump_title_filenames_hashes_from_filename",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "filename",
+      "fields": [
+        "title",
+        "filename",
+        "hash"
+      ],
+      "algorithm_filter": ""
+    },
+    {
+      "name": "read_mvs_dump_title_filenames_hashes_from_filename",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "filename",
+      "fields": [
+        "title",
+        "filename",
+        "hash"
+      ],
+      "algorithm_filter": ""
+    },
+    {
+      "name": "print_mvs_dump_id_title_date_note_filenames_hashes_from_filename",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "filename",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "note",
+        "filename",
+        "hash"
+      ],
+      "algorithm_filter": ""
+    },
+    {
+      "name": "read_mvs_dump_id_title_date_note_filenames_hashes_from_filename",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "filename",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "note",
+        "filename",
+        "hash"
+      ],
+      "algorithm_filter": ""
+    },
+    {
+      "name": "print_mvs_dump_sha1_from_filename",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "filename",
+      "fields": [
+        "hash"
+      ],
+      "algorithm_filter": "SHA1"
+    },
+    {
+      "name": "read_mvs_dump_sha1_from_filename",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "filename",
+      "fields": [
+        "hash"
+      ],
+      "algorithm_filter": "SHA1"
+    },
+    {
+      "name": "print_mvs_dump_sha256_from_filename",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "filename",
+      "fields": [
+        "hash"
+      ],
+      "algorithm_filter": "SHA256"
+    },
+    {
+      "name": "read_mvs_dump_sha256_from_filename",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "filename",
+      "fields": [
+        "hash"
+      ],
+      "algorithm_filter": "SHA256"
+    },
+    {
+      "name": "print_mvs_dump_filename_hashes_from_hash",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "hash",
+      "fields": [
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_filename_hashes_from_hash",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "hash",
+      "fields": [
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_filename_hash_algorithm_source_from_hash",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "hash",
+      "fields": [
+        "filename",
+        "hash",
+        "algorithm",
+        "source"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_filename_hash_algorithm_source_from_hash",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "hash",
+      "fields": [
+        "filename",
+        "hash",
+        "algorithm",
+        "source"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_id_title_filenames_hashes_from_hash",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "hash",
+      "fields": [
+        "id",
+        "title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_id_title_filenames_hashes_from_hash",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "hash",
+      "fields": [
+        "id",
+        "title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_title_filenames_hashes_from_hash",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "hash",
+      "fields": [
+        "title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_title_filenames_hashes_from_hash",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "hash",
+      "fields": [
+        "title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_id_title_date_note_filenames_hashes_from_hash",
+      "operation": "detail_query",
+      "mode": "human",
+      "search_source": "hash",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "note",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_id_title_date_note_filenames_hashes_from_hash",
+      "operation": "detail_query",
+      "mode": "machine",
+      "search_source": "hash",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "note",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_variants",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "",
+      "fields": [
+        "occurrence",
+        "id",
+        "variant_title",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_variants",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "",
+      "fields": [
+        "occurrence",
+        "id",
+        "variant_title",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_variant_titles",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "",
+      "fields": [
+        "variant_title"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_variant_titles",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "",
+      "fields": [
+        "variant_title"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_variant_filenames",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "",
+      "fields": [
+        "filename"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_variant_filenames",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "",
+      "fields": [
+        "filename"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_variant_hashes",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "",
+      "fields": [
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_variant_hashes",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "",
+      "fields": [
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_id_variant_titles",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "",
+      "fields": [
+        "id",
+        "variant_title"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_id_variant_titles",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "",
+      "fields": [
+        "id",
+        "variant_title"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_id_variant_filenames",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "",
+      "fields": [
+        "id",
+        "filename"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_id_variant_filenames",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "",
+      "fields": [
+        "id",
+        "filename"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_id_variant_hashes",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "",
+      "fields": [
+        "id",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_id_variant_hashes",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "",
+      "fields": [
+        "id",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_id_variant_title_filename_hashes",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "",
+      "fields": [
+        "id",
+        "variant_title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_id_variant_title_filename_hashes",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "",
+      "fields": [
+        "id",
+        "variant_title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_variants_from_id",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "id",
+      "fields": [
+        "occurrence",
+        "id",
+        "variant_title",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_variants_from_id",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "id",
+      "fields": [
+        "occurrence",
+        "id",
+        "variant_title",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_variant_titles_from_id",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "id",
+      "fields": [
+        "variant_title"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_variant_titles_from_id",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "id",
+      "fields": [
+        "variant_title"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_variant_filenames_from_id",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "id",
+      "fields": [
+        "filename"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_variant_filenames_from_id",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "id",
+      "fields": [
+        "filename"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_variant_hashes_from_id",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "id",
+      "fields": [
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_variant_hashes_from_id",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "id",
+      "fields": [
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_id_variant_title_filename_hashes_from_id",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "id",
+      "fields": [
+        "id",
+        "variant_title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_id_variant_title_filename_hashes_from_id",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "id",
+      "fields": [
+        "id",
+        "variant_title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_variants_from_filename",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "filename",
+      "fields": [
+        "occurrence",
+        "id",
+        "variant_title",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_variants_from_filename",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "filename",
+      "fields": [
+        "occurrence",
+        "id",
+        "variant_title",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_id_variant_title_filename_hashes_from_filename",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "filename",
+      "fields": [
+        "id",
+        "variant_title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_id_variant_title_filename_hashes_from_filename",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "filename",
+      "fields": [
+        "id",
+        "variant_title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_variants_from_hash",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "hash",
+      "fields": [
+        "occurrence",
+        "id",
+        "variant_title",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_variants_from_hash",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "hash",
+      "fields": [
+        "occurrence",
+        "id",
+        "variant_title",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_id_variant_title_filename_hashes_from_hash",
+      "operation": "variant_query",
+      "mode": "human",
+      "search_source": "hash",
+      "fields": [
+        "id",
+        "variant_title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_id_variant_title_filename_hashes_from_hash",
+      "operation": "variant_query",
+      "mode": "machine",
+      "search_source": "hash",
+      "fields": [
+        "id",
+        "variant_title",
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_hash_records",
+      "operation": "hash_query",
+      "mode": "human",
+      "search_source": "",
+      "fields": [
+        "source",
+        "line",
+        "id",
+        "title",
+        "variant_title",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_hash_records",
+      "operation": "hash_query",
+      "mode": "machine",
+      "search_source": "",
+      "fields": [
+        "source",
+        "line",
+        "id",
+        "title",
+        "variant_title",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_hash_records_from_filename",
+      "operation": "hash_query",
+      "mode": "human",
+      "search_source": "filename",
+      "fields": [
+        "source",
+        "line",
+        "id",
+        "title",
+        "variant_title",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_hash_records_from_filename",
+      "operation": "hash_query",
+      "mode": "machine",
+      "search_source": "filename",
+      "fields": [
+        "source",
+        "line",
+        "id",
+        "title",
+        "variant_title",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_hash_records_from_hash",
+      "operation": "hash_query",
+      "mode": "human",
+      "search_source": "hash",
+      "fields": [
+        "source",
+        "line",
+        "id",
+        "title",
+        "variant_title",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_hash_records_from_hash",
+      "operation": "hash_query",
+      "mode": "machine",
+      "search_source": "hash",
+      "fields": [
+        "source",
+        "line",
+        "id",
+        "title",
+        "variant_title",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_sha1",
+      "operation": "hash_query",
+      "mode": "human",
+      "search_source": "",
+      "algorithm_filter": "SHA1",
+      "fields": [
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_sha1",
+      "operation": "hash_query",
+      "mode": "machine",
+      "search_source": "",
+      "algorithm_filter": "SHA1",
+      "fields": [
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_sha256",
+      "operation": "hash_query",
+      "mode": "human",
+      "search_source": "",
+      "algorithm_filter": "SHA256",
+      "fields": [
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_sha256",
+      "operation": "hash_query",
+      "mode": "machine",
+      "search_source": "",
+      "algorithm_filter": "SHA256",
+      "fields": [
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_sha1_filename",
+      "operation": "hash_query",
+      "mode": "human",
+      "search_source": "",
+      "algorithm_filter": "SHA1",
+      "fields": [
+        "hash",
+        "filename"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_sha1_filename",
+      "operation": "hash_query",
+      "mode": "machine",
+      "search_source": "",
+      "algorithm_filter": "SHA1",
+      "fields": [
+        "hash",
+        "filename"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_sha256_filename",
+      "operation": "hash_query",
+      "mode": "human",
+      "search_source": "",
+      "algorithm_filter": "SHA256",
+      "fields": [
+        "hash",
+        "filename"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_sha256_filename",
+      "operation": "hash_query",
+      "mode": "machine",
+      "search_source": "",
+      "algorithm_filter": "SHA256",
+      "fields": [
+        "hash",
+        "filename"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_filename_sha1",
+      "operation": "hash_query",
+      "mode": "human",
+      "search_source": "",
+      "algorithm_filter": "SHA1",
+      "fields": [
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_filename_sha1",
+      "operation": "hash_query",
+      "mode": "machine",
+      "search_source": "",
+      "algorithm_filter": "SHA1",
+      "fields": [
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_filename_sha256",
+      "operation": "hash_query",
+      "mode": "human",
+      "search_source": "",
+      "algorithm_filter": "SHA256",
+      "fields": [
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_filename_sha256",
+      "operation": "hash_query",
+      "mode": "machine",
+      "search_source": "",
+      "algorithm_filter": "SHA256",
+      "fields": [
+        "filename",
+        "hash"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_filename_hash_algorithm_source",
+      "operation": "hash_query",
+      "mode": "human",
+      "search_source": "",
+      "algorithm_filter": "",
+      "fields": [
+        "filename",
+        "hash",
+        "algorithm",
+        "source"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_filename_hash_algorithm_source",
+      "operation": "hash_query",
+      "mode": "machine",
+      "search_source": "",
+      "algorithm_filter": "",
+      "fields": [
+        "filename",
+        "hash",
+        "algorithm",
+        "source"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_product_files",
+      "operation": "product_file_query",
+      "mode": "human",
+      "search_source": "",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "note",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_product_files",
+      "operation": "product_file_query",
+      "mode": "machine",
+      "search_source": "",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "note",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_product_files_from_id",
+      "operation": "product_file_query",
+      "mode": "human",
+      "search_source": "id",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "note",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_product_files_from_id",
+      "operation": "product_file_query",
+      "mode": "machine",
+      "search_source": "id",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "note",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_product_files_from_title",
+      "operation": "product_file_query",
+      "mode": "human",
+      "search_source": "title",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "note",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_product_files_from_title",
+      "operation": "product_file_query",
+      "mode": "machine",
+      "search_source": "title",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "note",
+        "filename",
+        "hash",
+        "algorithm"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_product_sections",
+      "operation": "product_section_query",
+      "mode": "human",
+      "search_source": "",
+      "fields": [
+        "section_occurrence",
+        "id",
+        "title",
+        "line_offset",
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_product_sections",
+      "operation": "product_section_query",
+      "mode": "machine",
+      "search_source": "",
+      "fields": [
+        "section_occurrence",
+        "id",
+        "title",
+        "line_offset",
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_product_sections_from_id",
+      "operation": "product_section_query",
+      "mode": "human",
+      "search_source": "id",
+      "fields": [
+        "section_occurrence",
+        "id",
+        "title",
+        "line_offset",
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_product_sections_from_id",
+      "operation": "product_section_query",
+      "mode": "machine",
+      "search_source": "id",
+      "fields": [
+        "section_occurrence",
+        "id",
+        "title",
+        "line_offset",
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_product_sections_from_title",
+      "operation": "product_section_query",
+      "mode": "human",
+      "search_source": "title",
+      "fields": [
+        "section_occurrence",
+        "id",
+        "title",
+        "line_offset",
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_product_sections_from_title",
+      "operation": "product_section_query",
+      "mode": "machine",
+      "search_source": "title",
+      "fields": [
+        "section_occurrence",
+        "id",
+        "title",
+        "line_offset",
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_note_records",
+      "operation": "note_query",
+      "mode": "human",
+      "search_source": "",
+      "fields": [
+        "occurrence",
+        "title",
+        "note"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_note_records",
+      "operation": "note_query",
+      "mode": "machine",
+      "search_source": "",
+      "fields": [
+        "occurrence",
+        "title",
+        "note"
+      ]
+    },
+    {
+      "name": "print_mvs_dump_note_records_from_title",
+      "operation": "note_query",
+      "mode": "human",
+      "search_source": "title",
+      "fields": [
+        "occurrence",
+        "title",
+        "note"
+      ]
+    },
+    {
+      "name": "read_mvs_dump_note_records_from_title",
+      "operation": "note_query",
+      "mode": "machine",
+      "search_source": "title",
+      "fields": [
+        "occurrence",
+        "title",
+        "note"
+      ]
+    },
+    {
+      "name": "find_mvs_unparsed_lines_in_mvs.txt",
+      "operation": "unparsed_query",
+      "mode": "human",
+      "source_file": "mvs.txt",
+      "fields": [
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "read_mvs_unparsed_lines_in_mvs.txt",
+      "operation": "unparsed_query",
+      "mode": "machine",
+      "source_file": "mvs.txt",
+      "fields": [
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "find_mvs_unparsed_lines_in_mvs_names.txt",
+      "operation": "unparsed_query",
+      "mode": "human",
+      "source_file": "mvs_names.txt",
+      "fields": [
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "read_mvs_unparsed_lines_in_mvs_names.txt",
+      "operation": "unparsed_query",
+      "mode": "machine",
+      "source_file": "mvs_names.txt",
+      "fields": [
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "find_mvs_unparsed_lines_in_mvs.sha1",
+      "operation": "unparsed_query",
+      "mode": "human",
+      "source_file": "mvs.sha1",
+      "fields": [
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "read_mvs_unparsed_lines_in_mvs.sha1",
+      "operation": "unparsed_query",
+      "mode": "machine",
+      "source_file": "mvs.sha1",
+      "fields": [
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "find_mvs_unparsed_lines_in_mvs.sha256",
+      "operation": "unparsed_query",
+      "mode": "human",
+      "source_file": "mvs.sha256",
+      "fields": [
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "read_mvs_unparsed_lines_in_mvs.sha256",
+      "operation": "unparsed_query",
+      "mode": "machine",
+      "source_file": "mvs.sha256",
+      "fields": [
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "find_mvs_unparsed_lines_in_mvs_ids.txt",
+      "operation": "unparsed_query",
+      "mode": "human",
+      "source_file": "mvs_ids.txt",
+      "fields": [
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "read_mvs_unparsed_lines_in_mvs_ids.txt",
+      "operation": "unparsed_query",
+      "mode": "machine",
+      "source_file": "mvs_ids.txt",
+      "fields": [
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "find_mvs_unparsed_lines_in_mvs_dates.txt",
+      "operation": "unparsed_query",
+      "mode": "human",
+      "source_file": "mvs_dates.txt",
+      "fields": [
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "read_mvs_unparsed_lines_in_mvs_dates.txt",
+      "operation": "unparsed_query",
+      "mode": "machine",
+      "source_file": "mvs_dates.txt",
+      "fields": [
+        "line",
+        "raw"
+      ]
+    },
+    {
+      "name": "find_mvs_duplicate_sha1_in_mvs.sha1",
+      "operation": "hash_diagnostic",
+      "mode": "human",
+      "diagnostic_kind": "duplicate_hash",
+      "source_file": "mvs.sha1",
+      "algorithm_filter": "SHA1",
+      "fields": []
+    },
+    {
+      "name": "find_mvs_duplicate_sha256_in_mvs.sha256",
+      "operation": "hash_diagnostic",
+      "mode": "human",
+      "diagnostic_kind": "duplicate_hash",
+      "source_file": "mvs.sha256",
+      "algorithm_filter": "SHA256",
+      "fields": []
+    },
+    {
+      "name": "find_mvs_duplicate_hash_in_mvs.txt",
+      "operation": "hash_diagnostic",
+      "mode": "human",
+      "diagnostic_kind": "duplicate_hash",
+      "source_file": "mvs.txt",
+      "algorithm_filter": "",
+      "fields": []
+    },
+    {
+      "name": "find_mvs_duplicate_hash_in_mvs_names.txt",
+      "operation": "hash_diagnostic",
+      "mode": "human",
+      "diagnostic_kind": "duplicate_hash",
+      "source_file": "mvs_names.txt",
+      "algorithm_filter": "",
+      "fields": []
+    },
+    {
+      "name": "find_mvs_hash_with_multiple_filenames_in_mvs.sha1",
+      "operation": "hash_diagnostic",
+      "mode": "human",
+      "diagnostic_kind": "hash_multiple_filenames",
+      "source_file": "mvs.sha1",
+      "algorithm_filter": "SHA1",
+      "fields": []
+    },
+    {
+      "name": "find_mvs_hash_with_multiple_filenames_in_mvs.sha256",
+      "operation": "hash_diagnostic",
+      "mode": "human",
+      "diagnostic_kind": "hash_multiple_filenames",
+      "source_file": "mvs.sha256",
+      "algorithm_filter": "SHA256",
+      "fields": []
+    },
+    {
+      "name": "find_mvs_filename_with_multiple_hashes_in_mvs.txt",
+      "operation": "hash_diagnostic",
+      "mode": "human",
+      "diagnostic_kind": "filename_multiple_hashes",
+      "source_file": "mvs.txt",
+      "algorithm_filter": "",
+      "fields": []
+    },
+    {
+      "name": "find_mvs_filename_with_multiple_hashes_in_mvs_names.txt",
+      "operation": "hash_diagnostic",
+      "mode": "human",
+      "diagnostic_kind": "filename_multiple_hashes",
+      "source_file": "mvs_names.txt",
+      "algorithm_filter": "",
+      "fields": []
+    },
+    {
+      "name": "find_mvs_hash_mismatch_for_filename_between_mvs.txt_and_mvs.sha1",
+      "operation": "hash_diagnostic",
+      "mode": "human",
+      "diagnostic_kind": "hash_mismatch",
+      "source_file": "mvs.txt|mvs.sha1",
+      "algorithm_filter": "SHA1",
+      "fields": []
+    },
+    {
+      "name": "find_mvs_hash_mismatch_for_filename_between_mvs.txt_and_mvs.sha256",
+      "operation": "hash_diagnostic",
+      "mode": "human",
+      "diagnostic_kind": "hash_mismatch",
+      "source_file": "mvs.txt|mvs.sha256",
+      "algorithm_filter": "SHA256",
+      "fields": []
+    },
+    {
+      "name": "print_mvs_dump_summary",
+      "operation": "summary_query",
+      "mode": "human",
+      "fields": []
+    },
+    {
+      "name": "read_mvs_dump_summary",
+      "operation": "summary_query",
+      "mode": "machine",
+      "fields": []
+    },
+    {
+      "name": "print_mvs_dump_statistics",
+      "operation": "summary_query",
+      "mode": "human",
+      "fields": []
+    },
+    {
+      "name": "read_mvs_dump_statistics",
+      "operation": "summary_query",
+      "mode": "machine",
+      "fields": []
+    }
+  ]
+}

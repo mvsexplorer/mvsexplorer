@@ -1,0 +1,7 @@
+1	10	Alpha Variant One	variant-alpha.iso	6666666666666666666666666666666666666666	SHA1
+1	10	Alpha Variant One	variant-alpha.iso	7777777777777777777777777777777777777777	SHA1
+1	10	Alpha Variant One	variant-alpha-copy.iso	6666666666666666666666666666666666666666	SHA1
+1	10	Alpha Variant One	variant-alpha.iso	dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd	SHA256
+2	10	Alpha Variant Empty			
+3	20	Beta Variant	shared.iso	4444444444444444444444444444444444444444	SHA1
+4	30	Gamma Variant	gamma.iso	5555555555555555555555555555555555555555	SHA1

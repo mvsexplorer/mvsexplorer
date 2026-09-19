@@ -1,0 +1,4 @@
+10	Alpha Variant One
+10	Alpha Variant Empty
+20	Beta Variant
+30	Gamma Variant

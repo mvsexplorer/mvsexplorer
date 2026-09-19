@@ -1,5 +1,24 @@
 MVS Explorer Toolkit Project Version History
 
+0.9.0 - 2026-08-27
+  - Recorded the clean attached 0.8.0 Windows baseline: 607 passed,
+    0 failed, 3 data-dependent note skips.
+  - Added 154 standalone single-dump completeness tools.
+  - Added forward product ID/title -> filename -> hash traversal.
+  - Added first-class mvs_names.txt variant occurrence presentation.
+  - Added hash provenance enumeration/query across mvs.txt, mvs_names.txt,
+    mvs.sha1, and mvs.sha256.
+  - Added product-file and raw product-section presentation.
+  - Added raw note occurrence presentation.
+  - Added 12 unparsed-line finder/reader tools across six sources.
+  - Added 10 hash-integrity diagnostic tools.
+  - Added print/read summary and statistics tools.
+  - Added comprehensive synthetic single-dump fixture and 154 fixed
+    independent expected-output files.
+  - Added test_single_dump_tools.bat with 167 assertions.
+  - Full 0.9.0 suite expects 931 assertions before real-dump-dependent skips.
+  - Root public standalone tool count is now 422.
+
 0.8.0 - 2026-08-27
   - Recorded the clean attached 0.7.0 Windows baseline: 363 passed,
     0 failed, 0 skipped against mvs_2020-10-20.

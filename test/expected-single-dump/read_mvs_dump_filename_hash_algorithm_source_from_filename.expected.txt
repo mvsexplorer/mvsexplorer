@@ -1,0 +1,5 @@
+alpha.iso	1111111111111111111111111111111111111111	SHA1	mvs.txt
+alpha.iso	2222222222222222222222222222222222222222	SHA1	mvs.txt
+alpha.iso	aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa	SHA256	mvs.txt
+alpha.iso	3333333333333333333333333333333333333333	SHA1	mvs.sha1
+alpha.iso	bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb	SHA256	mvs.sha256

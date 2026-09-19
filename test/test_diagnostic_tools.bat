@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.5.0"
+set "app.version=0.6.0"
 set "app.name=test_diagnostic_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -157,6 +157,7 @@ function New-ResultsFolder {
         lookup = Join-Path $candidate 'lookup-results.tsv'
         diagnostic = Join-Path $candidate 'diagnostic-results.tsv'
         relationship = Join-Path $candidate 'relationship-results.tsv'
+        single_dump = Join-Path $candidate 'single-dump-results.tsv'
     }
     Write-TextUtf8 $script:ConsoleLog ''
     $header = "index`tscope`tstatus`tcase`treason`texpected_rc`tactual_rc`n"
@@ -176,6 +177,7 @@ Files:
   lookup-results.tsv     Lookup behavioral assertions.
   diagnostic-results.tsv Duplicate/orphan diagnostic assertions.
   relationship-results.tsv Filename/hash relationship assertions.
+  single-dump-results.tsv Single-dump completeness assertions.
   failures\              Full expected/actual/stderr/meta files for
                          behavioral failures. Empty when none fail.
 '@
@@ -241,6 +243,7 @@ function Write-RunInfo {
         ('CLR: ' + [Environment]::Version.ToString()),
         ('Diagnostic fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-diagnostics')),
         ('Relationship fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-relationships')),
+        ('Single-dump fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-single-complete')),
         ('Result folder: ' + $script:ResultsFolder)
     )
     Write-TextUtf8 (Join-Path $script:ResultsFolder 'run-info.txt') (($info -join [Environment]::NewLine) + [Environment]::NewLine)
@@ -260,6 +263,7 @@ function Write-Summary {
         ('Total assertions: ' + ($script:Passed + $script:Failed + $script:Skipped)),
         ('Diagnostic fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-diagnostics')),
         ('Relationship fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-relationships')),
+        ('Single-dump fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-single-complete')),
         ('Result folder: ' + $script:ResultsFolder)
     )
     Write-TextUtf8 (Join-Path $script:ResultsFolder 'summary.txt') (($summary -join [Environment]::NewLine) + [Environment]::NewLine)
@@ -267,7 +271,7 @@ function Write-Summary {
 
 function Show-Usage {
     Write-Line ('MVS Explorer Toolkit test ' + $Version)
-    if (@('structure','diagnostic','relationship') -contains $Mode) {
+    if (@('structure','diagnostic','relationship','single_dump') -contains $Mode) {
         Write-Line ('Usage: ' + $Caller)
     } else {
         Write-Line ('Usage: ' + $Caller + ' dump-folder')
@@ -581,6 +585,165 @@ function Get-Relationships {
     )
 }
 
+function Get-SingleDumpTools {
+    return @(
+        [pscustomobject]@{name='print_mvs_dump_filenames_from_id'; operation='detail_query'; search_source='id'},
+        [pscustomobject]@{name='read_mvs_dump_filenames_from_id'; operation='detail_query'; search_source='id'},
+        [pscustomobject]@{name='print_mvs_dump_hashes_from_id'; operation='detail_query'; search_source='id'},
+        [pscustomobject]@{name='read_mvs_dump_hashes_from_id'; operation='detail_query'; search_source='id'},
+        [pscustomobject]@{name='print_mvs_dump_filename_hashes_from_id'; operation='detail_query'; search_source='id'},
+        [pscustomobject]@{name='read_mvs_dump_filename_hashes_from_id'; operation='detail_query'; search_source='id'},
+        [pscustomobject]@{name='print_mvs_dump_filename_hash_algorithm_source_from_id'; operation='detail_query'; search_source='id'},
+        [pscustomobject]@{name='read_mvs_dump_filename_hash_algorithm_source_from_id'; operation='detail_query'; search_source='id'},
+        [pscustomobject]@{name='print_mvs_dump_id_title_filenames_from_id'; operation='detail_query'; search_source='id'},
+        [pscustomobject]@{name='read_mvs_dump_id_title_filenames_from_id'; operation='detail_query'; search_source='id'},
+        [pscustomobject]@{name='print_mvs_dump_id_title_filenames_hashes_from_id'; operation='detail_query'; search_source='id'},
+        [pscustomobject]@{name='read_mvs_dump_id_title_filenames_hashes_from_id'; operation='detail_query'; search_source='id'},
+        [pscustomobject]@{name='print_mvs_dump_title_filenames_hashes_from_id'; operation='detail_query'; search_source='id'},
+        [pscustomobject]@{name='read_mvs_dump_title_filenames_hashes_from_id'; operation='detail_query'; search_source='id'},
+        [pscustomobject]@{name='print_mvs_dump_id_title_date_note_filenames_hashes_from_id'; operation='detail_query'; search_source='id'},
+        [pscustomobject]@{name='read_mvs_dump_id_title_date_note_filenames_hashes_from_id'; operation='detail_query'; search_source='id'},
+        [pscustomobject]@{name='print_mvs_dump_filenames_from_title'; operation='detail_query'; search_source='title'},
+        [pscustomobject]@{name='read_mvs_dump_filenames_from_title'; operation='detail_query'; search_source='title'},
+        [pscustomobject]@{name='print_mvs_dump_hashes_from_title'; operation='detail_query'; search_source='title'},
+        [pscustomobject]@{name='read_mvs_dump_hashes_from_title'; operation='detail_query'; search_source='title'},
+        [pscustomobject]@{name='print_mvs_dump_filename_hashes_from_title'; operation='detail_query'; search_source='title'},
+        [pscustomobject]@{name='read_mvs_dump_filename_hashes_from_title'; operation='detail_query'; search_source='title'},
+        [pscustomobject]@{name='print_mvs_dump_filename_hash_algorithm_source_from_title'; operation='detail_query'; search_source='title'},
+        [pscustomobject]@{name='read_mvs_dump_filename_hash_algorithm_source_from_title'; operation='detail_query'; search_source='title'},
+        [pscustomobject]@{name='print_mvs_dump_id_title_filenames_from_title'; operation='detail_query'; search_source='title'},
+        [pscustomobject]@{name='read_mvs_dump_id_title_filenames_from_title'; operation='detail_query'; search_source='title'},
+        [pscustomobject]@{name='print_mvs_dump_id_title_filenames_hashes_from_title'; operation='detail_query'; search_source='title'},
+        [pscustomobject]@{name='read_mvs_dump_id_title_filenames_hashes_from_title'; operation='detail_query'; search_source='title'},
+        [pscustomobject]@{name='print_mvs_dump_title_filenames_hashes_from_title'; operation='detail_query'; search_source='title'},
+        [pscustomobject]@{name='read_mvs_dump_title_filenames_hashes_from_title'; operation='detail_query'; search_source='title'},
+        [pscustomobject]@{name='print_mvs_dump_id_title_date_note_filenames_hashes_from_title'; operation='detail_query'; search_source='title'},
+        [pscustomobject]@{name='read_mvs_dump_id_title_date_note_filenames_hashes_from_title'; operation='detail_query'; search_source='title'},
+        [pscustomobject]@{name='print_mvs_dump_hashes_from_filename'; operation='detail_query'; search_source='filename'},
+        [pscustomobject]@{name='read_mvs_dump_hashes_from_filename'; operation='detail_query'; search_source='filename'},
+        [pscustomobject]@{name='print_mvs_dump_filename_hashes_from_filename'; operation='detail_query'; search_source='filename'},
+        [pscustomobject]@{name='read_mvs_dump_filename_hashes_from_filename'; operation='detail_query'; search_source='filename'},
+        [pscustomobject]@{name='print_mvs_dump_filename_hash_algorithm_source_from_filename'; operation='detail_query'; search_source='filename'},
+        [pscustomobject]@{name='read_mvs_dump_filename_hash_algorithm_source_from_filename'; operation='detail_query'; search_source='filename'},
+        [pscustomobject]@{name='print_mvs_dump_id_title_filenames_hashes_from_filename'; operation='detail_query'; search_source='filename'},
+        [pscustomobject]@{name='read_mvs_dump_id_title_filenames_hashes_from_filename'; operation='detail_query'; search_source='filename'},
+        [pscustomobject]@{name='print_mvs_dump_title_filenames_hashes_from_filename'; operation='detail_query'; search_source='filename'},
+        [pscustomobject]@{name='read_mvs_dump_title_filenames_hashes_from_filename'; operation='detail_query'; search_source='filename'},
+        [pscustomobject]@{name='print_mvs_dump_id_title_date_note_filenames_hashes_from_filename'; operation='detail_query'; search_source='filename'},
+        [pscustomobject]@{name='read_mvs_dump_id_title_date_note_filenames_hashes_from_filename'; operation='detail_query'; search_source='filename'},
+        [pscustomobject]@{name='print_mvs_dump_sha1_from_filename'; operation='detail_query'; search_source='filename'},
+        [pscustomobject]@{name='read_mvs_dump_sha1_from_filename'; operation='detail_query'; search_source='filename'},
+        [pscustomobject]@{name='print_mvs_dump_sha256_from_filename'; operation='detail_query'; search_source='filename'},
+        [pscustomobject]@{name='read_mvs_dump_sha256_from_filename'; operation='detail_query'; search_source='filename'},
+        [pscustomobject]@{name='print_mvs_dump_filename_hashes_from_hash'; operation='detail_query'; search_source='hash'},
+        [pscustomobject]@{name='read_mvs_dump_filename_hashes_from_hash'; operation='detail_query'; search_source='hash'},
+        [pscustomobject]@{name='print_mvs_dump_filename_hash_algorithm_source_from_hash'; operation='detail_query'; search_source='hash'},
+        [pscustomobject]@{name='read_mvs_dump_filename_hash_algorithm_source_from_hash'; operation='detail_query'; search_source='hash'},
+        [pscustomobject]@{name='print_mvs_dump_id_title_filenames_hashes_from_hash'; operation='detail_query'; search_source='hash'},
+        [pscustomobject]@{name='read_mvs_dump_id_title_filenames_hashes_from_hash'; operation='detail_query'; search_source='hash'},
+        [pscustomobject]@{name='print_mvs_dump_title_filenames_hashes_from_hash'; operation='detail_query'; search_source='hash'},
+        [pscustomobject]@{name='read_mvs_dump_title_filenames_hashes_from_hash'; operation='detail_query'; search_source='hash'},
+        [pscustomobject]@{name='print_mvs_dump_id_title_date_note_filenames_hashes_from_hash'; operation='detail_query'; search_source='hash'},
+        [pscustomobject]@{name='read_mvs_dump_id_title_date_note_filenames_hashes_from_hash'; operation='detail_query'; search_source='hash'},
+        [pscustomobject]@{name='print_mvs_dump_variants'; operation='variant_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_variants'; operation='variant_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_variant_titles'; operation='variant_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_variant_titles'; operation='variant_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_variant_filenames'; operation='variant_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_variant_filenames'; operation='variant_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_variant_hashes'; operation='variant_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_variant_hashes'; operation='variant_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_id_variant_titles'; operation='variant_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_id_variant_titles'; operation='variant_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_id_variant_filenames'; operation='variant_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_id_variant_filenames'; operation='variant_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_id_variant_hashes'; operation='variant_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_id_variant_hashes'; operation='variant_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_id_variant_title_filename_hashes'; operation='variant_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_id_variant_title_filename_hashes'; operation='variant_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_variants_from_id'; operation='variant_query'; search_source='id'},
+        [pscustomobject]@{name='read_mvs_dump_variants_from_id'; operation='variant_query'; search_source='id'},
+        [pscustomobject]@{name='print_mvs_dump_variant_titles_from_id'; operation='variant_query'; search_source='id'},
+        [pscustomobject]@{name='read_mvs_dump_variant_titles_from_id'; operation='variant_query'; search_source='id'},
+        [pscustomobject]@{name='print_mvs_dump_variant_filenames_from_id'; operation='variant_query'; search_source='id'},
+        [pscustomobject]@{name='read_mvs_dump_variant_filenames_from_id'; operation='variant_query'; search_source='id'},
+        [pscustomobject]@{name='print_mvs_dump_variant_hashes_from_id'; operation='variant_query'; search_source='id'},
+        [pscustomobject]@{name='read_mvs_dump_variant_hashes_from_id'; operation='variant_query'; search_source='id'},
+        [pscustomobject]@{name='print_mvs_dump_id_variant_title_filename_hashes_from_id'; operation='variant_query'; search_source='id'},
+        [pscustomobject]@{name='read_mvs_dump_id_variant_title_filename_hashes_from_id'; operation='variant_query'; search_source='id'},
+        [pscustomobject]@{name='print_mvs_dump_variants_from_filename'; operation='variant_query'; search_source='filename'},
+        [pscustomobject]@{name='read_mvs_dump_variants_from_filename'; operation='variant_query'; search_source='filename'},
+        [pscustomobject]@{name='print_mvs_dump_id_variant_title_filename_hashes_from_filename'; operation='variant_query'; search_source='filename'},
+        [pscustomobject]@{name='read_mvs_dump_id_variant_title_filename_hashes_from_filename'; operation='variant_query'; search_source='filename'},
+        [pscustomobject]@{name='print_mvs_dump_variants_from_hash'; operation='variant_query'; search_source='hash'},
+        [pscustomobject]@{name='read_mvs_dump_variants_from_hash'; operation='variant_query'; search_source='hash'},
+        [pscustomobject]@{name='print_mvs_dump_id_variant_title_filename_hashes_from_hash'; operation='variant_query'; search_source='hash'},
+        [pscustomobject]@{name='read_mvs_dump_id_variant_title_filename_hashes_from_hash'; operation='variant_query'; search_source='hash'},
+        [pscustomobject]@{name='print_mvs_dump_hash_records'; operation='hash_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_hash_records'; operation='hash_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_hash_records_from_filename'; operation='hash_query'; search_source='filename'},
+        [pscustomobject]@{name='read_mvs_dump_hash_records_from_filename'; operation='hash_query'; search_source='filename'},
+        [pscustomobject]@{name='print_mvs_dump_hash_records_from_hash'; operation='hash_query'; search_source='hash'},
+        [pscustomobject]@{name='read_mvs_dump_hash_records_from_hash'; operation='hash_query'; search_source='hash'},
+        [pscustomobject]@{name='print_mvs_dump_sha1'; operation='hash_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_sha1'; operation='hash_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_sha256'; operation='hash_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_sha256'; operation='hash_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_sha1_filename'; operation='hash_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_sha1_filename'; operation='hash_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_sha256_filename'; operation='hash_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_sha256_filename'; operation='hash_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_filename_sha1'; operation='hash_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_filename_sha1'; operation='hash_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_filename_sha256'; operation='hash_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_filename_sha256'; operation='hash_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_filename_hash_algorithm_source'; operation='hash_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_filename_hash_algorithm_source'; operation='hash_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_product_files'; operation='product_file_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_product_files'; operation='product_file_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_product_files_from_id'; operation='product_file_query'; search_source='id'},
+        [pscustomobject]@{name='read_mvs_dump_product_files_from_id'; operation='product_file_query'; search_source='id'},
+        [pscustomobject]@{name='print_mvs_dump_product_files_from_title'; operation='product_file_query'; search_source='title'},
+        [pscustomobject]@{name='read_mvs_dump_product_files_from_title'; operation='product_file_query'; search_source='title'},
+        [pscustomobject]@{name='print_mvs_dump_product_sections'; operation='product_section_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_product_sections'; operation='product_section_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_product_sections_from_id'; operation='product_section_query'; search_source='id'},
+        [pscustomobject]@{name='read_mvs_dump_product_sections_from_id'; operation='product_section_query'; search_source='id'},
+        [pscustomobject]@{name='print_mvs_dump_product_sections_from_title'; operation='product_section_query'; search_source='title'},
+        [pscustomobject]@{name='read_mvs_dump_product_sections_from_title'; operation='product_section_query'; search_source='title'},
+        [pscustomobject]@{name='print_mvs_dump_note_records'; operation='note_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_note_records'; operation='note_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_note_records_from_title'; operation='note_query'; search_source='title'},
+        [pscustomobject]@{name='read_mvs_dump_note_records_from_title'; operation='note_query'; search_source='title'},
+        [pscustomobject]@{name='find_mvs_unparsed_lines_in_mvs.txt'; operation='unparsed_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_unparsed_lines_in_mvs.txt'; operation='unparsed_query'; search_source=''},
+        [pscustomobject]@{name='find_mvs_unparsed_lines_in_mvs_names.txt'; operation='unparsed_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_unparsed_lines_in_mvs_names.txt'; operation='unparsed_query'; search_source=''},
+        [pscustomobject]@{name='find_mvs_unparsed_lines_in_mvs.sha1'; operation='unparsed_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_unparsed_lines_in_mvs.sha1'; operation='unparsed_query'; search_source=''},
+        [pscustomobject]@{name='find_mvs_unparsed_lines_in_mvs.sha256'; operation='unparsed_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_unparsed_lines_in_mvs.sha256'; operation='unparsed_query'; search_source=''},
+        [pscustomobject]@{name='find_mvs_unparsed_lines_in_mvs_ids.txt'; operation='unparsed_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_unparsed_lines_in_mvs_ids.txt'; operation='unparsed_query'; search_source=''},
+        [pscustomobject]@{name='find_mvs_unparsed_lines_in_mvs_dates.txt'; operation='unparsed_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_unparsed_lines_in_mvs_dates.txt'; operation='unparsed_query'; search_source=''},
+        [pscustomobject]@{name='find_mvs_duplicate_sha1_in_mvs.sha1'; operation='hash_diagnostic'; search_source=''},
+        [pscustomobject]@{name='find_mvs_duplicate_sha256_in_mvs.sha256'; operation='hash_diagnostic'; search_source=''},
+        [pscustomobject]@{name='find_mvs_duplicate_hash_in_mvs.txt'; operation='hash_diagnostic'; search_source=''},
+        [pscustomobject]@{name='find_mvs_duplicate_hash_in_mvs_names.txt'; operation='hash_diagnostic'; search_source=''},
+        [pscustomobject]@{name='find_mvs_hash_with_multiple_filenames_in_mvs.sha1'; operation='hash_diagnostic'; search_source=''},
+        [pscustomobject]@{name='find_mvs_hash_with_multiple_filenames_in_mvs.sha256'; operation='hash_diagnostic'; search_source=''},
+        [pscustomobject]@{name='find_mvs_filename_with_multiple_hashes_in_mvs.txt'; operation='hash_diagnostic'; search_source=''},
+        [pscustomobject]@{name='find_mvs_filename_with_multiple_hashes_in_mvs_names.txt'; operation='hash_diagnostic'; search_source=''},
+        [pscustomobject]@{name='find_mvs_hash_mismatch_for_filename_between_mvs.txt_and_mvs.sha1'; operation='hash_diagnostic'; search_source=''},
+        [pscustomobject]@{name='find_mvs_hash_mismatch_for_filename_between_mvs.txt_and_mvs.sha256'; operation='hash_diagnostic'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_summary'; operation='summary_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_summary'; operation='summary_query'; search_source=''},
+        [pscustomobject]@{name='print_mvs_dump_statistics'; operation='summary_query'; search_source=''},
+        [pscustomobject]@{name='read_mvs_dump_statistics'; operation='summary_query'; search_source=''}
+    )
+}
+
 function Normalize-CapturedText {
     param([AllowNull()][string]$Text)
     if ($null -eq $Text) { return '' }
@@ -744,9 +907,10 @@ function Test-Structure {
     foreach ($lookup in Get-Lookups) { [void]$expected.Add($lookup.name + '.bat') }
     foreach ($diagnostic in Get-Diagnostics) { [void]$expected.Add($diagnostic + '.bat') }
     foreach ($relationship in Get-Relationships) { [void]$expected.Add($relationship + '.bat') }
+    foreach ($single in Get-SingleDumpTools) { [void]$expected.Add($single.name + '.bat') }
 
     $actual = @(Get-ChildItem -LiteralPath $Root -Filter '*.bat' -File | Select-Object -ExpandProperty Name)
-    if ($actual.Count -eq 268) { Write-Pass 'root public .bat count = 268' } else { Write-Fail 'root public .bat count' ('expected 268, got ' + $actual.Count) }
+    if ($actual.Count -eq 422) { Write-Pass 'root public .bat count = 422' } else { Write-Fail 'root public .bat count' ('expected 422, got ' + $actual.Count) }
 
     foreach ($name in $expected) {
         $path = Join-Path $Root $name
@@ -758,7 +922,7 @@ function Test-Structure {
         foreach ($label in @(':setup',':main',':end',':SetErrorLevel',':RunPowerShellFromLabel')) {
             if (-not $text.Contains($label)) { [void]$problems.Add('missing ' + $label) }
         }
-        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start') -and -not $text.Contains(':_MVSRelationship_start')) { [void]$problems.Add('missing injected PowerShell block') }
+        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start') -and -not $text.Contains(':_MVSRelationship_start') -and -not $text.Contains(':_MVSSingleDump_start')) { [void]$problems.Add('missing injected PowerShell block') }
         if ($text.Contains('dev\library') -or $text.Contains('generate_tools.py')) { [void]$problems.Add('development runtime dependency reference') }
         if ($problems.Count -eq 0) { Write-Pass ('standalone ' + $name) } else { Write-Fail ('standalone ' + $name) ($problems -join ', ') }
     }
@@ -953,10 +1117,99 @@ function Test-Relationships {
     }
 }
 
+
+function Get-SingleDumpSearchValue {
+    param([object]$Tool, [hashtable]$Values)
+
+    if ([string]::IsNullOrEmpty([string]$Tool.search_source)) { return $null }
+
+    if ($Tool.operation -eq 'variant_query') {
+        if ($Tool.search_source -eq 'filename') { return [string]$Values.variant_filename }
+        if ($Tool.search_source -eq 'hash') { return [string]$Values.variant_hash }
+    }
+    if ($Tool.operation -eq 'note_query') { return [string]$Values.note_title }
+
+    $key = [string]$Tool.search_source
+    return [string]$Values[$key]
+}
+
+function Test-SingleDumpNoResult {
+    param([string]$Name, [string]$Fixture, [string]$SearchValue)
+    $toolPath = Join-Path $Root ($Name + '.bat')
+    $run = Invoke-PublicTool $toolPath $Fixture $SearchValue $true
+    Compare-Run ($Name + ' [no-result]') $run 1 ''
+}
+
+function Test-SingleDumpTools {
+    $script:CurrentScope = 'single_dump'
+    Write-Line '=== Single-dump completeness tests ==='
+
+    $fixture = Join-Path (Join-Path $Root 'test') 'test-mvs-dump-single-complete'
+    $expectedRoot = Join-Path (Join-Path $Root 'test') 'expected-single-dump'
+    $valuePath = Join-Path $fixture 'TEST-VALUES.txt'
+
+    if (-not (Test-Path -LiteralPath $fixture -PathType Container)) {
+        Write-Fail 'single-dump synthetic dump' ('missing fixture: ' + $fixture)
+        return
+    }
+    if (-not (Test-Path -LiteralPath $expectedRoot -PathType Container)) {
+        Write-Fail 'single-dump expected outputs' ('missing expected folder: ' + $expectedRoot)
+        return
+    }
+    if (-not (Test-Path -LiteralPath $valuePath -PathType Leaf)) {
+        Write-Fail 'single-dump test values' ('missing file: ' + $valuePath)
+        return
+    }
+
+    $values = Read-TestValueFile $valuePath
+    foreach ($required in @('id','title','filename','hash','variant_filename','variant_hash','note_title')) {
+        if (-not $values.ContainsKey($required) -or [string]::IsNullOrWhiteSpace([string]$values[$required])) {
+            Write-Fail 'single-dump test values' ('missing key: ' + $required)
+            return
+        }
+    }
+
+    Write-Pass 'single-dump synthetic dump present'
+
+    foreach ($tool in Get-SingleDumpTools) {
+        $name = [string]$tool.name
+        $expectedPath = Join-Path $expectedRoot ($name + '.expected.txt')
+        if (-not (Test-Path -LiteralPath $expectedPath -PathType Leaf)) {
+            Write-Fail $name ('missing expected output: ' + $expectedPath)
+            continue
+        }
+
+        $expected = Normalize-CapturedText (Get-Content -LiteralPath $expectedPath -Raw -Encoding UTF8)
+        $search = Get-SingleDumpSearchValue $tool $values
+        $hasSearch = -not [string]::IsNullOrEmpty([string]$tool.search_source)
+        $run = Invoke-PublicTool (Join-Path $Root ($name + '.bat')) $fixture $search $hasSearch
+        Compare-Run $name $run 0 $expected
+    }
+
+    foreach ($name in @('print_mvs_dump_filenames_from_id','read_mvs_dump_filenames_from_id')) {
+        Test-SingleDumpNoResult $name $fixture '999999'
+    }
+    foreach ($name in @('print_mvs_dump_variants_from_id','read_mvs_dump_variants_from_id')) {
+        Test-SingleDumpNoResult $name $fixture '999999'
+    }
+    foreach ($name in @('print_mvs_dump_hash_records_from_hash','read_mvs_dump_hash_records_from_hash')) {
+        Test-SingleDumpNoResult $name $fixture '0000000000000000000000000000000000000000'
+    }
+    foreach ($name in @('print_mvs_dump_product_files_from_id','read_mvs_dump_product_files_from_id')) {
+        Test-SingleDumpNoResult $name $fixture '999999'
+    }
+    foreach ($name in @('print_mvs_dump_product_sections_from_id','read_mvs_dump_product_sections_from_id')) {
+        Test-SingleDumpNoResult $name $fixture '999999'
+    }
+    foreach ($name in @('print_mvs_dump_note_records_from_title','read_mvs_dump_note_records_from_title')) {
+        Test-SingleDumpNoResult $name $fixture '__MVS_NO_SUCH_NOTE_TITLE__'
+    }
+}
+
 New-ResultsFolder
 Write-Line ('Test results: ' + $script:ResultsFolder)
 
-if (@('all','structure','scalar','lookup','diagnostic','relationship') -notcontains $Mode) {
+if (@('all','structure','scalar','lookup','diagnostic','relationship','single_dump') -notcontains $Mode) {
     $script:CurrentScope = 'general'
     Show-Usage
     Write-Fail 'test mode' ('unsupported mode: ' + $Mode)
@@ -1011,6 +1264,7 @@ if ($Mode -eq 'all' -or $Mode -eq 'scalar') { Test-Scalar $Products }
 if ($Mode -eq 'all' -or $Mode -eq 'lookup') { Test-Lookups $Products }
 if ($Mode -eq 'all' -or $Mode -eq 'diagnostic') { Test-Diagnostics }
 if ($Mode -eq 'all' -or $Mode -eq 'relationship') { Test-Relationships }
+if ($Mode -eq 'all' -or $Mode -eq 'single_dump') { Test-SingleDumpTools }
 
 Write-Line ''
 Write-Line ('SUMMARY: passed=' + $script:Passed + ' failed=' + $script:Failed + ' skipped=' + $script:Skipped)

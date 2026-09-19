@@ -1,0 +1,4 @@
+Hash with multiple filenames: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  Filename: manifest-one-256.iso
+  Filename: manifest-two-256.iso
+

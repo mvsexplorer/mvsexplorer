@@ -1,0 +1,12 @@
+Tool Version History: read_mvs_unparsed_lines_in_mvs.sha256.bat
+
+Purpose
+  Operation: unparsed_query
+  Output mode: machine
+  Search source: 
+  Fields: line, raw
+  Source file: mvs.sha256
+  Standalone: yes; complete injected batch/PowerShell runtime
+
+0.1.0 - 2026-08-27
+  - Initial version for the 0.9.0 single-dump completeness milestone.

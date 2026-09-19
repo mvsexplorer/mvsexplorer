@@ -1,0 +1,4 @@
+Tool Version History: dev\generate_expected_single_dump_outputs.py
+
+0.1.0 - 2026-08-27
+  - Initial independent Python reference oracle for 154 expected outputs.

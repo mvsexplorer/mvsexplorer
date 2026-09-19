@@ -1,0 +1,12 @@
+Tool Version History: find_mvs_filename_with_multiple_hashes_in_mvs.txt.bat
+
+Purpose
+  Operation: hash_diagnostic
+  Output mode: human
+  Search source: 
+  Fields: 
+  Source file: mvs.txt
+  Standalone: yes; complete injected batch/PowerShell runtime
+
+0.1.0 - 2026-08-27
+  - Initial version for the 0.9.0 single-dump completeness milestone.

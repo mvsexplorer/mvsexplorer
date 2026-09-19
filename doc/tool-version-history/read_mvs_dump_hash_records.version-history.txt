@@ -1,0 +1,12 @@
+Tool Version History: read_mvs_dump_hash_records.bat
+
+Purpose
+  Operation: hash_query
+  Output mode: machine
+  Search source: 
+  Fields: source, line, id, title, variant_title, filename, hash, algorithm
+  Source file: 
+  Standalone: yes; complete injected batch/PowerShell runtime
+
+0.1.0 - 2026-08-27
+  - Initial version for the 0.9.0 single-dump completeness milestone.

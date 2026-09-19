@@ -1,0 +1,4 @@
+Duplicate Hash: 6666666666666666666666666666666666666666
+  Source: mvs_names.txt | Line: 2 | Filename: variant-alpha.iso
+  Source: mvs_names.txt | Line: 4 | Filename: variant-alpha-copy.iso
+

@@ -1,6 +1,6 @@
 # MVS Explorer Toolkit — Embedded PowerShell Style Guide
 
-**Guide version:** 0.7.0  
+**Guide version:** 0.8.0  
 **Context:** Companion to Batch File Style Guide v1.8.0 and the MVS Explorer Toolkit addendum.
 
 ## 1. Role
@@ -261,3 +261,34 @@ semantics.
 
 Keep relationship code compatible with Windows PowerShell 5.1 and .NET
 Framework-era APIs, matching the externally tested project baseline.
+
+
+## 26. Preserve source occurrence identity
+
+Variant sections and raw note records require occurrence counters. Hash records
+require source and physical line.
+
+These identities should remain available even when a simpler projected query
+deduplicates identical display values.
+
+## 27. Parse-loss visibility
+
+For line-oriented sources, retain every nonblank line that is neither a valid
+record nor a valid structural header in an unparsed-line collection.
+
+Do not silently discard parse failures.
+
+## 28. Forward product/hash traversal
+
+When a product ID/title selects filenames through `mvs.txt`, keep the selected
+product owner fixed while gathering all observed hash records by filename.
+Do not accidentally replace the selected owner with every other product that
+may reuse the same filename.
+
+## 29. Summary implementation
+
+Summary metrics should be derived from the same parsed model used by the
+first-class entity tools, not from re-parsing ad hoc with conflicting rules.
+
+Optional files such as `mvs.sha256` contribute zero/presence metrics when
+missing rather than making a whole-dump summary fail.

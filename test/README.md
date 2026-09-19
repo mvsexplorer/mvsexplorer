@@ -19,6 +19,7 @@ test\test_scalar_tools.bat path_to_real_mvs_dump_folder
 test\test_lookup_tools.bat path_to_real_mvs_dump_folder
 test\test_diagnostic_tools.bat
 test\test_relationship_tools.bat
+test\test_single_dump_tools.bat
 ```
 
 Every test invocation creates a timestamped result directory below `test\`.
@@ -53,3 +54,28 @@ test\expected-relationships\
 
 Those expectations are generated independently from the public relationship
 batch files.
+
+
+Single-dump completeness fixture:
+
+```text
+test\test-mvs-dump-single-complete\
+test\expected-single-dump\
+```
+
+The 0.9.0 full-suite assertion matrix is:
+
+```text
+Structure:      423
+Scalar:         120
+Lookup:          24
+Diagnostic:      46
+Relationship:   151
+Single-dump:    167
+-------------------
+Total:          931 assertions
+```
+
+The single-dump scope is 154 exact positive tool comparisons, 12 no-result
+return-code checks covering each query operation family, and one fixture
+presence assertion.

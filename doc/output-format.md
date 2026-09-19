@@ -134,3 +134,61 @@ Missing fields are empty TSV fields.
 
 Exact duplicate projected rows are suppressed. Legitimately different
 filename/product associations are retained.
+
+
+## Product-file / variant / hash-record output
+
+`print_` forms use one labeled line per projected record.
+
+`read_` forms are headerless TSV in the field order encoded by the tool name
+or documented matrix.
+
+Full hash provenance records use:
+
+```text
+source
+physical line
+product ID
+product title
+variant title
+filename
+hash
+algorithm
+```
+
+Missing context fields remain `(none)` for human output and empty fields for
+machine output.
+
+## Raw product sections
+
+Human section tools reproduce the source section lines with one blank line
+between sections.
+
+Machine section tools emit one row per physical source line:
+
+```text
+section occurrence
+ID
+title
+line offset inside section
+physical source line
+raw line
+```
+
+## Note occurrences
+
+Raw note records preserve repeated headings as separate occurrence rows.
+
+## Summary/statistics
+
+Human:
+
+```text
+metric.key: value
+```
+
+Machine:
+
+```text
+metric.key<TAB>value
+```

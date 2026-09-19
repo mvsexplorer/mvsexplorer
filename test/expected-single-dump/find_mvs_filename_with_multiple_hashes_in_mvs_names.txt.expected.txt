@@ -1,0 +1,5 @@
+Filename with multiple hashes: variant-alpha.iso
+  Hash: 6666666666666666666666666666666666666666
+  Hash: 7777777777777777777777777777777777777777
+  Hash: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+

@@ -1,6 +1,6 @@
 # MVS Explorer Toolkit — Batch Style Guide Addendum
 
-**Addendum version:** 0.7.0  
+**Addendum version:** 0.8.0  
 **Applies with:** Batch File Style Guide v1.8.0
 
 This addendum supplements the supplied guide with project-specific conventions.
@@ -240,3 +240,77 @@ The relationship matrix is maintained in
 Shared development source lives under `dev\library`/`dev\templates`, but each
 generated relationship `.bat` contains its complete batch and PowerShell
 runtime implementation.
+
+
+## 25. Single-dump entity families
+
+Use first-class public families for semantically distinct source entities:
+
+```text
+product scalar
+product file edge
+variant occurrence
+hash provenance record
+note occurrence
+unparsed source line
+summary/statistic
+```
+
+Do not flatten occurrence/provenance identity merely to reuse a scalar
+projection contract.
+
+## 26. Forward detail traversal
+
+For product ID/title forward queries:
+
+```text
+mvs.txt product owner
+-> filename
+-> all observed hash records for that filename
+```
+
+Observed hash records may come from `mvs.txt`, `mvs_names.txt`, `mvs.sha1`, or
+`mvs.sha256`.
+
+## 27. Raw section presentation
+
+Human product-section output preserves the original section lines.
+
+Machine product-section output emits:
+
+```text
+section_occurrence<TAB>id<TAB>title<TAB>line_offset<TAB>physical_line<TAB>raw_line
+```
+
+## 28. Unparsed-line reporting
+
+Human finder:
+
+```text
+Line N: raw source text
+```
+
+Machine reader:
+
+```text
+N<TAB>raw source text
+```
+
+Successful scans return `0` even when findings are present.
+
+## 29. Summary/statistics output
+
+Human:
+
+```text
+key: value
+```
+
+Machine:
+
+```text
+key<TAB>value
+```
+
+Keys are stable machine-facing identifiers; presentation labels are not
+localized.

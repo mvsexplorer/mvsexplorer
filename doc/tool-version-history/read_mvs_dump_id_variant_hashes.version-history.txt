@@ -1,0 +1,12 @@
+Tool Version History: read_mvs_dump_id_variant_hashes.bat
+
+Purpose
+  Operation: variant_query
+  Output mode: machine
+  Search source: 
+  Fields: id, hash
+  Source file: 
+  Standalone: yes; complete injected batch/PowerShell runtime
+
+0.1.0 - 2026-08-27
+  - Initial version for the 0.9.0 single-dump completeness milestone.

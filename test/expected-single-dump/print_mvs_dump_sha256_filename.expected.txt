@@ -1,0 +1,5 @@
+Hash: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa | Filename: alpha.iso
+Hash: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd | Filename: variant-alpha.iso
+Hash: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb | Filename: alpha.iso
+Hash: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc | Filename: manifest-one-256.iso
+Hash: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc | Filename: manifest-two-256.iso

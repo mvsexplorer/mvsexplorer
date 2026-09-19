@@ -1,0 +1,14 @@
+--- Alpha Variant One [ID: 10] ---
+6666666666666666666666666666666666666666 *variant-alpha.iso
+7777777777777777777777777777777777777777 *variant-alpha.iso
+6666666666666666666666666666666666666666 *variant-alpha-copy.iso
+dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd *variant-alpha.iso
+BROKEN VARIANT FILE LINE
+
+--- Alpha Variant Empty [ID: 10] ---
+
+--- Beta Variant [ID: 20] ---
+4444444444444444444444444444444444444444 *shared.iso
+
+--- Gamma Variant [ID: 30] ---
+5555555555555555555555555555555555555555 *gamma.iso

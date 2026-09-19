@@ -163,3 +163,28 @@ wildcard family.
 If the same test digest appears in both `mvs.txt` and `mvs.sha1`, a broken
 manifest parser could go unnoticed. The synthetic fixture assigns the primary
 SHA-1, SHA-256, and mvs.txt-only test hashes to distinct source paths.
+
+
+### A complete single-dump model needs occurrence and provenance identities
+
+Product IDs identify products, but variant records require section occurrence,
+and hash records require source/physical-line provenance. Flattening these
+identities would lose real duplicate/reuse information before comparison.
+
+### Forward traversal must gather all observed hashes for a product filename
+
+A product-selected filename can have hash observations in section data and
+flat manifests. Forward product queries therefore use the product ownership
+edge from `mvs.txt` and then collect observed hash records by filename.
+
+### Raw occurrence views and convenience views should coexist
+
+Combined product notes are useful, but raw note occurrences are necessary for
+source-faithful inspection. The same principle applies to normalized product
+file rows versus raw product sections.
+
+### Malformed records must be visible before comparison
+
+Cross-dump comparison should not silently compare only successfully parsed
+records. Per-source unparsed-line reports and summary counts make parse loss
+observable first.

@@ -1,4 +1,4 @@
-# MVS Explorer Toolkit 0.8.0
+# MVS Explorer Toolkit 0.9.0
 
 MVS Explorer Toolkit is a growing collection of console tools for exploring MVS dump snapshots, intended to culminate in the graphical **MVS Explorer** application.
 
@@ -350,3 +350,76 @@ Diagnostic:     46
 Relationship:  151
 Total:         610
 ```
+
+
+## 0.9.0 single-dump completeness milestone
+
+Version 0.9.0 adds **154 standalone tools** covering the remaining
+single-dump information/presentation layer. The project now has **422 public
+standalone `.bat` tools**.
+
+New areas:
+
+```text
+Product -> filename -> hash forward traversal
+mvs_names.txt variant occurrence records
+hash/provenance records from mvs.txt, mvs_names.txt, mvs.sha1, mvs.sha256
+raw product-file rows and raw product sections
+raw note occurrence records
+malformed/unparsed-line reporting
+hash-integrity diagnostics
+whole-dump summary/statistics
+```
+
+Every concrete suggestion from the single-dump completeness review is present,
+along with the natural `print_`/`read_` counterpart where machine-readable
+output is meaningful.
+
+Examples:
+
+```text
+print_mvs_dump_filenames_from_id.bat dump-folder 10
+read_mvs_dump_hashes_from_title.bat dump-folder "Product title"
+print_mvs_dump_id_title_filenames_hashes_from_id.bat dump-folder 10
+print_mvs_dump_sha1_from_filename.bat dump-folder "file.iso"
+print_mvs_dump_filename_hash_algorithm_source.bat dump-folder
+
+print_mvs_dump_variants.bat dump-folder
+read_mvs_dump_variants_from_id.bat dump-folder 10
+print_mvs_dump_id_variant_title_filename_hashes_from_hash.bat dump-folder HASH
+
+print_mvs_dump_hash_records.bat dump-folder
+print_mvs_dump_product_files_from_id.bat dump-folder 10
+print_mvs_dump_product_sections_from_id.bat dump-folder 10
+print_mvs_dump_note_records.bat dump-folder
+
+find_mvs_unparsed_lines_in_mvs.txt.bat dump-folder
+find_mvs_hash_mismatch_for_filename_between_mvs.txt_and_mvs.sha1.bat dump-folder
+
+print_mvs_dump_summary.bat dump-folder
+read_mvs_dump_statistics.bat dump-folder
+```
+
+Hash provenance records retain source, physical line, ID/product title where
+available, variant title where available, filename, digest, and algorithm.
+
+The summary/statistics layer reports source presence, product/file/variant/note
+coverage, ID/date ranges, SHA-1/SHA-256 counts, reused filenames, variant
+multiplicity, note duplicate-heading groups, directional filename orphan
+counts, and malformed-line totals.
+
+A new exact regression fixture is under:
+
+```text
+test\test-mvs-dump-single-complete\
+test\expected-single-dump\
+```
+
+and the new subset runner is:
+
+```text
+test\test_single_dump_tools.bat
+```
+
+The 0.9.0 full suite expects **931 assertions** before any data-dependent skips
+from the supplied real dump.

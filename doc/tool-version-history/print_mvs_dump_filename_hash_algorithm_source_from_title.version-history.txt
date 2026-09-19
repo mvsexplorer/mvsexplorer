@@ -1,0 +1,12 @@
+Tool Version History: print_mvs_dump_filename_hash_algorithm_source_from_title.bat
+
+Purpose
+  Operation: detail_query
+  Output mode: human
+  Search source: title
+  Fields: filename, hash, algorithm, source
+  Source file: 
+  Standalone: yes; complete injected batch/PowerShell runtime
+
+0.1.0 - 2026-08-27
+  - Initial version for the 0.9.0 single-dump completeness milestone.

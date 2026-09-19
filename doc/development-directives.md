@@ -166,3 +166,23 @@ These directives are distilled from the user's project prompts.
 109. Every hash-query public relationship tool is tested with both a SHA-1 that exists only in `mvs.sha1` and a SHA-256 that exists only in `mvs.sha256`.
 110. Maintain additional regression cases proving hash discovery directly from `mvs.txt`.
 111. Relationship expected outputs must be independently generated without invoking the public batch tools under test.
+
+
+## Single-dump completeness layer
+
+112. Complete the single-dump model before implementing cross-dump comparison.
+113. Forward product queries traverse `mvs.txt` product ID/title -> filename -> all observed hashes for that filename.
+114. Hash observations preserve provenance from `mvs.txt`, `mvs_names.txt`, `mvs.sha1`, and `mvs.sha256`.
+115. Do not infer digest-pair identity solely from shared filenames.
+116. Model `mvs_names.txt` section occurrence as variant identity; title+ID is not unique.
+117. Preserve empty variant sections in first-class variant enumeration.
+118. Expose raw product file rows and raw product section lines independently of normalized scalar projections.
+119. Expose raw note occurrences independently of combined title-level note convenience data.
+120. Provide unparsed-line reporting for every line-oriented source used by the toolkit.
+121. Hash-integrity diagnostics report duplicate hashes, hash->multiple-filename, filename->multiple-hash, and cross-source filename/hash mismatches.
+122. Whole-dump summary/statistics must remain key/value oriented and machine-readable.
+123. Summary metrics distinguish expected variant ID repetition from product duplicate-ID diagnostics.
+124. All new query selectors are exact; wildcard semantics remain confined to the explicit lookup family.
+125. The single-dump synthetic fixture must force every new public tool through a positive output/finding path.
+126. Every new public single-dump tool gets an exact expected stdout regression file produced by an independent Python reference implementation.
+127. Add no-result return-code regression for each new query operation family.

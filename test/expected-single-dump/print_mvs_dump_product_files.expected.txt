@@ -1,0 +1,6 @@
+ID: 10 | Title: Alpha Product | Date: 2020-01-10T00:00:00Z | Note: Alpha note one. || Alpha note two. | Filename: alpha.iso | Hash: 1111111111111111111111111111111111111111 | Algorithm: SHA1
+ID: 10 | Title: Alpha Product | Date: 2020-01-10T00:00:00Z | Note: Alpha note one. || Alpha note two. | Filename: alpha.iso | Hash: 2222222222222222222222222222222222222222 | Algorithm: SHA1
+ID: 10 | Title: Alpha Product | Date: 2020-01-10T00:00:00Z | Note: Alpha note one. || Alpha note two. | Filename: alpha-copy.iso | Hash: 1111111111111111111111111111111111111111 | Algorithm: SHA1
+ID: 10 | Title: Alpha Product | Date: 2020-01-10T00:00:00Z | Note: Alpha note one. || Alpha note two. | Filename: alpha.iso | Hash: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa | Algorithm: SHA256
+ID: 20 | Title: Beta Product | Date: 2020-02-20T00:00:00Z | Note: Beta note. | Filename: shared.iso | Hash: 4444444444444444444444444444444444444444 | Algorithm: SHA1
+ID: 30 | Title: Gamma Product | Date: 2020-03-30T00:00:00Z | Note: Gamma note. | Filename: gamma.iso | Hash: 5555555555555555555555555555555555555555 | Algorithm: SHA1

@@ -1,0 +1,4 @@
+Hash with multiple filenames: 8888888888888888888888888888888888888888
+  Filename: manifest-one.iso
+  Filename: manifest-two.iso
+

@@ -1,0 +1,10 @@
+1	10	Alpha Product	0	1	--- Alpha Product [ID: 10] ---
+1	10	Alpha Product	1	2	1111111111111111111111111111111111111111 *alpha.iso
+1	10	Alpha Product	2	3	2222222222222222222222222222222222222222 *alpha.iso
+1	10	Alpha Product	3	4	1111111111111111111111111111111111111111 *alpha-copy.iso
+1	10	Alpha Product	4	5	aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa *alpha.iso
+1	10	Alpha Product	5	6	BROKEN PRODUCT FILE LINE
+2	20	Beta Product	0	8	--- Beta Product [ID: 20] ---
+2	20	Beta Product	1	9	4444444444444444444444444444444444444444 *shared.iso
+3	30	Gamma Product	0	11	--- Gamma Product [ID: 30] ---
+3	30	Gamma Product	1	12	5555555555555555555555555555555555555555 *gamma.iso

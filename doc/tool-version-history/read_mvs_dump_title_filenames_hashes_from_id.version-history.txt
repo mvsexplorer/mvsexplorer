@@ -1,0 +1,12 @@
+Tool Version History: read_mvs_dump_title_filenames_hashes_from_id.bat
+
+Purpose
+  Operation: detail_query
+  Output mode: machine
+  Search source: id
+  Fields: title, filename, hash
+  Source file: 
+  Standalone: yes; complete injected batch/PowerShell runtime
+
+0.1.0 - 2026-08-27
+  - Initial version for the 0.9.0 single-dump completeness milestone.

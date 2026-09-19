@@ -1,0 +1,12 @@
+--- Alpha Product [ID: 10] ---
+1111111111111111111111111111111111111111 *alpha.iso
+2222222222222222222222222222222222222222 *alpha.iso
+1111111111111111111111111111111111111111 *alpha-copy.iso
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa *alpha.iso
+BROKEN PRODUCT FILE LINE
+
+--- Beta Product [ID: 20] ---
+4444444444444444444444444444444444444444 *shared.iso
+
+--- Gamma Product [ID: 30] ---
+5555555555555555555555555555555555555555 *gamma.iso

@@ -170,3 +170,33 @@ A dedicated relationship fixture was built so the chosen SHA-1 exists only in
 `mvs.sha1`, the chosen SHA-256 only in `mvs.sha256`, and another tested hash
 only in `mvs.txt`. This prevents the test suite from accidentally validating
 only one hash source.
+
+
+## 2026-08-27 — Clean 0.8.0 Windows baseline
+
+The attached 0.8.0 result archive contains 610 assertions:
+
+```text
+607 passed
+0 failed
+3 skipped
+```
+
+The three skips are only data-dependent exact note lookup cases on the chosen
+real dump. All 151 relationship assertions passed. This is the baseline for
+0.9.0.
+
+## 2026-08-27 — Single-dump completeness milestone
+
+The remaining single-dump information/presentation suggestions were converted
+into 154 standalone tools rather than creating meaningless Cartesian-product
+wrapper names.
+
+The new layer covers forward product/file/hash traversal, variant occurrences,
+hash provenance, product files/sections, note occurrences, malformed lines,
+hash integrity, and whole-dump statistics.
+
+A synthetic fixture intentionally contains duplicate/conflicting hashes,
+multiple hash sources, an empty variant section, repeated note headings, and
+one malformed line in each supported line-oriented source. All 154 public
+tools have fixed positive expected stdout generated independently.
