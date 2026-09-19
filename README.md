@@ -1,4 +1,13 @@
-# MVS Explorer Toolkit 0.13.0
+# MVS Explorer Toolkit 0.13.1
+
+## 0.13.1 fast-worker PowerShell 5.1 parser fix
+
+Version 0.13.1 is a narrow maintenance release over the validated 0.13.0 public-tool surface.
+The 443 public root tools are unchanged from 0.13.0. It fixes the combined snapshot worker's
+`Test-HashResult` predicate, which Windows PowerShell 5.1 rejected at script-block parse time
+because of an overly nested boolean expression. The predicate now uses explicit branch-based
+logic and the archive-sweep validator rejects the old parser-sensitive form.
+
 
 MVS Explorer Toolkit is a growing collection of console tools for exploring MVS dump snapshots, intended to culminate in the graphical **MVS Explorer** application.
 

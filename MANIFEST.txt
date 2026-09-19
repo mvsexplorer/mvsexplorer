@@ -104,6 +104,7 @@ doc/single-dump-tool-matrix.tsv
 doc/style-guide-addendum.md
 doc/test-run-analysis-0.10.0.md
 doc/test-run-analysis-0.11.0.md
+doc/test-run-analysis-0.13.0.md
 doc/test-run-analysis-0.4.0.md
 doc/test-run-analysis-0.5.0.md
 doc/test-run-analysis-0.6.0.md

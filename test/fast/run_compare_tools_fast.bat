@@ -1,7 +1,7 @@
 @echo off
 :setup
 setlocal DisableDelayedExpansion
-set "app.version=0.1.0"
+set "app.version=0.1.1"
 set "app.name=run_compare_tools_fast"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -489,11 +489,24 @@ function Test-VariantResult {
 }
 function Test-HashResult {
     param([object]$Model,[object]$Entry)
+
+    $algorithmFilter=[string]$Entry.algorithm_filter
+    $searchSource=[string]$Entry.search_source
+    $searchValue=[string]$Entry.search_value
+
     $rows=@($Model.hash_records | Where-Object {
-        ([string]::IsNullOrEmpty([string]$Entry.algorithm_filter) -or $_.algorithm -eq [string]$Entry.algorithm_filter) -and
-        ([string]::IsNullOrEmpty([string]$Entry.search_source) -or
-          (([string]$Entry.search_source -eq 'filename' -and (Matches-Exact $_.filename ([string]$Entry.search_value))) -or
-           ([string]$Entry.search_source -eq 'hash' -and (Matches-Exact $_.hash ([string]$Entry.search_value))))
+        if(-not [string]::IsNullOrEmpty($algorithmFilter)){
+            if([string]$_.algorithm -ne $algorithmFilter){ return $false }
+        }
+
+        if([string]::IsNullOrEmpty($searchSource)){ return $true }
+        if($searchSource -eq 'filename'){
+            return (Matches-Exact ([string]$_.filename) $searchValue)
+        }
+        if($searchSource -eq 'hash'){
+            return (Matches-Exact ([string]$_.hash) $searchValue)
+        }
+        return $false
     })
     return Has-Projection $rows ([string]$Entry.fields)
 }

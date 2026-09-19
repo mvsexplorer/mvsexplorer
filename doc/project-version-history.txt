@@ -1,5 +1,13 @@
 MVS Explorer Toolkit Project Version History
 
+0.13.1 - 2026-08-28
+  - Maintenance release for the fast-combined archive sweep.
+  - 443 public root tools are unchanged from 0.13.0.
+  - Fixed Windows PowerShell 5.1 parse failure in fast snapshot Test-HashResult.
+  - Replaced the parser-sensitive nested hash/filename predicate with explicit branch-based logic.
+  - Added a static regression guard rejecting the old parser-sensitive predicate form.
+  - Recorded clean 0.13.0 public-tool regression: 1053 pass / 0 fail / 3 skip in 00:06:18.
+
 0.13.0 - 2026-08-28
   - Added dual-executor archive sweep architecture.
   - test\test_all_dumps.bat now defaults to fast-combined execution.

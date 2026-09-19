@@ -140,3 +140,9 @@ Use three levels:
 3. `test\test_all_dumps.bat archive-root` — performs the high-throughput full archive sweep.
 
 Use `--external-tools` when literal wrapper execution over the full archive is specifically desired.
+## PowerShell 5.1 parser compatibility maintenance (0.13.1)
+
+The 0.13.0 combined snapshot worker used an overly nested `Where-Object` boolean predicate in
+`Test-HashResult`. Windows PowerShell 5.1 rejected the embedded script block before execution.
+0.13.1 rewrites that predicate as explicit algorithm/source branches. This is a parser-only
+maintenance correction; the logical status contract and public-tool interfaces do not change.

@@ -1,5 +1,9 @@
 run_snapshot_tools_fast.bat Version History
 
+0.1.1 - 2026-08-28
+  - Fixed Windows PowerShell 5.1 parse failure in Test-HashResult.
+  - Replaced the nested boolean filename/hash predicate with explicit branch-based logic.
+
 0.1.0 - 2026-08-28
   - Initial combined fast executor for the 422 logical single-snapshot checks.
   - Parses/reuses one snapshot model per batch and emits logical status rows.

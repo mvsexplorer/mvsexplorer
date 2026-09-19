@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validation for the dual-executor archive-wide sweep.
 
-Version: 0.2.0
+Version: 0.2.1
 """
 from pathlib import Path
 import re
@@ -40,8 +40,13 @@ def main():
         fail("plan/runs executor identity is not serialized")
 
     snap=check_batch(ROOT/"test"/"fast"/"run_snapshot_tools_fast.bat",(
-        ':_MVSFastSweep_start','mvsf_mode=snapshot','Get-SingleStatus','Read-FastModel'
+        ':_MVSFastSweep_start','mvsf_mode=snapshot','Get-SingleStatus','Read-FastModel',
+        "$searchSource=[string]$Entry.search_source",
+        "if($searchSource -eq 'hash'){",
+        "return (Matches-Exact ([string]$_.hash) $searchValue)"
     ))
+    if "([string]$Entry.search_source -eq 'hash' -and (Matches-Exact" in snap:
+        fail("snapshot fast worker contains the PowerShell 5.1-sensitive nested hash predicate")
     comp=check_batch(ROOT/"test"/"fast"/"run_compare_tools_fast.bat",(
         ':_MVSFastSweep_start','mvsf_mode=compare','Get-CompareStatus'
     ))

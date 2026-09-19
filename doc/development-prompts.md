@@ -1608,3 +1608,11 @@ including the two nested mvs_dmp snapshots.]
 This request is implemented as the scope-aware `test\test_all_dumps.bat`
 archive sweep rather than a blind one-argument loop. The current public surface
 produces 34,822 planned invocations across the supplied archive.
+
+## 2026-08-28 — Fast sweep Windows parser failure
+
+> test\test_fast_archive_sweep.bat
+> [FAIL] fast-combined sweep
+> ...
+> Exception calling "Create" with "1" argument(s):
+> Missing closing ')' in expression.

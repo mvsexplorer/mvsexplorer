@@ -1,4 +1,7 @@
 generate_performance_tools.py Version History
 
+0.1.1 - 2026-08-28
+  - Generates fast workers version 0.1.1 with the PowerShell 5.1-safe hash predicate.
+
 0.1.0 - 2026-08-28
   - Initial generator for combined fast runners and archive-sweep performance analyzer.

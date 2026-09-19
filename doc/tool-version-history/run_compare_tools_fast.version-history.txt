@@ -1,5 +1,9 @@
 run_compare_tools_fast.bat Version History
 
+0.1.1 - 2026-08-28
+  - Regenerated from the corrected shared fast-sweep runtime.
+  - No compare-mode interface or logical status contract change.
+
 0.1.0 - 2026-08-28
   - Initial combined fast executor for the 19 logical adjacent-dump comparisons.
   - Parses/reuses the pair models per batch and emits logical status rows.

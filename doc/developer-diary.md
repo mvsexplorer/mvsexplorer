@@ -331,3 +331,9 @@ The first literal 0.12.0 archive sweep proved correctness of the planning layer 
 The archive sweep now records the executor explicitly. `fast-combined` is the default for the large archive task; `external-public` remains available whenever literal wrapper execution is required. Resume is executor-sensitive so result sets cannot silently mix semantics.
 
 Before Windows release testing, the combined classifier was replayed against all 1,171 rows available from the partial 0.12.0 external run and reproduced every status exactly.
+## 2026-08-28 — 0.13.1 fast-worker parser maintenance
+
+The optimized public tools passed the complete Windows regression suite, but the new combined
+snapshot worker failed at `[ScriptBlock]::Create()` on Windows PowerShell 5.1. The failure was
+isolated to the `Test-HashResult` nested boolean expression. The fast runtime was corrected by
+using explicit branch-based matching and the validator now rejects the old expression form.

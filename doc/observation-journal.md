@@ -336,3 +336,8 @@ Early snapshots showed roughly 13.4–14.1 minute summary/statistics calls. Repe
 ### Fast logical validation and literal wrapper validation are different guarantees
 
 The combined executor is appropriate for status-level archive coverage. Literal wrapper output/return-code behavior remains covered by the normal regression suite and, when desired, the archive sweep's `--external-tools` mode. Result metadata must make that distinction visible.
+### Fast combined PowerShell must be parser-tested separately from public-tool regressions
+
+A clean regression run of all public tools does not exercise the embedded PowerShell inside
+`test\fast\` workers. Parser-sensitive constructs in combined workers therefore need dedicated
+Windows acceptance and static regression guards in addition to the normal public-tool suite.
