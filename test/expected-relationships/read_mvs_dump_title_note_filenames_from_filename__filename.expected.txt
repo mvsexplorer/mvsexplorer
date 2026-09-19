@@ -1,0 +1,2 @@
+Beta Product	Beta note.	shared.iso
+Gamma Product	Gamma note.	shared.iso

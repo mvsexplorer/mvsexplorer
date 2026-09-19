@@ -1,0 +1,6 @@
+Tool Version History: dev\generate_expected_relationship_outputs.py
+
+0.1.0 - 2026-08-27
+  - Initial version.
+  - Independent Python reference parser producing fixed relationship expected
+    outputs without invoking public batch tools.

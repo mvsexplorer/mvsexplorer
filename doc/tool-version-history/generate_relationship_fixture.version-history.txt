@@ -1,0 +1,5 @@
+Tool Version History: dev\generate_relationship_fixture.py
+
+0.1.0 - 2026-08-27
+  - Initial version.
+  - Regenerates the synthetic filename/hash relationship fixture.

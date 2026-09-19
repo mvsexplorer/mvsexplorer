@@ -1,4 +1,4 @@
-# MVS Explorer Toolkit 0.7.0
+# MVS Explorer Toolkit 0.8.0
 
 MVS Explorer Toolkit is a growing collection of console tools for exploring MVS dump snapshots, intended to culminate in the graphical **MVS Explorer** application.
 
@@ -300,3 +300,53 @@ test\test_all.bat path_to_real_mvs_dump_folder
 
 The real dump is used for scalar/lookup regression tests; the fixed synthetic
 dump is used for duplicate/orphan tests.
+
+
+## 0.8.0 filename/hash relationship queries
+
+Version 0.8.0 adds **96 standalone relationship-query tools**: 24 requested
+projections, each available as `print_` and `read_`, from both filename and
+hash.
+
+The project now contains **268 standalone public root `.bat` tools**.
+
+Examples:
+
+```text
+print_mvs_dump_id_title_filenames_from_filename.bat dump-folder "shared.iso"
+read_mvs_dump_title_date_note_from_filename.bat dump-folder "shared.iso"
+
+print_mvs_dump_id_title_date_note_filenames_from_hash.bat dump-folder SHA1_OR_SHA256
+read_mvs_dump_filenames_from_hash.bat dump-folder SHA1_OR_SHA256
+```
+
+Filename/hash searches are exact and case-insensitive.
+
+Hash reverse lookup indexes `mvs.txt`, `mvs.sha1`, and `mvs.sha256`.
+The resulting filenames are then traversed to product sections in `mvs.txt`
+and joined to date/note metadata.
+
+A filename can map to more than one product and a hash can map to more than one
+filename, so multiple rows are preserved when associations are genuinely
+different.
+
+See `doc\relationship-tools.md` for the exact row/output semantics.
+
+### Relationship regression fixture
+
+```text
+test\test-mvs-dump-relationships\
+test\expected-relationships\
+test\test_relationship_tools.bat
+```
+
+The full test suite now expects **610 assertions** on the 0.8.0 matrix:
+
+```text
+Structure:     269
+Scalar:        120
+Lookup:         24
+Diagnostic:     46
+Relationship:  151
+Total:         610
+```

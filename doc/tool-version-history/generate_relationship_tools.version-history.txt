@@ -1,0 +1,6 @@
+Tool Version History: dev\generate_relationship_tools.py
+
+0.1.0 - 2026-08-27
+  - Initial version.
+  - Generates 96 standalone filename/hash relationship public tools from
+    relationship-tool-spec.json and injected common sources.

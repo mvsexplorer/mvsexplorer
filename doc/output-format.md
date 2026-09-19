@@ -104,3 +104,33 @@ Target: mvs_dates.txt
 The comparison is directional and output remains in source occurrence order.
 
 No orphan findings produce no stdout. Orphan findings themselves return `0`.
+
+
+## Filename/hash relationship `print_` output
+
+One line is emitted per distinct projected relationship row.
+
+Example:
+
+```text
+ID: 20 | Title: Beta Product | Filename: shared.iso
+ID: 30 | Title: Gamma Product | Filename: shared.iso
+```
+
+Missing scalar data is `(none)`.
+
+## Filename/hash relationship `read_` output
+
+Headerless TSV, one physical line per distinct projected relationship row.
+
+Example:
+
+```text
+20<TAB>Beta Product<TAB>shared.iso
+30<TAB>Gamma Product<TAB>shared.iso
+```
+
+Missing fields are empty TSV fields.
+
+Exact duplicate projected rows are suppressed. Legitimately different
+filename/product associations are retained.

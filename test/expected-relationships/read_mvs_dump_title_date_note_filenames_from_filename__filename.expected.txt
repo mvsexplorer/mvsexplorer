@@ -1,0 +1,2 @@
+Beta Product	2020-02-20T00:00:00	Beta note.	shared.iso
+Gamma Product	2020-03-30T00:00:00	Gamma note.	shared.iso

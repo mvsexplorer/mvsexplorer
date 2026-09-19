@@ -1,0 +1,15 @@
+Tool Version History: test\test_relationship_tools.bat
+
+Purpose
+  Test mode: relationship
+  Fixture: test\test-mvs-dump-relationships
+  Expected output: test\expected-relationships
+  Standalone code: yes; complete test harness is injected
+
+0.5.0 - 2026-08-27
+  - Initial relationship-test entry point aligned with harness 0.5.0.
+  - Executes all 96 relationship public tools.
+  - Tests every from-hash tool with both SHA-1 and SHA-256.
+  - Includes direct mvs.txt-only hash-source regression cases.
+  - Includes print/read no-result return-code checks for filename and hash.
+  - Compares exact stdout, stderr, and return code.

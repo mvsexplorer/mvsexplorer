@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.4.0"
+set "app.version=0.5.0"
 set "app.name=test_lookup_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -156,6 +156,7 @@ function New-ResultsFolder {
         scalar = Join-Path $candidate 'scalar-results.tsv'
         lookup = Join-Path $candidate 'lookup-results.tsv'
         diagnostic = Join-Path $candidate 'diagnostic-results.tsv'
+        relationship = Join-Path $candidate 'relationship-results.tsv'
     }
     Write-TextUtf8 $script:ConsoleLog ''
     $header = "index`tscope`tstatus`tcase`treason`texpected_rc`tactual_rc`n"
@@ -174,6 +175,7 @@ Files:
   scalar-results.tsv     Scalar behavioral assertions.
   lookup-results.tsv     Lookup behavioral assertions.
   diagnostic-results.tsv Duplicate/orphan diagnostic assertions.
+  relationship-results.tsv Filename/hash relationship assertions.
   failures\              Full expected/actual/stderr/meta files for
                          behavioral failures. Empty when none fail.
 '@
@@ -238,6 +240,7 @@ function Write-RunInfo {
         ('PowerShell: ' + $PSVersionTable.PSVersion.ToString()),
         ('CLR: ' + [Environment]::Version.ToString()),
         ('Diagnostic fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-diagnostics')),
+        ('Relationship fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-relationships')),
         ('Result folder: ' + $script:ResultsFolder)
     )
     Write-TextUtf8 (Join-Path $script:ResultsFolder 'run-info.txt') (($info -join [Environment]::NewLine) + [Environment]::NewLine)
@@ -256,6 +259,7 @@ function Write-Summary {
         ('Skipped: ' + $script:Skipped),
         ('Total assertions: ' + ($script:Passed + $script:Failed + $script:Skipped)),
         ('Diagnostic fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-diagnostics')),
+        ('Relationship fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-relationships')),
         ('Result folder: ' + $script:ResultsFolder)
     )
     Write-TextUtf8 (Join-Path $script:ResultsFolder 'summary.txt') (($summary -join [Environment]::NewLine) + [Environment]::NewLine)
@@ -263,7 +267,7 @@ function Write-Summary {
 
 function Show-Usage {
     Write-Line ('MVS Explorer Toolkit test ' + $Version)
-    if (@('structure','diagnostic') -contains $Mode) {
+    if (@('structure','diagnostic','relationship') -contains $Mode) {
         Write-Line ('Usage: ' + $Caller)
     } else {
         Write-Line ('Usage: ' + $Caller + ' dump-folder')
@@ -476,6 +480,107 @@ function Get-Diagnostics {
     )
 }
 
+function Get-Relationships {
+    return @(
+        'print_mvs_dump_id_from_filename',
+        'read_mvs_dump_id_from_filename',
+        'print_mvs_dump_id_from_hash',
+        'read_mvs_dump_id_from_hash',
+        'print_mvs_dump_title_from_filename',
+        'read_mvs_dump_title_from_filename',
+        'print_mvs_dump_title_from_hash',
+        'read_mvs_dump_title_from_hash',
+        'print_mvs_dump_date_from_filename',
+        'read_mvs_dump_date_from_filename',
+        'print_mvs_dump_date_from_hash',
+        'read_mvs_dump_date_from_hash',
+        'print_mvs_dump_note_from_filename',
+        'read_mvs_dump_note_from_filename',
+        'print_mvs_dump_note_from_hash',
+        'read_mvs_dump_note_from_hash',
+        'print_mvs_dump_filenames_from_filename',
+        'read_mvs_dump_filenames_from_filename',
+        'print_mvs_dump_filenames_from_hash',
+        'read_mvs_dump_filenames_from_hash',
+        'print_mvs_dump_id_title_from_filename',
+        'read_mvs_dump_id_title_from_filename',
+        'print_mvs_dump_id_title_from_hash',
+        'read_mvs_dump_id_title_from_hash',
+        'print_mvs_dump_id_date_from_filename',
+        'read_mvs_dump_id_date_from_filename',
+        'print_mvs_dump_id_date_from_hash',
+        'read_mvs_dump_id_date_from_hash',
+        'print_mvs_dump_id_title_date_from_filename',
+        'read_mvs_dump_id_title_date_from_filename',
+        'print_mvs_dump_id_title_date_from_hash',
+        'read_mvs_dump_id_title_date_from_hash',
+        'print_mvs_dump_id_title_note_from_filename',
+        'read_mvs_dump_id_title_note_from_filename',
+        'print_mvs_dump_id_title_note_from_hash',
+        'read_mvs_dump_id_title_note_from_hash',
+        'print_mvs_dump_id_title_date_note_from_filename',
+        'read_mvs_dump_id_title_date_note_from_filename',
+        'print_mvs_dump_id_title_date_note_from_hash',
+        'read_mvs_dump_id_title_date_note_from_hash',
+        'print_mvs_dump_title_date_from_filename',
+        'read_mvs_dump_title_date_from_filename',
+        'print_mvs_dump_title_date_from_hash',
+        'read_mvs_dump_title_date_from_hash',
+        'print_mvs_dump_title_note_from_filename',
+        'read_mvs_dump_title_note_from_filename',
+        'print_mvs_dump_title_note_from_hash',
+        'read_mvs_dump_title_note_from_hash',
+        'print_mvs_dump_title_date_note_from_filename',
+        'read_mvs_dump_title_date_note_from_filename',
+        'print_mvs_dump_title_date_note_from_hash',
+        'read_mvs_dump_title_date_note_from_hash',
+        'print_mvs_dump_date_note_from_filename',
+        'read_mvs_dump_date_note_from_filename',
+        'print_mvs_dump_date_note_from_hash',
+        'read_mvs_dump_date_note_from_hash',
+        'print_mvs_dump_id_title_filenames_from_filename',
+        'read_mvs_dump_id_title_filenames_from_filename',
+        'print_mvs_dump_id_title_filenames_from_hash',
+        'read_mvs_dump_id_title_filenames_from_hash',
+        'print_mvs_dump_id_date_filenames_from_filename',
+        'read_mvs_dump_id_date_filenames_from_filename',
+        'print_mvs_dump_id_date_filenames_from_hash',
+        'read_mvs_dump_id_date_filenames_from_hash',
+        'print_mvs_dump_id_title_date_filenames_from_filename',
+        'read_mvs_dump_id_title_date_filenames_from_filename',
+        'print_mvs_dump_id_title_date_filenames_from_hash',
+        'read_mvs_dump_id_title_date_filenames_from_hash',
+        'print_mvs_dump_id_title_note_filenames_from_filename',
+        'read_mvs_dump_id_title_note_filenames_from_filename',
+        'print_mvs_dump_id_title_note_filenames_from_hash',
+        'read_mvs_dump_id_title_note_filenames_from_hash',
+        'print_mvs_dump_id_title_date_note_filenames_from_filename',
+        'read_mvs_dump_id_title_date_note_filenames_from_filename',
+        'print_mvs_dump_id_title_date_note_filenames_from_hash',
+        'read_mvs_dump_id_title_date_note_filenames_from_hash',
+        'print_mvs_dump_title_filenames_from_filename',
+        'read_mvs_dump_title_filenames_from_filename',
+        'print_mvs_dump_title_filenames_from_hash',
+        'read_mvs_dump_title_filenames_from_hash',
+        'print_mvs_dump_title_date_filenames_from_filename',
+        'read_mvs_dump_title_date_filenames_from_filename',
+        'print_mvs_dump_title_date_filenames_from_hash',
+        'read_mvs_dump_title_date_filenames_from_hash',
+        'print_mvs_dump_title_note_filenames_from_filename',
+        'read_mvs_dump_title_note_filenames_from_filename',
+        'print_mvs_dump_title_note_filenames_from_hash',
+        'read_mvs_dump_title_note_filenames_from_hash',
+        'print_mvs_dump_title_date_note_filenames_from_filename',
+        'read_mvs_dump_title_date_note_filenames_from_filename',
+        'print_mvs_dump_title_date_note_filenames_from_hash',
+        'read_mvs_dump_title_date_note_filenames_from_hash',
+        'print_mvs_dump_date_note_filenames_from_filename',
+        'read_mvs_dump_date_note_filenames_from_filename',
+        'print_mvs_dump_date_note_filenames_from_hash',
+        'read_mvs_dump_date_note_filenames_from_hash'
+    )
+}
+
 function Normalize-CapturedText {
     param([AllowNull()][string]$Text)
     if ($null -eq $Text) { return '' }
@@ -638,9 +743,10 @@ function Test-Structure {
     }
     foreach ($lookup in Get-Lookups) { [void]$expected.Add($lookup.name + '.bat') }
     foreach ($diagnostic in Get-Diagnostics) { [void]$expected.Add($diagnostic + '.bat') }
+    foreach ($relationship in Get-Relationships) { [void]$expected.Add($relationship + '.bat') }
 
     $actual = @(Get-ChildItem -LiteralPath $Root -Filter '*.bat' -File | Select-Object -ExpandProperty Name)
-    if ($actual.Count -eq 172) { Write-Pass 'root public .bat count = 172' } else { Write-Fail 'root public .bat count' ('expected 172, got ' + $actual.Count) }
+    if ($actual.Count -eq 268) { Write-Pass 'root public .bat count = 268' } else { Write-Fail 'root public .bat count' ('expected 268, got ' + $actual.Count) }
 
     foreach ($name in $expected) {
         $path = Join-Path $Root $name
@@ -652,7 +758,7 @@ function Test-Structure {
         foreach ($label in @(':setup',':main',':end',':SetErrorLevel',':RunPowerShellFromLabel')) {
             if (-not $text.Contains($label)) { [void]$problems.Add('missing ' + $label) }
         }
-        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start')) { [void]$problems.Add('missing injected PowerShell block') }
+        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start') -and -not $text.Contains(':_MVSRelationship_start')) { [void]$problems.Add('missing injected PowerShell block') }
         if ($text.Contains('dev\library') -or $text.Contains('generate_tools.py')) { [void]$problems.Add('development runtime dependency reference') }
         if ($problems.Count -eq 0) { Write-Pass ('standalone ' + $name) } else { Write-Fail ('standalone ' + $name) ($problems -join ', ') }
     }
@@ -757,10 +863,100 @@ function Test-Diagnostics {
 }
 
 
+
+function Read-TestValueFile {
+    param([string]$Path)
+    $values = @{}
+    foreach ($line in Get-Content -LiteralPath $Path -Encoding UTF8) {
+        if ($line -match '^(?<key>[^=]+)=(?<value>.*)$') {
+            $values[$Matches.key.Trim()] = $Matches.value.Trim()
+        }
+    }
+    return $values
+}
+
+function Test-RelationshipCase {
+    param(
+        [string]$ToolName,
+        [string]$Fixture,
+        [string]$ExpectedRoot,
+        [string]$CaseName,
+        [string]$SearchValue
+    )
+    $toolPath = Join-Path $Root ($ToolName + '.bat')
+    $expectedPath = Join-Path $ExpectedRoot ($ToolName + '__' + $CaseName + '.expected.txt')
+    if (-not (Test-Path -LiteralPath $expectedPath -PathType Leaf)) {
+        Write-Fail ($ToolName + ' [' + $CaseName + ']') ('missing expected output: ' + $expectedPath)
+        return
+    }
+    $expected = Normalize-CapturedText (Get-Content -LiteralPath $expectedPath -Raw -Encoding UTF8)
+    $run = Invoke-PublicTool $toolPath $Fixture $SearchValue $true
+    Compare-Run ($ToolName + ' [' + $CaseName + ']') $run 0 $expected
+}
+
+function Test-Relationships {
+    $script:CurrentScope = 'relationship'
+    Write-Line '=== Filename/hash relationship tests ==='
+
+    $fixture = Join-Path (Join-Path $Root 'test') 'test-mvs-dump-relationships'
+    $expectedRoot = Join-Path (Join-Path $Root 'test') 'expected-relationships'
+    $valuePath = Join-Path $fixture 'TEST-VALUES.txt'
+
+    if (-not (Test-Path -LiteralPath $fixture -PathType Container)) {
+        Write-Fail 'relationship synthetic dump' ('missing fixture: ' + $fixture)
+        return
+    }
+    if (-not (Test-Path -LiteralPath $expectedRoot -PathType Container)) {
+        Write-Fail 'relationship expected outputs' ('missing expected folder: ' + $expectedRoot)
+        return
+    }
+    if (-not (Test-Path -LiteralPath $valuePath -PathType Leaf)) {
+        Write-Fail 'relationship test values' ('missing file: ' + $valuePath)
+        return
+    }
+
+    $values = Read-TestValueFile $valuePath
+    foreach ($required in @('filename','sha1','sha256','mvs_txt_hash')) {
+        if (-not $values.ContainsKey($required) -or [string]::IsNullOrWhiteSpace([string]$values[$required])) {
+            Write-Fail 'relationship test values' ('missing key: ' + $required)
+            return
+        }
+    }
+
+    Write-Pass 'relationship synthetic dump present'
+
+    foreach ($name in Get-Relationships) {
+        if ($name.EndsWith('_from_filename')) {
+            Test-RelationshipCase $name $fixture $expectedRoot 'filename' ([string]$values.filename)
+        } elseif ($name.EndsWith('_from_hash')) {
+            Test-RelationshipCase $name $fixture $expectedRoot 'sha1' ([string]$values.sha1)
+            Test-RelationshipCase $name $fixture $expectedRoot 'sha256' ([string]$values.sha256)
+        } else {
+            Write-Fail $name 'relationship tool has no recognized source suffix'
+        }
+    }
+
+    foreach ($name in @('print_mvs_dump_filenames_from_hash','read_mvs_dump_filenames_from_hash')) {
+        Test-RelationshipCase $name $fixture $expectedRoot 'mvs-txt' ([string]$values.mvs_txt_hash)
+    }
+
+    foreach ($name in @('print_mvs_dump_filenames_from_filename','read_mvs_dump_filenames_from_filename')) {
+        $toolPath = Join-Path $Root ($name + '.bat')
+        $run = Invoke-PublicTool $toolPath $fixture '__MVS_REL_NO_SUCH_FILENAME__' $true
+        Compare-Run ($name + ' [no-result]') $run 1 ''
+    }
+
+    foreach ($name in @('print_mvs_dump_filenames_from_hash','read_mvs_dump_filenames_from_hash')) {
+        $toolPath = Join-Path $Root ($name + '.bat')
+        $run = Invoke-PublicTool $toolPath $fixture '0000000000000000000000000000000000000000' $true
+        Compare-Run ($name + ' [no-result]') $run 1 ''
+    }
+}
+
 New-ResultsFolder
 Write-Line ('Test results: ' + $script:ResultsFolder)
 
-if (@('all','structure','scalar','lookup','diagnostic') -notcontains $Mode) {
+if (@('all','structure','scalar','lookup','diagnostic','relationship') -notcontains $Mode) {
     $script:CurrentScope = 'general'
     Show-Usage
     Write-Fail 'test mode' ('unsupported mode: ' + $Mode)
@@ -814,6 +1010,7 @@ if ($Mode -eq 'all' -or $Mode -eq 'structure') { Test-Structure }
 if ($Mode -eq 'all' -or $Mode -eq 'scalar') { Test-Scalar $Products }
 if ($Mode -eq 'all' -or $Mode -eq 'lookup') { Test-Lookups $Products }
 if ($Mode -eq 'all' -or $Mode -eq 'diagnostic') { Test-Diagnostics }
+if ($Mode -eq 'all' -or $Mode -eq 'relationship') { Test-Relationships }
 
 Write-Line ''
 Write-Line ('SUMMARY: passed=' + $script:Passed + ' failed=' + $script:Failed + ' skipped=' + $script:Skipped)

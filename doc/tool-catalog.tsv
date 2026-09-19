@@ -2,7 +2,10 @@ tool	family	mode	fields	sort	lookup_source	lookup_target	version
 dev\generate_diagnostic_fixture.py	development	generator	diagnostic-fixture				0.1.0
 dev\generate_diagnostic_tools.py	development	generator	diagnostics				0.1.0
 dev\generate_expected_diagnostic_outputs.py	development	generator	diagnostic-expected				0.1.0
-dev\generate_tests.py	development	generator	tests				0.4.0
+dev\generate_expected_relationship_outputs.py	development	generator	relationship-expected				0.1.0
+dev\generate_relationship_fixture.py	development	generator	relationship-fixture				0.1.0
+dev\generate_relationship_tools.py	development	generator	relationship-tools				0.1.0
+dev\generate_tests.py	development	generator	tests				0.5.0
 find_mvs_duplicate_date_in_mvs_date.txt.bat	diagnostic	human	date	source-order	mvs_dates.txt		0.1.0
 find_mvs_duplicate_date_in_mvs_dates.txt.bat	diagnostic	human	date	source-order	mvs_dates.txt		0.1.0
 find_mvs_duplicate_filename_in_mvs.txt.bat	diagnostic	human	filename	source-order	mvs.txt		0.1.0
@@ -56,15 +59,27 @@ lookup_mvs_note_from_title.bat	lookup	raw-lines	note	by-search-field:title	title
 lookup_mvs_title_from_date.bat	lookup	raw-lines	title	by-search-field:date	date	title	0.4.0
 lookup_mvs_title_from_id.bat	lookup	raw-lines	title	by-search-field:id	id	title	0.4.0
 print_mvs_dump_date.bat	print	human	date	source-order			0.6.0
+print_mvs_dump_date_from_filename.bat	relationship	human	date	source-order	filename		0.1.0
+print_mvs_dump_date_from_hash.bat	relationship	human	date	source-order	hash		0.1.0
 print_mvs_dump_date_note.bat	print	human	date,note	source-order			0.6.0
+print_mvs_dump_date_note_filenames_from_filename.bat	relationship	human	date,note,filename	source-order	filename		0.1.0
+print_mvs_dump_date_note_filenames_from_hash.bat	relationship	human	date,note,filename	source-order	hash		0.1.0
+print_mvs_dump_date_note_from_filename.bat	relationship	human	date,note	source-order	filename		0.1.0
+print_mvs_dump_date_note_from_hash.bat	relationship	human	date,note	source-order	hash		0.1.0
 print_mvs_dump_date_note_sorted_by_date.bat	print	human	date,note	date			0.4.0
 print_mvs_dump_date_note_sorted_by_id.bat	print	human	date,note	id			0.4.0
 print_mvs_dump_date_note_sorted_by_title.bat	print	human	date,note	title			0.4.0
 print_mvs_dump_date_sorted_by_date.bat	print	human	date	date			0.4.0
 print_mvs_dump_date_sorted_by_id.bat	print	human	date	id			0.4.0
 print_mvs_dump_date_sorted_by_title.bat	print	human	date	title			0.4.0
+print_mvs_dump_filenames_from_filename.bat	relationship	human	filename	source-order	filename		0.1.0
+print_mvs_dump_filenames_from_hash.bat	relationship	human	filename	source-order	hash		0.1.0
 print_mvs_dump_id.bat	print	human	id	source-order			0.6.0
 print_mvs_dump_id_date.bat	print	human	id,date	source-order			0.6.0
+print_mvs_dump_id_date_filenames_from_filename.bat	relationship	human	id,date,filename	source-order	filename		0.1.0
+print_mvs_dump_id_date_filenames_from_hash.bat	relationship	human	id,date,filename	source-order	hash		0.1.0
+print_mvs_dump_id_date_from_filename.bat	relationship	human	id,date	source-order	filename		0.1.0
+print_mvs_dump_id_date_from_hash.bat	relationship	human	id,date	source-order	hash		0.1.0
 print_mvs_dump_id_date_note.bat	print	human	id,date,note	source-order			0.6.0
 print_mvs_dump_id_date_note_sorted_by_date.bat	print	human	id,date,note	date			0.4.0
 print_mvs_dump_id_date_note_sorted_by_id.bat	print	human	id,date,note	id			0.4.0
@@ -72,6 +87,8 @@ print_mvs_dump_id_date_note_sorted_by_title.bat	print	human	id,date,note	title		
 print_mvs_dump_id_date_sorted_by_date.bat	print	human	id,date	date			0.4.0
 print_mvs_dump_id_date_sorted_by_id.bat	print	human	id,date	id			0.4.0
 print_mvs_dump_id_date_sorted_by_title.bat	print	human	id,date	title			0.4.0
+print_mvs_dump_id_from_filename.bat	relationship	human	id	source-order	filename		0.1.0
+print_mvs_dump_id_from_hash.bat	relationship	human	id	source-order	hash		0.1.0
 print_mvs_dump_id_note.bat	print	human	id,note	source-order			0.6.0
 print_mvs_dump_id_note_sorted_by_date.bat	print	human	id,note	date			0.4.0
 print_mvs_dump_id_note_sorted_by_id.bat	print	human	id,note	id			0.4.0
@@ -81,14 +98,30 @@ print_mvs_dump_id_sorted_by_id.bat	print	human	id	id			0.4.0
 print_mvs_dump_id_sorted_by_title.bat	print	human	id	title			0.4.0
 print_mvs_dump_id_title.bat	print	human	id,title	source-order			0.6.0
 print_mvs_dump_id_title_date.bat	print	human	id,title,date	source-order			0.6.0
+print_mvs_dump_id_title_date_filenames_from_filename.bat	relationship	human	id,title,date,filename	source-order	filename		0.1.0
+print_mvs_dump_id_title_date_filenames_from_hash.bat	relationship	human	id,title,date,filename	source-order	hash		0.1.0
+print_mvs_dump_id_title_date_from_filename.bat	relationship	human	id,title,date	source-order	filename		0.1.0
+print_mvs_dump_id_title_date_from_hash.bat	relationship	human	id,title,date	source-order	hash		0.1.0
 print_mvs_dump_id_title_date_note.bat	print	human	id,title,date,note	source-order			0.6.0
+print_mvs_dump_id_title_date_note_filenames_from_filename.bat	relationship	human	id,title,date,note,filename	source-order	filename		0.1.0
+print_mvs_dump_id_title_date_note_filenames_from_hash.bat	relationship	human	id,title,date,note,filename	source-order	hash		0.1.0
+print_mvs_dump_id_title_date_note_from_filename.bat	relationship	human	id,title,date,note	source-order	filename		0.1.0
+print_mvs_dump_id_title_date_note_from_hash.bat	relationship	human	id,title,date,note	source-order	hash		0.1.0
 print_mvs_dump_id_title_date_note_sorted_by_date.bat	print	human	id,title,date,note	date			0.4.0
 print_mvs_dump_id_title_date_note_sorted_by_id.bat	print	human	id,title,date,note	id			0.4.0
 print_mvs_dump_id_title_date_note_sorted_by_title.bat	print	human	id,title,date,note	title			0.4.0
 print_mvs_dump_id_title_date_sorted_by_date.bat	print	human	id,title,date	date			0.4.0
 print_mvs_dump_id_title_date_sorted_by_id.bat	print	human	id,title,date	id			0.4.0
 print_mvs_dump_id_title_date_sorted_by_title.bat	print	human	id,title,date	title			0.4.0
+print_mvs_dump_id_title_filenames_from_filename.bat	relationship	human	id,title,filename	source-order	filename		0.1.0
+print_mvs_dump_id_title_filenames_from_hash.bat	relationship	human	id,title,filename	source-order	hash		0.1.0
+print_mvs_dump_id_title_from_filename.bat	relationship	human	id,title	source-order	filename		0.1.0
+print_mvs_dump_id_title_from_hash.bat	relationship	human	id,title	source-order	hash		0.1.0
 print_mvs_dump_id_title_note.bat	print	human	id,title,note	source-order			0.6.0
+print_mvs_dump_id_title_note_filenames_from_filename.bat	relationship	human	id,title,note,filename	source-order	filename		0.1.0
+print_mvs_dump_id_title_note_filenames_from_hash.bat	relationship	human	id,title,note,filename	source-order	hash		0.1.0
+print_mvs_dump_id_title_note_from_filename.bat	relationship	human	id,title,note	source-order	filename		0.1.0
+print_mvs_dump_id_title_note_from_hash.bat	relationship	human	id,title,note	source-order	hash		0.1.0
 print_mvs_dump_id_title_note_sorted_by_date.bat	print	human	id,title,note	date			0.4.0
 print_mvs_dump_id_title_note_sorted_by_id.bat	print	human	id,title,note	id			0.4.0
 print_mvs_dump_id_title_note_sorted_by_title.bat	print	human	id,title,note	title			0.4.0
@@ -96,19 +129,37 @@ print_mvs_dump_id_title_sorted_by_date.bat	print	human	id,title	date			0.4.0
 print_mvs_dump_id_title_sorted_by_id.bat	print	human	id,title	id			0.4.0
 print_mvs_dump_id_title_sorted_by_title.bat	print	human	id,title	title			0.4.0
 print_mvs_dump_note.bat	print	human	note	source-order			0.6.0
+print_mvs_dump_note_from_filename.bat	relationship	human	note	source-order	filename		0.1.0
+print_mvs_dump_note_from_hash.bat	relationship	human	note	source-order	hash		0.1.0
 print_mvs_dump_note_sorted_by_date.bat	print	human	note	date			0.4.0
 print_mvs_dump_note_sorted_by_id.bat	print	human	note	id			0.4.0
 print_mvs_dump_note_sorted_by_title.bat	print	human	note	title			0.4.0
 print_mvs_dump_title.bat	print	human	title	source-order			0.6.0
 print_mvs_dump_title_date.bat	print	human	title,date	source-order			0.6.0
+print_mvs_dump_title_date_filenames_from_filename.bat	relationship	human	title,date,filename	source-order	filename		0.1.0
+print_mvs_dump_title_date_filenames_from_hash.bat	relationship	human	title,date,filename	source-order	hash		0.1.0
+print_mvs_dump_title_date_from_filename.bat	relationship	human	title,date	source-order	filename		0.1.0
+print_mvs_dump_title_date_from_hash.bat	relationship	human	title,date	source-order	hash		0.1.0
 print_mvs_dump_title_date_note.bat	print	human	title,date,note	source-order			0.6.0
+print_mvs_dump_title_date_note_filenames_from_filename.bat	relationship	human	title,date,note,filename	source-order	filename		0.1.0
+print_mvs_dump_title_date_note_filenames_from_hash.bat	relationship	human	title,date,note,filename	source-order	hash		0.1.0
+print_mvs_dump_title_date_note_from_filename.bat	relationship	human	title,date,note	source-order	filename		0.1.0
+print_mvs_dump_title_date_note_from_hash.bat	relationship	human	title,date,note	source-order	hash		0.1.0
 print_mvs_dump_title_date_note_sorted_by_date.bat	print	human	title,date,note	date			0.4.0
 print_mvs_dump_title_date_note_sorted_by_id.bat	print	human	title,date,note	id			0.4.0
 print_mvs_dump_title_date_note_sorted_by_title.bat	print	human	title,date,note	title			0.4.0
 print_mvs_dump_title_date_sorted_by_date.bat	print	human	title,date	date			0.4.0
 print_mvs_dump_title_date_sorted_by_id.bat	print	human	title,date	id			0.4.0
 print_mvs_dump_title_date_sorted_by_title.bat	print	human	title,date	title			0.4.0
+print_mvs_dump_title_filenames_from_filename.bat	relationship	human	title,filename	source-order	filename		0.1.0
+print_mvs_dump_title_filenames_from_hash.bat	relationship	human	title,filename	source-order	hash		0.1.0
+print_mvs_dump_title_from_filename.bat	relationship	human	title	source-order	filename		0.1.0
+print_mvs_dump_title_from_hash.bat	relationship	human	title	source-order	hash		0.1.0
 print_mvs_dump_title_note.bat	print	human	title,note	source-order			0.6.0
+print_mvs_dump_title_note_filenames_from_filename.bat	relationship	human	title,note,filename	source-order	filename		0.1.0
+print_mvs_dump_title_note_filenames_from_hash.bat	relationship	human	title,note,filename	source-order	hash		0.1.0
+print_mvs_dump_title_note_from_filename.bat	relationship	human	title,note	source-order	filename		0.1.0
+print_mvs_dump_title_note_from_hash.bat	relationship	human	title,note	source-order	hash		0.1.0
 print_mvs_dump_title_note_sorted_by_date.bat	print	human	title,note	date			0.4.0
 print_mvs_dump_title_note_sorted_by_id.bat	print	human	title,note	id			0.4.0
 print_mvs_dump_title_note_sorted_by_title.bat	print	human	title,note	title			0.4.0
@@ -116,15 +167,27 @@ print_mvs_dump_title_sorted_by_date.bat	print	human	title	date			0.4.0
 print_mvs_dump_title_sorted_by_id.bat	print	human	title	id			0.4.0
 print_mvs_dump_title_sorted_by_title.bat	print	human	title	title			0.4.0
 read_mvs_dump_date.bat	read	machine	date	source-order			0.6.0
+read_mvs_dump_date_from_filename.bat	relationship	machine	date	source-order	filename		0.1.0
+read_mvs_dump_date_from_hash.bat	relationship	machine	date	source-order	hash		0.1.0
 read_mvs_dump_date_note.bat	read	machine	date,note	source-order			0.6.0
+read_mvs_dump_date_note_filenames_from_filename.bat	relationship	machine	date,note,filename	source-order	filename		0.1.0
+read_mvs_dump_date_note_filenames_from_hash.bat	relationship	machine	date,note,filename	source-order	hash		0.1.0
+read_mvs_dump_date_note_from_filename.bat	relationship	machine	date,note	source-order	filename		0.1.0
+read_mvs_dump_date_note_from_hash.bat	relationship	machine	date,note	source-order	hash		0.1.0
 read_mvs_dump_date_note_sorted_by_date.bat	read	machine	date,note	date			0.4.0
 read_mvs_dump_date_note_sorted_by_id.bat	read	machine	date,note	id			0.4.0
 read_mvs_dump_date_note_sorted_by_title.bat	read	machine	date,note	title			0.4.0
 read_mvs_dump_date_sorted_by_date.bat	read	machine	date	date			0.4.0
 read_mvs_dump_date_sorted_by_id.bat	read	machine	date	id			0.4.0
 read_mvs_dump_date_sorted_by_title.bat	read	machine	date	title			0.4.0
+read_mvs_dump_filenames_from_filename.bat	relationship	machine	filename	source-order	filename		0.1.0
+read_mvs_dump_filenames_from_hash.bat	relationship	machine	filename	source-order	hash		0.1.0
 read_mvs_dump_id.bat	read	machine	id	source-order			0.6.0
 read_mvs_dump_id_date.bat	read	machine	id,date	source-order			0.6.0
+read_mvs_dump_id_date_filenames_from_filename.bat	relationship	machine	id,date,filename	source-order	filename		0.1.0
+read_mvs_dump_id_date_filenames_from_hash.bat	relationship	machine	id,date,filename	source-order	hash		0.1.0
+read_mvs_dump_id_date_from_filename.bat	relationship	machine	id,date	source-order	filename		0.1.0
+read_mvs_dump_id_date_from_hash.bat	relationship	machine	id,date	source-order	hash		0.1.0
 read_mvs_dump_id_date_note.bat	read	machine	id,date,note	source-order			0.6.0
 read_mvs_dump_id_date_note_sorted_by_date.bat	read	machine	id,date,note	date			0.4.0
 read_mvs_dump_id_date_note_sorted_by_id.bat	read	machine	id,date,note	id			0.4.0
@@ -132,6 +195,8 @@ read_mvs_dump_id_date_note_sorted_by_title.bat	read	machine	id,date,note	title		
 read_mvs_dump_id_date_sorted_by_date.bat	read	machine	id,date	date			0.4.0
 read_mvs_dump_id_date_sorted_by_id.bat	read	machine	id,date	id			0.4.0
 read_mvs_dump_id_date_sorted_by_title.bat	read	machine	id,date	title			0.4.0
+read_mvs_dump_id_from_filename.bat	relationship	machine	id	source-order	filename		0.1.0
+read_mvs_dump_id_from_hash.bat	relationship	machine	id	source-order	hash		0.1.0
 read_mvs_dump_id_note.bat	read	machine	id,note	source-order			0.6.0
 read_mvs_dump_id_note_sorted_by_date.bat	read	machine	id,note	date			0.4.0
 read_mvs_dump_id_note_sorted_by_id.bat	read	machine	id,note	id			0.4.0
@@ -141,14 +206,30 @@ read_mvs_dump_id_sorted_by_id.bat	read	machine	id	id			0.4.0
 read_mvs_dump_id_sorted_by_title.bat	read	machine	id	title			0.4.0
 read_mvs_dump_id_title.bat	read	machine	id,title	source-order			0.6.0
 read_mvs_dump_id_title_date.bat	read	machine	id,title,date	source-order			0.6.0
+read_mvs_dump_id_title_date_filenames_from_filename.bat	relationship	machine	id,title,date,filename	source-order	filename		0.1.0
+read_mvs_dump_id_title_date_filenames_from_hash.bat	relationship	machine	id,title,date,filename	source-order	hash		0.1.0
+read_mvs_dump_id_title_date_from_filename.bat	relationship	machine	id,title,date	source-order	filename		0.1.0
+read_mvs_dump_id_title_date_from_hash.bat	relationship	machine	id,title,date	source-order	hash		0.1.0
 read_mvs_dump_id_title_date_note.bat	read	machine	id,title,date,note	source-order			0.6.0
+read_mvs_dump_id_title_date_note_filenames_from_filename.bat	relationship	machine	id,title,date,note,filename	source-order	filename		0.1.0
+read_mvs_dump_id_title_date_note_filenames_from_hash.bat	relationship	machine	id,title,date,note,filename	source-order	hash		0.1.0
+read_mvs_dump_id_title_date_note_from_filename.bat	relationship	machine	id,title,date,note	source-order	filename		0.1.0
+read_mvs_dump_id_title_date_note_from_hash.bat	relationship	machine	id,title,date,note	source-order	hash		0.1.0
 read_mvs_dump_id_title_date_note_sorted_by_date.bat	read	machine	id,title,date,note	date			0.4.0
 read_mvs_dump_id_title_date_note_sorted_by_id.bat	read	machine	id,title,date,note	id			0.4.0
 read_mvs_dump_id_title_date_note_sorted_by_title.bat	read	machine	id,title,date,note	title			0.4.0
 read_mvs_dump_id_title_date_sorted_by_date.bat	read	machine	id,title,date	date			0.4.0
 read_mvs_dump_id_title_date_sorted_by_id.bat	read	machine	id,title,date	id			0.4.0
 read_mvs_dump_id_title_date_sorted_by_title.bat	read	machine	id,title,date	title			0.4.0
+read_mvs_dump_id_title_filenames_from_filename.bat	relationship	machine	id,title,filename	source-order	filename		0.1.0
+read_mvs_dump_id_title_filenames_from_hash.bat	relationship	machine	id,title,filename	source-order	hash		0.1.0
+read_mvs_dump_id_title_from_filename.bat	relationship	machine	id,title	source-order	filename		0.1.0
+read_mvs_dump_id_title_from_hash.bat	relationship	machine	id,title	source-order	hash		0.1.0
 read_mvs_dump_id_title_note.bat	read	machine	id,title,note	source-order			0.6.0
+read_mvs_dump_id_title_note_filenames_from_filename.bat	relationship	machine	id,title,note,filename	source-order	filename		0.1.0
+read_mvs_dump_id_title_note_filenames_from_hash.bat	relationship	machine	id,title,note,filename	source-order	hash		0.1.0
+read_mvs_dump_id_title_note_from_filename.bat	relationship	machine	id,title,note	source-order	filename		0.1.0
+read_mvs_dump_id_title_note_from_hash.bat	relationship	machine	id,title,note	source-order	hash		0.1.0
 read_mvs_dump_id_title_note_sorted_by_date.bat	read	machine	id,title,note	date			0.4.0
 read_mvs_dump_id_title_note_sorted_by_id.bat	read	machine	id,title,note	id			0.4.0
 read_mvs_dump_id_title_note_sorted_by_title.bat	read	machine	id,title,note	title			0.4.0
@@ -156,27 +237,46 @@ read_mvs_dump_id_title_sorted_by_date.bat	read	machine	id,title	date			0.4.0
 read_mvs_dump_id_title_sorted_by_id.bat	read	machine	id,title	id			0.4.0
 read_mvs_dump_id_title_sorted_by_title.bat	read	machine	id,title	title			0.4.0
 read_mvs_dump_note.bat	read	machine	note	source-order			0.6.0
+read_mvs_dump_note_from_filename.bat	relationship	machine	note	source-order	filename		0.1.0
+read_mvs_dump_note_from_hash.bat	relationship	machine	note	source-order	hash		0.1.0
 read_mvs_dump_note_sorted_by_date.bat	read	machine	note	date			0.4.0
 read_mvs_dump_note_sorted_by_id.bat	read	machine	note	id			0.4.0
 read_mvs_dump_note_sorted_by_title.bat	read	machine	note	title			0.4.0
 read_mvs_dump_title.bat	read	machine	title	source-order			0.6.0
 read_mvs_dump_title_date.bat	read	machine	title,date	source-order			0.6.0
+read_mvs_dump_title_date_filenames_from_filename.bat	relationship	machine	title,date,filename	source-order	filename		0.1.0
+read_mvs_dump_title_date_filenames_from_hash.bat	relationship	machine	title,date,filename	source-order	hash		0.1.0
+read_mvs_dump_title_date_from_filename.bat	relationship	machine	title,date	source-order	filename		0.1.0
+read_mvs_dump_title_date_from_hash.bat	relationship	machine	title,date	source-order	hash		0.1.0
 read_mvs_dump_title_date_note.bat	read	machine	title,date,note	source-order			0.6.0
+read_mvs_dump_title_date_note_filenames_from_filename.bat	relationship	machine	title,date,note,filename	source-order	filename		0.1.0
+read_mvs_dump_title_date_note_filenames_from_hash.bat	relationship	machine	title,date,note,filename	source-order	hash		0.1.0
+read_mvs_dump_title_date_note_from_filename.bat	relationship	machine	title,date,note	source-order	filename		0.1.0
+read_mvs_dump_title_date_note_from_hash.bat	relationship	machine	title,date,note	source-order	hash		0.1.0
 read_mvs_dump_title_date_note_sorted_by_date.bat	read	machine	title,date,note	date			0.4.0
 read_mvs_dump_title_date_note_sorted_by_id.bat	read	machine	title,date,note	id			0.4.0
 read_mvs_dump_title_date_note_sorted_by_title.bat	read	machine	title,date,note	title			0.4.0
 read_mvs_dump_title_date_sorted_by_date.bat	read	machine	title,date	date			0.4.0
 read_mvs_dump_title_date_sorted_by_id.bat	read	machine	title,date	id			0.4.0
 read_mvs_dump_title_date_sorted_by_title.bat	read	machine	title,date	title			0.4.0
+read_mvs_dump_title_filenames_from_filename.bat	relationship	machine	title,filename	source-order	filename		0.1.0
+read_mvs_dump_title_filenames_from_hash.bat	relationship	machine	title,filename	source-order	hash		0.1.0
+read_mvs_dump_title_from_filename.bat	relationship	machine	title	source-order	filename		0.1.0
+read_mvs_dump_title_from_hash.bat	relationship	machine	title	source-order	hash		0.1.0
 read_mvs_dump_title_note.bat	read	machine	title,note	source-order			0.6.0
+read_mvs_dump_title_note_filenames_from_filename.bat	relationship	machine	title,note,filename	source-order	filename		0.1.0
+read_mvs_dump_title_note_filenames_from_hash.bat	relationship	machine	title,note,filename	source-order	hash		0.1.0
+read_mvs_dump_title_note_from_filename.bat	relationship	machine	title,note	source-order	filename		0.1.0
+read_mvs_dump_title_note_from_hash.bat	relationship	machine	title,note	source-order	hash		0.1.0
 read_mvs_dump_title_note_sorted_by_date.bat	read	machine	title,note	date			0.4.0
 read_mvs_dump_title_note_sorted_by_id.bat	read	machine	title,note	id			0.4.0
 read_mvs_dump_title_note_sorted_by_title.bat	read	machine	title,note	title			0.4.0
 read_mvs_dump_title_sorted_by_date.bat	read	machine	title	date			0.4.0
 read_mvs_dump_title_sorted_by_id.bat	read	machine	title	id			0.4.0
 read_mvs_dump_title_sorted_by_title.bat	read	machine	title	title			0.4.0
-test\test_all.bat	test	console	all				0.4.0
-test\test_diagnostic_tools.bat	test	console	diagnostic				0.4.0
-test\test_lookup_tools.bat	test	console	lookup				0.4.0
-test\test_scalar_tools.bat	test	console	scalar				0.4.0
-test\test_structure.bat	test	console	structure				0.4.0
+test\test_all.bat	test	console	all				0.5.0
+test\test_diagnostic_tools.bat	test	console	diagnostic				0.5.0
+test\test_lookup_tools.bat	test	console	lookup				0.5.0
+test\test_relationship_tools.bat	test	console	relationship				0.5.0
+test\test_scalar_tools.bat	test	console	scalar				0.5.0
+test\test_structure.bat	test	console	structure				0.5.0

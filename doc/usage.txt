@@ -127,3 +127,31 @@ FULL TEST
   The full suite uses:
     real dump -> scalar and lookup regressions
     test\test-mvs-dump-diagnostics -> duplicate/orphan regressions
+
+
+FILENAME RELATIONSHIP QUERY
+  print_mvs_dump_<projection>_from_filename.bat dump-folder "filename"
+  read_mvs_dump_<projection>_from_filename.bat dump-folder "filename"
+
+HASH RELATIONSHIP QUERY
+  print_mvs_dump_<projection>_from_hash.bat dump-folder hash
+  read_mvs_dump_<projection>_from_hash.bat dump-folder hash
+
+  HASH may be SHA-1 or SHA-256.
+  Hash-to-filename sources:
+    mvs.txt
+    mvs.sha1
+    mvs.sha256
+
+  Filename/hash matching is exact and case-insensitive.
+
+RELATIONSHIP RETURN CODES
+  0  projected result emitted / help
+  1  no associated projected result
+  2  invalid or missing argument/configuration
+  3  dump folder not found
+  4  required mvs.txt missing
+  5  parse/runtime failure
+
+RELATIONSHIP TEST
+  test\test_relationship_tools.bat

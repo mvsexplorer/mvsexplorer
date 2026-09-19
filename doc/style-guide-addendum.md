@@ -1,6 +1,6 @@
 # MVS Explorer Toolkit — Batch Style Guide Addendum
 
-**Addendum version:** 0.6.0  
+**Addendum version:** 0.7.0  
 **Applies with:** Batch File Style Guide v1.8.0
 
 This addendum supplements the supplied guide with project-specific conventions.
@@ -192,4 +192,51 @@ The public diagnostic matrix is maintained in
 
 As with scalar/lookup generation, the specification/library/template may be
 shared during development but every resulting root `.bat` contains its full
+runtime implementation.
+
+
+## 21. Relationship-query naming
+
+Relationship-query public files use:
+
+```text
+print_mvs_dump_<projection>_from_filename.bat
+read_mvs_dump_<projection>_from_filename.bat
+print_mvs_dump_<projection>_from_hash.bat
+read_mvs_dump_<projection>_from_hash.bat
+```
+
+Arguments:
+
+```text
+tool.bat dump-folder search-value
+```
+
+The second argument is data and is transported through an environment
+variable to embedded PowerShell. It is not concatenated into executable
+PowerShell source.
+
+## 22. Relationship search semantics
+
+Filename and hash relationship searches are exact and case-insensitive.
+
+This family intentionally does not inherit the `lookup_` family's `*`
+wildcard language unless a later requirement explicitly adds it.
+
+## 23. Relationship output
+
+`print_` is human-readable one-line-per-projected-row output.
+
+`read_` is headerless TSV, with no banner, labels, ANSI, or status text.
+
+A no-result relationship returns `1` with no stdout, matching the established
+query no-result convention.
+
+## 24. Relationship development injection
+
+The relationship matrix is maintained in
+`dev\relationship-tool-spec.json`.
+
+Shared development source lives under `dev\library`/`dev\templates`, but each
+generated relationship `.bat` contains its complete batch and PowerShell
 runtime implementation.

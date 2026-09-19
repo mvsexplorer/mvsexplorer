@@ -107,3 +107,40 @@ Therefore:
   not proof of missing product relationships.
 - filename orphan checks answer filename presence only; they do not yet prove
   algorithm/digest equivalence.
+
+
+## Filename/hash relationship query model
+
+Version 0.8.0 adds an explicit query edge model:
+
+```text
+MVS.TXT PRODUCT SECTION
+  ID
+  TITLE
+  +-- filename edge(s)
+       +-- hash value stored on mvs.txt line
+
+FLAT HASH MANIFESTS
+  mvs.sha1   hash -> filename
+  mvs.sha256 hash -> filename
+
+SCALAR JOINS
+  ID -> DATE from mvs_dates.txt
+  normalized TITLE -> NOTE from mvs_notes.html
+```
+
+A query result is based on a matched filename plus zero or more owning
+`mvs.txt` product sections.
+
+This preserves real ambiguity:
+
+- one filename can be referenced by multiple product IDs;
+- one hash can resolve to multiple filenames;
+- one filename can have conflicting/different hash records across sources.
+
+The relationship layer does not manufacture a SHA-1/SHA-256 pair merely
+because two digests share a filename. It indexes each observed hash->filename
+edge independently.
+
+`mvs_names.txt` is deliberately not used as a product-title ownership source
+for this family because its headings are variant/display titles.

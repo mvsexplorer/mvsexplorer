@@ -127,3 +127,39 @@ turns those paths into exact regression contracts.
 The current orphan comparisons against `mvs.sha1`/`mvs.sha256` answer whether a
 filename is present in the flat manifest. They do not yet assert variant-level
 hash equivalence.
+
+
+### Filename is a relationship edge, not a unique product key
+
+The archive already demonstrates filename reuse across product IDs. A
+filename-driven query must therefore preserve multiple owning products.
+
+### Hash-to-filename can also be one-to-many
+
+Flat manifests and section data can theoretically associate one digest with
+more than one filename. The reverse query should emit every observed filename,
+not arbitrarily select one.
+
+### Matching filenames do not prove matching hash algorithms
+
+A SHA-1 and SHA-256 that share a filename may describe the same media, but the
+source files do not provide an explicit digest-pair identity. The relationship
+layer therefore indexes observed hash->filename edges independently.
+
+### mvs.txt is the right product-title ownership source for this family
+
+`mvs_names.txt` IDs can identify owning products, but its headings are
+variant/display titles. Using those headings as product titles would mix title
+domains and make `title_from_filename` ambiguous.
+
+### Exact relationship search avoids accidental wildcard syntax
+
+Filenames commonly contain punctuation. Exact case-insensitive matching keeps
+the query contract predictable and distinct from the explicit `lookup_`
+wildcard family.
+
+### Hash-source tests must isolate provenance
+
+If the same test digest appears in both `mvs.txt` and `mvs.sha1`, a broken
+manifest parser could go unnoticed. The synthetic fixture assigns the primary
+SHA-1, SHA-256, and mvs.txt-only test hashes to distinct source paths.

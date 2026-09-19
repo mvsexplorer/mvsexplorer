@@ -1,0 +1,9 @@
+--- Alpha Product [ID: 10] ---
+1234512345123451234512345123451234512345 *alpha-main.iso
+9876598765987659876598765987659876598765 *alpha-extra.iso
+
+--- Beta Product [ID: 20] ---
+3333333333333333333333333333333333333333 *shared.iso
+
+--- Gamma Product [ID: 30] ---
+fedcbafedcbafedcbafedcbafedcbafedcbafedc *shared.iso

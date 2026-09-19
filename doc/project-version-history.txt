@@ -1,5 +1,26 @@
 MVS Explorer Toolkit Project Version History
 
+0.8.0 - 2026-08-27
+  - Recorded the clean attached 0.7.0 Windows baseline: 363 passed,
+    0 failed, 0 skipped against mvs_2020-10-20.
+  - Added 96 standalone filename/hash relationship query tools.
+  - Added 24 unique requested projections, each as print/read from filename
+    and print/read from hash.
+  - Filename/hash matching is exact and case-insensitive.
+  - Hash reverse lookup indexes mvs.txt, mvs.sha1, and mvs.sha256.
+  - mvs.txt is the canonical product-to-filename ownership source.
+  - Preserves one-to-many hash->filename and filename->product associations.
+  - Adds date-by-ID and established title-level note joins.
+  - Added synthetic test\test-mvs-dump-relationships fixture.
+  - Added 146 fixed independent relationship behavior expectations.
+  - Added test\test_relationship_tools.bat and relationship result scope.
+  - Hash tools are regression-tested with manifest-only SHA-1 and SHA-256;
+    additional cases prove direct mvs.txt hash discovery.
+  - Full 0.8.0 test matrix expects 610 assertions.
+  - Root public standalone tool count is now 268.
+  - Added relationship docs, matrices, development generators, histories,
+    directives, style guidance, diary, observations, and 0.7.0 test analysis.
+
 0.7.0 - 2026-08-27
   - Recorded the clean attached 0.6.0 Windows baseline: 272 passed,
     0 failed, 0 skipped against mvs_2020-09-15_2.

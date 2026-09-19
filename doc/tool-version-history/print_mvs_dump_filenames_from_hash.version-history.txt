@@ -1,0 +1,15 @@
+Tool Version History: print_mvs_dump_filenames_from_hash.bat
+
+Purpose
+  Search source: hash
+  Output mode: human
+  Projection fields: filename
+  Relationship ownership source: mvs.txt
+  Hash index sources: mvs.txt, mvs.sha1, mvs.sha256
+  Standalone: yes; complete batch/PowerShell implementation is injected
+
+0.1.0 - 2026-08-27
+  - Initial version.
+  - Added filename/hash relationship traversal to product metadata.
+  - Preserves one-to-many filename/product and hash/filename relationships.
+  - Exact case-insensitive search.

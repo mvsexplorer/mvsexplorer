@@ -1,0 +1,2 @@
+Beta Product	Beta note.
+Gamma Product	Gamma note.

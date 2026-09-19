@@ -122,3 +122,51 @@ literal repetition/set differences without declaring them corrupt.
 A deliberately inconsistent synthetic dump and an independent Python
 expected-output generator were added so every diagnostic tool has a positive
 known regression case.
+
+
+## 2026-08-27 — Clean 0.7.0 Windows baseline
+
+The attached 0.7.0 result archive confirms the expanded diagnostic release is
+clean on Windows PowerShell 5.1:
+
+```text
+363 passed
+0 failed
+0 skipped
+```
+
+The diagnostic fixture contributed all 46 expected passing assertions. This
+becomes the regression baseline for the next layer.
+
+## 2026-08-27 — Filename/hash relationship queries
+
+The user requested reverse traversal from filename or SHA-1/SHA-256 hash into
+product metadata, with `print_` and `read_` projection families.
+
+The enumerated projection lists contain 24 unique projection names; `title`
+appeared twice in each source list, so the duplicate public filename is
+generated once.
+
+For every projection, four tools are generated:
+
+```text
+print from filename
+read from filename
+print from hash
+read from hash
+```
+
+This adds 96 public standalone tools.
+
+The implementation treats `mvs.txt` as product-to-filename ownership truth.
+Hash lookup aggregates observed edges from `mvs.txt`, `mvs.sha1`, and
+`mvs.sha256`.
+
+The row model preserves ambiguity rather than forcing a one-to-one join:
+hashes can resolve to multiple filenames and filenames can resolve to multiple
+product sections.
+
+A dedicated relationship fixture was built so the chosen SHA-1 exists only in
+`mvs.sha1`, the chosen SHA-256 only in `mvs.sha256`, and another tested hash
+only in `mvs.txt`. This prevents the test suite from accidentally validating
+only one hash source.

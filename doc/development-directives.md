@@ -139,3 +139,30 @@ These directives are distilled from the user's project prompts.
 86. Every diagnostic public tool must have a positive regression case against that fixture.
 87. Diagnostic expected stdout is fixed and independently generated without invoking the public batch file under test.
 88. `test\test_all.bat` includes diagnostic regression in addition to the established real-dump scalar/lookup regression.
+
+
+## Filename/hash relationship query layer
+
+89. Generate both `print_` and `read_` forms for every requested filename/hash relationship projection.
+90. Relationship naming is `print_mvs_dump_<projection>_from_filename`, `read_mvs_dump_<projection>_from_filename`, and equivalent `_from_hash` forms.
+91. Relationship invocation is `tool.bat dump-folder search-value`.
+92. Filename and hash search values match exactly and case-insensitively; do not silently introduce wildcard semantics for this family.
+93. `mvs.txt` is the canonical product-to-filename ownership source for this relationship family.
+94. Do not use `mvs_names.txt` headings as product titles in this family; they are variant/display titles.
+95. Hash-to-filename lookup indexes observed 40/64-hex hashes from `mvs.txt` plus flat `mvs.sha1` and `mvs.sha256` manifests when present.
+96. Treat each observed hash->filename edge independently; do not infer a SHA-1/SHA-256 pair merely because filenames match.
+97. Hash/filename pairs repeated across sources may be deduplicated for traversal.
+98. A relationship result row represents one matched filename plus one owning `mvs.txt` product section, or a filename-only row when a manifest filename has no owner.
+99. Preserve one-to-many filename->product and hash->filename relationships; do not collapse genuinely distinct associations.
+100. Suppress exact duplicate projected rows only after relationship traversal.
+101. ID/title come from `mvs.txt`; date joins by ID from `mvs_dates.txt`; note follows the established normalized title-level note policy.
+102. The plural `filenames` token in a public tool name maps to one `Filename` field per emitted relationship row; multiple filenames appear as multiple rows.
+103. `print_` relationship output uses labeled ` | `-separated fields and `(none)` for missing projected scalar values.
+104. `read_` relationship output is headerless TSV with empty missing fields.
+105. No associated projected result returns `1` with no stdout.
+106. Missing `mvs.sha256` in older snapshots is not fatal; manifests supplement the required `mvs.txt` relationship source.
+107. Maintain a synthetic relationship fixture under `test\test-mvs-dump-relationships\`.
+108. Every filename-query public relationship tool receives a positive exact behavior test.
+109. Every hash-query public relationship tool is tested with both a SHA-1 that exists only in `mvs.sha1` and a SHA-256 that exists only in `mvs.sha256`.
+110. Maintain additional regression cases proving hash discovery directly from `mvs.txt`.
+111. Relationship expected outputs must be independently generated without invoking the public batch tools under test.

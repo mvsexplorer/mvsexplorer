@@ -1,0 +1,192 @@
+{
+  "project_version": "0.8.0",
+  "tool_version": "0.1.0",
+  "sources": [
+    "filename",
+    "hash"
+  ],
+  "projections": [
+    {
+      "suffix": "id",
+      "fields": [
+        "id"
+      ]
+    },
+    {
+      "suffix": "title",
+      "fields": [
+        "title"
+      ]
+    },
+    {
+      "suffix": "date",
+      "fields": [
+        "date"
+      ]
+    },
+    {
+      "suffix": "note",
+      "fields": [
+        "note"
+      ]
+    },
+    {
+      "suffix": "filenames",
+      "fields": [
+        "filename"
+      ]
+    },
+    {
+      "suffix": "id_title",
+      "fields": [
+        "id",
+        "title"
+      ]
+    },
+    {
+      "suffix": "id_date",
+      "fields": [
+        "id",
+        "date"
+      ]
+    },
+    {
+      "suffix": "id_title_date",
+      "fields": [
+        "id",
+        "title",
+        "date"
+      ]
+    },
+    {
+      "suffix": "id_title_note",
+      "fields": [
+        "id",
+        "title",
+        "note"
+      ]
+    },
+    {
+      "suffix": "id_title_date_note",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "note"
+      ]
+    },
+    {
+      "suffix": "title_date",
+      "fields": [
+        "title",
+        "date"
+      ]
+    },
+    {
+      "suffix": "title_note",
+      "fields": [
+        "title",
+        "note"
+      ]
+    },
+    {
+      "suffix": "title_date_note",
+      "fields": [
+        "title",
+        "date",
+        "note"
+      ]
+    },
+    {
+      "suffix": "date_note",
+      "fields": [
+        "date",
+        "note"
+      ]
+    },
+    {
+      "suffix": "id_title_filenames",
+      "fields": [
+        "id",
+        "title",
+        "filename"
+      ]
+    },
+    {
+      "suffix": "id_date_filenames",
+      "fields": [
+        "id",
+        "date",
+        "filename"
+      ]
+    },
+    {
+      "suffix": "id_title_date_filenames",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "filename"
+      ]
+    },
+    {
+      "suffix": "id_title_note_filenames",
+      "fields": [
+        "id",
+        "title",
+        "note",
+        "filename"
+      ]
+    },
+    {
+      "suffix": "id_title_date_note_filenames",
+      "fields": [
+        "id",
+        "title",
+        "date",
+        "note",
+        "filename"
+      ]
+    },
+    {
+      "suffix": "title_filenames",
+      "fields": [
+        "title",
+        "filename"
+      ]
+    },
+    {
+      "suffix": "title_date_filenames",
+      "fields": [
+        "title",
+        "date",
+        "filename"
+      ]
+    },
+    {
+      "suffix": "title_note_filenames",
+      "fields": [
+        "title",
+        "note",
+        "filename"
+      ]
+    },
+    {
+      "suffix": "title_date_note_filenames",
+      "fields": [
+        "title",
+        "date",
+        "note",
+        "filename"
+      ]
+    },
+    {
+      "suffix": "date_note_filenames",
+      "fields": [
+        "date",
+        "note",
+        "filename"
+      ]
+    }
+  ]
+}
