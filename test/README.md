@@ -1,4 +1,4 @@
-# 0.16.4 progress and generated-database validation
+# 0.16.5 progress and generated-database validation
 
 All assertion-producing test harnesses now print project version plus
 `TEST n/total | remaining=m`. `test_everything.bat` likewise numbers its child
@@ -14,8 +14,8 @@ The recommended full rebuild entry point is the root
 `all_test_then_all_database_then_test_database_and_all_tools.bat`; database
 generation is gated on passing tests.
 
-The 0.16.4 `all` matrix is 1,100 assertions: structure scope is 487, and the
-expected established result is 1,097 PASS / 0 FAIL / 3 data-dependent note
+The 0.16.5 `all` matrix is 1,102 assertions: structure scope is 489, and the
+expected established result is 1,099 PASS / 0 FAIL / 3 data-dependent note
 SKIP. The current release guards require plan-index reconciliation,
 singleton snapshot-array preservation, paired/timed archive progress, concise
 phase-1 plan preflight, token-level PASS/FAIL/WARN console colorization, and

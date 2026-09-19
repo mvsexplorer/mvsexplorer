@@ -1,3 +1,21 @@
+## 0.16.5 performance and deterministic packaging maintenance
+
+The maintained product-family query library now streams large fact TSVs instead
+of eagerly importing every row before filtering. Exact searches use a native
+literal candidate prefilter followed by field verification; wildcard/escaped
+patterns retain one-pass PowerShell wildcard semantics. Narrow family->fact
+queries prefilter by exact member titles, while broad families scan once
+against the membership-title map.
+
+`all-pipeline.inc.ps1` now creates ZIP entries explicitly and fixes entry
+timestamps at 1980-01-01 UTC. This removes package-hash drift caused solely by
+quality-validation files receiving new filesystem last-write dates. Strict
+content-addressed evidence hashes are unchanged.
+
+Regenerate product-family tools, the pipeline/database validator, and tests
+after editing these maintained sources. 0.16.5 structure has 489 assertions
+and all mode has 1,102.
+
 ## 0.16.4 pipeline maintenance
 
 `generate_all_pipeline.py` maintains the root one-command orchestration batch
@@ -6,7 +24,7 @@ and `test\test_generated_databases.bat` from
 templates. The pipeline is a separate public orchestration class and must stay
 excluded from the 422 single-snapshot / 19 compare / 2 archive legacy plan.
 
-Test generators inject project version 0.16.4 into progress output. The
+The 0.16.4 test generators injected project version 0.16.4 into progress output. The
 fast-archive maintained PowerShell source is synchronized with the accepted
 optimized generated worker; generator idempotence must retain that worker.
 

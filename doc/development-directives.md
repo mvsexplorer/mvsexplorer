@@ -269,3 +269,18 @@ These directives are distilled from the user's project prompts.
 180. The comprehensive tester must run functional regression before performance interpretation so optimization cannot mask behavior regression.
 181. Interactive archive reporting must be self-contained and require no external web service.
 182. Future snapshot discovery must remain dynamic; no runtime path may assume exactly 79 dumps.
+
+## Product-family and production-pipeline continuation
+
+183. Treat product-family relationships as an analytical classification DAG over concrete source product titles, not as a newly invented durable product identity.
+184. Preserve classification confidence, basis, rule identity, and review/unclassified states; do not turn heuristic family assignments into source facts.
+185. Attach product files and hashes to family products only through actual `mvs.txt` product-section evidence; never join standalone manifest hashes to products solely because filenames match.
+186. Keep the compact family database lossless with exact snapshot provenance represented by reusable `snapshot_set_id` records and explicit conflict/alias ledgers.
+187. Preserve all public product-family query stdout/stderr/return-code, wildcard, deduplication, and row-order contracts when optimizing execution.
+188. Large-index query optimizations should filter or index before allocating per-row PowerShell objects; exact-query acceleration must still verify the requested field so substring prefilters cannot alter semantics.
+189. The one-command production pipeline is fail-gated. Resume mode may reuse completed databases, but must re-run structure, archive quality, generated-database integrity, and all public family-query smoke checks before packaging.
+190. Treat filesystem and ZIP entry timestamps as packaging metadata, not database evidence. Package creation may normalize such timestamps to make checksums insensitive to validation wall-clock time.
+191. Do not weaken content-addressed evidence checks to obtain reproducible packages. In particular, retained raw HTML filenames/refs that encode SHA-256 must continue to validate against the exact retained bytes.
+192. Never ZIP the pipeline log directory while active pipeline writers are open; final log ZIP creation must occur after those writers are flushed and disposed.
+193. Use retained real-data performance logs to select optimization targets, and require regression/equivalence coverage before accepting performance changes.
+

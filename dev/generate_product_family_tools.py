@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate standalone product-family index/query tools.
 
-Version: 0.2.0
+Version: 0.2.1
 """
 from pathlib import Path
 import json

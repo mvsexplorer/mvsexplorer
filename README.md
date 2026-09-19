@@ -1,6 +1,46 @@
-# MVS Explorer Toolkit 0.16.4
+# MVS Explorer Toolkit 0.16.5
 
 
+
+## 0.16.5 large-family-query performance and deterministic ZIP metadata
+
+The native 0.16.4 resume run is the first complete production-pipeline
+acceptance: 487/487 structure checks passed, archive quality reported zero
+errors, all 57 generated-database checks and all 32 real family-query tools
+passed, phase 7 packaged successfully, and the final status was PASS.
+
+Its retained `all-family-tools-performance.tsv` also exposed the next dominant
+cost. Exact filename->family and hash->family lookups were each spending roughly
+8.6-9.1 minutes importing 513-679 MiB TSVs into millions of PowerShell objects;
+the four print/read reverse lookups alone consumed about 35.3 minutes. 0.16.5
+keeps the public query contracts unchanged but streams large fact tables.
+Common exact searches use `Select-String -SimpleMatch` as a native candidate
+prefilter and materialize rows only after the requested field is verified.
+Wildcard/escaped patterns use a one-pass `StreamReader` fallback, preserving
+the existing PowerShell wildcard semantics without an all-row `Import-Csv`.
+Family->fact directions use the same strategy, with a native multi-title
+prefilter for narrow families and a single streaming scan for broad families.
+
+0.16.4 also showed that the reused archive database could produce a different
+ZIP SHA-256 after quality revalidation while the full and compact family ZIP
+hashes remained stable. The cause is ZIP metadata, not database evidence:
+`check_archive_sweep_quality.bat` recreates deterministic files under
+`quality-check`, changing their filesystem last-write times, and
+`CreateEntryFromFile` copied those times into each ZIP entry. Direct comparison
+of the uploaded pre/post-validation archive ZIPs confirms all 2,341 entries
+have identical CRC and uncompressed size; exactly six `quality-check/*` entries
+have different ZIP timestamps, with identical compressed sizes. 0.16.5 writes ZIP
+entries explicitly with a fixed legal ZIP timestamp (`1980-01-01T00:00:00Z`).
+Entry names remain sorted and file bytes are unchanged, so repeated packaging of
+the same directory/name no longer changes solely because validation ran at a
+different wall-clock time. Content-addressed SHA-256 checks for retained raw
+HTML remain strict; those hashes protect evidence bytes and are not weakened.
+
+No archive/full-family/compact database table format changes are made. The
+public root remains 478 tools and the current known legacy archive plan remains
+34,822 logical checks. Two new structure guards cover the large-table query
+streaming path and deterministic ZIP timestamping, so structure becomes 489
+assertions and all-mode becomes 1,102 assertions.
 
 ## 0.16.4 deferred log-ZIP finalization
 

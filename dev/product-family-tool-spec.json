@@ -1,7 +1,7 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "builder_version": "0.1.1",
-  "release": "0.16.4",
+  "release": "0.16.5",
   "builder": "build_mvs_product_family_index",
   "operations": [
     {

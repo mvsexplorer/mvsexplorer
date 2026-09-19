@@ -1,3 +1,42 @@
+## 0.16.5 - stream large family queries and normalize ZIP dates
+
+The native 0.16.4 resume run closes the production-pipeline acceptance loop:
+phase 7 passes, the log ZIP is created only after writer disposal, all 57
+database checks pass, all 32 public family-query smoke executions pass, and the
+final status is PASS.
+
+The same run makes the next performance bottleneck unusually clear. The full
+family database contains roughly 513 MiB of `product-files.tsv` and 679 MiB of
+`product-hashes.tsv`. The old query helper called `Import-Csv` on the complete
+fact table before applying an exact filename/hash predicate. Each reverse query
+therefore spent roughly nine minutes manufacturing millions of PowerShell
+objects to keep only a small match set. Print/read filename/hash reverse
+directions together accounted for about 35.3 minutes of the 46-minute
+generated-database phase.
+
+The maintained query library now separates candidate scanning from object
+materialization. Common exact patterns are scanned by `Select-String
+-SimpleMatch`; candidate lines are then split, the requested field is verified
+with the existing matcher, and only verified rows become objects. Wildcard or
+escaped patterns use a buffered `StreamReader` fallback so semantics are not
+narrowed. Family-to-fact queries use exact member-title candidate scanning for
+narrow families and a one-pass title-map scan when a family is broad. The
+emitter and deduplication paths are unchanged, and candidate line numbers are
+sorted to preserve source-table order.
+
+The 0.16.4 archive ZIP checksum also changed across resume runs even though the
+archive database passed all integrity checks. The reason is not evidence hash
+instability: archive quality validation removes and recreates its deterministic
+`quality-check` output. `CreateEntryFromFile` copied the newly assigned
+filesystem last-write dates into ZIP entries, so those metadata bytes changed
+the package checksum. Comparing the two supplied archive ZIPs confirms the
+diagnosis exactly: all 2,341 entry CRC/size pairs match and only six
+`quality-check/*` entry timestamps differ; compressed sizes also match. The
+pipeline now creates entries explicitly, sorts entry
+names as before, fixes each entry timestamp at the earliest legal ZIP date
+(1980-01-01 UTC), and streams the original file bytes into the entry.
+Content-addressed raw-HTML hashes remain strict.
+
 ## 0.16.4 - defer log ZIP until writers are closed
 
 The native 0.16.3 resume run passed all 487 structure checks, archive quality,

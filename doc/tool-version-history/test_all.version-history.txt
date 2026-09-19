@@ -1,3 +1,7 @@
+0.11.8 - 2026-09-07
+- Project 0.16.5 regression count is 1,102 assertions.
+- Adds two structure assertions covering large family-query streaming and deterministic ZIP metadata.
+
 0.11.7 / project 0.16.4
 - Regenerated with the corrected deferred-log-packaging structure guard.
 - Structure remains 487 assertions; all mode remains 1,100 assertions.

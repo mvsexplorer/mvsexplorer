@@ -2,11 +2,11 @@
 :setup
 REM One-command full test -> database build -> database validation -> all family query tools -> ZIP/hardlink pipeline.
 setlocal DisableDelayedExpansion
-set "app.version=1.0.2"
+set "app.version=1.0.3"
 set "app.name=all_test_then_all_database_then_test_database_and_all_tools"
 set "app.rc=0"
 set "app.self=%~f0"
-set "mvspipe_project_version=0.16.4"
+set "mvspipe_project_version=0.16.5"
 set "mvspipe_project_root=%~dp0"
 set "mvspipe_caller=%~nx0"
 set "mvspipe_arg1=%~1"
@@ -299,13 +299,38 @@ function New-ZipFromDirectory {
     if(Test-Path -LiteralPath $ZipPath){Remove-Item -LiteralPath $ZipPath -Force}
     $dir=(Resolve-Path -LiteralPath $Directory).Path.TrimEnd('\','/')
     $base=[IO.Path]::GetFileName($dir)
+
+    # ZIP entry timestamps are package metadata, not database evidence. In prior
+    # resume runs archive-quality validation recreated deterministic text files
+    # under quality-check/, changing only their LastWriteTime. CreateEntryFromFile
+    # copied those dates into the ZIP and therefore changed the package SHA256
+    # even when every file name and byte was identical. Normalize entry dates so
+    # the ZIP checksum reflects content/order rather than validation wall-clock.
+    $fixedZipTime=[DateTimeOffset]::ParseExact(
+        '1980-01-01T00:00:00+00:00',
+        'yyyy-MM-ddTHH:mm:sszzz',
+        [Globalization.CultureInfo]::InvariantCulture
+    )
+
     $fs=New-Object IO.FileStream($ZipPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
     $zip=New-Object IO.Compression.ZipArchive($fs,[IO.Compression.ZipArchiveMode]::Create,$false,$utf8)
     try{
         foreach($file in @(Get-ChildItem -LiteralPath $dir -File -Recurse | Sort-Object FullName)){
             $rel=$file.FullName.Substring($dir.Length).TrimStart('\','/').Replace('\','/')
             $entryName=$base+'/'+$rel
-            [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip,$file.FullName,$entryName,[IO.Compression.CompressionLevel]::Optimal)
+            $entry=$zip.CreateEntry($entryName,[IO.Compression.CompressionLevel]::Optimal)
+            $entry.LastWriteTime=$fixedZipTime
+            $input=New-Object IO.FileStream($file.FullName,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
+            try{
+                $output=$entry.Open()
+                try{
+                    $input.CopyTo($output,65536)
+                } finally {
+                    $output.Dispose()
+                }
+            } finally {
+                $input.Dispose()
+            }
         }
     } finally {
         $zip.Dispose()

@@ -281,22 +281,22 @@ print_mvs_dump_variants.bat	single-dump	human	occurrence,id,variant_title,filena
 print_mvs_dump_variants_from_filename.bat	single-dump	human	occurrence,id,variant_title,filename,hash,algorithm	source-order	filename		0.1.2
 print_mvs_dump_variants_from_hash.bat	single-dump	human	occurrence,id,variant_title,filename,hash,algorithm	source-order	hash		0.1.2
 print_mvs_dump_variants_from_id.bat	single-dump	human	occurrence,id,variant_title,filename,hash,algorithm	source-order	id		0.1.2
-print_mvs_product_dates_from_family.bat	product-family	human	date	source-order	family	date	0.1.0
-print_mvs_product_families_from_date.bat	product-family	human	family	source-order	date	family	0.1.0
-print_mvs_product_families_from_filename.bat	product-family	human	family	source-order	filename	family	0.1.0
-print_mvs_product_families_from_hash.bat	product-family	human	family	source-order	hash	family	0.1.0
-print_mvs_product_families_from_id.bat	product-family	human	family	source-order	id	family	0.1.0
-print_mvs_product_families_from_snapshot.bat	product-family	human	family	source-order	snapshot	family	0.1.0
-print_mvs_product_families_from_title.bat	product-family	human	family	source-order	title	family	0.1.0
-print_mvs_product_family_children_from_family.bat	product-family	human	child_family	source-order	parent_family	child_family	0.1.0
-print_mvs_product_family_parents_from_family.bat	product-family	human	parent_family	source-order	child_family	parent_family	0.1.0
-print_mvs_product_filenames_from_family.bat	product-family	human	filename	source-order	family	filename	0.1.0
-print_mvs_product_hashes_from_family.bat	product-family	human	hash	source-order	family	hash	0.1.0
-print_mvs_product_ids_from_family.bat	product-family	human	id	source-order	family	id	0.1.0
-print_mvs_product_notes_from_family.bat	product-family	human	note	source-order	family	note	0.1.0
-print_mvs_product_releases_from_family.bat	product-family	human	release	source-order	family	release	0.1.0
-print_mvs_product_snapshots_from_family.bat	product-family	human	snapshot	source-order	family	snapshot	0.1.0
-print_mvs_product_titles_from_family.bat	product-family	human	title	source-order	family	title	0.1.0
+print_mvs_product_dates_from_family.bat	product-family	human	date	source-order	family	date	0.1.1
+print_mvs_product_families_from_date.bat	product-family	human	family	source-order	date	family	0.1.1
+print_mvs_product_families_from_filename.bat	product-family	human	family	source-order	filename	family	0.1.1
+print_mvs_product_families_from_hash.bat	product-family	human	family	source-order	hash	family	0.1.1
+print_mvs_product_families_from_id.bat	product-family	human	family	source-order	id	family	0.1.1
+print_mvs_product_families_from_snapshot.bat	product-family	human	family	source-order	snapshot	family	0.1.1
+print_mvs_product_families_from_title.bat	product-family	human	family	source-order	title	family	0.1.1
+print_mvs_product_family_children_from_family.bat	product-family	human	child_family	source-order	parent_family	child_family	0.1.1
+print_mvs_product_family_parents_from_family.bat	product-family	human	parent_family	source-order	child_family	parent_family	0.1.1
+print_mvs_product_filenames_from_family.bat	product-family	human	filename	source-order	family	filename	0.1.1
+print_mvs_product_hashes_from_family.bat	product-family	human	hash	source-order	family	hash	0.1.1
+print_mvs_product_ids_from_family.bat	product-family	human	id	source-order	family	id	0.1.1
+print_mvs_product_notes_from_family.bat	product-family	human	note	source-order	family	note	0.1.1
+print_mvs_product_releases_from_family.bat	product-family	human	release	source-order	family	release	0.1.1
+print_mvs_product_snapshots_from_family.bat	product-family	human	snapshot	source-order	family	snapshot	0.1.1
+print_mvs_product_titles_from_family.bat	product-family	human	title	source-order	family	title	0.1.1
 read_mvs_dump_date.bat	read	machine	date	source-order			0.6.0
 read_mvs_dump_date_from_filename.bat	relationship	machine	date	source-order	filename		0.1.0
 read_mvs_dump_date_from_hash.bat	relationship	machine	date	source-order	hash		0.1.0
@@ -471,22 +471,22 @@ read_mvs_dump_variants.bat	single-dump	machine	occurrence,id,variant_title,filen
 read_mvs_dump_variants_from_filename.bat	single-dump	machine	occurrence,id,variant_title,filename,hash,algorithm	source-order	filename		0.1.2
 read_mvs_dump_variants_from_hash.bat	single-dump	machine	occurrence,id,variant_title,filename,hash,algorithm	source-order	hash		0.1.2
 read_mvs_dump_variants_from_id.bat	single-dump	machine	occurrence,id,variant_title,filename,hash,algorithm	source-order	id		0.1.2
-read_mvs_product_dates_from_family.bat	product-family	machine	date	source-order	family	date	0.1.0
-read_mvs_product_families_from_date.bat	product-family	machine	family	source-order	date	family	0.1.0
-read_mvs_product_families_from_filename.bat	product-family	machine	family	source-order	filename	family	0.1.0
-read_mvs_product_families_from_hash.bat	product-family	machine	family	source-order	hash	family	0.1.0
-read_mvs_product_families_from_id.bat	product-family	machine	family	source-order	id	family	0.1.0
-read_mvs_product_families_from_snapshot.bat	product-family	machine	family	source-order	snapshot	family	0.1.0
-read_mvs_product_families_from_title.bat	product-family	machine	family	source-order	title	family	0.1.0
-read_mvs_product_family_children_from_family.bat	product-family	machine	child_family	source-order	parent_family	child_family	0.1.0
-read_mvs_product_family_parents_from_family.bat	product-family	machine	parent_family	source-order	child_family	parent_family	0.1.0
-read_mvs_product_filenames_from_family.bat	product-family	machine	filename	source-order	family	filename	0.1.0
-read_mvs_product_hashes_from_family.bat	product-family	machine	hash	source-order	family	hash	0.1.0
-read_mvs_product_ids_from_family.bat	product-family	machine	id	source-order	family	id	0.1.0
-read_mvs_product_notes_from_family.bat	product-family	machine	note	source-order	family	note	0.1.0
-read_mvs_product_releases_from_family.bat	product-family	machine	release	source-order	family	release	0.1.0
-read_mvs_product_snapshots_from_family.bat	product-family	machine	snapshot	source-order	family	snapshot	0.1.0
-read_mvs_product_titles_from_family.bat	product-family	machine	title	source-order	family	title	0.1.0
+read_mvs_product_dates_from_family.bat	product-family	machine	date	source-order	family	date	0.1.1
+read_mvs_product_families_from_date.bat	product-family	machine	family	source-order	date	family	0.1.1
+read_mvs_product_families_from_filename.bat	product-family	machine	family	source-order	filename	family	0.1.1
+read_mvs_product_families_from_hash.bat	product-family	machine	family	source-order	hash	family	0.1.1
+read_mvs_product_families_from_id.bat	product-family	machine	family	source-order	id	family	0.1.1
+read_mvs_product_families_from_snapshot.bat	product-family	machine	family	source-order	snapshot	family	0.1.1
+read_mvs_product_families_from_title.bat	product-family	machine	family	source-order	title	family	0.1.1
+read_mvs_product_family_children_from_family.bat	product-family	machine	child_family	source-order	parent_family	child_family	0.1.1
+read_mvs_product_family_parents_from_family.bat	product-family	machine	parent_family	source-order	child_family	parent_family	0.1.1
+read_mvs_product_filenames_from_family.bat	product-family	machine	filename	source-order	family	filename	0.1.1
+read_mvs_product_hashes_from_family.bat	product-family	machine	hash	source-order	family	hash	0.1.1
+read_mvs_product_ids_from_family.bat	product-family	machine	id	source-order	family	id	0.1.1
+read_mvs_product_notes_from_family.bat	product-family	machine	note	source-order	family	note	0.1.1
+read_mvs_product_releases_from_family.bat	product-family	machine	release	source-order	family	release	0.1.1
+read_mvs_product_snapshots_from_family.bat	product-family	machine	snapshot	source-order	family	snapshot	0.1.1
+read_mvs_product_titles_from_family.bat	product-family	machine	title	source-order	family	title	0.1.1
 read_mvs_unparsed_lines_in_mvs.sha1.bat	single-dump	machine	line,raw	source-order		mvs.sha1	0.1.2
 read_mvs_unparsed_lines_in_mvs.sha256.bat	single-dump	machine	line,raw	source-order		mvs.sha256	0.1.2
 read_mvs_unparsed_lines_in_mvs.txt.bat	single-dump	machine	line,raw	source-order		mvs.txt	0.1.2

@@ -1,3 +1,9 @@
+0.1.1 - 2026-09-07
+- Performance-only query-engine update for large product-family indexes.
+- Exact fact lookups use native literal candidate scanning plus field verification; wildcard/escaped patterns stream once without eager whole-table Import-Csv.
+- Family-to-fact lookups use title candidate scanning for narrow families and a one-pass title-map fallback for broad families.
+- Output format, ordering, wildcard semantics, deduplication, stderr behavior and return codes are unchanged.
+
 print_mvs_product_families_from_snapshot.bat
 
 0.1.0 - 2026-09-01

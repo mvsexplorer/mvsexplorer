@@ -474,3 +474,17 @@ Status color is a presentation concern. Applying console foreground colors at
 the top-level writer keeps PASS/FAIL/WARN visually distinct while writing the
 same plain text to log files.
 
+## 2026-09-07
+
+### Full-table object materialization dominated real family-query latency
+
+The accepted 0.16.4 performance ledger shows exact filename/hash reverse queries spending minutes in eager `Import-Csv` over 500-700 MiB TSVs. Candidate-first scanning is a much better fit because the useful result set is tiny compared with the source table.
+
+### Candidate prefilters must be verified at the real field boundary
+
+A literal substring scan is safe only as a prefilter. Every candidate is still checked against the requested TSV field with the public matcher, which prevents matches in another column or inside a longer field from changing behavior.
+
+### ZIP timestamps are not evidence
+
+Archive quality output is deterministic in content but is regenerated during validation. Copying its new filesystem timestamps into ZIP entries made the package checksum look unstable. Normalizing ZIP dates fixes this packaging artifact without weakening content-addressed evidence hashes.
+

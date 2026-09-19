@@ -1642,3 +1642,20 @@ FAIL rows; only the two archive-wide builder rows remained. This led to the
 
 > Include a tester bat which runs test on all tools including quality and performance checking so performance outliers can be found and optimized and the test run again to ensure no regression.
 > Include the suggested optimizations, interactive HTML report, and the other suggested additions.
+
+## 2026-09-07 - native 0.16.4 acceptance, performance, and hash stability
+
+The user supplied the native Windows resume result for 0.16.4. The run passed
+487/487 structure checks, archive quality reported zero errors, the
+generated-database validator passed 57/57 including all 32 family-query tools,
+all three database ZIP phases passed, the deferred log ZIP completed after
+writer disposal, and the final pipeline status was PASS.
+
+Follow-up directive:
+
+> Do what you can to improve performance and also resolve the over stringent hash check, which I suspect might be hashing dates or something
+
+Development response for 0.16.5 therefore targets the real retained
+family-query timings first and treats ZIP timestamps as packaging metadata
+without weakening content-addressed evidence hashes.
+

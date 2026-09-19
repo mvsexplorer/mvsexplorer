@@ -231,6 +231,20 @@ analytical family classification; it does not modify any source evidence.
 `exclude` means "do not classify this title into the family taxonomy", not
 "discard this product from the archive".
 
+## Large-index query execution
+
+Starting in 0.16.5, query semantics and output formats are unchanged, but large
+fact tables are no longer eagerly loaded through `Import-Csv` before filtering.
+Exact filename/hash/ID/date/snapshot searches use a native literal candidate
+scan and instantiate row objects only for verified matches. Wildcard or escaped
+patterns stream once through the TSV. Family-to-fact queries use exact member
+titles as candidate filters when the family is narrow and fall back to a
+single-pass title-map scan for broad families.
+
+This is an execution optimization only. Source row order, membership order,
+deduplication, case-insensitive wildcard matching, stdout/stderr rules and
+return codes remain part of the public contract.
+
 ## Query directions
 
 The delivered `print_*` tools emit labeled human-readable rows. Their matching

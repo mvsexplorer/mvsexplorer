@@ -1,3 +1,14 @@
+0.16.5 - 2026-09-07
+- Native 0.16.4 resume acceptance passes the complete production path: 487/487 structure, archive quality with zero errors, 57/57 generated-database checks, all 32 real family queries, database ZIPs, deferred log ZIP, SEND-ME hardlinks, and final Status: PASS.
+- Reworks product-family query execution for large TSVs. Exact fact lookups use a native `Select-String -SimpleMatch` candidate scan and materialize only verified matching rows; wildcard/escaped patterns use one-pass buffered streaming instead of eager multi-million-row `Import-Csv`.
+- Family-to-fact directions use the same streaming engine, with multi-title native prefiltering for narrow families and a one-pass title-map fallback for broad families; public output/order/wildcard/return-code contracts are unchanged.
+- The accepted 0.16.4 performance log showed four filename/hash reverse print/read queries alone consumed about 35.3 minutes, with each large exact lookup taking about 8.6-9.1 minutes; these are the primary 0.16.5 optimization targets.
+- Fixes archive database ZIP hash drift caused by regenerated `quality-check` filesystem timestamps being copied into ZIP metadata. ZIP entries now use a fixed 1980-01-01 UTC timestamp and sorted entry order.
+- Direct comparison of the two supplied archive ZIPs confirms 2,341/2,341 entries have identical CRC/size and exactly six `quality-check/*` entries differ only in ZIP timestamp metadata; compressed sizes are identical.
+- Retains strict content-addressed SHA-256 validation for raw note HTML; only non-evidence ZIP timestamp metadata is normalized.
+- Adds structure guards for large-table query streaming and deterministic ZIP timestamps. Structure becomes 489 assertions and all mode 1,102 (normally 1,099 PASS / 0 FAIL / 3 SKIP).
+- Database table formats, public root count (478), and current known legacy archive plan (34,822) are unchanged.
+
 0.16.4 - 2026-09-07
 - Native 0.16.3 resume acceptance confirms 487/487 structure checks, archive quality, and all 57 generated-database checks pass against the existing production databases; all 32 real family query tools pass.
 - Fixes the remaining phase-7 Windows sharing failure by eliminating log ZIP creation while `console.log` and `phase-performance.tsv` are active.

@@ -1,3 +1,7 @@
+1.0.5 - 2026-09-07
+- Sets project version 0.16.5.
+- Generates deterministic ZIP packaging that normalizes entry timestamps before hashing/package delivery.
+
 1.0.4 / project 0.16.4
 - Generates deferred final log-ZIP creation only after the active pipeline log writers are disposed.
 - Removes the failed 0.16.3 live-log ZIP attempt while retaining token-level semantic console coloring and resume mode.

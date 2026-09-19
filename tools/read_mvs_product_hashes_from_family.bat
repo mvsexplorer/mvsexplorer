@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone product-family query tool embeds PowerShell.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.0"
+set "app.version=0.1.1"
 set "app.name=read_mvs_product_hashes_from_family"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -149,6 +149,109 @@ function Read-Table {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { Fail 3 ('Family index table missing: ' + $Name) }
     return @(Import-Csv -LiteralPath $path -Delimiter "`t" -Encoding UTF8)
 }
+function Get-TableSchema {
+    param([string]$Name)
+    $path = Join-Path $IndexRoot $Name
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { Fail 3 ('Family index table missing: ' + $Name) }
+    $reader = New-Object IO.StreamReader($path,$utf8,$true,65536)
+    try {
+        $headerLine = $reader.ReadLine()
+    } finally {
+        $reader.Dispose()
+    }
+    if ($null -eq $headerLine) { Fail 3 ('Family index table is empty: ' + $Name) }
+    return [pscustomobject]@{ path=$path; headers=[string[]]$headerLine.Split([char]9) }
+}
+function Convert-TsvLineToRow {
+    param([string]$Line,[string[]]$Headers)
+    $parts = [string[]]$Line.Split([char]9)
+    $row = @{}
+    for ($i=0; $i -lt $Headers.Count; $i++) {
+        $row[$Headers[$i]] = if ($i -lt $parts.Count) { [string]$parts[$i] } else { '' }
+    }
+    return [pscustomobject]$row
+}
+function Can-UseLiteralPrefilter {
+    param([string]$Pattern)
+    # Backtick can escape wildcard syntax; *, ? and [ are wildcard operators.
+    # Keep those cases on the exact WildcardPattern-compatible streaming path.
+    return ($Pattern.IndexOf('`') -lt 0 -and
+            $Pattern.IndexOf('*') -lt 0 -and
+            $Pattern.IndexOf('?') -lt 0 -and
+            $Pattern.IndexOf('[') -lt 0)
+}
+function Read-TableRowsMatchingField {
+    param([string]$Name,[string]$Field,[string]$Pattern)
+    $schema = Get-TableSchema $Name
+    $fieldIndex = [Array]::IndexOf($schema.headers,$Field)
+    if ($fieldIndex -lt 0) { Fail 3 ('Family index table '+$Name+' has no field '+$Field) }
+
+    # Exact lookups are overwhelmingly common on the very large file/hash fact
+    # tables. Select-String performs the 500-700 MiB candidate scan in .NET and
+    # we materialize objects only for candidate lines that pass the field check.
+    if (Can-UseLiteralPrefilter $Pattern) {
+        foreach ($match in @(Select-String -LiteralPath $schema.path -SimpleMatch -Pattern $Pattern -Encoding UTF8 | Sort-Object LineNumber)) {
+            if ([int]$match.LineNumber -le 1) { continue }
+            $parts = [string[]]$match.Line.Split([char]9)
+            if ($fieldIndex -ge $parts.Count -or -not (Matches-Pattern ([string]$parts[$fieldIndex]) $Pattern)) { continue }
+            Convert-TsvLineToRow $match.Line $schema.headers
+        }
+        return
+    }
+
+    # Wildcard/escaped patterns retain the existing PowerShell -like semantics.
+    # This still streams one line at a time and avoids Import-Csv materializing
+    # millions of PSCustomObjects before the predicate can be applied.
+    $reader = New-Object IO.StreamReader($schema.path,$utf8,$true,65536)
+    try {
+        [void]$reader.ReadLine()
+        while ($null -ne ($line = $reader.ReadLine())) {
+            $parts = [string[]]$line.Split([char]9)
+            if ($fieldIndex -ge $parts.Count -or -not (Matches-Pattern ([string]$parts[$fieldIndex]) $Pattern)) { continue }
+            Convert-TsvLineToRow $line $schema.headers
+        }
+    } finally {
+        $reader.Dispose()
+    }
+}
+function Read-TableRowsForTitles {
+    param([string]$Name,[hashtable]$TitleMap)
+    $schema = Get-TableSchema $Name
+    $titleIndex = [Array]::IndexOf($schema.headers,'product_title')
+    if ($titleIndex -lt 0) { Fail 3 ('Family index table '+$Name+' has no product_title field') }
+
+    $titles = @($TitleMap.Keys | Where-Object { -not [string]::IsNullOrEmpty([string]$_) })
+    if ($titles.Count -eq 0) { return }
+
+    # For narrow families, let Select-String perform one native candidate scan
+    # against the exact member titles. Verify the product_title field afterward,
+    # and restore line-number order so output remains byte-for-byte compatible.
+    if ($titles.Count -le 64) {
+        $seenLines = New-Object 'System.Collections.Generic.HashSet[int]'
+        foreach ($match in @(Select-String -LiteralPath $schema.path -SimpleMatch -Pattern ([string[]]$titles) -Encoding UTF8 | Sort-Object LineNumber)) {
+            $lineNumber = [int]$match.LineNumber
+            if ($lineNumber -le 1 -or -not $seenLines.Add($lineNumber)) { continue }
+            $parts = [string[]]$match.Line.Split([char]9)
+            if ($titleIndex -ge $parts.Count -or -not $TitleMap.ContainsKey([string]$parts[$titleIndex])) { continue }
+            Convert-TsvLineToRow $match.Line $schema.headers
+        }
+        return
+    }
+
+    # Broad wildcard families can contain many titles. Avoid an O(lines*titles)
+    # multi-pattern search: stream once and test the indexed title directly.
+    $reader = New-Object IO.StreamReader($schema.path,$utf8,$true,65536)
+    try {
+        [void]$reader.ReadLine()
+        while ($null -ne ($line = $reader.ReadLine())) {
+            $parts = [string[]]$line.Split([char]9)
+            if ($titleIndex -ge $parts.Count -or -not $TitleMap.ContainsKey([string]$parts[$titleIndex])) { continue }
+            Convert-TsvLineToRow $line $schema.headers
+        }
+    } finally {
+        $reader.Dispose()
+    }
+}
 function Matches-Pattern {
     param([AllowNull()][AllowEmptyString()][string]$Value,[string]$Pattern)
     if ($null -eq $Value) { return $false }
@@ -188,7 +291,7 @@ function Emit-FactsFromFamily {
     $matches = @(Get-FamilyMembershipMatches)
     if ($matches.Count -eq 0) { return }
     $map = New-TitleMembershipMap $matches
-    foreach ($fact in @(Read-Table $Table)) {
+    foreach ($fact in @(Read-TableRowsForTitles $Table $map)) {
         $title = [string]$fact.product_title
         if (-not $map.ContainsKey($title)) { continue }
         foreach ($membership in $map[$title]) {
@@ -199,9 +302,7 @@ function Emit-FactsFromFamily {
 function Emit-FamiliesFromFact {
     param([string]$Table,[string]$Field,[scriptblock]$Emitter)
     $membershipMap = Get-AllMembershipMap
-    foreach ($fact in @(Read-Table $Table)) {
-        $value = [string]$fact.$Field
-        if (-not (Matches-Pattern $value $Needle)) { continue }
+    foreach ($fact in @(Read-TableRowsMatchingField $Table $Field $Needle)) {
         $title = [string]$fact.product_title
         if (-not $membershipMap.ContainsKey($title)) { continue }
         foreach ($membership in $membershipMap[$title]) {

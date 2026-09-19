@@ -22,7 +22,7 @@ failures.
 
 ## Resume already-built databases
 
-0.16.4 retains the recovery path introduced in 0.16.1 for a late-stage validator/packaging failure after
+0.16.5 retains the recovery path introduced in 0.16.1 for a late-stage validator/packaging failure after
 the three reusable databases were already generated:
 
 ```bat
@@ -116,7 +116,19 @@ database-validation\
 `phase-performance.tsv` measures the ten end-to-end phases.
 `all-family-tools-performance.tsv` records return code, elapsed milliseconds
 and output-line count for every real-data family query smoke test.
-The active `console.log` and `phase-performance.tsv` streams are opened with explicit read-sharing so the preliminary log ZIP can be created before the pipeline closes its writers; the ZIP is refreshed after writer disposal for the final sendable bundle.
+The pipeline does not ZIP the live log directory. `console.log` and
+`phase-performance.tsv` are flushed and disposed first; final log packaging
+runs only after both writers are closed.
+
+Database/log ZIP entries are written with a normalized
+`1980-01-01T00:00:00Z` entry timestamp. Files such as archive
+`quality-check/*` may be deterministically regenerated during resume
+validation, and their filesystem last-write times are not database evidence.
+Normalizing ZIP metadata prevents those wall-clock dates from changing a ZIP
+SHA-256 when names and bytes are otherwise unchanged. The reported ZIP SHA-256
+remains a transport/package checksum, not a durable cross-build database
+identity: a separately named output directory changes entry paths and therefore
+can legitimately produce a different package hash.
 The copied ordinary test-results folder retains per-assertion/per-tool
 performance data, and the archive database retains `fast-batches.tsv`.
 

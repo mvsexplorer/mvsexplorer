@@ -1,3 +1,7 @@
+0.11.8 - 2026-09-07
+- Adds guards for candidate-first large product-family query execution and normalized ZIP entry timestamps.
+- Structure scope becomes 489 assertions.
+
 0.11.7 / project 0.16.4
 - Replaces the 0.16.3 read-sharing packaging assertion with a direct ordering assertion: final log ZIP creation must occur only after active writer disposal.
 - Structure scope remains 487 assertions.

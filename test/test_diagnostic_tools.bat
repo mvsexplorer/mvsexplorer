@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.11.7"
+set "app.version=0.11.8"
 set "app.name=test_diagnostic_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -10,7 +10,7 @@ set "mvst_mode=diagnostic"
 set "mvst_dump=%~1"
 set "mvst_caller=%~nx0"
 set "mvst_version=%app.version%"
-set "mvst_project_version=0.16.4"
+set "mvst_project_version=0.16.5"
 for %%I in ("%~dp0..") do set "mvst_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSTest"
@@ -105,7 +105,7 @@ $Caller = [string]$env:mvst_caller
 $Version = [string]$env:mvst_version
 $ProjectVersion = [string]$env:mvst_project_version
 $script:ExpectedAssertions = switch ($Mode) {
-    'structure' { 487 }
+    'structure' { 489 }
     'scalar' { 120 }
     'lookup' { 24 }
     'diagnostic' { 46 }
@@ -113,7 +113,7 @@ $script:ExpectedAssertions = switch ($Mode) {
     'single_dump' { 167 }
     'compare' { 39 }
     'history' { 65 }
-    'all' { 1100 }
+    'all' { 1102 }
     default { 0 }
 }
 
@@ -1126,8 +1126,31 @@ function Test-Structure {
         Write-Fail 'comprehensive suite uses concise archive plan preflight' 'test_everything.bat missing'
     }
 
+    $familyQueryPath = Join-Path $Root 'print_mvs_product_families_from_hash.bat'
+    if (Test-Path -LiteralPath $familyQueryPath -PathType Leaf) {
+        $familyQueryText = [IO.File]::ReadAllText($familyQueryPath,[Text.Encoding]::UTF8)
+        if ($familyQueryText.Contains('Read-TableRowsMatchingField') -and
+            $familyQueryText.Contains('Read-TableRowsForTitles') -and
+            $familyQueryText.Contains('Select-String -LiteralPath $schema.path -SimpleMatch') -and
+            $familyQueryText.Contains('New-Object IO.StreamReader($schema.path,$utf8,$true,65536)')) {
+            Write-Pass 'product-family queries stream large fact tables with native exact-match prefilter'
+        } else {
+            Write-Fail 'product-family queries stream large fact tables with native exact-match prefilter' 'large-table streaming/prefilter markers missing'
+        }
+    } else {
+        Write-Fail 'product-family queries stream large fact tables with native exact-match prefilter' 'family query batch missing'
+    }
+
     if (Test-Path -LiteralPath $pipelinePath -PathType Leaf) {
         $pipelineText = [IO.File]::ReadAllText($pipelinePath,[Text.Encoding]::UTF8)
+        if ($pipelineText.Contains('$entry=$zip.CreateEntry($entryName,[IO.Compression.CompressionLevel]::Optimal)') -and
+            $pipelineText.Contains('$entry.LastWriteTime=$fixedZipTime') -and
+            $pipelineText.Contains("'1980-01-01T00:00:00+00:00'") -and
+            $pipelineText.Contains('$input.CopyTo($output,65536)')) {
+            Write-Pass 'pipeline ZIPs normalize entry timestamps for content-stable package hashes'
+        } else {
+            Write-Fail 'pipeline ZIPs normalize entry timestamps for content-stable package hashes' 'deterministic ZIP timestamp markers missing'
+        }
         if ($pipelineText.Contains('Get-StatusTokenColor') -and $pipelineText.Contains('Write-ConsoleTokenized') -and
             $pipelineText.Contains('[regex]::Matches') -and $pipelineText.Contains('[Console]::ForegroundColor') -and
             $pipelineText.Contains("'Green'") -and $pipelineText.Contains("'Red'") -and $pipelineText.Contains("'Yellow'") -and
@@ -1156,6 +1179,7 @@ function Test-Structure {
             Write-Fail 'pipeline defers log ZIP until active log writers are closed' 'log ZIP still occurs while active writers may be open'
         }
     } else {
+        Write-Fail 'pipeline ZIPs normalize entry timestamps for content-stable package hashes' 'pipeline batch missing'
         Write-Fail 'pipeline console colorizes semantic PASS FAIL WARN tokens without whole-line coloring' 'pipeline batch missing'
         Write-Fail 'pipeline defers log ZIP until active log writers are closed' 'pipeline batch missing'
     }

@@ -1,3 +1,7 @@
+0.11.8 - 2026-09-07
+- Sets project version 0.16.5 and raises structure/all expected counts to 489/1,102.
+- Includes structure guards for large family-query streaming and deterministic ZIP timestamping.
+
 0.11.7 / project 0.16.4
 - Replaces the ineffective active-log read-sharing guard with an ordering guard that rejects any log ZIP attempt before writer disposal.
 - Structure scope remains 487 assertions and all mode remains 1,100.

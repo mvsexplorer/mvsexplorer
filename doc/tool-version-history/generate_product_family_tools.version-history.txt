@@ -1,3 +1,7 @@
+0.2.1 - 2026-09-07
+- Regenerates all 32 product-family query wrappers at query version 0.1.1.
+- Injects the candidate-first/streaming query engine used by 0.16.5.
+
 dev\generate_product_family_tools.py
 
 0.2.0 - 2026-09-01
