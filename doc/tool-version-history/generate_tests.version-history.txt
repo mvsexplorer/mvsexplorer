@@ -1,3 +1,8 @@
+0.11.6 / project 0.16.3
+- Adds a structure guard requiring active pipeline log streams to remain readable during ZIP packaging.
+- Strengthens the color guard to require token-level PASS/FAIL/WARN styling and reject the old whole-line Get-StatusColor implementation.
+- Structure scope becomes 487 assertions and all mode becomes 1,100.
+
 Tool Version History: dev\generate_tests.py
 
 0.11.2 - 2026-09-01

@@ -22,7 +22,7 @@ failures.
 
 ## Resume already-built databases
 
-0.16.2 retains the recovery path introduced in 0.16.1 for a late-stage validator/packaging failure after
+0.16.3 retains the recovery path introduced in 0.16.1 for a late-stage validator/packaging failure after
 the three reusable databases were already generated:
 
 ```bat
@@ -67,9 +67,10 @@ The phase-1 real-archive plan preflight runs with `--quiet-plan`, so it validate
 the deterministic 34,822-entry plan without printing all snapshot names. The
 phase-2 production plan remains visible once. Archive execution prints paired
 `Starting snapshot` / `Completed snapshot` and `Starting compare` /
-`Completed compare` lines with elapsed time. The top-level pipeline colors
-PASS green, FAIL/error red, and warning/SKIP yellow on interactive consoles;
-logs stay plain text.
+`Completed compare` lines with elapsed time. The top-level pipeline keeps ordinary text at the console's normal color and
+colors only semantic status/attention tokens: PASS green, active FAIL/error
+tokens red, and warning/SKIP/quality-flag tokens yellow. Zero-failure and
+zero-warning counters stay neutral, and logs stay plain text.
 
 ## Outputs
 
@@ -110,6 +111,7 @@ database-validation\
 `phase-performance.tsv` measures the ten end-to-end phases.
 `all-family-tools-performance.tsv` records return code, elapsed milliseconds
 and output-line count for every real-data family query smoke test.
+The active `console.log` and `phase-performance.tsv` streams are opened with explicit read-sharing so the preliminary log ZIP can be created before the pipeline closes its writers; the ZIP is refreshed after writer disposal for the final sendable bundle.
 The copied ordinary test-results folder retains per-assertion/per-tool
 performance data, and the archive database retains `fast-batches.tsv`.
 

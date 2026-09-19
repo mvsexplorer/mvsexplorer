@@ -1,6 +1,40 @@
-# MVS Explorer Toolkit 0.16.2
+# MVS Explorer Toolkit 0.16.3
 
 
+
+## 0.16.3 log-packaging hotfix and token-level console color
+
+A native 0.16.2 resume run against the already-built 0.16.1 production
+databases confirms that the validator fixes are correct: the structure precheck
+passed 486/486 assertions, archive quality passed with zero errors, and all 57
+generated-database checks passed, including all 32 real family-query tool smoke
+executions.
+
+The only remaining failure was phase-7 packaging. The pipeline attempted to
+create the log ZIP while its own `console.log` was still open for writing, and
+Windows rejected `CreateEntryFromFile` with a sharing violation. 0.16.3 opens
+both active pipeline log streams with explicit `FileShare.ReadWrite`, allowing
+the preliminary log ZIP to read them while the run is active. The normal final
+ZIP refresh still occurs after the writers are disposed, so the sendable log
+bundle contains the settled final console and phase ledger.
+
+Console coloring is also narrowed from whole-line coloring to semantic-token
+coloring. Normal text stays at the console's existing color while `PASS` is
+green, active `FAIL`/`FAILED`/`ERROR` tokens are red, and
+`WARN`/`WARNING`/nonzero `Warnings`/`SKIP`/`quality flags` attention tokens are
+yellow. Zero-failure and zero-warning counters such as `FAIL=0`,
+`failed=0`, `Warnings: 0`, and `Errors: 0` remain neutral. Retained logs remain
+plain text with no terminal color control sequences.
+
+One new structure assertion guards readable active log streams, while the
+existing color assertion now requires token-level rather than whole-line
+styling. The 0.16.3 structure scope is 487 assertions and all-mode is 1,100;
+on the established representative dump the expected result is 1,097 PASS /
+0 FAIL / 3 data-dependent note SKIP.
+
+No archive, full-family, compact-family, or query-tool data format changes are
+made in 0.16.3. Databases already validated by 0.16.2 can be resumed and
+packaged without rebuilding.
 
 ## 0.16.2 real-database validator and console-progress fixes
 

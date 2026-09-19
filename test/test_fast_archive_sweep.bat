@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
 set "app.version=0.4.4"
-set "project.version=0.16.2"
+set "project.version=0.16.3"
 set "root=%~dp0"
 set "fixture=%root%test-mvs-dump-history"
 set "tag=%RANDOM%%RANDOM%"

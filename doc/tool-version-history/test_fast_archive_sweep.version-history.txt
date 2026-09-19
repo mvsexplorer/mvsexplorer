@@ -1,3 +1,6 @@
+0.4.4 / project 0.16.3
+- Regenerated with project 0.16.3 metadata; the three synthetic fast-archive acceptance assertions are unchanged.
+
 test_fast_archive_sweep.bat Version History
 
 0.4.3 - 2026-08-30

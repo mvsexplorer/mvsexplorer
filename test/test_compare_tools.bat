@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.11.5"
+set "app.version=0.11.6"
 set "app.name=test_compare_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -10,7 +10,7 @@ set "mvst_mode=compare"
 set "mvst_dump=%~1"
 set "mvst_caller=%~nx0"
 set "mvst_version=%app.version%"
-set "mvst_project_version=0.16.2"
+set "mvst_project_version=0.16.3"
 for %%I in ("%~dp0..") do set "mvst_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSTest"
@@ -105,7 +105,7 @@ $Caller = [string]$env:mvst_caller
 $Version = [string]$env:mvst_version
 $ProjectVersion = [string]$env:mvst_project_version
 $script:ExpectedAssertions = switch ($Mode) {
-    'structure' { 486 }
+    'structure' { 487 }
     'scalar' { 120 }
     'lookup' { 24 }
     'diagnostic' { 46 }
@@ -113,7 +113,7 @@ $script:ExpectedAssertions = switch ($Mode) {
     'single_dump' { 167 }
     'compare' { 39 }
     'history' { 65 }
-    'all' { 1099 }
+    'all' { 1100 }
     default { 0 }
 }
 
@@ -1128,14 +1128,26 @@ function Test-Structure {
 
     if (Test-Path -LiteralPath $pipelinePath -PathType Leaf) {
         $pipelineText = [IO.File]::ReadAllText($pipelinePath,[Text.Encoding]::UTF8)
-        if ($pipelineText.Contains('Get-StatusColor') -and $pipelineText.Contains('[Console]::ForegroundColor') -and
-            $pipelineText.Contains("'Green'") -and $pipelineText.Contains("'Red'") -and $pipelineText.Contains("'Yellow'")) {
-            Write-Pass 'pipeline console colorizes PASS FAIL WARN status classes'
+        if ($pipelineText.Contains('Get-StatusTokenColor') -and $pipelineText.Contains('Write-ConsoleTokenized') -and
+            $pipelineText.Contains('[regex]::Matches') -and $pipelineText.Contains('[Console]::ForegroundColor') -and
+            $pipelineText.Contains("'Green'") -and $pipelineText.Contains("'Red'") -and $pipelineText.Contains("'Yellow'") -and
+            $pipelineText.Contains("if(`$Suffix-match'^\s*=\s*0") -and
+            $pipelineText.Contains("if(`$t-eq'WARNINGS'-and`$Suffix-match'^\s*:\s*0") -and
+            -not $pipelineText.Contains('function Get-StatusColor')) {
+            Write-Pass 'pipeline console colorizes semantic PASS FAIL WARN tokens without whole-line coloring'
         } else {
-            Write-Fail 'pipeline console colorizes PASS FAIL WARN status classes' 'status colorization markers missing'
+            Write-Fail 'pipeline console colorizes semantic PASS FAIL WARN tokens without whole-line coloring' 'token-level status colorization markers missing'
+        }
+        if ($pipelineText.Contains('[IO.FileShare]::ReadWrite') -and
+            $pipelineText.Contains('$masterStream=New-Object IO.FileStream') -and
+            $pipelineText.Contains('$phaseStream=New-Object IO.FileStream')) {
+            Write-Pass 'pipeline active log streams remain readable during log ZIP packaging'
+        } else {
+            Write-Fail 'pipeline active log streams remain readable during log ZIP packaging' 'explicit readable log-stream sharing markers missing'
         }
     } else {
-        Write-Fail 'pipeline console colorizes PASS FAIL WARN status classes' 'pipeline batch missing'
+        Write-Fail 'pipeline console colorizes semantic PASS FAIL WARN tokens without whole-line coloring' 'pipeline batch missing'
+        Write-Fail 'pipeline active log streams remain readable during log ZIP packaging' 'pipeline batch missing'
     }
 }
 

@@ -1,3 +1,9 @@
+0.11.6 / project 0.16.3
+- Adds one structure assertion guarding active pipeline log streams during ZIP packaging.
+- Replaces the prior whole-line color marker check with a token-level semantic color guard.
+- Structure scope is 487 assertions; all mode is 1,100 assertions.
+- On the established representative dump the expected result is 1,097 PASS / 0 FAIL / 3 SKIP.
+
 0.11.5 / project 0.16.2
 - Adds five structure assertions for archive plan-index reconciliation, singleton snapshot arrays, paired/timed archive progress, quiet-plan preflight, and PASS/FAIL/WARN console colorization.
 - Structure scope is 486 assertions; all mode is 1,099 assertions.

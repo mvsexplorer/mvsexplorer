@@ -1,2 +1,6 @@
+1.0.3 / project 0.16.3
+- Generates the active-log sharing fix used by phase-7 log ZIP packaging.
+- Generates semantic-token console coloring instead of whole-line status coloring.
+
 1.0.0
 - Generates the root production pipeline and test_generated_databases.bat from maintained templates/PowerShell sources.

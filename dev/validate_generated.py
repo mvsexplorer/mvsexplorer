@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validator for generated public batch files.
 
-Version: 0.9.2
+Version: 0.9.3
 """
 from pathlib import Path
 import collections
@@ -53,7 +53,7 @@ def main():
                 issues.append(f"{path.name}: product-family query missing index/wildcard markers")
         if ":_MVSAllPipeline_start" in text:
             pipeline += 1
-            for marker in ("ALL TESTS","BUILD ARCHIVE ANALYSIS DATABASE","BUILD FULL PRODUCT-FAMILY EVIDENCE DATABASE","BUILD COMPACT ALL-EVER PRODUCT-FAMILY DATABASE","test_generated_databases.bat","SEND-ME-","phase-performance.tsv","--resume-built","mvspipe_arg9","RESUME PRECHECK: STRUCTURE + DATABASE-VALIDATOR GUARDS","Get-StatusColor","[Console]::ForegroundColor"):
+            for marker in ("ALL TESTS","BUILD ARCHIVE ANALYSIS DATABASE","BUILD FULL PRODUCT-FAMILY EVIDENCE DATABASE","BUILD COMPACT ALL-EVER PRODUCT-FAMILY DATABASE","test_generated_databases.bat","SEND-ME-","phase-performance.tsv","--resume-built","mvspipe_arg9","RESUME PRECHECK: STRUCTURE + DATABASE-VALIDATOR GUARDS","Get-StatusTokenColor","Write-ConsoleTokenized","[IO.FileShare]::ReadWrite","[Console]::ForegroundColor"):
                 if marker not in text:
                     issues.append(f"{path.name}: orchestration pipeline missing {marker}")
         for label in (":setup", ":main", ":end", ":RunPowerShellFromLabel", ":SetErrorLevel"):

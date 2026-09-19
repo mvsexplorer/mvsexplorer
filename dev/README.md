@@ -1,4 +1,4 @@
-## 0.16.2 pipeline maintenance
+## 0.16.3 pipeline maintenance
 
 `generate_all_pipeline.py` maintains the root one-command orchestration batch
 and `test\test_generated_databases.bat` from
@@ -6,17 +6,17 @@ and `test\test_generated_databases.bat` from
 templates. The pipeline is a separate public orchestration class and must stay
 excluded from the 422 single-snapshot / 19 compare / 2 archive legacy plan.
 
-Test generators inject project version 0.16.2 into progress output. The
+Test generators inject project version 0.16.3 into progress output. The
 fast-archive maintained PowerShell source is synchronized with the accepted
 optimized generated worker; generator idempotence must retain that worker.
 
-The 0.16.1 return-token and DAG guards remain in force. 0.16.2 additionally
-requires database validation to join parallel archive runs by `index`, preserve
-singleton compact snapshot sets as typed arrays, and keep the paired/timed
-archive progress plus `--quiet-plan` preflight output. The top-level pipeline
-owns live status colorization so child logs remain plain text. Resume-mode
-parsing/packaging is maintained in the same pipeline source and must remain
-generator-idempotent.
+The 0.16.1 return-token and DAG guards remain in force. The 0.16.2
+plan-index, singleton-array, paired/timed archive progress and `--quiet-plan`
+guards remain in force. 0.16.3 additionally requires token-level semantic
+console coloring and explicit read-sharing on the active master/phase log
+streams so the pipeline can ZIP logs before final writer disposal. Child and
+retained logs remain plain text. Resume-mode parsing/packaging is maintained in
+the same pipeline source and must remain generator-idempotent.
 
 # Development-time source
 

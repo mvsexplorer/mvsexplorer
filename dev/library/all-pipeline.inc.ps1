@@ -38,40 +38,63 @@ $ResumeFamilyInput = ''
 $ResumeCompactInput = ''
 $ResumeTestResultsInput = ''
 
-function Get-StatusColor {
-    param([AllowEmptyString()][string]$Text)
-    if($Text-match'(?i)(\[FAIL\]|status=FAIL|^Status:\s*FAIL|^ERROR:|failed=[1-9][0-9]*|^Errors:\s*[1-9][0-9]*)'){return 'Red'}
-    if($Text-match'(?i)(\[WARN(?:ING)?\]|^WARNING:|^Warnings:\s*[1-9][0-9]*|^- quality flags|\[SKIP\])'){return 'Yellow'}
-    if($Text-match'(?i)(\[PASS\]|status=PASS|^Status:\s*PASS|^SUMMARY:.*failed=0|^SUMMARY:\s*PASS=.*FAIL=0|PASS=[0-9]+.*FAIL=0)'){return 'Green'}
+function Get-StatusTokenColor {
+    param([string]$Token,[string]$Suffix)
+    $t=$Token.ToUpperInvariant()
+    if($t-eq'PASS'){return 'Green'}
+    if($t-eq'FAIL'-or$t-eq'FAILED'){
+        if($Suffix-match'^\s*=\s*0(?:\D|$)'){return ''}
+        return 'Red'
+    }
+    if($t-eq'ERROR'-or$t-eq'ERRORS'){
+        if($Suffix-match'^\s*:\s*0(?:\D|$)'){return ''}
+        return 'Red'
+    }
+    if($t-eq'WARN'-or$t-eq'WARNING'-or$t-eq'WARNINGS'-or$t-eq'SKIP'-or$t-eq'QUALITY FLAGS'){
+        if($t-eq'WARNINGS'-and$Suffix-match'^\s*:\s*0(?:\D|$)'){return ''}
+        return 'Yellow'
+    }
     return ''
 }
-function Write-ConsoleStyled {
-    param([AllowEmptyString()][string]$Text,[AllowEmptyString()][string]$Color='')
-    if([string]::IsNullOrWhiteSpace($Color)-or[Console]::IsOutputRedirected){[Console]::Out.WriteLine($Text);return}
+function Write-ConsoleTokenized {
+    param([AllowEmptyString()][string]$Text,[switch]$ErrorStream)
+    $writer=if($ErrorStream){[Console]::Error}else{[Console]::Out}
+    $redirected=if($ErrorStream){[Console]::IsErrorRedirected}else{[Console]::IsOutputRedirected}
+    if($redirected){$writer.WriteLine($Text);return}
+    $matches=[regex]::Matches($Text,'(?i)\bPASS\b|\bFAIL(?:ED)?\b|\bWARN(?:ING|INGS)?\b|\bERRORS?\b|\bSKIP\b|quality flags')
+    if($matches.Count-eq0){$writer.WriteLine($Text);return}
     try{
         $old=[Console]::ForegroundColor
-        [Console]::ForegroundColor=[System.ConsoleColor]$Color
-        [Console]::Out.WriteLine($Text)
+        $pos=0
+        foreach($m in $matches){
+            if($m.Index-gt$pos){$writer.Write($Text.Substring($pos,$m.Index-$pos))}
+            $suffix=$Text.Substring($m.Index+$m.Length)
+            $color=Get-StatusTokenColor $m.Value $suffix
+            if(-not[string]::IsNullOrWhiteSpace($color)){[Console]::ForegroundColor=[System.ConsoleColor]$color}
+            $writer.Write($m.Value)
+            [Console]::ForegroundColor=$old
+            $pos=$m.Index+$m.Length
+        }
+        if($pos-lt$Text.Length){$writer.Write($Text.Substring($pos))}
+        $writer.WriteLine()
         [Console]::ForegroundColor=$old
     }catch{
         try{[Console]::ResetColor()}catch{}
-        [Console]::Out.WriteLine($Text)
+        $writer.WriteLine($Text)
     }
 }
 function Write-Console {
     param([AllowEmptyString()][string]$Text)
-    Write-ConsoleStyled $Text (Get-StatusColor $Text)
+    Write-ConsoleTokenized $Text
 }
 function Write-Log {
     param([AllowEmptyString()][string]$Text)
-    Write-ConsoleStyled $Text (Get-StatusColor $Text)
+    Write-ConsoleTokenized $Text
     if($null-ne$script:MasterWriter){$script:MasterWriter.WriteLine($Text);$script:MasterWriter.Flush()}
 }
 function Write-ErrLog {
     param([string]$Text)
-    if([Console]::IsErrorRedirected){[Console]::Error.WriteLine($Text)}else{
-        try{$old=[Console]::ForegroundColor;[Console]::ForegroundColor=[System.ConsoleColor]::Red;[Console]::Error.WriteLine($Text);[Console]::ForegroundColor=$old}catch{try{[Console]::ResetColor()}catch{};[Console]::Error.WriteLine($Text)}
-    }
+    Write-ConsoleTokenized $Text -ErrorStream
     if($null-ne$script:MasterWriter){$script:MasterWriter.WriteLine($Text);$script:MasterWriter.Flush()}
 }
 function Clean-Tsv {
@@ -419,9 +442,11 @@ $script:LogZip=$script:LogsRoot+'.zip'
 
 $masterPath=Join-Path $script:LogsRoot 'console.log'
 $phasePath=Join-Path $script:LogsRoot 'phase-performance.tsv'
-$script:MasterWriter=New-Object IO.StreamWriter($masterPath,$false,$utf8,65536)
+$masterStream=New-Object IO.FileStream($masterPath,[IO.FileMode]::Create,[IO.FileAccess]::Write,[IO.FileShare]::ReadWrite)
+$script:MasterWriter=New-Object IO.StreamWriter($masterStream,$utf8,65536)
 $script:MasterWriter.NewLine="`r`n";$script:MasterWriter.AutoFlush=$true
-$script:PhaseWriter=New-Object IO.StreamWriter($phasePath,$false,$utf8,65536)
+$phaseStream=New-Object IO.FileStream($phasePath,[IO.FileMode]::Create,[IO.FileAccess]::Write,[IO.FileShare]::ReadWrite)
+$script:PhaseWriter=New-Object IO.StreamWriter($phaseStream,$utf8,65536)
 $script:PhaseWriter.NewLine="`r`n";$script:PhaseWriter.AutoFlush=$true
 $script:PhaseWriter.WriteLine("phase`tname`tstatus`trc`telapsed_ms`tfinished`tdetail")
 

@@ -1,3 +1,7 @@
+0.11.6 / project 0.16.3
+- Regenerated with project 0.16.3 common harness metadata and the strengthened pipeline packaging/color structure guards.
+- Subset-specific behavioral assertions are unchanged.
+
 0.11.5 / project 0.16.2
 - Regenerated with project 0.16.2 progress metadata and the strengthened structure preflight.
 - Full all-mode matrix is 1,099 assertions; subset behavior is otherwise unchanged.

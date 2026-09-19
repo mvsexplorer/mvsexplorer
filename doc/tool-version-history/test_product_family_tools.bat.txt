@@ -1,3 +1,6 @@
+0.1.3 / project 0.16.3
+- Project metadata updated for 0.16.3; the 106 product-family/compact assertions are unchanged.
+
 test\test_product_family_tools.bat
 
 0.1.2 - 2026-09-01

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validation for archive sweep, quality, reporting, and performance helpers.
 
-Version: 0.7.1
+Version: 0.7.2
 """
 from pathlib import Path
 import sys
@@ -222,8 +222,8 @@ def main():
     pipeline_tool=check_batch(ROOT/"all_test_then_all_database_then_test_database_and_all_tools.bat",(
         ":_MVSAllPipeline_start","Project version:","ALL TESTS","BUILD ARCHIVE ANALYSIS DATABASE",
         "BUILD FULL PRODUCT-FAMILY EVIDENCE DATABASE","BUILD COMPACT ALL-EVER PRODUCT-FAMILY DATABASE",
-        "test_generated_databases.bat","phase-performance.tsv","SEND-ME-","Get-StatusColor",
-        "[Console]::ForegroundColor","'Green'","'Red'","'Yellow'"
+        "test_generated_databases.bat","phase-performance.tsv","SEND-ME-","Get-StatusTokenColor",
+        "Write-ConsoleTokenized","[IO.FileShare]::ReadWrite","[Console]::ForegroundColor","'Green'","'Red'","'Yellow'"
     ))
     db_validator=check_batch(ROOT/"test"/"test_generated_databases.bat",(
         ":_MVSDatabaseValidation_start","DB TEST","all-family-tools-performance.tsv",
@@ -251,10 +251,10 @@ def main():
         fail("archive-exclusions.tsv header mismatch")
 
     # Test harness must capture per-invocation elapsed time.
-    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","remaining=","Project: MVS Explorer Toolkit","mvst_project_version=0.16.2"))
+    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","remaining=","Project: MVS Explorer Toolkit","mvst_project_version=0.16.3"))
     if "expected_rc`tactual_rc`telapsed_ms" not in test_all:
         fail("test result TSV does not include elapsed_ms")
-    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","remaining=","Project version:","0.16.2"))
+    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","remaining=","Project version:","0.16.3"))
 
     maintained=(
         "dev/generate_archive_sweep.py","dev/generate_performance_tools.py","dev/generate_report_tools.py",

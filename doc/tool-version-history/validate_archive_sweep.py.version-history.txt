@@ -1,3 +1,7 @@
+0.7.2 - 2026-09-06
+  - Requires semantic-token pipeline coloring and readable active log streams for final log ZIP packaging.
+  - Preserves the 34,822 real archive and 1,306 synthetic plan invariants.
+
 0.7.1 - 2026-09-06
   - Requires --quiet-plan plus paired/timed snapshot/compare progress markers.
   - Guards plan-index database reconciliation and typed singleton snapshot-set validation.

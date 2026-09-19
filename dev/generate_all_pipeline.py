@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Generate the one-command full validation/database pipeline.
 
-Version: 1.0.2
+Version: 1.0.3
 """
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 DEV=ROOT/"dev"
-PROJECT_VERSION="0.16.2"
+PROJECT_VERSION="0.16.3"
 
 def read(path):
     return path.read_text(encoding="utf-8").replace("\r\n","\n").rstrip()

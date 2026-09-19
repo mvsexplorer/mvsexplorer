@@ -1,3 +1,6 @@
+0.1.3 / project 0.16.3
+- Regenerated with project 0.16.3 progress metadata; suite behavior remains the 0.16.2 quiet-plan flow.
+
 0.1.3 / project 0.16.2
 - Uses `--quiet-plan` for the real-archive plan-only preflight.
 - Still validates the complete deterministic plan while suppressing the repeated per-snapshot planning list.

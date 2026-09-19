@@ -1,3 +1,11 @@
+0.16.3 - 2026-09-06
+- Native 0.16.2 resume acceptance confirms all 57 generated-database checks and all 32 real family queries pass against the existing 0.16.1 production databases.
+- Fixes phase-7 log ZIP packaging on Windows by opening active `console.log` and `phase-performance.tsv` streams with explicit FileShare.ReadWrite; the final log ZIP is still refreshed after writer disposal.
+- Replaces whole-line console coloring with token-level semantic coloring: PASS green; active FAIL/FAILED/ERROR red; WARN/WARNING/nonzero Warnings/SKIP/quality-flags yellow; zero failure/warning counters remain neutral.
+- Keeps retained logs plain text and leaves archive/full-family/compact database formats unchanged.
+- Adds one structure guard for readable active log streams and strengthens the color guard; structure becomes 487 assertions and all mode 1,100 (normally 1,097 PASS / 0 FAIL / 3 SKIP).
+- Public root remains 478 tools and the legacy archive plan remains exactly 34,822 logical checks.
+
 0.16.2 - 2026-09-06
 - Fixes three generated-database validator false negatives exposed by a clean native 0.16.1 production run.
 - Reconciles archive plan/run rows by stable `index` instead of physical row order; 8-worker completion order is intentionally nondeterministic while plan identity remains exact.

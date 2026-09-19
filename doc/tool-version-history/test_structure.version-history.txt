@@ -1,3 +1,7 @@
+0.11.6 / project 0.16.3
+- Adds the active-log read-sharing packaging guard and strengthens console-color validation to token-level styling.
+- Structure scope is 487 assertions.
+
 0.11.5 / project 0.16.2
 - Regenerated with project 0.16.2 progress metadata and the strengthened structure preflight.
 - Full all-mode matrix is 1,099 assertions; subset behavior is otherwise unchanged.

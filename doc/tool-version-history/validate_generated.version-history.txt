@@ -1,3 +1,7 @@
+0.9.3 - 2026-09-06
+  - Requires token-level pipeline colorization markers and explicit FileShare.ReadWrite on active pipeline log streams.
+  - Preserves the 478-tool public-root invariant.
+
 Tool Version History: dev\validate_generated.py
 
 0.9.1 - 2026-09-03

@@ -1,4 +1,27 @@
+## 0.16.3 - active-log ZIP sharing and semantic-token color
+
+The native 0.16.2 resume run proved that the three 0.16.1 database-validator
+false negatives were fully corrected: structure passed 486/486, archive quality
+reported zero errors, and the generated-database gate passed all 57 checks,
+including all 32 real family query tools.
+
+The run then failed only during the final log-bundle phase. The pipeline was
+trying to ZIP `console.log` while its master `StreamWriter` remained active.
+Windows denied the read with a sharing violation before the normal post-run ZIP
+refresh could occur. The maintained pipeline now creates the master console and
+phase-performance streams with explicit `FileShare.ReadWrite`. This preserves
+live logging while allowing the preliminary ZIP pass; after the phase completes
+the writers are disposed and the ZIP is rebuilt once more from settled files.
+
+The same native output showed that coloring an entire line whenever it contained
+a status word was visually too strong. 0.16.3 writes normal line fragments in
+the console's existing color and changes only semantic status/attention tokens:
+PASS green, active failure/error tokens red, and warning/SKIP/quality-flag
+tokens yellow. Counters stating zero failures or zero warnings are deliberately
+left neutral. Log files continue to contain plain text only.
+
 ## 0.16.2 - real-data validator ordering/singleton fixes and console UX
+
 
 A clean 0.16.1 run from only the original 79-snapshot dump archive passed the
 1,094-assertion pre-build suite, completed all 34,822 archive logical checks,
