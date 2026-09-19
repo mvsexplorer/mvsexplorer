@@ -363,3 +363,33 @@ The fast executor now uses one streaming archive worker for both logical
 builders. History additions/removals are emitted incrementally, all-ever state
 is updated during the same source pass, and one progress line is produced per
 snapshot. Literal public builders remain unchanged for compatibility mode.
+
+## 2026-08-30 — 0.14.0 indexed archive validation and evidence model
+
+The completed real archive sweep proved that process combining alone was
+insufficient: about 30 hours of active computation remained. Timing identified
+detail and relationship checks as the dominant cost because they repeatedly
+searched already-parsed arrays. The fast worker was rebuilt around
+snapshot-local ID/title/filename/hash/variant/note indexes and independent
+snapshots gained bounded parallel execution.
+
+The interrupted 0.13.x run also exposed a correctness problem: a source
+directory moved after a snapshot model had loaded, allowing later logical rows
+in that batch to be classified as `SOURCE_MISSING`. 0.14.0 freezes source
+metadata at batch start and rejects the entire batch if availability/length/
+last-write metadata changes before commit. Resume then reruns a coherent unit.
+
+Archive analysis now explicitly separates ingestion from canonical
+interpretation. Suspicious dumps may be excluded from a selected canonical
+scope without deleting their source evidence. Per-dump retention quantifies how
+much information introduced by an anomalous dump was or was not seen later.
+
+Notes became a first-class versioned evidence stream. Both legacy h3 headings
+with source IDs and newer h1 headings are parsed. Snapshot-level observation
+counts prevent duplicate-heavy dumps from inflating note longevity, while raw
+HTML is retained by SHA-256 so normalized text does not erase markup history.
+
+A comprehensive tester now joins functional regression, synthetic fast
+acceptance, archive integrity/quality analysis, and public/logical/batch timing.
+The intended development loop is measured optimize -> regenerate -> rerun ->
+verify no functional regression.

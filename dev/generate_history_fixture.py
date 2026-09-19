@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the synthetic archive-history regression fixture.
 
-Version: 0.1.0
+Version: 0.2.0
 """
 from pathlib import Path
 import shutil
@@ -33,6 +33,11 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc *variant-alpha.
 4444444444444444444444444444444444444444 *variant-keep.iso
 dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd *variant-keep.iso
 """,
+"mvs_notes.html": """<h3>Alpha Product [ID: 1]</h3>
+<p>Alpha note v1</p>
+<h3>Keep Product [ID: 2]</h3>
+<p>Keep note</p>
+""",
 "mvs.sha1": """5555555555555555555555555555555555555555 *manifest-alpha.iso
 6666666666666666666666666666666666666666 *manifest-keep.iso
 """,
@@ -62,6 +67,11 @@ dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd *VARIANT-KEEP.I
 --- Beta Variant [ID: VarBeta] ---
 8888888888888888888888888888888888888888 *variant-beta.iso
 2222222222222222222222222222222222222222222222222222222222222222 *variant-beta.iso
+""",
+"mvs_notes.html": """<h3>Keep Product [ID: 002]</h3>
+<p>Keep note</p>
+<h3>Beta Product [ID: 3]</h3>
+<p>Beta one-off note</p>
 """,
 "mvs.sha1": """6666666666666666666666666666666666666666 *MANIFEST-KEEP.ISO
 9999999999999999999999999999999999999999 *manifest-beta.iso
@@ -103,6 +113,13 @@ dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd *variant-keep.i
 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb *variant-gamma.iso
 5555555555555555555555555555555555555555555555555555555555555555 *variant-gamma.iso
 """,
+"mvs_notes.html": """<h1>Alpha Product</h1>
+<p>Alpha note v2</p>
+<h1>Keep Product</h1>
+<p>Keep note</p>
+<h1>Gamma Product</h1>
+<p>Gamma note</p>
+""",
 "mvs.sha1": """5555555555555555555555555555555555555555 *manifest-alpha.iso
 6666666666666666666666666666666666666666 *manifest-keep.iso
 cccccccccccccccccccccccccccccccccccccccc *manifest-gamma.iso
@@ -128,8 +145,8 @@ def main():
     (FIXTURE / "README.txt").write_text(
         "Synthetic three-snapshot archive for change-history/all-ever tests.\n"
         "Snapshot 2 uses the nested mvs_dmp layout, removes Alpha, and adds Beta;\n"
-        "removes Beta, and adds Gamma. Keep values deliberately vary spelling,\n"
-        "case, whitespace, and numeric ID zero-padding to exercise normalization.\n",
+        "snapshot 3 restores Alpha, removes Beta, and adds Gamma. Keep values vary spelling,\n"
+        "case, whitespace, and numeric ID zero-padding to exercise normalization. Notes exercise legacy h3+ID and newer h1 headings.\n",
         encoding="utf-8", newline="\n"
     )
 

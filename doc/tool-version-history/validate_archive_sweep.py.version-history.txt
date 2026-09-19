@@ -1,5 +1,10 @@
 validate_archive_sweep.py Version History
 
+0.5.0 - 2026-08-30
+  - Added case-insensitive duplicate batch-label validation across delivered batch files.
+  - Requires indexed fast-worker markers, source-stability/cache features, note h3/h1 acceptance, retention, quality, HTML, and performance artifacts.
+  - Requires concrete 4/4 product/variant and 5/5/5 note synthetic all-ever assertions.
+
 0.2.1 - 2026-08-28
   - Rejects the PowerShell 5.1-sensitive nested hash predicate in fast workers.
   - Requires the explicit branch-based hash predicate markers.

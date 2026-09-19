@@ -1,5 +1,8 @@
 generate_performance_tools.py Version History
 
+0.3.0 - 2026-08-30
+  - Generates indexed/source-stable fast workers, strengthened fast acceptance, and public/archive performance helpers.
+
 0.1.1 - 2026-08-28
   - Generates fast workers version 0.1.1 with the PowerShell 5.1-safe hash predicate.
 

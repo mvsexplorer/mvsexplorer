@@ -1,5 +1,9 @@
 run_compare_tools_fast.bat Version History
 
+0.2.0 - 2026-08-30
+  - Added source-inventory freeze/recheck for both adjacent snapshots.
+  - Regenerated from the indexed/source-stable fast runtime.
+
 0.1.1 - 2026-08-28
   - Regenerated from the corrected shared fast-sweep runtime.
   - No compare-mode interface or logical status contract change.

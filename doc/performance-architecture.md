@@ -159,3 +159,43 @@ parse and makes progress visible.
 
 The literal public builders remain the authoritative compatibility path under
 `--external-tools`.
+
+## 0.14.0 second-stage optimization
+
+The completed 0.13.x real-archive run showed that combining processes was not
+enough by itself. Approximately 30 hours of recorded active computation
+remained, with detail and relationship logical checks dominating because they
+repeatedly searched large PowerShell arrays after the snapshot had already been
+parsed.
+
+0.14.0 builds case-insensitive indexes once per snapshot for product IDs/titles,
+product filenames, hash values, variant IDs/titles/filenames/hashes, and note
+titles. Detail/relationship checks use those indexes rather than full-array
+`Where-Object` scans.
+
+Independent snapshot batches can also execute concurrently with `--workers N`.
+The automatic default is deliberately conservative; a machine with ample RAM
+and cores can explicitly request more workers. Parallelism is applied after the
+algorithmic indexing change so it multiplies useful work rather than merely
+running several inefficient scans simultaneously.
+
+Repeated runs use a content-addressed snapshot-result cache. Cache keys include
+the fast-worker version, the exact per-snapshot plan slice, and SHA-256 of every
+present source file. `--no-cache` bypasses this mechanism and is used by the
+comprehensive full-archive performance cycle.
+
+Performance is measured at two levels:
+
+- logical check `elapsed_ms` in `runs.tsv`, useful for finding tool-operation
+  regressions after a model has been built;
+- full worker `elapsed_ms` in `fast-batches.tsv`, which includes parsing/index
+  construction and therefore identifies pathologically slow snapshots.
+
+`check_archive_sweep_quality.bat` writes `performance-by-tool.tsv`,
+`performance-outliers.tsv`, `performance-by-batch.tsv`, and
+`performance-batch-outliers.tsv`. `--strict-performance` converts outlier
+warnings to a nonzero quality-check result.
+
+The one-pass archive worker was also changed from per-line scriptblock callbacks
+to direct buffered `StreamReader` loops. Its runtime should be measured on
+Windows before setting tighter release thresholds.

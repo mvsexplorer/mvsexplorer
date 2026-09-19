@@ -1,5 +1,12 @@
 test_all_dumps.bat Version History
 
+0.4.0 - 2026-08-30
+  - Added indexed snapshot execution and bounded --workers parallelism.
+  - Added source-inventory freeze/recheck before logical batch commit.
+  - Added content-addressed snapshot result cache, --cache-folder, and --no-cache.
+  - Added non-destructive --exclusions input and automatic interactive HTML reporting.
+  - Fast archive completion now contributes both logical PASS rows to summary counters.
+
 0.2.0 - 2026-08-28
   - Default executor changed to fast-combined for high-throughput archive validation.
   - Added --external-tools for literal public-tool execution.

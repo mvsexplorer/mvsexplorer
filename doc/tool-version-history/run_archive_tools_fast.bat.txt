@@ -1,5 +1,10 @@
 run_archive_tools_fast.bat
 
+0.2.0 - 2026-08-30
+  - Replaced per-line scriptblock callbacks with buffered source streaming.
+  - Added per-dump contributions, retention, duplicate/quality, re-ID, and exclusion suggestions.
+  - Added all-ever product/variant states and versioned note evidence with raw HTML retention.
+
 0.1.0 - 2026-08-29
   - Initial one-pass fast archive history/all-ever worker.
   - Streams source files and reports progress per snapshot.

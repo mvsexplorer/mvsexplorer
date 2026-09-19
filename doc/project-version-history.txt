@@ -1,5 +1,20 @@
 MVS Explorer Toolkit Project Version History
 
+0.14.0 - 2026-08-30
+  - Kept all 443 public root tools byte-for-byte identical to the supplied 0.13.3 baseline.
+  - Replaced repeated fast-worker relationship/detail scans with snapshot-local indexes.
+  - Added bounded parallel snapshot workers (--workers) and content-addressed snapshot-result caching.
+  - Added source-inventory freeze/recheck so mid-batch moves or edits invalidate the entire batch.
+  - Added per-dump first-seen contributions and introduced-here/seen-later retention analysis.
+  - Added duplicate/quality metrics, variant source-ID regime transitions, and advisory exclusion suggestions.
+  - Added non-destructive canonical exclusions; excluded dumps remain fully ingested as evidence.
+  - Added versioned note history with legacy h3+ID and newer h1 parsing, raw HTML retention, and provenance.
+  - Added self-contained interactive archive-summary.html.
+  - Added test\test_everything.bat, public-test performance analysis, archive quality checks, and strict performance gates.
+  - Added logical-tool and whole-snapshot batch performance outlier reports.
+  - Strengthened the three-snapshot fast acceptance fixture with concrete product/variant/note all-ever assertions.
+  - Fixed fast archive PASS summary accounting and reduced archive parsing callback overhead.
+
 0.13.3 - 2026-08-29
   - Added one-pass fast archive history/all-ever worker.
   - Fast-combined mode no longer runs the two literal archive builders.

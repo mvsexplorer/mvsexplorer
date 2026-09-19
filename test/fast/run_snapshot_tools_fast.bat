@@ -1,7 +1,7 @@
 @echo off
 :setup
 setlocal DisableDelayedExpansion
-set "app.version=0.1.1"
+set "app.version=0.2.0"
 set "app.name=run_snapshot_tools_fast"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -10,6 +10,7 @@ set "mvsf_first_data=%~1"
 set "mvsf_second_data="
 set "mvsf_plan=%~2"
 set "mvsf_output=%~3"
+set "mvsf_cache_root=%~4"
 set "mvsf_caller=%~nx0"
 set "mvsf_version=%app.version%"
 :main
@@ -105,6 +106,7 @@ $PlanPath = [string]$env:mvsf_plan
 $OutputPath = [string]$env:mvsf_output
 $Caller = [string]$env:mvsf_caller
 $Version = [string]$env:mvsf_version
+$CacheRoot = [string]$env:mvsf_cache_root
 
 function Write-Err { param([string]$Text) [Console]::Error.WriteLine($Text) }
 function Fail { param([int]$Code,[string]$Message) Write-Err ('ERROR: ' + $Message); [Environment]::Exit($Code) }
@@ -146,18 +148,119 @@ function Test-StarPattern {
 }
 function New-List { return ,(New-Object System.Collections.ArrayList) }
 
-function Source-Exists {
-    param([string]$Root,[string]$Name)
-    if ([string]::IsNullOrWhiteSpace($Name)) { return $true }
-    return Test-Path -LiteralPath (Join-Path $Root $Name) -PathType Leaf
+
+
+function Get-Sha256File {
+    param([string]$Path)
+    $sha=[Security.Cryptography.SHA256]::Create()
+    $stream=[IO.File]::Open($Path,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
+    try{
+        $hash=$sha.ComputeHash($stream)
+        return -join ($hash | ForEach-Object {$_.ToString('x2')})
+    } finally {$stream.Dispose();$sha.Dispose()}
 }
-function All-Sources-Exist {
-    param([string]$Root,[string]$Spec)
-    if ([string]::IsNullOrWhiteSpace($Spec)) { return $true }
-    foreach ($name in $Spec.Split('|')) {
-        if (-not [string]::IsNullOrWhiteSpace($name) -and -not (Source-Exists $Root $name)) { return $false }
+
+function Get-Sha256Text {
+    param([AllowNull()][AllowEmptyString()][string]$Text)
+    if($null-eq$Text){$Text=''}
+    $sha=[Security.Cryptography.SHA256]::Create()
+    try{
+        $hash=$sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($Text))
+        return -join ($hash | ForEach-Object {$_.ToString('x2')})
+    } finally {$sha.Dispose()}
+}
+
+function Get-SnapshotCacheKey {
+    param([string]$Root,[string]$Plan,[hashtable]$Inventory,[string]$WorkerVersion)
+    $sb=New-Object Text.StringBuilder
+    [void]$sb.AppendLine('worker='+$WorkerVersion)
+    [void]$sb.AppendLine('plan='+(Get-Sha256File $Plan))
+    foreach($name in @('mvs.txt','mvs_ids.txt','mvs_dates.txt','mvs_names.txt','mvs_notes.html','mvs.sha1','mvs.sha256')){
+        $meta=$Inventory[$name]
+        if($null-eq$meta -or -not[bool]$meta.present){
+            [void]$sb.AppendLine($name+'|missing')
+        } else {
+            $path=Join-Path $Root $name
+            [void]$sb.AppendLine($name+'|'+[string]$meta.length+'|'+(Get-Sha256File $path))
+        }
+    }
+    return Get-Sha256Text $sb.ToString()
+}
+
+function Get-SourceInventory {
+    param([string]$Root)
+    $inventory=@{}
+    foreach($name in @('mvs.txt','mvs_ids.txt','mvs_dates.txt','mvs_names.txt','mvs_notes.html','mvs.sha1','mvs.sha256')){
+        $path=Join-Path $Root $name
+        if(Test-Path -LiteralPath $path -PathType Leaf){
+            $item=Get-Item -LiteralPath $path -ErrorAction Stop
+            $inventory[$name]=[pscustomobject]@{
+                present=$true
+                length=[int64]$item.Length
+                ticks=[int64]$item.LastWriteTimeUtc.Ticks
+            }
+        } else {
+            $inventory[$name]=[pscustomobject]@{present=$false;length=0L;ticks=0L}
+        }
+    }
+    return $inventory
+}
+
+function Inventory-SourceExists {
+    param([hashtable]$Inventory,[string]$Name)
+    if([string]::IsNullOrWhiteSpace($Name)){return $true}
+    if($null -eq $Inventory -or -not $Inventory.ContainsKey($Name)){return $false}
+    return [bool]$Inventory[$Name].present
+}
+
+function Inventory-AllSourcesExist {
+    param([hashtable]$Inventory,[string]$Spec)
+    if([string]::IsNullOrWhiteSpace($Spec)){return $true}
+    foreach($name in $Spec.Split('|')){
+        if(-not [string]::IsNullOrWhiteSpace($name) -and -not (Inventory-SourceExists $Inventory $name)){return $false}
     }
     return $true
+}
+
+function Assert-SourceInventoryUnchanged {
+    param([string]$Root,[hashtable]$Before)
+    $after=Get-SourceInventory $Root
+    foreach($name in $Before.Keys){
+        $a=$Before[$name]
+        $b=$after[$name]
+        if([bool]$a.present -ne [bool]$b.present){
+            throw ('Source availability changed during fast batch: '+$name)
+        }
+        if([bool]$a.present){
+            if([int64]$a.length -ne [int64]$b.length -or [int64]$a.ticks -ne [int64]$b.ticks){
+                throw ('Source changed during fast batch: '+$name)
+            }
+        }
+    }
+}
+
+function New-Index { return @{} }
+
+function Get-IndexKey {
+    param([AllowNull()][AllowEmptyString()][string]$Value)
+    if($null -eq $Value){return ''}
+    return $Value.Trim().ToLowerInvariant()
+}
+
+function Add-IndexRow {
+    param([hashtable]$Index,[AllowNull()][AllowEmptyString()][string]$Key,[object]$Row)
+    $k=Get-IndexKey $Key
+    if([string]::IsNullOrEmpty($k)){return}
+    if(-not $Index.ContainsKey($k)){$Index[$k]=New-List}
+    [void]$Index[$k].Add($Row)
+}
+
+function Get-IndexRows {
+    param([hashtable]$Index,[AllowNull()][AllowEmptyString()][string]$Key)
+    if($null -eq $Index){return @()}
+    $k=Get-IndexKey $Key
+    if([string]::IsNullOrEmpty($k) -or -not $Index.ContainsKey($k)){return @()}
+    return @($Index[$k])
 }
 
 function Add-HashRecord {
@@ -187,26 +290,34 @@ function Read-FastModel {
 
     $idsPath = Join-Path $Root 'mvs_ids.txt'
     if (Test-Path -LiteralPath $idsPath -PathType Leaf) {
-        foreach ($lineValue in Get-Content -LiteralPath $idsPath -Encoding UTF8) {
-            $line = [string]$lineValue
-            if ($line -match '^(?<title>.*?)\s*\[ID:\s*(?<id>\d+)\]\s*$') {
-                [void]$ids.Add([pscustomobject]@{ id=[string][int]$Matches.id; title=Normalize-Title $Matches.title })
+        $reader=New-Object System.IO.StreamReader -ArgumentList @($idsPath,[System.Text.Encoding]::UTF8,$true,65536)
+        try{
+            while($true){
+                $line=$reader.ReadLine()
+                if($null-eq$line){break}
+                if ($line -match '^(?<title>.*?)\s*\[ID:\s*(?<id>\d+)\]\s*$') {
+                    [void]$ids.Add([pscustomobject]@{ id=[string][int]$Matches.id; title=Normalize-Title $Matches.title })
+                }
             }
-        }
+        } finally {$reader.Dispose()}
     }
 
     $dateById = @{}
     $datesPath = Join-Path $Root 'mvs_dates.txt'
     if (Test-Path -LiteralPath $datesPath -PathType Leaf) {
-        foreach ($lineValue in Get-Content -LiteralPath $datesPath -Encoding UTF8) {
-            $line = [string]$lineValue
-            if ($line -match '^(?<date>.*?)\s+-\s+(?<title>.*?)\s*\[ID:\s*(?<id>\d+)\]\s*$') {
-                $id = [string][int]$Matches.id
-                $row = [pscustomobject]@{ id=$id; title=Normalize-Title $Matches.title; date=$Matches.date.Trim() }
-                [void]$dates.Add($row)
-                if (-not $dateById.ContainsKey($id)) { $dateById[$id]=$row.date }
+        $reader=New-Object System.IO.StreamReader -ArgumentList @($datesPath,[System.Text.Encoding]::UTF8,$true,65536)
+        try{
+            while($true){
+                $line=$reader.ReadLine()
+                if($null-eq$line){break}
+                if ($line -match '^(?<date>.*?)\s+-\s+(?<title>.*?)\s*\[ID:\s*(?<id>\d+)\]\s*$') {
+                    $id = [string][int]$Matches.id
+                    $row = [pscustomobject]@{ id=$id; title=Normalize-Title $Matches.title; date=$Matches.date.Trim() }
+                    [void]$dates.Add($row)
+                    if (-not $dateById.ContainsKey($id)) { $dateById[$id]=$row.date }
+                }
             }
-        }
+        } finally {$reader.Dispose()}
     }
 
     $noteByTitle = @{}
@@ -214,10 +325,14 @@ function Read-FastModel {
     if (Test-Path -LiteralPath $notesPath -PathType Leaf) {
         $html = Get-Content -LiteralPath $notesPath -Raw -Encoding UTF8
         $occurrence = 0
-        foreach ($match in [regex]::Matches($html,'(?is)<h1>(.*?)</h1>(.*?)(?=<h1>|\z)')) {
+        foreach ($match in [regex]::Matches($html,'(?is)<h[13][^>]*>(?<heading>.*?)</h[13]>(?<body>.*?)(?=<h[13]\b|\z)')) {
             $occurrence++
-            $title = Normalize-Title ([regex]::Replace($match.Groups[1].Value,'(?is)<[^>]+>',' '))
-            $note = Convert-NoteHtmlToText $match.Groups[2].Value
+            $heading = Normalize-Title ([regex]::Replace($match.Groups['heading'].Value,'(?is)<[^>]+>',' '))
+            $title = $heading
+            if ($heading -match '^(?<title>.*?)\s*\[ID:\s*(?<id>[^\]]+?)\s*\]\s*$') {
+                $title = Normalize-Title $Matches.title
+            }
+            $note = Convert-NoteHtmlToText $match.Groups['body'].Value
             [void]$notes.Add([pscustomobject]@{ occurrence=$occurrence; title=$title; note=$note })
             if (-not [string]::IsNullOrWhiteSpace($title) -and -not [string]::IsNullOrWhiteSpace($note)) {
                 $key=$title.ToLowerInvariant()
@@ -230,8 +345,11 @@ function Read-FastModel {
     $mvsPath = Join-Path $Root 'mvs.txt'
     if (Test-Path -LiteralPath $mvsPath -PathType Leaf) {
         $current=$null
-        foreach ($lineValue in Get-Content -LiteralPath $mvsPath -Encoding UTF8) {
-            $line=[string]$lineValue
+        $reader=New-Object System.IO.StreamReader -ArgumentList @($mvsPath,[System.Text.Encoding]::UTF8,$true,65536)
+        try{
+            while($true){
+                $line=$reader.ReadLine()
+                if($null-eq$line){break}
             if ($line -match '^---\s*(?<title>.*?)\s*\[ID:\s*(?<id>\d+)\]\s*---\s*$') {
                 $id=[string][int]$Matches.id
                 $title=Normalize-Title $Matches.title
@@ -253,7 +371,8 @@ function Read-FastModel {
                 [void]$productFiles.Add($row)
                 Add-HashRecord $hashRecords 'mvs.txt' $filename $hash $current.id $current.title ''
             }
-        }
+            }
+        } finally {$reader.Dispose()}
     }
 
     $namesPath = Join-Path $Root 'mvs_names.txt'
@@ -261,8 +380,11 @@ function Read-FastModel {
         $current=$null
         $occurrence=0
         $hasFile=$false
-        foreach ($lineValue in Get-Content -LiteralPath $namesPath -Encoding UTF8) {
-            $line=[string]$lineValue
+        $reader=New-Object System.IO.StreamReader -ArgumentList @($namesPath,[System.Text.Encoding]::UTF8,$true,65536)
+        try{
+            while($true){
+                $line=$reader.ReadLine()
+                if($null-eq$line){break}
             if ($line -match '^---\s*(?<title>.*?)\s*\[ID:\s*(?<id>[^\]]+?)\s*\]\s*---\s*$') {
                 if ($null -ne $current -and -not $hasFile) {
                     [void]$variants.Add([pscustomobject]@{occurrence=$current.occurrence;id=$current.id;variant_title=$current.variant_title;filename='';hash='';algorithm=''})
@@ -287,7 +409,8 @@ function Read-FastModel {
                 })
                 Add-HashRecord $hashRecords 'mvs_names.txt' $filename $hash $current.id '' $current.variant_title
             }
-        }
+            }
+        } finally {$reader.Dispose()}
         if ($null -ne $current -and -not $hasFile) {
             [void]$variants.Add([pscustomobject]@{occurrence=$current.occurrence;id=$current.id;variant_title=$current.variant_title;filename='';hash='';algorithm=''})
         }
@@ -298,15 +421,71 @@ function Read-FastModel {
         $path=Join-Path $Root $name
         if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { continue }
         $pattern='^\s*(?<hash>[0-9A-Fa-f]{' + $length + '})\s+\*(?<filename>.+?)\s*$'
-        foreach ($lineValue in Get-Content -LiteralPath $path -Encoding UTF8) {
-            $line=[string]$lineValue
-            if ($line -match $pattern) { Add-HashRecord $hashRecords $name $Matches.filename $Matches.hash '' '' '' }
+        $reader=New-Object System.IO.StreamReader -ArgumentList @($path,[System.Text.Encoding]::UTF8,$true,65536)
+        try{
+            while($true){
+                $line=$reader.ReadLine()
+                if($null-eq$line){break}
+                if ($line -match $pattern) { Add-HashRecord $hashRecords $name $Matches.filename $Matches.hash '' '' '' }
+            }
+        } finally {$reader.Dispose()}
+    }
+
+    $indexes=[ordered]@{
+        product_files_by_id=New-Index
+        product_files_by_title=New-Index
+        product_files_by_filename=New-Index
+        product_sections_by_id=New-Index
+        product_sections_by_title=New-Index
+        variants_by_id=New-Index
+        variants_by_title=New-Index
+        variants_by_filename=New-Index
+        variants_by_hash=New-Index
+        hash_records_by_filename=New-Index
+        hash_records_by_hash=New-Index
+        notes_by_title=New-Index
+    }
+    foreach($row in @($productFiles)){
+        Add-IndexRow $indexes.product_files_by_id $row.id $row
+        Add-IndexRow $indexes.product_files_by_title $row.title $row
+        Add-IndexRow $indexes.product_files_by_filename $row.filename $row
+    }
+    foreach($row in @($productSections)){
+        Add-IndexRow $indexes.product_sections_by_id $row.id $row
+        Add-IndexRow $indexes.product_sections_by_title $row.title $row
+    }
+    foreach($row in @($variants)){
+        Add-IndexRow $indexes.variants_by_id $row.id $row
+        Add-IndexRow $indexes.variants_by_title $row.variant_title $row
+        Add-IndexRow $indexes.variants_by_filename $row.filename $row
+        Add-IndexRow $indexes.variants_by_hash $row.hash $row
+    }
+    foreach($row in @($hashRecords)){
+        Add-IndexRow $indexes.hash_records_by_filename $row.filename $row
+        Add-IndexRow $indexes.hash_records_by_hash $row.hash $row
+    }
+    foreach($row in @($notes)){Add-IndexRow $indexes.notes_by_title $row.title $row}
+
+    $lookupProducts=New-List
+    $lookupDateById=@{}
+    foreach($d in @($dates)){if(-not $lookupDateById.ContainsKey([string]$d.id)){$lookupDateById[[string]$d.id]=[string]$d.date}}
+    foreach($r in @($ids)){
+        $date=$(if($lookupDateById.ContainsKey([string]$r.id)){[string]$lookupDateById[[string]$r.id]}else{''})
+        $nk=(Get-IndexKey $r.title)
+        $noteValues=New-Object System.Collections.ArrayList
+        $noteSeen=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+        foreach($nr in Get-IndexRows $indexes.notes_by_title $nk){
+            $nv=[string]$nr.note
+            if(-not [string]::IsNullOrWhiteSpace($nv) -and $noteSeen.Add($nv)){[void]$noteValues.Add($nv)}
         }
+        $note=$(if($noteValues.Count -gt 0){(@($noteValues) -join ' || ')}else{''})
+        [void]$lookupProducts.Add([pscustomobject]@{id=$r.id;title=$r.title;date=$date;note=$note})
     }
 
     return [pscustomobject]@{
         root=$Root;ids=@($ids);dates=@($dates);product_sections=@($productSections);product_files=@($productFiles)
         variant_sections=@($variantSections);variants=@($variants);hash_records=@($hashRecords);notes=@($notes)
+        indexes=$indexes;lookup_products=@($lookupProducts);source_inventory=$null
     }
 }
 
@@ -332,25 +511,10 @@ function Has-Projection {
     }
     return $false
 }
+
 function Get-LookupProducts {
     param([object]$Model)
-    $dateById=@{}
-    foreach($d in $Model.dates){$dateById[[string]$d.id]=[string]$d.date}
-    $noteByTitle=@{}
-    foreach($n in $Model.notes){
-        if([string]::IsNullOrWhiteSpace($n.note)){continue}
-        $k=$n.title.ToLowerInvariant()
-        if(-not $noteByTitle.ContainsKey($k)){$noteByTitle[$k]=New-List}
-        if(-not $noteByTitle[$k].Contains($n.note)){[void]$noteByTitle[$k].Add($n.note)}
-    }
-    $rows=New-List
-    foreach($r in $Model.ids){
-        $date=$(if($dateById.ContainsKey([string]$r.id)){[string]$dateById[[string]$r.id]}else{''})
-        $k=$r.title.ToLowerInvariant()
-        $note=$(if($noteByTitle.ContainsKey($k)){(($noteByTitle[$k]|ForEach-Object{[string]$_}) -join ' || ')}else{''})
-        [void]$rows.Add([pscustomobject]@{id=$r.id;title=$r.title;date=$date;note=$note})
-    }
-    return @($rows)
+    return @($Model.lookup_products)
 }
 
 function Required-Sources {
@@ -376,22 +540,16 @@ function Required-Sources {
     }
 }
 
+
 function Get-CandidateFilenames {
     param([object]$Model,[string]$Source,[string]$Needle)
     $rows=New-List
     $seen=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
-    if($Source -eq 'filename'){
-        foreach($r in $Model.hash_records){
-            if(Matches-Exact $r.filename $Needle){
-                if($seen.Add($r.filename)){[void]$rows.Add($r.filename)}
-            }
-        }
-    } elseif($Source -eq 'hash'){
-        foreach($r in $Model.hash_records){
-            if(Matches-Exact $r.hash $Needle){
-                if($seen.Add($r.filename)){[void]$rows.Add($r.filename)}
-            }
-        }
+    $records=@()
+    if($Source -eq 'filename'){$records=@(Get-IndexRows $Model.indexes.hash_records_by_filename $Needle)}
+    elseif($Source -eq 'hash'){$records=@(Get-IndexRows $Model.indexes.hash_records_by_hash $Needle)}
+    foreach($r in $records){
+        if(-not [string]::IsNullOrWhiteSpace([string]$r.filename) -and $seen.Add([string]$r.filename)){[void]$rows.Add([string]$r.filename)}
     }
     return @($rows)
 }
@@ -409,145 +567,149 @@ function Test-LookupResult {
     return $false
 }
 
+
 function Test-RelationshipResult {
     param([object]$Model,[object]$Entry)
-    $candidate=Get-CandidateFilenames $Model ([string]$Entry.search_source) ([string]$Entry.search_value)
-    $rows=New-List
-    foreach($filename in $candidate){
-        $owners=@($Model.product_files | Where-Object {Matches-Exact $_.filename $filename})
+    foreach($filename in Get-CandidateFilenames $Model ([string]$Entry.search_source) ([string]$Entry.search_value)){
+        $owners=@(Get-IndexRows $Model.indexes.product_files_by_filename $filename)
         if($owners.Count -eq 0){
-            [void]$rows.Add([pscustomobject]@{id='';title='';date='';note='';filename=$filename})
+            $row=[pscustomobject]@{id='';title='';date='';note='';filename=$filename}
+            if(Has-Projection @($row) ([string]$Entry.fields)){return $true}
         } else {
             foreach($owner in $owners){
-                [void]$rows.Add([pscustomobject]@{id=$owner.id;title=$owner.title;date=$owner.date;note=$owner.note;filename=$filename})
+                $row=[pscustomobject]@{id=$owner.id;title=$owner.title;date=$owner.date;note=$owner.note;filename=$filename}
+                if(Has-Projection @($row) ([string]$Entry.fields)){return $true}
             }
         }
     }
-    return Has-Projection @($rows) ([string]$Entry.fields)
+    return $false
 }
+
 
 function Test-DetailResult {
     param([object]$Model,[object]$Entry)
     $seeds=New-List
     $seen=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
-    $source=[string]$Entry.search_source;$needle=[string]$Entry.search_value
+    $source=[string]$Entry.search_source
+    $needle=[string]$Entry.search_value
+
     if($source -eq 'id' -or $source -eq 'title'){
-        foreach($f in $Model.product_files){
-            $match=$false
-            if($source -eq 'id'){
-                try{$match=([int64]$f.id -eq [int64]$needle)}catch{$match=$false}
-            } else {$match=Matches-Exact $f.title $needle}
-            if(-not $match){continue}
-            $key=[string]$f.id + [char]0x1f + $f.filename
+        $files=@()
+        if($source -eq 'id'){$files=@(Get-IndexRows $Model.indexes.product_files_by_id $needle)}
+        else{$files=@(Get-IndexRows $Model.indexes.product_files_by_title $needle)}
+        foreach($f in $files){
+            $key=[string]$f.id+[char]0x1f+[string]$f.filename
             if($seen.Add($key)){[void]$seeds.Add([pscustomobject]@{owner=$f;filename=$f.filename})}
         }
     } else {
         foreach($filename in Get-CandidateFilenames $Model $source $needle){
-            $owners=@($Model.product_files | Where-Object {Matches-Exact $_.filename $filename} | Group-Object id | ForEach-Object {$_.Group[0]})
-            if($owners.Count -eq 0){[void]$seeds.Add([pscustomobject]@{owner=$null;filename=$filename})}
-            else{foreach($owner in $owners){[void]$seeds.Add([pscustomobject]@{owner=$owner;filename=$filename})}}
-        }
-    }
-    $rows=New-List
-    foreach($seed in $seeds){
-        $records=@($Model.hash_records | Where-Object {
-            (Matches-Exact $_.filename $seed.filename) -and
-            ([string]::IsNullOrEmpty([string]$Entry.algorithm_filter) -or $_.algorithm -eq [string]$Entry.algorithm_filter)
-        })
-        if($records.Count -eq 0){
-            [void]$rows.Add([pscustomobject]@{
-                id=$(if($null -ne $seed.owner){$seed.owner.id}else{''});title=$(if($null -ne $seed.owner){$seed.owner.title}else{''})
-                date=$(if($null -ne $seed.owner){$seed.owner.date}else{''});note=$(if($null -ne $seed.owner){$seed.owner.note}else{''})
-                filename=$seed.filename;hash='';algorithm='';source=''
-            })
-        } else {
-            foreach($record in $records){
-                [void]$rows.Add([pscustomobject]@{
-                    id=$(if($null -ne $seed.owner){$seed.owner.id}else{''});title=$(if($null -ne $seed.owner){$seed.owner.title}else{''})
-                    date=$(if($null -ne $seed.owner){$seed.owner.date}else{''});note=$(if($null -ne $seed.owner){$seed.owner.note}else{''})
-                    filename=$record.filename;hash=$record.hash;algorithm=$record.algorithm;source=$record.source
-                })
+            $owners=@(Get-IndexRows $Model.indexes.product_files_by_filename $filename)
+            $ownerSeen=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+            if($owners.Count -eq 0){
+                [void]$seeds.Add([pscustomobject]@{owner=$null;filename=$filename})
+            } else {
+                foreach($owner in $owners){
+                    if($ownerSeen.Add([string]$owner.id)){[void]$seeds.Add([pscustomobject]@{owner=$owner;filename=$filename})}
+                }
             }
         }
     }
-    return Has-Projection @($rows) ([string]$Entry.fields)
+
+    $fields=[string]$Entry.fields
+    $filter=[string]$Entry.algorithm_filter
+    foreach($seed in $seeds){
+        $records=@(Get-IndexRows $Model.indexes.hash_records_by_filename ([string]$seed.filename))
+        $matchedRecord=$false
+        foreach($record in $records){
+            if(-not [string]::IsNullOrEmpty($filter) -and [string]$record.algorithm -ne $filter){continue}
+            $matchedRecord=$true
+            $row=[pscustomobject]@{
+                id=$(if($null -ne $seed.owner){$seed.owner.id}else{''})
+                title=$(if($null -ne $seed.owner){$seed.owner.title}else{''})
+                date=$(if($null -ne $seed.owner){$seed.owner.date}else{''})
+                note=$(if($null -ne $seed.owner){$seed.owner.note}else{''})
+                filename=$record.filename;hash=$record.hash;algorithm=$record.algorithm;source=$record.source
+            }
+            if(Has-Projection @($row) $fields){return $true}
+        }
+        if(-not $matchedRecord){
+            $row=[pscustomobject]@{
+                id=$(if($null -ne $seed.owner){$seed.owner.id}else{''})
+                title=$(if($null -ne $seed.owner){$seed.owner.title}else{''})
+                date=$(if($null -ne $seed.owner){$seed.owner.date}else{''})
+                note=$(if($null -ne $seed.owner){$seed.owner.note}else{''})
+                filename=$seed.filename;hash='';algorithm='';source=''
+            }
+            if(Has-Projection @($row) $fields){return $true}
+        }
+    }
+    return $false
 }
+
 
 function Test-VariantResult {
     param([object]$Model,[object]$Entry)
-    $rows=@($Model.variants)
-    if(-not [string]::IsNullOrEmpty([string]$Entry.search_source)){
-        $source=[string]$Entry.search_source;$needle=[string]$Entry.search_value
-        $rows=@($rows | Where-Object {
-            if($source -eq 'id'){Matches-Exact $_.id $needle}
-            elseif($source -eq 'filename'){Matches-Exact $_.filename $needle}
-            elseif($source -eq 'hash'){Matches-Exact $_.hash $needle}
-            else{$false}
-        })
-    }
+    $source=[string]$Entry.search_source
+    $rows=@()
+    if([string]::IsNullOrEmpty($source)){$rows=@($Model.variants)}
+    elseif($source -eq 'id'){$rows=@(Get-IndexRows $Model.indexes.variants_by_id ([string]$Entry.search_value))}
+    elseif($source -eq 'filename'){$rows=@(Get-IndexRows $Model.indexes.variants_by_filename ([string]$Entry.search_value))}
+    elseif($source -eq 'hash'){$rows=@(Get-IndexRows $Model.indexes.variants_by_hash ([string]$Entry.search_value))}
     return Has-Projection $rows ([string]$Entry.fields)
 }
+
+
 function Test-HashResult {
     param([object]$Model,[object]$Entry)
-
-    $algorithmFilter=[string]$Entry.algorithm_filter
-    $searchSource=[string]$Entry.search_source
-    $searchValue=[string]$Entry.search_value
-
-    $rows=@($Model.hash_records | Where-Object {
-        if(-not [string]::IsNullOrEmpty($algorithmFilter)){
-            if([string]$_.algorithm -ne $algorithmFilter){ return $false }
-        }
-
-        if([string]::IsNullOrEmpty($searchSource)){ return $true }
-        if($searchSource -eq 'filename'){
-            return (Matches-Exact ([string]$_.filename) $searchValue)
-        }
-        if($searchSource -eq 'hash'){
-            return (Matches-Exact ([string]$_.hash) $searchValue)
-        }
-        return $false
-    })
-    return Has-Projection $rows ([string]$Entry.fields)
+    $filter=[string]$Entry.algorithm_filter
+    $source=[string]$Entry.search_source
+    $rows=@()
+    if([string]::IsNullOrEmpty($source)){$rows=@($Model.hash_records)}
+    elseif($source -eq 'filename'){$rows=@(Get-IndexRows $Model.indexes.hash_records_by_filename ([string]$Entry.search_value))}
+    elseif($source -eq 'hash'){$rows=@(Get-IndexRows $Model.indexes.hash_records_by_hash ([string]$Entry.search_value))}
+    else{return $false}
+    foreach($row in $rows){
+        if(-not [string]::IsNullOrEmpty($filter) -and [string]$row.algorithm -ne $filter){continue}
+        if(Has-Projection @($row) ([string]$Entry.fields)){return $true}
+    }
+    return $false
 }
+
+
 function Test-ProductFileResult {
     param([object]$Model,[object]$Entry)
-    $rows=@($Model.product_files)
-    if(-not [string]::IsNullOrEmpty([string]$Entry.search_source)){
-        $src=[string]$Entry.search_source;$needle=[string]$Entry.search_value
-        $rows=@($rows | Where-Object {
-            if($src -eq 'id'){try{[int64]$_.id -eq [int64]$needle}catch{$false}}
-            else{Matches-Exact $_.title $needle}
-        })
-    }
+    $source=[string]$Entry.search_source
+    $rows=@()
+    if([string]::IsNullOrEmpty($source)){$rows=@($Model.product_files)}
+    elseif($source -eq 'id'){$rows=@(Get-IndexRows $Model.indexes.product_files_by_id ([string]$Entry.search_value))}
+    else{$rows=@(Get-IndexRows $Model.indexes.product_files_by_title ([string]$Entry.search_value))}
     return Has-Projection $rows ([string]$Entry.fields)
 }
+
+
 function Test-ProductSectionResult {
     param([object]$Model,[object]$Entry)
-    $rows=@($Model.product_sections)
-    if(-not [string]::IsNullOrEmpty([string]$Entry.search_source)){
-        $src=[string]$Entry.search_source;$needle=[string]$Entry.search_value
-        $rows=@($rows | Where-Object {
-            if($src -eq 'id'){try{[int64]$_.id -eq [int64]$needle}catch{$false}}
-            else{Matches-Exact $_.title $needle}
-        })
-    }
+    $source=[string]$Entry.search_source
+    $rows=@()
+    if([string]::IsNullOrEmpty($source)){$rows=@($Model.product_sections)}
+    elseif($source -eq 'id'){$rows=@(Get-IndexRows $Model.indexes.product_sections_by_id ([string]$Entry.search_value))}
+    else{$rows=@(Get-IndexRows $Model.indexes.product_sections_by_title ([string]$Entry.search_value))}
     return $rows.Count -gt 0
 }
+
+
 function Test-NoteResult {
     param([object]$Model,[object]$Entry)
-    $rows=@($Model.notes)
-    if(-not [string]::IsNullOrEmpty([string]$Entry.search_source)){
-        $needle=[string]$Entry.search_value
-        $rows=@($rows | Where-Object {Matches-Exact $_.title $needle})
-    }
+    $rows=@()
+    if([string]::IsNullOrEmpty([string]$Entry.search_source)){$rows=@($Model.notes)}
+    else{$rows=@(Get-IndexRows $Model.indexes.notes_by_title ([string]$Entry.search_value))}
     return Has-Projection $rows ([string]$Entry.fields)
 }
 
 function Get-SingleStatus {
     param([object]$Model,[object]$Entry)
     $required=Required-Sources $Entry
-    if(-not (All-Sources-Exist $Model.root $required)){return [pscustomobject]@{status='SOURCE_MISSING';rc=4}}
+    if(-not (Inventory-AllSourcesExist $Model.source_inventory $required)){return [pscustomobject]@{status='SOURCE_MISSING';rc=4}}
     $has=$true
     switch([string]$Entry.family){
         'scalar' {
@@ -577,11 +739,12 @@ function Get-SingleStatus {
     return [pscustomobject]@{status='NO_RESULT';rc=1}
 }
 
+
 function Get-CompareStatus {
-    param([object]$Entry,[string]$First,[string]$Second)
+    param([object]$Entry,[hashtable]$FirstInventory,[hashtable]$SecondInventory)
     $src=[string]$Entry.source_file
     if([string]::IsNullOrWhiteSpace($src)){return [pscustomobject]@{status='FAIL';rc=5}}
-    if(-not (Source-Exists $First $src) -or -not (Source-Exists $Second $src)){
+    if(-not (Inventory-SourceExists $FirstInventory $src) -or -not (Inventory-SourceExists $SecondInventory $src)){
         return [pscustomobject]@{status='SOURCE_MISSING';rc=4}
     }
     return [pscustomobject]@{status='PASS';rc=0}
@@ -597,23 +760,46 @@ try {
     [void]$sb.Append("index`tstatus`trc`telapsed_ms`n")
     if($Mode -eq 'snapshot'){
         if(-not (Test-Path -LiteralPath $FirstData -PathType Container)){Fail 3 ('Snapshot data folder not found: ' + $FirstData)}
+        $inventory=Get-SourceInventory $FirstData
+        $cachePath=''
+        if(-not[string]::IsNullOrWhiteSpace($CacheRoot)){
+            if(-not(Test-Path -LiteralPath $CacheRoot -PathType Container)){[void](New-Item -ItemType Directory -Path $CacheRoot -Force)}
+            $cacheKey=Get-SnapshotCacheKey $FirstData $PlanPath $inventory $Version
+            Assert-SourceInventoryUnchanged $FirstData $inventory
+            $cachePath=Join-Path $CacheRoot ($cacheKey+'.tsv')
+            if(Test-Path -LiteralPath $cachePath -PathType Leaf){
+                Copy-Item -LiteralPath $cachePath -Destination $OutputPath -Force
+                exit 0
+            }
+        }
         $model=Read-FastModel $FirstData
+        $model.source_inventory=$inventory
         foreach($entry in $entries){
             $sw=[Diagnostics.Stopwatch]::StartNew()
             $result=Get-SingleStatus $model $entry
             $sw.Stop()
             [void]$sb.Append(([string]$entry.index + "`t" + $result.status + "`t" + $result.rc + "`t" + $sw.ElapsedMilliseconds + "`n"))
         }
+        Assert-SourceInventoryUnchanged $FirstData $inventory
     } elseif($Mode -eq 'compare'){
         if(-not (Test-Path -LiteralPath $FirstData -PathType Container) -or -not (Test-Path -LiteralPath $SecondData -PathType Container)){Fail 3 'Compare data folder missing.'}
+        $firstInventory=Get-SourceInventory $FirstData
+        $secondInventory=Get-SourceInventory $SecondData
         foreach($entry in $entries){
             $sw=[Diagnostics.Stopwatch]::StartNew()
-            $result=Get-CompareStatus $entry $FirstData $SecondData
+            $result=Get-CompareStatus $entry $firstInventory $secondInventory
             $sw.Stop()
             [void]$sb.Append(([string]$entry.index + "`t" + $result.status + "`t" + $result.rc + "`t" + $sw.ElapsedMilliseconds + "`n"))
         }
+        Assert-SourceInventoryUnchanged $FirstData $firstInventory
+        Assert-SourceInventoryUnchanged $SecondData $secondInventory
     } else {Fail 2 ('Unsupported fast mode: ' + $Mode)}
     [IO.File]::WriteAllText($OutputPath,$sb.ToString(),$utf8)
+    if($Mode -eq 'snapshot' -and -not[string]::IsNullOrWhiteSpace($cachePath)){
+        $tmp=$cachePath+'.tmp.'+[Guid]::NewGuid().ToString('N')
+        Copy-Item -LiteralPath $OutputPath -Destination $tmp -Force
+        Move-Item -LiteralPath $tmp -Destination $cachePath -Force
+    }
     exit 0
 } catch {
     Fail 5 $_.Exception.Message

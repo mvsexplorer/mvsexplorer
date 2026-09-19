@@ -1,0 +1,6 @@
+analyze_test_performance.bat Version History
+
+0.1.0 - 2026-08-30
+  - Initial analyzer for timed public regression results.
+  - Writes all timed cases, scope aggregates, tool aggregates, and performance outliers.
+  - Optional --strict converts outliers to failure.

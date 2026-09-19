@@ -3,13 +3,19 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 [Console]::OutputEncoding = $utf8
 
 $ArchiveInput = [string]$env:mvsa_archive_root
-$Arg2 = [string]$env:mvsa_arg2
-$Arg3 = [string]$env:mvsa_arg3
-$Arg4 = [string]$env:mvsa_arg4
+$RawArgs = @(
+    [string]$env:mvsa_arg2,[string]$env:mvsa_arg3,[string]$env:mvsa_arg4,[string]$env:mvsa_arg5,
+    [string]$env:mvsa_arg6,[string]$env:mvsa_arg7,[string]$env:mvsa_arg8,[string]$env:mvsa_arg9
+)
 $OutputInput = ''
 $PlanOnly = $false
 $Resume = $false
 $Executor = 'fast-combined'
+$Workers = [Math]::Min(4,[Math]::Max(1,[int][Math]::Ceiling([Environment]::ProcessorCount / 2.0)))
+$GenerateReport = $true
+$ExclusionsInput = ''
+$UseCache = $true
+$CacheInput = ''
 $Caller = [string]$env:mvsa_caller
 $ScriptRoot = ([string]$env:mvsa_script_root).TrimEnd('\','/')
 $Version = [string]$env:mvsa_version
@@ -35,9 +41,13 @@ function Fail {
 
 function Show-Usage {
     Write-Line ('MVS Explorer Toolkit archive-wide tool sweep ' + $Version)
-    Write-Line ('Usage: ' + $Caller + ' mvs-dumps-root [results-folder] [--plan-only] [--resume] [--external-tools]')
-    Write-Line 'Default executor: fast-combined (shared parse, logical status validation).'
+    Write-Line ('Usage: ' + $Caller + ' mvs-dumps-root [results-folder] [--plan-only] [--resume] [--external-tools] [--workers N] [--exclusions FILE] [--no-report] [--cache-folder DIR] [--no-cache]')
+    Write-Line 'Default executor: fast-combined (indexed shared parse, logical status validation).'
     Write-Line '--external-tools executes every public .bat wrapper literally.'
+    Write-Line '--workers N controls bounded parallel snapshot workers in fast mode (default: auto up to 4).'
+    Write-Line '--exclusions FILE supplies non-destructive canonical-analysis exclusions; evidence is still ingested.'
+    Write-Line '--no-report skips interactive HTML generation.'
+    Write-Line '--cache-folder DIR reuses content-addressed snapshot results across runs; --no-cache disables it.'
     Write-Line 'Single-dump logical checks run once per snapshot; compare checks use adjacent snapshots.'
     Write-Line 'Fast mode builds history/all-ever together in one streaming archive pass; --external-tools runs both public builders literally.'
     Write-Line 'Return codes 1 and 4 are recorded as NO_RESULT and SOURCE_MISSING, not runtime failures.'
@@ -476,6 +486,7 @@ function Add-PlanEntry {
     [void]$Plan.Add([pscustomobject]@{
         index = $Plan.Count + 1
         executor = $Executor
+        engine_version = $Version
         scope = $Scope
         snapshot = $Snapshot
         next_snapshot = $NextSnapshot
@@ -500,7 +511,7 @@ function Add-PlanEntry {
 function Get-PlanText {
     param([object[]]$Plan)
     $columns = @(
-        'index','executor','scope','snapshot','next_snapshot','tool','family','operation',
+        'index','executor','engine_version','scope','snapshot','next_snapshot','tool','family','operation',
         'fields','algorithm_filter','source_file','diagnostic_kind','target_field',
         'search_source','search_value','search_origin'
     )
@@ -777,6 +788,122 @@ function Invoke-FastWorker {
 }
 
 
+
+function Start-FastWorkerJob {
+    param(
+        [object[]]$Entries,
+        [string]$WorkerPath,
+        [string]$FirstData,
+        [string]$SecondData,
+        [string]$ResultsFolder,
+        [string]$CacheRoot
+    )
+    if($Entries.Count -eq 0){return $null}
+    $firstIndex=[string]$Entries[0].index
+    $scope=[string]$Entries[0].scope
+    $snapshot=[string]$Entries[0].snapshot
+    $nextSnapshot=[string]$Entries[0].next_snapshot
+    $prefix='_fast.'+$scope+'.'+$firstIndex
+    $slicePath=Join-Path $ResultsFolder ($prefix+'.plan.tsv')
+    $outputPath=Join-Path $ResultsFolder ($prefix+'.results.tsv')
+    $stderrPath=Join-Path $ResultsFolder ($prefix+'.stderr.txt')
+    Remove-Item -LiteralPath $slicePath,$outputPath,$stderrPath -Force -ErrorAction SilentlyContinue
+    Write-TextUtf8 $slicePath (Get-PlanText $Entries)
+
+    $sw=[Diagnostics.Stopwatch]::StartNew()
+    $job=Start-Job -ScriptBlock {
+        param($Scope,$Worker,$First,$Second,$Slice,$Output,$Stderr,$Cache)
+        $ErrorActionPreference='Continue'
+        $rc=5
+        $message=''
+        try{
+            $global:LASTEXITCODE=0
+            if($Scope -eq 'single'){
+                & $Worker $First $Slice $Output $Cache 1> $null 2> $Stderr
+            } elseif($Scope -eq 'compare'){
+                & $Worker $First $Second $Slice $Output 1> $null 2> $Stderr
+            } else {
+                throw ('Unsupported fast worker scope: '+$Scope)
+            }
+            if($null -eq $LASTEXITCODE){$rc=0}else{$rc=[int]$LASTEXITCODE}
+        } catch {
+            $rc=5
+            $message=$_.Exception.Message
+            try{[IO.File]::AppendAllText($Stderr,($_ | Out-String)+[Environment]::NewLine,(New-Object System.Text.UTF8Encoding($false)))}catch{}
+        }
+        [pscustomobject]@{rc=$rc;message=$message}
+    } -ArgumentList @($scope,$WorkerPath,$FirstData,$SecondData,$slicePath,$outputPath,$stderrPath,$CacheRoot)
+
+    return [pscustomobject]@{
+        job=$job;entries=$Entries;scope=$scope;snapshot=$snapshot;next_snapshot=$nextSnapshot
+        worker_path=$WorkerPath;slice_path=$slicePath;output_path=$outputPath;stderr_path=$stderrPath;stopwatch=$sw
+    }
+}
+
+function Complete-FastWorkerJob {
+    param(
+        [object]$Context,
+        [string]$RunsPath,
+        [string]$FastBatchesPath,
+        [string]$FailureFolder
+    )
+    $job=$Context.job
+    Wait-Job -Job $job | Out-Null
+    $received=@(Receive-Job -Job $job)
+    Remove-Job -Job $job -Force -ErrorAction SilentlyContinue
+    $Context.stopwatch.Stop()
+
+    $rc=5
+    if($received.Count -gt 0){
+        $candidate=$received[$received.Count-1]
+        $parsed=5
+        if($null -ne $candidate.PSObject.Properties['rc'] -and [int]::TryParse([string]$candidate.rc,[ref]$parsed)){$rc=$parsed}
+    }
+    $workerName=[IO.Path]::GetFileName([string]$Context.worker_path)
+    Add-FastBatchRow $FastBatchesPath ([string]$Context.scope) ([string]$Context.snapshot) ([string]$Context.next_snapshot) $Context.entries.Count $workerName $Context.stopwatch.ElapsedMilliseconds $rc
+
+    $slicePath=[string]$Context.slice_path
+    $outputPath=[string]$Context.output_path
+    $stderrPath=[string]$Context.stderr_path
+    if($rc -ne 0 -or -not(Test-Path -LiteralPath $outputPath -PathType Leaf)){
+        $safe=((([string]$Context.scope)+'__'+([string]$Context.snapshot)+'__'+([string]$Context.next_snapshot)) -replace '[^A-Za-z0-9._-]+','_')
+        $target=Join-Path $FailureFolder ('fast-batch__'+$safe+'.stderr.txt')
+        if(Test-Path -LiteralPath $stderrPath -PathType Leaf){Copy-Item -LiteralPath $stderrPath -Destination $target -Force}
+        else{Write-TextUtf8 $target ('Fast worker failed with rc '+$rc+[Environment]::NewLine)}
+        Remove-Item -LiteralPath $slicePath,$outputPath,$stderrPath -Force -ErrorAction SilentlyContinue
+        Fail 5 ('Fast combined worker failed for '+$Context.snapshot+$(if($Context.next_snapshot){' -> '+$Context.next_snapshot}else{''})+'; see '+$target)
+    }
+
+    $rows=@(Import-Csv -LiteralPath $outputPath -Delimiter "`t")
+    if($rows.Count -ne $Context.entries.Count){
+        Remove-Item -LiteralPath $slicePath,$outputPath,$stderrPath -Force -ErrorAction SilentlyContinue
+        Fail 5 ('Fast worker row count mismatch for '+$Context.snapshot+': expected '+$Context.entries.Count+', got '+$rows.Count)
+    }
+
+    $entryByIndex=@{}
+    foreach($entry in $Context.entries){$entryByIndex[[string]$entry.index]=$entry}
+    $seen=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+    $statuses=New-Object System.Collections.ArrayList
+    foreach($row in $rows){
+        $idx=[string]$row.index
+        if(-not $entryByIndex.ContainsKey($idx) -or -not $seen.Add($idx)){
+            Remove-Item -LiteralPath $slicePath,$outputPath,$stderrPath -Force -ErrorAction SilentlyContinue
+            Fail 5 ('Fast worker returned unexpected/duplicate plan index: '+$idx)
+        }
+        $entry=$entryByIndex[$idx]
+        $status=[string]$row.status
+        $logicalRc=0
+        $logicalMs=0L
+        if(-not [int]::TryParse([string]$row.rc,[ref]$logicalRc)){Fail 5 ('Invalid fast worker rc for index '+$idx)}
+        if(-not [long]::TryParse([string]$row.elapsed_ms,[ref]$logicalMs)){Fail 5 ('Invalid fast worker elapsed_ms for index '+$idx)}
+        if(@('PASS','NO_RESULT','SOURCE_MISSING','FAIL') -notcontains $status){Fail 5 ('Invalid fast worker status for index '+$idx+': '+$status)}
+        Add-RunRow $RunsPath $entry $status $logicalRc 0 0 $logicalMs
+        [void]$statuses.Add($status)
+    }
+    Remove-Item -LiteralPath $slicePath,$outputPath,$stderrPath -Force -ErrorAction SilentlyContinue
+    return @($statuses)
+}
+
 function Invoke-FastArchiveWorker {
     param(
         [object[]]$Entries,
@@ -799,7 +926,7 @@ function Invoke-FastArchiveWorker {
         $oldPreference=$ErrorActionPreference
         $ErrorActionPreference='Continue'
         try{
-            & $WorkerPath $ArchiveRoot $ArchiveOutput 2> $stderrPath
+            & $WorkerPath $ArchiveRoot $ArchiveOutput 1> $null 2> $stderrPath
             if($null -eq $LASTEXITCODE){$rc=0}else{$rc=[int]$LASTEXITCODE}
         }finally{$ErrorActionPreference=$oldPreference}
     }catch{
@@ -852,6 +979,10 @@ function Write-Summary {
         '',
         'Mode: ' + $Mode,
         'Executor: ' + $Executor,
+        ('Workers: ' + $Workers),
+        ('Exclusions: ' + $ExclusionsPath),
+        'Content cache: ' + $(if($UseCache){$CachePath}else{'disabled'}),
+        'Interactive report: ' + $(if($GenerateReport -and $Executor -eq 'fast-combined'){'enabled'}else{'disabled'}),
         'Snapshots: ' + $Snapshots,
         'Single-snapshot public tools: ' + $SingleTools,
         'Compare public tools: ' + $CompareTools,
@@ -877,28 +1008,72 @@ if ([string]::IsNullOrWhiteSpace($ArchiveInput)) {
     Fail 2 'Missing mvs-dumps-root.'
 }
 
-foreach ($arg in @($Arg2,$Arg3,$Arg4)) {
-    if ([string]::IsNullOrWhiteSpace($arg)) { continue }
-    switch ($arg) {
-        '--plan-only' {
-            if ($PlanOnly) { Fail 2 'Duplicate --plan-only option.' }
-            $PlanOnly = $true
-        }
-        '--resume' {
-            if ($Resume) { Fail 2 'Duplicate --resume option.' }
-            $Resume = $true
-        }
-        '--external-tools' {
-            if ($Executor -eq 'external-public') { Fail 2 'Duplicate --external-tools option.' }
-            $Executor = 'external-public'
-        }
-        default {
-            if ($arg.StartsWith('--')) { Fail 2 ('Unknown option: ' + $arg) }
-            if (-not [string]::IsNullOrWhiteSpace($OutputInput)) { Fail 2 'More than one results-folder was supplied.' }
-            $OutputInput = $arg
-        }
+$argsList=New-Object System.Collections.ArrayList
+foreach($candidate in $RawArgs){if(-not [string]::IsNullOrWhiteSpace($candidate)){[void]$argsList.Add($candidate)}}
+for($argIndex=0;$argIndex-lt$argsList.Count;$argIndex++){
+    $arg=[string]$argsList[$argIndex]
+    if($arg -eq '--plan-only'){
+        if($PlanOnly){Fail 2 'Duplicate --plan-only option.'}
+        $PlanOnly=$true
+        continue
     }
+    if($arg -eq '--resume'){
+        if($Resume){Fail 2 'Duplicate --resume option.'}
+        $Resume=$true
+        continue
+    }
+    if($arg -eq '--external-tools'){
+        if($Executor -eq 'external-public'){Fail 2 'Duplicate --external-tools option.'}
+        $Executor='external-public'
+        continue
+    }
+    if($arg -eq '--no-report'){
+        $GenerateReport=$false
+        continue
+    }
+    if($arg -eq '--no-cache'){
+        $UseCache=$false
+        continue
+    }
+    if($arg -match '^--cache-folder=(?<path>.+)$'){
+        $CacheInput=[string]$Matches.path
+        continue
+    }
+    if($arg -eq '--cache-folder'){
+        $argIndex++
+        if($argIndex-ge$argsList.Count){Fail 2 '--cache-folder requires a directory path.'}
+        $CacheInput=[string]$argsList[$argIndex]
+        continue
+    }
+    if($arg -match '^--workers=(?<n>\d+)$'){
+        $Workers=[int]$Matches.n
+        continue
+    }
+    if($arg -eq '--workers'){
+        $argIndex++
+        if($argIndex-ge$argsList.Count){Fail 2 '--workers requires an integer value.'}
+        $value=[string]$argsList[$argIndex]
+        $parsed=0
+        if(-not [int]::TryParse($value,[ref]$parsed)){Fail 2 ('Invalid --workers value: '+$value)}
+        $Workers=$parsed
+        continue
+    }
+    if($arg -match '^--exclusions=(?<path>.+)$'){
+        $ExclusionsInput=[string]$Matches.path
+        continue
+    }
+    if($arg -eq '--exclusions'){
+        $argIndex++
+        if($argIndex-ge$argsList.Count){Fail 2 '--exclusions requires a file path.'}
+        $ExclusionsInput=[string]$argsList[$argIndex]
+        continue
+    }
+    if($arg.StartsWith('--')){Fail 2 ('Unknown option: '+$arg)}
+    if(-not [string]::IsNullOrWhiteSpace($OutputInput)){Fail 2 'More than one results-folder was supplied.'}
+    $OutputInput=$arg
 }
+if($Workers -lt 1 -or $Workers -gt 32){Fail 2 '--workers must be between 1 and 32.'}
+if($Executor -eq 'external-public'){$Workers=1}
 if ($PlanOnly -and $Resume) { Fail 2 '--plan-only and --resume cannot be combined.' }
 if ($Resume -and [string]::IsNullOrWhiteSpace($OutputInput)) {
     Fail 2 '--resume requires an existing results-folder argument.'
@@ -911,6 +1086,25 @@ $ProjectRoot = Split-Path -Parent $ScriptRoot
 if ([string]::IsNullOrWhiteSpace($ProjectRoot) -or -not (Test-Path -LiteralPath $ProjectRoot -PathType Container)) {
     Fail 3 'Project root could not be resolved from test script location.'
 }
+
+if([string]::IsNullOrWhiteSpace($ExclusionsInput)){
+    $ExclusionsPath=Join-Path $ScriptRoot 'archive-exclusions.tsv'
+} else {
+    $candidate=$ExclusionsInput
+    if(-not[IO.Path]::IsPathRooted($candidate)){$candidate=Join-Path (Get-Location).Path $candidate}
+    $ExclusionsPath=[IO.Path]::GetFullPath($candidate)
+    if(-not(Test-Path -LiteralPath $ExclusionsPath -PathType Leaf)){Fail 2 ('Exclusions file not found: '+$ExclusionsPath)}
+}
+
+if($UseCache){
+    if([string]::IsNullOrWhiteSpace($CacheInput)){$CachePath=Join-Path $ScriptRoot 'archive-sweep-cache'}
+    else{
+        $candidate=$CacheInput
+        if(-not[IO.Path]::IsPathRooted($candidate)){$candidate=Join-Path (Get-Location).Path $candidate}
+        $CachePath=[IO.Path]::GetFullPath($candidate)
+    }
+    if(-not(Test-Path -LiteralPath $CachePath -PathType Container)){[void](New-Item -ItemType Directory -Path $CachePath -Force)}
+} else {$CachePath=''}
 
 $publicFiles = @(Get-ChildItem -LiteralPath $ProjectRoot -File -Filter '*.bat' -ErrorAction Stop | Sort-Object Name)
 if ($publicFiles.Count -eq 0) { Fail 4 'No public root .bat tools found.' }
@@ -1066,6 +1260,10 @@ $runInfo = @(
     'Sweep version: ' + $Version,
     'Mode: ' + $(if ($PlanOnly) { 'plan-only' } elseif ($Resume) { 'resume' } else { 'execute' }),
     'Executor: ' + $Executor,
+    'Workers: ' + $Workers,
+    'Content cache: ' + $(if($UseCache){$CachePath}else{'disabled'}),
+    'Exclusions: ' + $ExclusionsPath,
+    'Interactive report: ' + $GenerateReport,
     'Archive root: ' + $ArchiveRoot,
     'Project root: ' + $ProjectRoot,
     'Results folder: ' + $ResultsFolder,
@@ -1142,21 +1340,43 @@ if ($Executor -eq 'external-public') {
     if (-not (Test-Path -LiteralPath $snapshotWorker -PathType Leaf)) { Fail 4 ('Missing fast snapshot worker: ' + $snapshotWorker) }
     if (-not (Test-Path -LiteralPath $compareWorker -PathType Leaf)) { Fail 4 ('Missing fast compare worker: ' + $compareWorker) }
 
-    foreach ($snapshot in $snapshots) {
+    $snapshotBatches=New-Object System.Collections.ArrayList
+    foreach($snapshot in $snapshots){
         $pending=@($plan | Where-Object {
             $_.scope -eq 'single' -and $_.snapshot -eq $snapshot.name -and -not $done.Contains([int]$_.index)
         })
-        if($pending.Count -eq 0){continue}
+        if($pending.Count -gt 0){
+            [void]$snapshotBatches.Add([pscustomobject]@{snapshot=$snapshot;entries=$pending})
+        }
+    }
 
-        Write-Line ('=== Snapshot ' + $snapshot.name + ' [fast-combined ' + $pending.Count + ' checks] ===')
-        $statuses=@(Invoke-FastWorker $pending $snapshotWorker $snapshot.data_path '' $ResultsFolder $runsPath $fastBatchesPath $failureFolder)
-        for($n=0;$n-lt$pending.Count;$n++){
+    $active=New-Object System.Collections.ArrayList
+    $nextBatch=0
+    while($nextBatch-lt$snapshotBatches.Count -or $active.Count -gt 0){
+        while($nextBatch-lt$snapshotBatches.Count -and $active.Count-lt$Workers){
+            $batch=$snapshotBatches[$nextBatch]
+            $nextBatch++
+            Write-Line ('=== Snapshot '+$batch.snapshot.name+' [fast-combined '+$batch.entries.Count+' checks; worker '+($active.Count+1)+'/'+$Workers+'] ===')
+            $ctx=Start-FastWorkerJob $batch.entries $snapshotWorker $batch.snapshot.data_path '' $ResultsFolder $CachePath
+            [void]$active.Add($ctx)
+        }
+        if($active.Count -eq 0){continue}
+        $jobList=@($active | ForEach-Object {$_.job})
+        $finished=Wait-Job -Job $jobList -Any
+        $ctx=$null
+        foreach($candidate in @($active)){
+            if($candidate.job.Id -eq $finished.Id){$ctx=$candidate;break}
+        }
+        if($null -eq $ctx){Fail 5 'Could not resolve completed fast worker job.'}
+        [void]$active.Remove($ctx)
+        $statuses=@(Complete-FastWorkerJob $ctx $runsPath $fastBatchesPath $failureFolder)
+        for($n=0;$n-lt$ctx.entries.Count;$n++){
             $status=[string]$statuses[$n]
             if($counts.ContainsKey($status)){$counts[$status]++}
-            [void]$done.Add([int]$pending[$n].index)
+            [void]$done.Add([int]$ctx.entries[$n].index)
             $completed++
         }
-        Write-Line ('Progress: ' + $completed + '/' + $plan.Count + ' PASS=' + $counts.PASS + ' NO_RESULT=' + $counts.NO_RESULT + ' SOURCE_MISSING=' + $counts.SOURCE_MISSING + ' FAIL=' + $counts.FAIL)
+        Write-Line ('Completed snapshot '+$ctx.snapshot+'. Progress: '+$completed+'/'+$plan.Count+' PASS='+$counts.PASS+' NO_RESULT='+$counts.NO_RESULT+' SOURCE_MISSING='+$counts.SOURCE_MISSING+' FAIL='+$counts.FAIL)
         Write-Summary $summaryPath $summaryMode $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
     }
 
@@ -1199,6 +1419,18 @@ if ($Executor -eq 'external-public') {
 }
 
 Write-Summary $summaryPath $summaryMode $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
+
+if($GenerateReport -and $Executor -eq 'fast-combined' -and -not $PlanOnly -and $counts.FAIL -eq 0){
+    $reportWorker=Join-Path $ScriptRoot 'build_archive_html_report.bat'
+    if(-not(Test-Path -LiteralPath $reportWorker -PathType Leaf)){Fail 4 ('Missing interactive report builder: '+$reportWorker)}
+    $reportPath=Join-Path $ResultsFolder 'archive-summary.html'
+    Write-Line '=== Interactive archive report ==='
+    $global:LASTEXITCODE=0
+    & $reportWorker $ResultsFolder $reportPath $ExclusionsPath
+    $reportRc=if($null-eq$LASTEXITCODE){0}else{[int]$LASTEXITCODE}
+    if($reportRc-ne0){Fail 5 ('Interactive report builder failed with rc '+$reportRc)}
+}
+
 Write-Line ('SUMMARY: PASS=' + $counts.PASS + ' NO_RESULT=' + $counts.NO_RESULT + ' SOURCE_MISSING=' + $counts.SOURCE_MISSING + ' FAIL=' + $counts.FAIL)
 Write-Line ('Results: ' + $ResultsFolder)
 if ($counts.FAIL -gt 0) { [Environment]::Exit(1) }

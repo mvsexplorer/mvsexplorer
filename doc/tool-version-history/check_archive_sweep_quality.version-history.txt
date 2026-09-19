@@ -1,0 +1,7 @@
+check_archive_sweep_quality.bat Version History
+
+0.1.0 - 2026-08-30
+  - Initial archive ledger/source/evolution integrity checker.
+  - Independently validates expected historical SOURCE_MISSING classifications.
+  - Reports logical-tool and snapshot-batch performance outliers.
+  - Optional --strict-performance converts performance warnings to failure.

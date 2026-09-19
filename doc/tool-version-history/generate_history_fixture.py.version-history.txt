@@ -1,0 +1,7 @@
+generate_history_fixture.py Version History
+
+0.2.0 - 2026-08-30
+  - Added legacy h3+ID and newer h1 note fixtures with stable, changed, and one-off note versions.
+
+0.1.0 - 2026-08-27
+  - Initial three-snapshot archive-history fixture with nested mvs_dmp coverage.

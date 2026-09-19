@@ -225,3 +225,46 @@ rows are appended to `runs.tsv` only after the worker returns success.
 Because executor identity and the logical 34,822-row plan are unchanged,
 a 0.13.2 fast-combined results folder with 34,820 completed rows can be resumed
 by 0.13.3 after stopping any still-running 0.13.2 archive-builder process.
+
+## 0.14.0 indexed, parallel, source-stable execution
+
+`fast-combined` remains a logical-status archive executor, not a replacement for
+literal public-wrapper regression tests. Its plan still represents exactly the
+same public scope: 422 single-snapshot checks per dump, 19 adjacent comparisons,
+and two archive checks.
+
+Snapshot batches now build filename/hash/product/variant/note indexes once and
+serve logical checks from those indexes. Independent snapshots can run in
+bounded parallel jobs:
+
+```bat
+test\test_all_dumps.bat ..\mvs_dumps_archive --workers 8
+```
+
+The automatic worker count is conservative (up to four); `--workers N` accepts
+1 through 32. `--external-tools` intentionally forces literal wrapper
+execution instead.
+
+Fast mode has a content-addressed snapshot-result cache under
+`test\archive-sweep-cache` by default. Use `--cache-folder DIR` to relocate it
+or `--no-cache` for a fresh benchmark.
+
+Every worker freezes presence, length, and UTC last-write metadata for all seven
+known sources before parsing and verifies the inventory again before its 422
+rows are committed. A source appearing, disappearing, or changing mid-batch
+fails that complete batch. Resume therefore reruns it rather than retaining
+partial or false historical classifications.
+
+Fast archive output also contains `archive-output\evolution\` and the
+self-contained `archive-summary.html`. See
+`doc\archive-evolution-and-quality.md`.
+
+Canonical exclusion configuration is accepted with `--exclusions FILE`.
+Exclusions affect analysis/report interpretation only; the snapshot is still
+tested and its evidence remains ingested.
+
+For a truly fresh performance run:
+
+```bat
+test\test_all_dumps.bat ..\mvs_dumps_archive --workers 8 --no-cache
+```

@@ -234,3 +234,30 @@ Analyze an existing sweep:
 
 Fast executor acceptance test:
   test\test_fast_archive_sweep.bat
+
+Archive-wide indexed analysis / quality (0.14.0)
+------------------------------------------------
+Fresh fast run with explicit parallelism:
+  test\test_all_dumps.bat mvs-dumps-root --workers 8 --no-cache
+
+Repeated cached run:
+  test\test_all_dumps.bat mvs-dumps-root --workers 8
+
+Non-destructive canonical exclusions:
+  test\test_all_dumps.bat mvs-dumps-root --exclusions test\archive-exclusions.tsv
+
+Comprehensive functional/quality/performance gate:
+  test\test_everything.bat mvs-dumps-root
+
+Fresh full archive comprehensive gate:
+  test\test_everything.bat mvs-dumps-root --full-archive --workers 8
+
+Quality/performance check existing results:
+  test\check_archive_sweep_quality.bat result-folder
+  test\check_archive_sweep_quality.bat result-folder --strict-performance
+
+Public regression timing analysis:
+  test\analyze_test_performance.bat test-results-folder
+
+Rebuild self-contained HTML report:
+  test\build_archive_html_report.bat result-folder

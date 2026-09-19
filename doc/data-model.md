@@ -216,3 +216,56 @@ and therefore safer. It can later serve as an input to richer history logic
 without changing the literal facts it reports.
 
 `mvs_names.txt` IDs remain textual source IDs in this layer.
+
+## Cross-dump evidence model (0.14.0)
+
+The archive evolution layer distinguishes source observation from canonical
+interpretation.
+
+```text
+Archive
+├─ SnapshotObservation
+│  ├─ source presence / layout
+│  ├─ source-local value sets
+│  ├─ product states
+│  ├─ variant states
+│  └─ note occurrences
+├─ AllEverEvidence
+│  ├─ first_seen_dump
+│  ├─ last_seen_dump
+│  └─ observed_snapshots
+├─ CanonicalPolicy
+│  ├─ snapshot
+│  ├─ scope
+│  ├─ canonical
+│  └─ reason
+└─ QualityObservation
+   ├─ duplicate/zero-file metrics
+   ├─ variant ID-regime transitions
+   └─ advisory anomaly flags
+```
+
+A canonical exclusion never removes `SnapshotObservation` or
+`AllEverEvidence`.
+
+### Note evidence
+
+`NoteOccurrence` is extended with snapshot, literal source heading ID when
+present, normalized title/text, raw HTML hash, and same-snapshot exact-title
+product associations. A `NoteVersion` is `(normalized title, normalized note
+text)` and a separate raw-markup variant preserves different source HTML forms.
+
+Observation counts are snapshot counts rather than occurrence counts. This
+prevents a duplicate-heavy dump from falsely increasing apparent note
+longevity.
+
+Notes remain title-level evidence. Variant source IDs are associated only when a
+variant heading independently has the same normalized title; no filename/hash
+ownership inference is introduced.
+
+### Product/variant state
+
+Cross-dump product/variant state is used for evolution analysis, not as a new
+public canonical entity ID. Variant source ID is explicitly excluded from the
+state identity so source-ID regime changes can be measured rather than mistaken
+for wholesale new content.

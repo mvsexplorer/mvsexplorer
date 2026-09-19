@@ -1,5 +1,11 @@
 test_fast_archive_sweep.bat Version History
 
+0.4.0 - 2026-08-30
+  - Rebuilt top-level flow so all subroutines are outside parenthesized error branches.
+  - Added concrete product/variant/note evolution assertions.
+  - Synthetic notes exercise legacy h3+ID and newer h1 headings.
+  - Added quality checker and interactive HTML report acceptance.
+
 0.1.0 - 2026-08-28
   - Initial Windows acceptance test for fast-combined archive execution.
   - Uses the three-snapshot synthetic history fixture (1,306 logical checks).

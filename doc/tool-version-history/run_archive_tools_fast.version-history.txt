@@ -1,0 +1,9 @@
+run_archive_tools_fast.bat Version History
+
+0.2.0 - 2026-08-30
+  - Added direct buffered source parsing for archive-wide evolution analysis.
+  - Added 19-domain first-seen additions, per-dump retention, quality, re-ID, product/variant states, and versioned notes.
+  - Preserves all legacy history/all-ever outputs.
+
+0.1.0 - 2026-08-29
+  - Initial one-pass fast archive history/all-ever worker.

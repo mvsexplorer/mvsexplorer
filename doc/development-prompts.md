@@ -1629,3 +1629,16 @@ produces 34,822 planned invocations across the supplied archive.
 The attached result bundle confirmed indices 1-34820 were committed with zero
 FAIL rows; only the two archive-wide builder rows remained. This led to the
 0.13.3 one-pass fast archive worker.
+
+## 2026-08-30 — Archive evolution, non-destructive exclusions, frequent testing, and HTML sanity report
+
+> I want to understand how much of what kind of data did each dump add to the running total.
+> I want to discover duplication and dumps where the same products may have entirely new IDs.
+> I may add an exclusion list for known bad dumps, but I need to know whether excluded dumps contain information not in later dumps.
+> Notes may be unique to one dump, so capture each unique note as completely as possible.
+> This must work with future dumps, run faster on fresh/repeated tests, and produce an interactive HTML summary.
+
+## 2026-08-30 — Comprehensive performance regression loop
+
+> Include a tester bat which runs test on all tools including quality and performance checking so performance outliers can be found and optimized and the test run again to ensure no regression.
+> Include the suggested optimizations, interactive HTML report, and the other suggested additions.

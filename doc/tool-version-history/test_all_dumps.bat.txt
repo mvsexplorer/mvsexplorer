@@ -1,5 +1,10 @@
 test_all_dumps.bat
 
+0.4.0 - 2026-08-30
+  - Indexed/parallel fast-combined executor with source-stable batch commit.
+  - Content-addressed snapshot cache and non-destructive exclusions/report integration.
+  - Correct archive logical PASS summary accounting.
+
 
 0.3.0 - 2026-08-29
   - Fast-combined archive tail now uses run_archive_tools_fast.bat.

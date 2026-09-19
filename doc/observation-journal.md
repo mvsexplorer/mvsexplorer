@@ -348,3 +348,49 @@ A wrapper-level test can fail after the system under test has already
 succeeded. Metadata assertions therefore need their own robust encoding-aware
 reader, and failure paths must expose the temporary result directory instead
 of silently leaving it under `%TEMP%`.
+
+## 2026-08-30
+
+### Snapshot parsing once is not enough if every query still scans the model
+
+The first combined executor eliminated thousands of PowerShell process starts
+but still spent most of its time repeatedly filtering large arrays. Reusable
+indexes are the correct unit for high-volume logical validation.
+
+### Parallelism should follow algorithmic optimization
+
+Independent snapshots are safe parallel work units, but concurrency should not
+be used to hide quadratic or repeated-scan behavior. Index first, then apply a
+bounded worker count.
+
+### A missing source during a worker is not historical evidence
+
+Source availability is a property of the snapshot being tested, not of a
+momentary filesystem race. Freeze the inventory, validate it before commit, and
+discard the complete batch if the underlying files change.
+
+### Exclusion and ingestion are different operations
+
+A dump can be unsuitable as a canonical transition while still containing
+unique historically valuable evidence. Canonical exclusions must therefore
+never mean physical skipping. Per-dump “never seen later” counts make the cost
+of an exclusion visible.
+
+### Notes need version and occurrence provenance
+
+A latest-note-only model loses one-off historical text. A normalized-text-only
+model can also lose meaningful markup changes. Keep occurrence provenance,
+snapshot-level version counts, normalized text hashes, and raw HTML hashes.
+
+### Source-level variant IDs are regime-dependent evidence
+
+Large adjacent re-ID percentages with stable variant content demonstrate that
+`mvs_names.txt` IDs cannot be treated as permanent variant identity. Preserve
+them as source provenance and compare variants by independently normalized
+content state.
+
+### Performance regression needs both logical and batch timing
+
+Per-check timing finds expensive predicates after a model is built. Batch wall
+time captures parsing/index construction and pathological snapshots. Both are
+needed to understand where fresh-run time went.

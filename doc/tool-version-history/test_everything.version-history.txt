@@ -1,0 +1,6 @@
+test_everything.bat Version History
+
+0.1.0 - 2026-08-30
+  - Initial comprehensive functional/quality/performance test entry point.
+  - Runs public regression/performance analysis, fast synthetic acceptance, and full archive plan validation.
+  - --full-archive adds a fresh no-cache archive run and quality check.

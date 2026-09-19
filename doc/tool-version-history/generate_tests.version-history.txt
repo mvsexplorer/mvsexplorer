@@ -1,5 +1,9 @@
 Tool Version History: dev\generate_tests.py
 
+0.10.0 - 2026-08-30
+  - Test result rows now record public-tool elapsed_ms for performance analysis.
+  - History/archive public-builder assertions also retain measured invocation time.
+
 0.7.0 - 2026-08-27
   - Added test_compare_tools.bat and the compare result scope.
   - Full suite now includes 39 comparison assertions and 441 public-tool structure coverage.

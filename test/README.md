@@ -160,3 +160,33 @@ history fixture. Its working folders are created under `%TEMP%`, not under
 `test\`. Successful runs clean those temporary folders. Failed runs retain
 them and print their exact locations together with summary/run-info/log
 contents.
+
+## 0.14.0 comprehensive archive quality/performance cycle
+
+Run the recurring development gate with:
+
+```bat
+test\test_everything.bat ..\mvs_dumps_archive
+```
+
+Add a fresh real-archive run with:
+
+```bat
+test\test_everything.bat ..\mvs_dumps_archive --full-archive --workers 8
+```
+
+The public regression harness now records `elapsed_ms` for actual tool
+invocations. `test\analyze_test_performance.bat` ranks timed cases and tools.
+
+`test\check_archive_sweep_quality.bat` verifies archive ledger/source integrity,
+evolution outputs, note retention, and logical/batch performance outliers.
+
+Fast archive runs create a self-contained `archive-summary.html`. Rebuild it
+without rerunning the archive with:
+
+```bat
+test\build_archive_html_report.bat result-folder
+```
+
+`test\archive-exclusions.tsv` is an optional non-destructive canonical
+interpretation file. Excluded snapshots remain tested and fully ingested.

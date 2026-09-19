@@ -67,7 +67,7 @@ function New-ResultsFolder {
         history = Join-Path $candidate 'history-results.tsv'
     }
     Write-TextUtf8 $script:ConsoleLog ''
-    $header = "index`tscope`tstatus`tcase`treason`texpected_rc`tactual_rc`n"
+    $header = "index`tscope`tstatus`tcase`treason`texpected_rc`tactual_rc`telapsed_ms`n"
     Write-TextUtf8 $script:AllResults $header
     foreach ($resultPath in $script:ScopeFiles.Values) { Write-TextUtf8 $resultPath $header }
     $readme = @'
@@ -102,9 +102,9 @@ function Write-Line {
 }
 
 function Add-Result {
-    param([string]$Status, [string]$Name, [AllowEmptyString()][string]$Reason, [AllowEmptyString()][string]$ExpectedRc, [AllowEmptyString()][string]$ActualRc)
+    param([string]$Status, [string]$Name, [AllowEmptyString()][string]$Reason, [AllowEmptyString()][string]$ExpectedRc, [AllowEmptyString()][string]$ActualRc, [AllowEmptyString()][string]$ElapsedMs='')
     $script:CaseIndex++
-    $fields = @([string]$script:CaseIndex,$script:CurrentScope,$Status,$Name,$Reason,$ExpectedRc,$ActualRc) | ForEach-Object { Convert-TsvField ([string]$_) }
+    $fields = @([string]$script:CaseIndex,$script:CurrentScope,$Status,$Name,$Reason,$ExpectedRc,$ActualRc,$ElapsedMs) | ForEach-Object { Convert-TsvField ([string]$_) }
     $line = ($fields -join [char]9) + [Environment]::NewLine
     Add-TextUtf8 $script:AllResults $line
     $scopePath = $script:ScopeFiles[$script:CurrentScope]
@@ -113,23 +113,23 @@ function Add-Result {
 }
 
 function Write-Pass {
-    param([string]$Name, [AllowEmptyString()][string]$ExpectedRc='', [AllowEmptyString()][string]$ActualRc='')
+    param([string]$Name, [AllowEmptyString()][string]$ExpectedRc='', [AllowEmptyString()][string]$ActualRc='', [AllowEmptyString()][string]$ElapsedMs='')
     $script:Passed++
-    Add-Result 'PASS' $Name '' $ExpectedRc $ActualRc
+    Add-Result 'PASS' $Name '' $ExpectedRc $ActualRc $ElapsedMs
     Write-Line ('[PASS] ' + $Name)
 }
 
 function Write-Skip {
     param([string]$Name, [string]$Reason)
     $script:Skipped++
-    Add-Result 'SKIP' $Name $Reason '' ''
+    Add-Result 'SKIP' $Name $Reason '' '' ''
     Write-Line ('[SKIP] ' + $Name + ' - ' + $Reason)
 }
 
 function Write-Fail {
-    param([string]$Name, [string]$Reason, [AllowEmptyString()][string]$ExpectedRc='', [AllowEmptyString()][string]$ActualRc='')
+    param([string]$Name, [string]$Reason, [AllowEmptyString()][string]$ExpectedRc='', [AllowEmptyString()][string]$ActualRc='', [AllowEmptyString()][string]$ElapsedMs='')
     $script:Failed++
-    Add-Result 'FAIL' $Name $Reason $ExpectedRc $ActualRc
+    Add-Result 'FAIL' $Name $Reason $ExpectedRc $ActualRc $ElapsedMs
     Write-Line ('[FAIL] ' + $Name + ' - ' + $Reason)
 }
 
@@ -724,14 +724,17 @@ function Invoke-PublicTool {
     }
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $psi
+    $sw=[Diagnostics.Stopwatch]::StartNew()
     [void]$process.Start()
     $outTask = $process.StandardOutput.ReadToEndAsync()
     $errTask = $process.StandardError.ReadToEndAsync()
     $process.WaitForExit()
+    $sw.Stop()
     return [pscustomobject]@{
         rc = $process.ExitCode
         stdout = Normalize-CapturedText $outTask.Result
         stderr = Normalize-CapturedText $errTask.Result
+        elapsed_ms = $sw.ElapsedMilliseconds
     }
 }
 
@@ -754,14 +757,17 @@ function Invoke-ComparePublicTool {
     }
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $psi
+    $sw=[Diagnostics.Stopwatch]::StartNew()
     [void]$process.Start()
     $outTask = $process.StandardOutput.ReadToEndAsync()
     $errTask = $process.StandardError.ReadToEndAsync()
     $process.WaitForExit()
+    $sw.Stop()
     return [pscustomobject]@{
         rc = $process.ExitCode
         stdout = Normalize-CapturedText $outTask.Result
         stderr = Normalize-CapturedText $errTask.Result
+        elapsed_ms = $sw.ElapsedMilliseconds
     }
 }
 
@@ -800,10 +806,10 @@ function Compare-Run {
         [void]$reasons.Add(('stderr=' + (Short-Text $Run.stderr)))
     }
     if ($reasons.Count -eq 0) {
-        Write-Pass $Name ([string]$ExpectedRc) ([string]$Run.rc)
+        Write-Pass $Name ([string]$ExpectedRc) ([string]$Run.rc) ([string]$Run.elapsed_ms)
     } else {
         $reason = $reasons -join '; '
-        Write-Fail $Name $reason ([string]$ExpectedRc) ([string]$Run.rc)
+        Write-Fail $Name $reason ([string]$ExpectedRc) ([string]$Run.rc) ([string]$Run.elapsed_ms)
         Save-FailureArtifacts $Name $Run $ExpectedRc $ExpectedStdout $reason
     }
 }
@@ -1243,10 +1249,10 @@ function Test-HistoryBuilderRun {
     if ($Run.rc -ne 0) { [void]$reasons.Add(('rc expected 0, got ' + $Run.rc)) }
     if (-not [string]::IsNullOrEmpty($Run.stderr)) { [void]$reasons.Add(('stderr=' + (Short-Text $Run.stderr))) }
     if ($reasons.Count -eq 0) {
-        Write-Pass $Name '0' ([string]$Run.rc)
+        Write-Pass $Name '0' ([string]$Run.rc) ([string]$Run.elapsed_ms)
     } else {
         $reason = $reasons -join '; '
-        Write-Fail $Name $reason '0' ([string]$Run.rc)
+        Write-Fail $Name $reason '0' ([string]$Run.rc) ([string]$Run.elapsed_ms)
         Save-FailureArtifacts $Name $Run 0 '' $reason
     }
 }

@@ -1,4 +1,64 @@
-# MVS Explorer Toolkit 0.13.3
+# MVS Explorer Toolkit 0.14.0
+
+
+## 0.14.0 indexed archive analysis, quality, and reporting
+
+Version 0.14.0 keeps all 443 public root tools byte-for-byte identical to the
+0.13.3 baseline while substantially extending the archive-wide test and
+analysis layer.
+
+The default `fast-combined` executor now builds snapshot-local indexes for
+product/file/hash/variant/note lookups, checks independent snapshots with
+bounded parallel workers, freezes source inventories so a moved or modified
+dump invalidates an entire batch instead of creating false `SOURCE_MISSING`
+rows, and supports a content-addressed snapshot-result cache.
+
+A fresh parallel archive run can be requested with:
+
+```bat
+test\test_all_dumps.bat ..\mvs_dumps_archive --workers 8 --no-cache
+```
+
+Repeated runs may omit `--no-cache` to reuse unchanged snapshot results. Literal
+wrapper execution remains available with `--external-tools`.
+
+The fast archive worker now produces evolution evidence in addition to the
+existing 19-domain history/all-ever ledgers. This includes per-dump first-seen
+contributions, introduced-here versus seen-later retention, duplicate/quality
+metrics, variant source-ID regime transitions, all-ever product/variant states,
+and complete versioned note evidence. Notes preserve occurrence provenance,
+normalized text, raw HTML by SHA-256, title-based product associations, and
+distinct raw-markup variants. Legacy `<h3>... [ID: ...]</h3>` and newer `<h1>`
+note headings are both supported.
+
+Canonical exclusions are deliberately non-destructive. Configure
+`test\archive-exclusions.tsv` (or `--exclusions FILE`) to remove a suspicious
+dump from a selected canonical interpretation while still ingesting all of its
+evidence and one-off notes.
+
+The archive sweep creates a self-contained interactive `archive-summary.html`
+with tabs for dump contributions, retention, re-ID regimes, duplication/quality,
+notes, exclusions, all-ever totals, and performance.
+
+The comprehensive tester is:
+
+```bat
+test\test_everything.bat ..\mvs_dumps_archive
+```
+
+For a fresh full archive performance/regression cycle:
+
+```bat
+test\test_everything.bat ..\mvs_dumps_archive --full-archive --workers 8
+```
+
+`analyze_test_performance.bat` and `check_archive_sweep_quality.bat` write ranked
+tool/batch timing tables and outlier reports. `--strict-performance` promotes
+reported performance outliers to test failures.
+
+See `doc\archive-evolution-and-quality.md`,
+`doc\comprehensive-testing.md`, and `doc\performance-architecture.md`.
+
 
 ## 0.13.3 fast archive builder
 

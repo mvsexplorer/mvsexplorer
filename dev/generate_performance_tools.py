@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate archive-sweep high-performance workers and analyzer.
 
-Version: 0.1.3
+Version: 0.3.0
 """
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
@@ -19,16 +19,16 @@ def main():
     ftpl=read(DEV/"templates"/"fast-sweep.bat.tpl")
     out=ROOT/"test"/"fast";out.mkdir(parents=True,exist_ok=True)
     configs={
-      "snapshot": 'set "mvsf_first_data=%~1"\nset "mvsf_second_data="\nset "mvsf_plan=%~2"\nset "mvsf_output=%~3"',
-      "compare": 'set "mvsf_first_data=%~1"\nset "mvsf_second_data=%~2"\nset "mvsf_plan=%~3"\nset "mvsf_output=%~4"',
+      "snapshot": 'set "mvsf_first_data=%~1"\nset "mvsf_second_data="\nset "mvsf_plan=%~2"\nset "mvsf_output=%~3"\nset "mvsf_cache_root=%~4"',
+      "compare": 'set "mvsf_first_data=%~1"\nset "mvsf_second_data=%~2"\nset "mvsf_plan=%~3"\nset "mvsf_output=%~4"\nset "mvsf_cache_root="',
     }
     for mode,args in configs.items():
         write_bat(out/f"run_{mode}_tools_fast.bat",inject(ftpl,{
-          "VERSION":"0.1.1","MODE":mode,"ARGS":args,"BATCH_COMMON":common,"FAST_POWERSHELL":fast}))
+          "VERSION":"0.2.0","MODE":mode,"ARGS":args,"BATCH_COMMON":common,"FAST_POWERSHELL":fast}))
     fast_archive=read(DEV/"library"/"fast-archive.inc.ps1")
     fast_archive_tpl=read(DEV/"templates"/"fast-archive.bat.tpl")
     write_bat(out/"run_archive_tools_fast.bat",inject(fast_archive_tpl,{
-      "VERSION":"0.1.0","BATCH_COMMON":common,"FAST_ARCHIVE_POWERSHELL":fast_archive}))
+      "VERSION":"0.2.0","BATCH_COMMON":common,"FAST_ARCHIVE_POWERSHELL":fast_archive}))
     perf=read(DEV/"library"/"archive-performance.inc.ps1")
     ptpl=read(DEV/"templates"/"performance-analyzer.bat.tpl")
     write_bat(ROOT/"test"/"analyze_archive_sweep_performance.bat",inject(ptpl,{

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Static validation for the dual-executor archive-wide sweep.
+"""Static validation for archive sweep, quality, reporting, and performance helpers.
 
-Version: 0.3.0
+Version: 0.5.0
 """
 from pathlib import Path
-import re
 import sys
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -26,45 +25,134 @@ def check_batch(path,markers=()):
         if marker not in text: fail(str(path.relative_to(ROOT))+" missing token "+marker)
     return text
 
+
+def check_unique_labels(path,text):
+    labels={}
+    for number,line in enumerate(text.replace("\r\n","\n").split("\n"),1):
+        stripped=line.strip()
+        if not stripped.startswith(":") or stripped.startswith("::"):
+            continue
+        token=stripped.split()[0][1:].lower()
+        if not token:
+            continue
+        if token in labels:
+            fail("%s duplicate batch label :%s at lines %d and %d" %
+                 (str(path.relative_to(ROOT)),token,labels[token],number))
+        labels[token]=number
+    return labels
+
 def main():
     batch=ROOT/"test"/"test_all_dumps.bat"
     text=check_batch(batch,(
-        "@echo off\r\n:setup\r\n", "\r\n:main\r\n", "\r\n:end\r\n", "\r\nGoTo :EOF\r\n",
-        "\r\n:_MVSArchiveSweep_start\r\n", "\r\n:_MVSArchiveSweep_end\r\n",
-        "--plan-only","--resume","--external-tools","fast-combined","external-public",
+        "@echo off\r\n:setup\r\n","\r\n:main\r\n","\r\n:end\r\n","\r\nGoTo :EOF\r\n",
+        "\r\n:_MVSArchiveSweep_start\r\n","\r\n:_MVSArchiveSweep_end\r\n",
+        "--plan-only","--resume","--external-tools","--workers","--exclusions","--no-report",
+        "--cache-folder","--no-cache","fast-combined","external-public","engine_version",
         "plan-sha256.txt","runs.tsv","fast-batches.tsv","SOURCE_MISSING","NO_RESULT",
-        "archive-output","mvs_dmp","run_snapshot_tools_fast.bat","run_compare_tools_fast.bat","run_archive_tools_fast.bat",
-        "1> $null","Executor: "
+        "archive-output","mvs_dmp","run_snapshot_tools_fast.bat","run_compare_tools_fast.bat",
+        "run_archive_tools_fast.bat","Start-FastWorkerJob","Complete-FastWorkerJob",
+        "build_archive_html_report.bat","Content cache:"
     ))
-    if 'executor`tscope`tsnapshot' not in text:
-        fail("plan/runs executor identity is not serialized")
+    if "'index','executor','engine_version','scope','snapshot'" not in text:
+        fail("plan engine/executor identity is not serialized")
+    if "& $WorkerPath $ArchiveRoot $ArchiveOutput 1> $null 2> $stderrPath" not in text:
+        fail("fast archive worker stdout is not suppressed before status return")
 
     snap=check_batch(ROOT/"test"/"fast"/"run_snapshot_tools_fast.bat",(
         ':_MVSFastSweep_start','mvsf_mode=snapshot','Get-SingleStatus','Read-FastModel',
-        "$searchSource=[string]$Entry.search_source",
-        "if($searchSource -eq 'hash'){",
-        "return (Matches-Exact ([string]$_.hash) $searchValue)"
+        'product_files_by_filename','hash_records_by_hash','Get-IndexRows',
+        'Get-SourceInventory','Assert-SourceInventoryUnchanged','Get-SnapshotCacheKey',
+        'mvsf_cache_root','<h[13][^>]*>','Groups[\'heading\']'
     ))
     if "([string]$Entry.search_source -eq 'hash' -and (Matches-Exact" in snap:
-        fail("snapshot fast worker contains the PowerShell 5.1-sensitive nested hash predicate")
-    comp=check_batch(ROOT/"test"/"fast"/"run_compare_tools_fast.bat",(
-        ':_MVSFastSweep_start','mvsf_mode=compare','Get-CompareStatus'
+        fail("snapshot fast worker contains the old parser-sensitive nested hash predicate")
+    if "$Model.product_files | Where-Object" in snap:
+        fail("indexed snapshot worker regressed to full product-file scans")
+    if "$Model.hash_records | Where-Object" in snap:
+        fail("indexed snapshot worker regressed to full hash-record scans")
+
+    check_batch(ROOT/"test"/"fast"/"run_compare_tools_fast.bat",(
+        ':_MVSFastSweep_start','mvsf_mode=compare','Get-CompareStatus','Assert-SourceInventoryUnchanged'
     ))
-    arch=check_batch(ROOT/"test"/"fast"/"run_archive_tools_fast.bat",(
-        ':_MVSFastArchive_start','Fast archive snapshot','history-coverage.tsv',
-        'all-ever-coverage.tsv','fast-archive-summary.txt','System.IO.StreamReader'
+    check_batch(ROOT/"test"/"fast"/"run_archive_tools_fast.bat",(
+        ':_MVSFastArchive_start','Fast archive snapshot','history-coverage.tsv','all-ever-coverage.tsv',
+        'fast-archive-summary.txt','System.IO.StreamReader','per-dump-contributions.tsv',
+        'per-dump-quality.tsv','variant-id-transitions.tsv','note-versions.tsv',
+        'note-observations.tsv','variant_source_ids','note-raw-variants.tsv','per-dump-retention.tsv',
+        'suggested-exclusions.tsv','raw-html','noteVersionsSeenThisSnapshot','noteBodiesSeenThisSnapshot',
+        'noteRawSeenThisSnapshot'
     ))
-    analyzer=check_batch(ROOT/"test"/"analyze_archive_sweep_performance.bat",(
+    check_batch(ROOT/"test"/"build_archive_html_report.bat",(
+        ':_MVSArchiveReport_start','Archive Summary','What This Dump Added','Re-ID / ID Regimes',
+        'Duplicates / Quality','Canonical exclusions are non-destructive','Performance',
+        'domain_additions','retention','Source-local domain additions','Introduced here vs. seen later'
+    ))
+    check_batch(ROOT/"test"/"check_archive_sweep_quality.bat",(
+        ':_MVSArchiveQuality_start','unexpected SOURCE_MISSING','performance-outliers.tsv',
+        'performance-by-batch.tsv','performance-batch-outliers.tsv','per-dump-retention.tsv',
+        'note_raw_variants_all_ever','summary counter mismatch','strict performance check failed'
+    ))
+    check_batch(ROOT/"test"/"analyze_test_performance.bat",(
+        ':_MVSTestPerformance_start','performance-outliers.tsv','performance-by-tool.tsv',
+        'elapsed_ms','Threshold milliseconds'
+    ))
+    check_batch(ROOT/"test"/"test_everything.bat",(
+        ':_MVSTestEverything_start','--full-archive','--strict-performance','--archive-results',
+        'test_all.bat','test_fast_archive_sweep.bat','check_archive_sweep_quality.bat','--no-cache'
+    ))
+    check_batch(ROOT/"test"/"analyze_archive_sweep_performance.bat",(
         ':_MVSPerformance_start','performance-by-tool.tsv','fast-batches.tsv'
     ))
     fast_test=check_batch(ROOT/"test"/"test_fast_archive_sweep.bat",(
-        'fast-combined 1306 logical checks and archive outputs','--external-tools','--plan-only','AssertExpectedTree',
-        ':AssertMetadataLine','Get-Content -LiteralPath $env:mvs_assert_file -Encoding UTF8',
-        'Artifacts retained at:'
+        'fast-combined 1306 logical checks and archive outputs','--external-tools','--plan-only',
+        '--no-cache','AssertExpectedTree',':AssertMetadataLine',
+        'Get-Content -LiteralPath $env:mvs_assert_file -Encoding UTF8','Artifacts retained at:'
     ))
     if 'findstr /x /c:"Executor:' in fast_test:
         fail("fast acceptance test still uses brittle FINDSTR exact metadata checks")
+    fast_labels=check_unique_labels(ROOT/"test"/"test_fast_archive_sweep.bat",fast_test)
+    required_fast_labels=("assertmetadataline","asserttsvmetric","assertrunstatus","assertnoteversion","assertexpectedtree","showfailure")
+    for label in required_fast_labels:
+        if label not in fast_labels:
+            fail("fast acceptance test missing subroutine label :"+label)
+    main_exit=fast_test.find("echo SUMMARY: passed=3 failed=0\r\nexit /b 0\r\n")
+    first_sub=fast_test.find("\r\n:AssertMetadataLine\r\n")
+    if main_exit < 0 or first_sub < 0 or first_sub < main_exit:
+        fail("fast acceptance test subroutines are not placed after the main exit")
+    for token in (
+        '"product_states_all_ever" "4"',
+        '"variant_states_all_ever" "4"',
+        '"note_versions_all_ever" "5"',
+        '"note_bodies_all_ever" "5"',
+        '"note_raw_variants_all_ever" "5"',
+        '"Keep Product" "Keep note" "3"',
+        '"read_mvs_dump_note_records.bat" "PASS"',
+        ':AssertTsvMetric',
+    ):
+        if token not in fast_test:
+            fail("fast acceptance test missing concrete evolution assertion "+token)
 
+    # Synthetic history notes exercise both legacy h3+ID and newer h1 heading forms.
+    fixture_notes=(
+        ROOT/"test"/"test-mvs-dump-history"/"mvs_2020-01-01"/"mvs_notes.html",
+        ROOT/"test"/"test-mvs-dump-history"/"mvs_2020-01-02"/"mvs_dmp"/"mvs_notes.html",
+        ROOT/"test"/"test-mvs-dump-history"/"mvs_2020-01-03_2"/"mvs_notes.html",
+    )
+    for note_path in fixture_notes:
+        if not note_path.is_file():
+            fail("synthetic history note fixture missing: "+str(note_path.relative_to(ROOT)))
+    if "<h3>" not in fixture_notes[0].read_text(encoding="utf-8"):
+        fail("synthetic history fixture no longer exercises legacy h3 notes")
+    if "<h1>" not in fixture_notes[2].read_text(encoding="utf-8"):
+        fail("synthetic history fixture no longer exercises h1 notes")
+
+    # All delivered batch labels are unique case-insensitively. This catches
+    # accidental subroutine insertion inside a parenthesized error branch.
+    for delivered in ROOT.rglob("*.bat"):
+        delivered_text=delivered.read_text(encoding="utf-8")
+        check_unique_labels(delivered,delivered_text)
+
+    # Public surface remains fixed.
     public=sorted(ROOT.glob("*.bat"))
     compare=[p for p in public if p.name.startswith("compare_mvs_dump_")]
     archive_names={"build_mvs_dump_change_history.bat","build_mvs_dump_all_ever.bat"}
@@ -73,33 +161,37 @@ def main():
     if (len(public),len(single),len(compare),len(archive)) != (443,422,19,2):
         fail("unexpected public scope counts: public=%d single=%d compare=%d archive=%d" %
              (len(public),len(single),len(compare),len(archive)))
-
     planned=len(single)*79+len(compare)*78+len(archive)
-    if planned != 34822: fail("79-snapshot plan count mismatch: %d"%planned)
     synthetic=len(single)*3+len(compare)*2+len(archive)
+    if planned != 34822: fail("79-snapshot plan count mismatch: %d"%planned)
     if synthetic != 1306: fail("3-snapshot fast-test plan mismatch: %d"%synthetic)
 
-    maintained=(
-        ROOT/"dev"/"generate_archive_sweep.py",
-        ROOT/"dev"/"generate_performance_tools.py",
-        ROOT/"dev"/"library"/"archive-sweep.inc.ps1",
-        ROOT/"dev"/"library"/"fast-sweep.inc.ps1",
-        ROOT/"dev"/"library"/"fast-archive.inc.ps1",
-        ROOT/"dev"/"library"/"archive-performance.inc.ps1",
-        ROOT/"dev"/"templates"/"archive-sweep.bat.tpl",
-        ROOT/"dev"/"templates"/"fast-sweep.bat.tpl",
-        ROOT/"dev"/"templates"/"fast-archive.bat.tpl",
-        ROOT/"dev"/"templates"/"performance-analyzer.bat.tpl",
-        ROOT/"dev"/"templates"/"fast-archive-test.bat.tpl",
-        ROOT/"doc"/"archive-sweep.md",
-        ROOT/"doc"/"performance-architecture.md",
-    )
-    for p in maintained:
-        if not p.is_file(): fail("missing maintained file: "+str(p.relative_to(ROOT)))
+    exclusions=ROOT/"test"/"archive-exclusions.tsv"
+    if not exclusions.is_file(): fail("missing test/archive-exclusions.tsv")
+    if exclusions.read_text(encoding="utf-8").splitlines()[0] != "snapshot\tscope\tcanonical\treason":
+        fail("archive-exclusions.tsv header mismatch")
 
-    print("PASS: archive sweep/performance static validation")
+    # Test harness must capture per-invocation elapsed time.
+    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv"))
+    if "expected_rc`tactual_rc`telapsed_ms" not in test_all:
+        fail("test result TSV does not include elapsed_ms")
+
+    maintained=(
+        "dev/generate_archive_sweep.py","dev/generate_performance_tools.py","dev/generate_report_tools.py",
+        "dev/generate_quality_tools.py","dev/library/archive-sweep.inc.ps1","dev/library/fast-sweep.inc.ps1",
+        "dev/library/fast-archive.inc.ps1","dev/library/archive-report.inc.ps1",
+        "dev/library/archive-quality.inc.ps1","dev/library/test-performance.inc.ps1",
+        "dev/library/test-everything.inc.ps1","dev/templates/archive-report.bat.tpl",
+        "dev/templates/archive-quality.bat.tpl","dev/templates/test-performance.bat.tpl",
+        "dev/templates/test-everything.bat.tpl","doc/archive-sweep.md","doc/performance-architecture.md",
+    )
+    for rel in maintained:
+        if not (ROOT/rel).is_file(): fail("missing maintained file: "+rel)
+
+    print("PASS: archive sweep/quality/performance static validation")
     print("public tools: 443 (single=422 compare=19 archive=2)")
-    print("executors: fast-combined (default), external-public (--external-tools)")
+    print("fast executor: indexed + source-stable + bounded parallel workers + content cache")
+    print("analysis: per-dump contributions, quality, re-ID, notes, exclusions, interactive HTML")
     print("supplied archive plan: 34,822 logical checks for 79 snapshots")
     print("fast-test plan: 1,306 logical checks for 3 snapshots")
 

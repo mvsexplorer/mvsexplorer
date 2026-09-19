@@ -1,0 +1,5 @@
+build_archive_html_report.bat Version History
+
+0.1.0 - 2026-08-30
+  - Initial self-contained interactive archive summary.
+  - Includes contributions, retention, re-ID, quality, notes, exclusions, all-ever totals, and performance tabs.

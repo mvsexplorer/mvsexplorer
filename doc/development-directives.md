@@ -246,3 +246,26 @@ These directives are distilled from the user's project prompts.
 160. The combined archive worker must preserve the existing 19 source-local history/all-ever domains and missing-source coverage semantics.
 161. Commit logical archive rows to runs.tsv only after the combined archive worker succeeds; interrupted partial archive output must be safely rebuildable.
 162. Preserve literal public archive-builder execution under --external-tools.
+
+## 0.14.0 archive evolution / quality directives
+
+163. Freeze source availability/size/last-write metadata at fast-worker start and reject the entire batch if it changes before commit.
+164. Never convert a mid-batch filesystem disappearance into historical SOURCE_MISSING evidence.
+165. Build reusable snapshot-local indexes before applying worker parallelism.
+166. Keep worker parallelism bounded and user-configurable; preserve a single-worker path.
+167. Content cache identity must include worker version, exact plan slice, and source content hashes.
+168. Fresh performance acceptance must support bypassing cache.
+169. Archive exclusions are canonical-interpretation metadata, not ingestion filters; excluded dumps still contribute all-ever evidence.
+170. Analyzer-generated exclusion suggestions are advisory and must never be applied silently.
+171. Preserve versioned note evidence across all snapshots; do not collapse to the latest note.
+172. Count note-version longevity by distinct snapshots, not duplicate occurrences inside a snapshot.
+173. Preserve raw note HTML by content hash in addition to normalized note text.
+174. Parse both legacy h3 note headings with optional [ID: ...] and newer h1 headings.
+175. Do not invent product-to-variant note ownership; record only source/title-supported associations and provenance.
+176. Report, for every dump, both first-seen contribution and whether introduced evidence is ever observed later.
+177. Keep all 19 source-local history domains independent in contribution/retention reporting.
+178. Quality flags must not fail functional acceptance unless they indicate structural/integrity corruption.
+179. Performance analysis must retain both logical-check elapsed time and whole-batch wall time.
+180. The comprehensive tester must run functional regression before performance interpretation so optimization cannot mask behavior regression.
+181. Interactive archive reporting must be self-contained and require no external web service.
+182. Future snapshot discovery must remain dynamic; no runtime path may assume exactly 79 dumps.

@@ -1,5 +1,10 @@
 run_snapshot_tools_fast.bat Version History
 
+0.2.0 - 2026-08-30
+  - Added product/file/hash/variant/note indexes for logical query evaluation.
+  - Added source-inventory freeze/recheck and content-addressed snapshot-result cache.
+  - Added legacy h3+ID note parsing alongside h1 note parsing.
+
 0.1.1 - 2026-08-28
   - Fixed Windows PowerShell 5.1 parse failure in Test-HashResult.
   - Replaced the nested boolean filename/hash predicate with explicit branch-based logic.

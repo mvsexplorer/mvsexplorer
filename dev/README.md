@@ -114,3 +114,45 @@ harness is standalone and does not read `dev\` at runtime.
 
 - `library\fast-archive.inc.ps1` — one-pass combined archive history/all-ever runtime.
 - `templates\fast-archive.bat.tpl` — standalone fast archive worker template.
+
+## 0.14.0 archive quality/performance/reporting sources
+
+The archive execution and analysis layer is generated from maintained source:
+
+```text
+library\archive-sweep.inc.ps1
+library\fast-sweep.inc.ps1
+library\fast-archive.inc.ps1
+library\archive-quality.inc.ps1
+library\archive-report.inc.ps1
+library\test-performance.inc.ps1
+library\test-everything.inc.ps1
+
+templates\archive-sweep.bat.tpl
+templates\fast-snapshot.bat.tpl
+templates\fast-compare.bat.tpl
+templates\fast-archive.bat.tpl
+templates\fast-archive-test.bat.tpl
+templates\archive-quality.bat.tpl
+templates\archive-report.bat.tpl
+templates\test-performance.bat.tpl
+templates\test-everything.bat.tpl
+
+generate_archive_sweep.py
+generate_performance_tools.py
+generate_quality_tools.py
+generate_report_tools.py
+```
+
+The fast snapshot worker uses snapshot-local lookup indexes, frozen source
+inventories, and content-addressed result keys. The archive worker emits the
+legacy history/all-ever products plus evidence-preserving evolution data.
+
+`validate_archive_sweep.py` checks the fixed 443-tool public surface, generated
+fast/test artifacts, duplicate batch labels, CRLF/no-BOM requirements, concrete
+synthetic evolution assertions, indexed-worker markers, and the 34,822/1,306
+logical plan counts.
+
+The synthetic archive fixture is maintained by
+`generate_history_fixture.py`. Its notes intentionally exercise both historical
+h3+ID and current h1 heading forms.
