@@ -1,5 +1,9 @@
 Tool Version History: dev\generate_tools.py
 
+0.2.0 - 2026-08-27
+  - Updated generated public tool versions for project 0.4.0.
+  - Regenerates the Windows-PowerShell-compatible date-sort helper.
+
 0.1.0 - 2026-08-27
   - Initial development-time generator.
   - Injects common batch/PowerShell source into public standalone tools.

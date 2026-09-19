@@ -1,0 +1,10 @@
+Tool Version History: test\test_structure.bat
+
+Purpose
+  Test mode: structure
+  Standalone: yes; contains complete injected test harness
+
+0.1.0 - 2026-08-27
+  - Initial version.
+  - Added automated Windows validation for the structure test scope.
+  - Uses actual public batch execution where behavior is under test.

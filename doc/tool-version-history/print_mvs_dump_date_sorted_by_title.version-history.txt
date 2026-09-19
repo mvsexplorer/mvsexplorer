@@ -5,6 +5,11 @@ Purpose
   Output: human-readable labeled output
   Ordering: natural/alphanumeric TITLE ascending, ID tie-break
 
+0.2.0 - 2026-08-27
+  - Regenerated from maintained common source for project 0.4.0.
+  - Updated embedded date-sort helper to use UtcDateTime.Ticks for
+    safer Windows PowerShell/.NET compatibility.
+
 0.1.0 - 2026-08-27
   - Initial version.
   - Generated as a fully standalone sorted companion to print_mvs_dump_date.bat.

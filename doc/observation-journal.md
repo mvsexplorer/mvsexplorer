@@ -43,3 +43,20 @@ The scalar matrix alone produces 120 tools: 15 projections × 2 output modes × 
 ### Windows runtime testing remains required
 
 Static validation can verify generation, labels, CRLF/BOM, injection, naming, and obvious dependency leakage here. Actual `cmd.exe` and Windows PowerShell execution should be part of Windows milestone testing.
+
+
+### Testing public scripts requires invoking `cmd.exe`, not only testing parser functions
+
+A parser-only unit test can pass while a generated batch wrapper, environment handoff, return code, or output stream is broken. The automated suite therefore launches each actual public `.bat`.
+
+### Capturing both stdout and stderr can deadlock if done sequentially
+
+Some scalar outputs can be large. The test harness reads redirected stdout and stderr asynchronously before waiting for completion.
+
+### Dynamic command data should not be concatenated directly into test command source
+
+Dump paths and lookup patterns may contain spaces or parser-sensitive characters. The harness transports these through child-process environment variables and uses a fixed `cmd.exe` command form.
+
+### Exact output tests intentionally include empty machine fields/lines
+
+For projections such as NOTE-only machine output, missing notes legitimately create empty records. Whole-stream comparison preserves those cases instead of using `for /f`, which would silently discard empty lines.

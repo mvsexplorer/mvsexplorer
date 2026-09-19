@@ -5,6 +5,11 @@ Purpose
   Output: human-readable labeled output
   Ordering: source order from mvs_ids.txt
 
+0.4.0 - 2026-08-27
+  - Regenerated from maintained common source for project 0.4.0.
+  - Updated embedded date-sort helper to use UtcDateTime.Ticks for
+    safer Windows PowerShell/.NET compatibility.
+
 0.3.0 - 2026-08-27
   - Regenerated from common development source.
   - Public batch remains fully standalone after injection.

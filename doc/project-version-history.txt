@@ -1,5 +1,22 @@
 MVS Explorer Toolkit Project Version History
 
+0.4.0 - 2026-08-27
+  - Added standalone automated Windows test suite under test\.
+  - Added test\test_all.bat as the full-suite root entry point.
+  - Added standalone structure, scalar, and lookup subset tests.
+  - Full suite executes all 127 public batch tools.
+  - Scalar tests compare all 120 scalar tools against independently derived
+    expected output from the selected dump.
+  - Lookup tests cover all 7 lookup tools, exact/wildcard/no-match behavior,
+    and explicit prefix/suffix/contains ID wildcard cases.
+  - Tests capture/validate stdout, stderr, and return codes.
+  - Added dev\generate_tests.py and injected test harness source/template.
+  - Updated testing directives, style addendum, PowerShell guide, diary,
+    observation journal, prompt record, usage, and README.
+  - Replaced DateTimeOffset.UtcTicks with UtcDateTime.Ticks in maintained
+    PowerShell sort helpers for safer Windows PowerShell/.NET compatibility.
+  - Regenerated all public tools from maintained development source.
+
 0.3.0 - 2026-08-27
   - Added shared development-time libraries/templates and generator while
     preserving fully standalone public batch deliverables.

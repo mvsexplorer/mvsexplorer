@@ -84,3 +84,16 @@ These directives are distilled from the user's project prompts.
 47. Preserve all user project prompts in `development-prompts.md`.
 48. Maintain these distilled development directives as requirements evolve.
 49. Update style-guide documents as implementation reveals project-specific conventions.
+
+
+## Automated testing
+
+50. Maintain automated Windows batch tests under `test\`.
+51. `test\test_all.bat dump-folder` is the root-level full-suite entry point.
+52. Test batch files must be fully standalone after development-time injection.
+53. The full suite must execute every public `.bat` tool.
+54. Scalar tool tests compare exact stdout and return code against expectations derived from the selected dump.
+55. Sorted tools must be tested for their documented numeric/natural/chronological ordering.
+56. Lookup tests must cover exact, wildcard, no-match, and multiple-result behavior.
+57. Test success returns `0`; any failed assertion returns nonzero.
+58. Keep subset test entry points for structural, scalar, and lookup testing.

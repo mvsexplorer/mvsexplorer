@@ -1,4 +1,4 @@
-MVS Explorer Toolkit 0.3.0
+MVS Explorer Toolkit 0.4.0
 Usage Summary
 
 SCALAR SOURCE-ORDER
@@ -49,3 +49,20 @@ DUMP RESOLUTION
   A dump may be an absolute/relative folder path or a dump folder name.
   Named folders are searched in the current directory, MVS_DUMPS_ROOT,
   the script directory, and common adjacent mvs_dumps_archive locations.
+
+
+AUTOMATED TESTS
+  From project root:
+
+    test\test_all.bat path_to_mvs_dump_folder
+
+  Subsets:
+
+    test\test_structure.bat
+    test\test_scalar_tools.bat path_to_mvs_dump_folder
+    test\test_lookup_tools.bat path_to_mvs_dump_folder
+
+  Return:
+    0  all executed tests passed
+    1  one or more tests failed
+    2  invalid/missing required test argument

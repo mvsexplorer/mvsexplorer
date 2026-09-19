@@ -1,4 +1,4 @@
-# MVS Explorer Toolkit 0.3.0
+# MVS Explorer Toolkit 0.4.0
 
 MVS Explorer Toolkit is a growing collection of console tools for exploring MVS dump snapshots, intended to culminate in the graphical **MVS Explorer** application.
 
@@ -117,3 +117,37 @@ These are development-time files only.
 ## Documentation
 
 See `doc\` for the supplied Batch File Style Guide, project addendum, embedded PowerShell style guide, developer diary, observation journal, complete prompt record, distilled directives, project history, output/data-model documents, tool catalog, and one version-history file per public/development tool.
+
+
+## Automated tests
+
+Run the complete Windows test suite from the project root:
+
+```text
+test\test_all.bat path_to_mvs_dump_folder
+```
+
+Subset tests are also standalone:
+
+```text
+test\test_structure.bat
+test\test_scalar_tools.bat path_to_mvs_dump_folder
+test\test_lookup_tools.bat path_to_mvs_dump_folder
+```
+
+`test_all.bat` invokes every one of the 127 public batch tools and compares its output/return code against expectations independently constructed from the selected dump. It also performs standalone-structure checks.
+
+The test suite covers:
+
+- all 120 scalar source-order/sorted tools;
+- exact output for human and machine projections;
+- numeric ID, natural title, and chronological date ordering;
+- all seven lookup tools;
+- exact lookup;
+- wildcard-all lookup;
+- no-match return behavior;
+- prefix, suffix, and contains `*` wildcard cases for ID lookup;
+- clean stderr on successful/expected no-match runs;
+- standalone injected-code structure.
+
+All four test `.bat` files are themselves fully standalone; `test_all.bat` does not require the other test files to execute.

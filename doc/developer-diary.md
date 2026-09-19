@@ -35,3 +35,20 @@ Seven requested lookup relationships were implemented.
 The wildcard contract was deliberately restricted to `*`, matching zero or more characters. The implementation escapes all other characters before translating `*`, which prevents accidental extra PowerShell wildcard syntax.
 
 Multiple matching product rows are ordered by the searched field. Lookup output projects distinct non-empty associated values, one per line.
+
+
+## 2026-08-27 — Automated Windows test harness
+
+A standalone automated test suite was added under `test\`.
+
+The main entry point is exactly:
+
+```text
+test\test_all.bat path_to_mvs_dump_folder
+```
+
+Rather than testing one tool by comparing it with another public tool, the test harness parses the dump independently and constructs expected scalar/lookup output.
+
+The scalar test matrix executes all 120 scalar tools. The lookup tests exercise every lookup tool with exact, wildcard-all, and no-match cases, plus explicit prefix/suffix/contains wildcard cases for ID lookup.
+
+Each test batch is generated from shared development-time test source but contains the complete injected harness in the delivered file.

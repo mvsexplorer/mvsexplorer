@@ -1,6 +1,6 @@
 # MVS Explorer Toolkit — Embedded PowerShell Style Guide
 
-**Guide version:** 0.2.0  
+**Guide version:** 0.3.0  
 **Context:** Companion to Batch File Style Guide v1.8.0 and the MVS Explorer Toolkit addendum.
 
 ## 1. Role
@@ -112,3 +112,16 @@ Lookup tests:
 - duplicate target values;
 - no match;
 - matching product with missing note.
+
+
+## 14. Automated test harness PowerShell
+
+The Windows test harness may use `System.Diagnostics.Process` to execute public batch tools and capture stdout/stderr concurrently.
+
+To avoid `cmd.exe` quoting problems with dump/search values, pass dynamic values through child-process environment variables and keep the child command line structurally fixed.
+
+Read redirected stdout/stderr asynchronously before/while waiting for process completion to avoid pipe-buffer deadlocks on large outputs.
+
+Normalize captured line endings only for comparison; do not otherwise alter expected protocol text.
+
+Test expected-value logic uses test-specific helper names and derives expectations from dump source files, reducing accidental dependence on another public toolkit command.

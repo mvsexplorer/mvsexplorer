@@ -330,3 +330,14 @@ lookup_mvs_title_from_id dumpfolderhere 2*
 lookup_mvs_title_from_id dumpfolderhere *28
 lookup_mvs_title_from_id dumpfolderhere *2*
 ```
+
+## Prompt 6
+
+```text
+ok create test scripts that will ensure the proper functioning of all scripts automatically
+put the in test\
+
+and from root I should be able to run them like
+
+test\test_all.bat path_to_mvs_dump_folder
+```

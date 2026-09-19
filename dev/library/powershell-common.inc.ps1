@@ -87,7 +87,7 @@ function Get-DateTicks {
     $dto = [DateTimeOffset]::MinValue
     $styles = [Globalization.DateTimeStyles]::AllowWhiteSpaces -bor [Globalization.DateTimeStyles]::AssumeUniversal
     if ([DateTimeOffset]::TryParse($Value, [Globalization.CultureInfo]::InvariantCulture, $styles, [ref]$dto)) {
-        return $dto.UtcTicks
+        return $dto.UtcDateTime.Ticks
     }
     return [Int64]::MaxValue
 }

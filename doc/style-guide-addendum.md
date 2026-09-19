@@ -1,6 +1,6 @@
 # MVS Explorer Toolkit — Batch Style Guide Addendum
 
-**Addendum version:** 0.2.0  
+**Addendum version:** 0.3.0  
 **Applies with:** Batch File Style Guide v1.8.0
 
 This addendum supplements the supplied guide with project-specific conventions.
@@ -82,3 +82,20 @@ These tools do not auto-pause. Piping/redirection are primary use cases.
 ## 11. Development records
 
 Milestones update the project history, affected tool histories, prompt/directive records, developer diary, observation journal, and applicable style guides.
+
+
+## 12. Test scripts
+
+Automated test `.bat` files follow the same standalone-delivery rule as public tools.
+
+A test may share maintained development source, but its generated `.bat` contains its complete test harness.
+
+`test_all.bat` is deliberately self-contained rather than merely calling the subset test files. This ensures the documented root command remains usable even if copied with only the public tools and itself.
+
+## 13. Behavioral test expectations
+
+Tests should verify actual stdout, stderr, and return codes rather than only file existence.
+
+When practical, expected results are reconstructed directly from the selected dump in a test-specific parser instead of being obtained by calling another toolkit public tool.
+
+The suite should fail closed: any assertion failure yields a nonzero final return code.

@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone tool embeds PowerShell and should not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.3.0"
+set "app.version=0.4.0"
 set "app.name=print_mvs_dump_id_title_date_note"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -181,7 +181,7 @@ function Get-DateTicks {
     $dto = [DateTimeOffset]::MinValue
     $styles = [Globalization.DateTimeStyles]::AllowWhiteSpaces -bor [Globalization.DateTimeStyles]::AssumeUniversal
     if ([DateTimeOffset]::TryParse($Value, [Globalization.CultureInfo]::InvariantCulture, $styles, [ref]$dto)) {
-        return $dto.UtcTicks
+        return $dto.UtcDateTime.Ticks
     }
     return [Int64]::MaxValue
 }

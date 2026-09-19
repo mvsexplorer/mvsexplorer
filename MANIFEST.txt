@@ -1,21 +1,22 @@
-MVS Explorer Toolkit 0.3.0
+MVS Explorer Toolkit 0.4.0
 Public standalone batch tools: 127
-  source-order scalar: 30
-  sorted scalar: 90
-  lookup: 7
-Development tools: 2
-Tool-specific histories: 129
+Standalone automated test batch files: 4
+Tool-specific version histories: 134
+Full-suite entry: test\test_all.bat dump-folder
 
 Files:
 README.md
 dev/README.md
+dev/generate_tests.py
 dev/generate_tools.py
 dev/library/batch-common.inc.bat
 dev/library/lookup-query.inc.ps1
 dev/library/powershell-common.inc.ps1
 dev/library/scalar-query.inc.ps1
+dev/library/test-harness.inc.ps1
 dev/templates/lookup.bat.tpl
 dev/templates/scalar.bat.tpl
+dev/templates/test.bat.tpl
 dev/tool-spec.json
 dev/validate_generated.py
 doc/Batch-File-Style-Guide-v1.8.0.txt
@@ -29,6 +30,7 @@ doc/powershell-style-guide.md
 doc/project-version-history.txt
 doc/style-guide-addendum.md
 doc/tool-catalog.tsv
+doc/tool-version-history/generate_tests.version-history.txt
 doc/tool-version-history/generate_tools.version-history.txt
 doc/tool-version-history/lookup_mvs_date_from_id.version-history.txt
 doc/tool-version-history/lookup_mvs_date_from_title.version-history.txt
@@ -157,6 +159,10 @@ doc/tool-version-history/read_mvs_dump_title_note_sorted_by_title.version-histor
 doc/tool-version-history/read_mvs_dump_title_sorted_by_date.version-history.txt
 doc/tool-version-history/read_mvs_dump_title_sorted_by_id.version-history.txt
 doc/tool-version-history/read_mvs_dump_title_sorted_by_title.version-history.txt
+doc/tool-version-history/test_all.version-history.txt
+doc/tool-version-history/test_lookup_tools.version-history.txt
+doc/tool-version-history/test_scalar_tools.version-history.txt
+doc/tool-version-history/test_structure.version-history.txt
 doc/tool-version-history/validate_generated.version-history.txt
 doc/usage.txt
 lookup_mvs_date_from_id.bat
@@ -286,3 +292,7 @@ read_mvs_dump_title_note_sorted_by_title.bat
 read_mvs_dump_title_sorted_by_date.bat
 read_mvs_dump_title_sorted_by_id.bat
 read_mvs_dump_title_sorted_by_title.bat
+test/test_all.bat
+test/test_lookup_tools.bat
+test/test_scalar_tools.bat
+test/test_structure.bat

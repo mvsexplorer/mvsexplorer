@@ -1,0 +1,6 @@
+Tool Version History: dev\generate_tests.py
+
+0.1.0 - 2026-08-27
+  - Initial version.
+  - Injects the maintained standalone Windows test harness into four test
+    batch entry points.
