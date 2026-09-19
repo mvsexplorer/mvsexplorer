@@ -15,6 +15,7 @@ set "mvsdbm_arg6=%~6"
 set "mvsdbm_arg7=%~7"
 set "mvsdbm_arg8=%~8"
 set "mvsdbm_version=%app.version%"
+set "mvsdbm_project_version=@@PROJECT_VERSION@@"
 :main
 set "RunPowerShellFromLabel.function=MVSDatabaseMaintenance"
 call :RunPowerShellFromLabel

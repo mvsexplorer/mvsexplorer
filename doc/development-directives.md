@@ -338,3 +338,15 @@ These directives are distilled from the user's project prompts.
 233. `06_validate_database.bat` must pass a non-existing `database-validation` path to `test_generated_databases.bat`; the generated-database validator remains responsible for creating that path.
 234. Maintenance-only hotfixes should preserve byte-identical archive/family processing toolsets when their semantics are unchanged so already committed compatible evidence can be safely reused instead of needlessly recomputed.
 
+## 0.19.2 discovery, summary and no-op maintenance
+
+235. PowerShell functions that return multiple database candidates must return a flat object sequence to their caller; do not wrap a candidate array in an extra unary comma when downstream logic expects one object per candidate.
+236. When GUI discovery finds more than one usable compact database, every candidate path must remain a separate chooser row. Converting an array-valued `.Path` property to `[string]` is not an acceptable selection mechanism.
+237. Keep toolkit project version distinct from launcher/component tool version. Database validation/state/log metadata must record the toolkit project version, while user-facing component banners may retain their own tool version.
+238. Parse archive quality summary counters only from numeric `Warnings:` / `Errors:` values. Later human-readable warning-detail sections must not overwrite those counters. Quality warnings remain advisory unless the existing quality policy promotes a condition to error.
+239. The database-summary launcher must choose/display recency from persisted database summary state when available; a parent directory's filesystem LastWriteTime is only a fallback.
+240. If preparation proves zero pending logical checks and reusable archive-wide builders, stage 03 must retain the committed archive analysis without re-running the archive sweep or regenerating identical quality output.
+241. A cached database-validation PASS may be reused only for managed databases when there was no archive/family/compact rebuild, the prior validation status is PASS, the validator/query toolset fingerprint is unchanged, and the managed database metadata fingerprint is unchanged. `--force-validate` must bypass this cache.
+242. Validation-cache metadata is only a performance invalidation mechanism; it must never replace content-addressed raw evidence hashes or weaken source-content fingerprinting used to decide whether dumps are already processed.
+243. Regression callers must follow the delivered utility layout. Product-family query regression tests must execute the 32 public query BATs from `tools\`, not from the project root.
+244. Maintenance/performance hotfixes must keep the established archive semantic plan unchanged unless an explicit new analytical requirement changes it; the known 79-snapshot plan remains 34,822 logical checks.

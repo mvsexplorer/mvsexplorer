@@ -1,3 +1,43 @@
+## 2026-09-10 — native 0.19.1 follow-up
+
+### PowerShell array shape is part of GUI correctness
+
+Returning `,@($items)` from candidate discovery preserves the array as one
+pipeline object. When a `[object[]]` parameter receives that object, `Count`
+can be one even though the nested array contains several candidates. Accessing
+`.Path` on the nested array enumerates all member paths, and casting the result
+to string produces one space-separated invalid path. The database chooser needs
+a flat sequence instead.
+
+### Human summaries may repeat labels
+
+The archive quality text contains a numeric `Warnings:` counter and later a
+second `Warnings:` heading introducing detail lines. A parser that blindly
+assigns the next line for every matching heading will replace `19` with the
+first warning message. Machine-facing extraction must accept only the numeric
+counter.
+
+### Directory timestamps are not reliable database recency
+
+Updating a child file does not necessarily make a parent database-root
+directory timestamp a useful semantic update marker. The persisted
+`database-summary.json.updated` field is the appropriate source for choosing
+and displaying the latest maintained database root.
+
+### A no-op maintenance run should stop at proof of no work
+
+Once all source-content fingerprints, plan rows, compare groups and archive-wide
+builders are proven reusable, executing the sweep again just to copy/revalidate
+identical archive output adds latency without new evidence. The proof produced
+during preparation is sufficient to retain the committed archive analysis.
+
+### Relocation regressions must test callers, not only files
+
+The 0.19.0 move to `tools\` left the utility BATs valid, but a dedicated
+product-family regression still looked in the root. Layout migrations require
+tests that exercise representative callers after generation, not only presence
+checks.
+
 ## 2026-09-08 — first native 0.19.0 managed-database run
 
 The first `create_or_update_mvs_database.bat --workers 8` run discovered the

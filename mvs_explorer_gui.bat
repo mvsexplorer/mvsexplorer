@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone MVS Explorer GUI embeds PowerShell.
 setlocal DisableDelayedExpansion
-set "app.version=0.2.0"
+set "app.version=0.2.1"
 set "app.name=mvs_explorer_gui"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -184,7 +184,7 @@ function Find-CompactIndexCandidates {
             }
         }
     }
-    return ,@($items | Sort-Object @{Expression={$_.Stamp};Descending=$true}, @{Expression={$_.Path};Descending=$false})
+    return @($items | Sort-Object @{Expression={$_.Stamp};Descending=$true}, @{Expression={$_.Path};Descending=$false})
 }
 function Pick-CompactIndexFolder {
     param([AllowNull()][string]$InitialPath)

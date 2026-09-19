@@ -1,3 +1,8 @@
+0.1.2 / project 0.19.2 - 2026-09-10
+- Separates project version from maintenance tool version when invoking the generated-database validator.
+- Adds reusable managed validation PASS keyed by validator/query toolset and database metadata, with --force-validate override.
+- Retains validator ownership of the database-validation output directory.
+
 06_validate_database.bat
 
 0.1.1 / project 0.19.1 - 2026-09-08

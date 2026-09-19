@@ -1,3 +1,13 @@
+0.19.2 - 2026-09-10
+- Fixes PowerShell GUI multi-database discovery: candidate arrays are returned flat, so multiple compact indexes reach the chooser as separate choices instead of one concatenated invalid path.
+- Fixes display_mvs_database_summary.bat quality parsing to retain the numeric warning/error counters, marks warnings advisory in the display, and uses persisted database-summary update time for latest-root selection/display.
+- Separates toolkit project version 0.19.2 from maintenance tool version 0.1.2 in component validation/state/log metadata.
+- Adds an unchanged stage-03 fast path that keeps committed archive analysis without invoking test_all_dumps/quality regeneration when all 34,822 rows and archive builders are proven reusable.
+- Adds managed validation caching keyed by prior PASS, unchanged validator/query toolset, unchanged managed database metadata, zero pending archive work and no family/compact rebuild; --force-validate bypasses the cache.
+- Fixes test_product_family_tools.bat after the 0.19.0 tools\ relocation: all 32 family query wrappers are invoked from tools\ and the test metadata moves to project 0.19.2.
+- Adds static regressions for GUI candidate shape, version separation, numeric summary parsing, archive no-op behavior, and the product-family regression path.
+- Archive/single/compare processing semantics and the 34,822-row known-archive plan are unchanged.
+
 0.19.1 - 2026-09-08
 - Fixes native create/update stage 06: it no longer pre-creates the database-validation output folder before invoking test_generated_databases.bat, whose contract requires owning creation of a non-existing output path.
 - Adds a structure regression asserting that validation-output directory ownership remains with the generated-database validator.

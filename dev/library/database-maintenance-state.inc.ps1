@@ -34,3 +34,6 @@ Write-Line ('Database state updated: '+(Join-Path $SlotRoot 'database-state.json
 
 $familyMarker=Join-Path $SlotRoot ('family-rebuilt-'+$RunId+'.flag')
 if(Test-Path -LiteralPath $familyMarker -PathType Leaf){Remove-Item -LiteralPath $familyMarker -Force}
+
+$compactMarker=Join-Path $SlotRoot ('compact-rebuilt-'+$RunId+'.flag')
+if(Test-Path -LiteralPath $compactMarker -PathType Leaf){Remove-Item -LiteralPath $compactMarker -Force}

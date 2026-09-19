@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.11.13"
+set "app.version=0.11.14"
 set "app.name=test_compare_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -10,7 +10,7 @@ set "mvst_mode=compare"
 set "mvst_dump=%~1"
 set "mvst_caller=%~nx0"
 set "mvst_version=%app.version%"
-set "mvst_project_version=0.19.1"
+set "mvst_project_version=0.19.2"
 for %%I in ("%~dp0..") do set "mvst_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSTest"
@@ -106,7 +106,7 @@ $Caller = [string]$env:mvst_caller
 $Version = [string]$env:mvst_version
 $ProjectVersion = [string]$env:mvst_project_version
 $script:ExpectedAssertions = switch ($Mode) {
-    'structure' { 496 }
+    'structure' { 501 }
     'scalar' { 120 }
     'lookup' { 24 }
     'diagnostic' { 46 }
@@ -114,7 +114,7 @@ $script:ExpectedAssertions = switch ($Mode) {
     'single_dump' { 167 }
     'compare' { 39 }
     'history' { 65 }
-    'all' { 1109 }
+    'all' { 1114 }
     default { 0 }
 }
 
@@ -1209,6 +1209,17 @@ function Test-Structure {
         Write-Fail 'PowerShell GUI is one standalone PS5.1 WinForms BAT using conservative external compact-database evidence' 'mvs_explorer_gui.bat missing'
     }
 
+    $guiCandidateShapeOk = $false
+    if (Test-Path -LiteralPath $guiPath -PathType Leaf) {
+        $guiCandidateShapeOk = $guiText.Contains('return @($items | Sort-Object') -and
+            -not $guiText.Contains('return ,@($items | Sort-Object')
+    }
+    if ($guiCandidateShapeOk) {
+        Write-Pass 'PowerShell GUI returns a flat multi-database candidate list to the chooser'
+    } else {
+        Write-Fail 'PowerShell GUI returns a flat multi-database candidate list to the chooser' 'candidate discovery must not wrap the sorted object array in an extra unary comma'
+    }
+
     $maintenanceLauncher = Join-Path $Root 'create_or_update_mvs_database.bat'
     $summaryLauncher = Join-Path $Root 'display_mvs_database_summary.bat'
     $prepareComponent = Join-Path (Join-Path $Root 'create_or_update_mvs_database') '02_prepare_archive_update.bat'
@@ -1237,6 +1248,49 @@ function Test-Structure {
         Write-Pass 'modular database maintenance uses content-safe reuse, centralized zipped logs, health summary and timestamped root HTML'
     } else {
         Write-Fail 'modular database maintenance contract' ($maintenanceProblems -join '; ')
+    }
+
+    if ($maintenanceText.Contains('mvscu_project_version') -and
+        $prepareText.Contains('mvsdbm_project_version') -and
+        $summaryText.Contains('mvsdisp_project_version')) {
+        Write-Pass 'maintenance tools keep toolkit project version separate from component tool version'
+    } else {
+        Write-Fail 'maintenance tools keep toolkit project version separate from component tool version' 'project-version environment markers missing'
+    }
+
+    if ($summaryText.Contains("database-summary.json") -and
+        $summaryText.Contains("`$candidate   -match   '^\d+$'") -and
+        $summaryText.Contains('(advisory)')) {
+        Write-Pass 'database summary reads persisted update time and numeric advisory quality counts'
+    } else {
+        Write-Fail 'database summary reads persisted update time and numeric advisory quality counts' 'summary timestamp/quality parsing markers missing'
+    }
+
+    $runArchiveComponent = Join-Path (Join-Path $Root 'create_or_update_mvs_database') '03_run_archive_update.bat'
+    if (Test-Path -LiteralPath $runArchiveComponent -PathType Leaf) {
+        $runArchiveText = [IO.File]::ReadAllText($runArchiveComponent,[Text.Encoding]::UTF8)
+        if ($runArchiveText.Contains('pending_checks -eq 0') -and
+            $runArchiveText.Contains('archive_reused') -and
+            $runArchiveText.Contains('no archive processing required')) {
+            Write-Pass 'unchanged maintenance runs bypass archive sweep and quality regeneration'
+        } else {
+            Write-Fail 'unchanged maintenance runs bypass archive sweep and quality regeneration' 'stage 03 no-op markers missing'
+        }
+    } else {
+        Write-Fail 'unchanged maintenance runs bypass archive sweep and quality regeneration' '03_run_archive_update.bat missing'
+    }
+
+    $familyRegression = Join-Path (Join-Path $Root 'test') 'test_product_family_tools.bat'
+    if (Test-Path -LiteralPath $familyRegression -PathType Leaf) {
+        $familyRegressionText = [IO.File]::ReadAllText($familyRegression,[Text.Encoding]::UTF8)
+        if ($familyRegressionText.Contains("Join-Path (Join-Path $Root 'tools') ($ToolName+'.bat')") -and
+            $familyRegressionText.Contains('mvspf_project_version=0.19.2')) {
+            Write-Pass 'product-family regression executes moved query tools from tools\ with current project version'
+        } else {
+            Write-Fail 'product-family regression executes moved query tools from tools\ with current project version' 'stale root query path or project version'
+        }
+    } else {
+        Write-Fail 'product-family regression executes moved query tools from tools\ with current project version' 'test_product_family_tools.bat missing'
     }
 
     $validateComponent = Join-Path (Join-Path $Root 'create_or_update_mvs_database') '06_validate_database.bat'

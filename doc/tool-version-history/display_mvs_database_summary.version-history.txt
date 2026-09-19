@@ -1,3 +1,9 @@
+0.1.2 / project 0.19.2 - 2026-09-10
+- Retains numeric Warnings/Errors counters when the human quality report contains a second warning-detail heading.
+- Displays advisory warning count explicitly.
+- Chooses/displays database-root recency from persisted database-summary state when available.
+- Displays toolkit project version separately from the summary tool version.
+
 display_mvs_database_summary.bat
 
 0.1.0 / project 0.19.0 - 2026-09-07

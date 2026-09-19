@@ -2,12 +2,13 @@
 :setup
 REM Displays health/completeness for the latest mvs_databases* folder in current/parent.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.1"
+set "app.version=0.1.2"
 set "app.name=display_mvs_database_summary"
 set "app.rc=0"
 set "app.self=%~f0"
 set "mvsdisp_invocation_dir=%CD%"
 set "mvsdisp_version=%app.version%"
+set "mvsdisp_project_version=0.19.2"
 :main
 set "RunPowerShellFromLabel.function=MVSDisplayDatabaseSummary"
 call :RunPowerShellFromLabel
@@ -94,6 +95,7 @@ $ErrorActionPreference = 'Stop'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 [Console]::OutputEncoding = $utf8
 $Version = [string]$env:mvsdisp_version
+$ProjectVersion = [string]$env:mvsdisp_project_version
 $Invocation = [IO.Path]::GetFullPath([string]$env:mvsdisp_invocation_dir)
 $KnownSources = @('mvs.txt','mvs_ids.txt','mvs_dates.txt','mvs_names.txt','mvs_notes.html','mvs.sha1','mvs.sha256')
 $Pattern = '^mvs_\d{4}-\d{2}-\d{2}(?:-\d{4})?(?:_\d+)?$'
@@ -167,11 +169,33 @@ if ($candidates.Count   -eq   0) {
     Write-ColoredLine 'No mvs_databases* folder found in current or parent folder.' Red
     [Environment]::Exit(3)
 }
+function Get-DatabaseRootUpdatedUtc {
+    param([object]$Directory)
+    $summaryPath = Join-Path $Directory.FullName 'database-summary.json'
+    if (Test-Path -LiteralPath $summaryPath -PathType Leaf) {
+        try {
+            $meta = ConvertFrom-Json ([IO.File]::ReadAllText($summaryPath))
+            if ([string]$meta.updated) { return ([DateTimeOffset]::Parse([string]$meta.updated)).UtcDateTime }
+        } catch {}
+    }
+    return $Directory.LastWriteTimeUtc
+}
 
-$db = @($candidates | Sort-Object LastWriteTimeUtc -Descending)[0]
+$db = @($candidates | Sort-Object @{Expression={Get-DatabaseRootUpdatedUtc $_};Descending=$true}, @{Expression={$_.FullName};Descending=$false})[0]
+$lastUpdated = $db.LastWriteTime
+$databaseSummaryPath = Join-Path $db.FullName 'database-summary.json'
+if (Test-Path -LiteralPath $databaseSummaryPath -PathType Leaf) {
+    try {
+        $databaseSummaryMeta = ConvertFrom-Json ([IO.File]::ReadAllText($databaseSummaryPath))
+        if ([string]$databaseSummaryMeta.updated) {
+            $lastUpdated = ([DateTimeOffset]::Parse([string]$databaseSummaryMeta.updated)).LocalDateTime
+        }
+    } catch {}
+}
 Write-ColoredLine ('MVS database summary ' + $Version) Cyan
+Write-ColoredLine ('Project version: ' + $ProjectVersion) Cyan
 Write-ColoredLine ('Database root: ' + $db.FullName) Cyan
-Write-ColoredLine ('Last updated: ' + $db.LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss'))
+Write-ColoredLine ('Last updated: ' + $lastUpdated.ToString('yyyy-MM-dd HH:mm:ss'))
 
 $slots = @(Get-ChildItem -LiteralPath $db.FullName -Directory -ErrorAction SilentlyContinue |
     Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'database-state.json') -PathType Leaf } |
@@ -307,8 +331,10 @@ foreach ($slot in $slots) {
     if (Test-Path -LiteralPath $qualityPath -PathType Leaf) {
         $qualityLines = @(Get-Content -LiteralPath $qualityPath)
         for ($i=0; $i   -lt   ($qualityLines.Count - 1); $i++) {
-            if ($qualityLines[$i].Trim()   -eq   'Warnings:') { $qualityWarnings = $qualityLines[$i+1].Trim() }
-            if ($qualityLines[$i].Trim()   -eq   'Errors:') { $qualityErrors = $qualityLines[$i+1].Trim() }
+            $label = $qualityLines[$i].Trim()
+            $candidate = $qualityLines[$i+1].Trim()
+            if ($label   -eq   'Warnings:'   -and   $qualityWarnings   -eq   '?'   -and   $candidate   -match   '^\d+$') { $qualityWarnings = $candidate }
+            if ($label   -eq   'Errors:'   -and   $qualityErrors   -eq   '?'   -and   $candidate   -match   '^\d+$') { $qualityErrors = $candidate }
         }
         $qualityErrorCount = 0
         if ([int]::TryParse($qualityErrors,[ref]$qualityErrorCount)   -and   $qualityErrorCount   -gt   0) {
@@ -342,7 +368,7 @@ foreach ($slot in $slots) {
     } elseif ([int]::TryParse($qualityWarnings,[ref]$qualityWarningCount)   -and   $qualityWarningCount   -gt   0) {
         $qualityColor = 'Yellow'
     }
-    Write-ColoredLine ('Quality: warnings=' + $qualityWarnings + ' errors=' + $qualityErrors) $qualityColor
+    Write-ColoredLine ('Quality: warnings=' + $qualityWarnings + ' (advisory) errors=' + $qualityErrors) $qualityColor
     if ([string]$state.latest_html) { Write-ColoredLine ('Latest HTML: ' + [string]$state.latest_html) }
 
     foreach ($problem in $problems) {

@@ -5,6 +5,8 @@ $toolHash=Get-Sha256File $tool
 $hashPath=Join-Path $SlotRoot 'compact-toolset-sha256.txt'
 $oldHash=if(Test-Path -LiteralPath $hashPath -PathType Leaf){([IO.File]::ReadAllText($hashPath)).Trim()}else{''}
 $current=Join-Path $SlotRoot 'compact-index'
+$marker=Join-Path $SlotRoot ('compact-rebuilt-'+$RunId+'.flag')
+if(Test-Path -LiteralPath $marker){Remove-Item -LiteralPath $marker -Force}
 $familyMarker=Join-Path $SlotRoot ('family-rebuilt-'+$RunId+'.flag')
 $need=(Test-Path -LiteralPath $familyMarker -PathType Leaf)   -or   (   -not   (Test-Path -LiteralPath $current -PathType Container))   -or   (   -not   [StringComparer]::Ordinal.Equals($oldHash,$toolHash))
 if(   -not   $need){
@@ -17,4 +19,5 @@ Write-Line 'Building compact product-family database ...'
 Invoke-BatChecked $tool @($full,$staging) 'compact product-family builder'
 Swap-Directory $staging $current
 Write-Utf8 $hashPath ($toolHash+"`r`n")
+Write-Utf8 $marker "rebuilt`r`n"
 Write-Line ('Compact product-family database committed: '+$current)

@@ -3,17 +3,23 @@ $utf8=New-Object System.Text.UTF8Encoding($false)
 [Console]::OutputEncoding=$utf8
 $ProjectRoot=[IO.Path]::GetFullPath([string]$env:mvscu_project_root)
 $InvocationDir=[IO.Path]::GetFullPath([string]$env:mvscu_invocation_dir)
-$Version=[string]$env:mvscu_version
-$raw=@([string]$env:mvscu_arg1,[string]$env:mvscu_arg2,[string]$env:mvscu_arg3,[string]$env:mvscu_arg4)
+$ToolVersion=[string]$env:mvscu_version
+$ProjectVersion=[string]$env:mvscu_project_version
+$raw=@([string]$env:mvscu_arg1,[string]$env:mvscu_arg2,[string]$env:mvscu_arg3,[string]$env:mvscu_arg4,[string]$env:mvscu_arg5,[string]$env:mvscu_arg6)
 $Workers=8
+$ForceValidate=$false
 for($i=0;$i  -lt  $raw.Count;$i++){
     $a=$raw[$i]
     if([string]::IsNullOrWhiteSpace($a)){continue}
     if($a  -in  @('--help','-h','-?','/h','/?')){
-        [Console]::Out.WriteLine('MVS Explorer Toolkit create/update database '+$Version)
-        [Console]::Out.WriteLine('Usage: create_or_update_mvs_database.bat [--workers N]')
+        [Console]::Out.WriteLine('MVS Explorer Toolkit create/update database '+$ToolVersion)
+        [Console]::Out.WriteLine('Usage: create_or_update_mvs_database.bat [--workers N] [--force-validate]')
         [Console]::Out.WriteLine('Searches current and parent folders for every mvs_dumps_archive* directory.')
         [Environment]::Exit(0)
+    }
+    if($a  -eq  '--force-validate'){
+        $ForceValidate=$true
+        continue
     }
     if($a  -eq  '--workers'){
         if($i+1  -ge  $raw.Count){throw '--workers requires a value.'}
@@ -65,11 +71,12 @@ function Finish-LogsZip{
     param([string]$Status)
     $summary=@(
         'MVS Explorer Toolkit create/update database',
-        ('Project version: '+$Version),
+        ('Project version: '+$ProjectVersion),
         ('Run ID: '+$RunId),
         ('Status: '+$Status),
         ('Invocation directory: '+$InvocationDir),
         ('Workers: '+$Workers),
+        ('Force validation: '+$ForceValidate),
         ('Archives attempted: '+$script:ArchiveResults.Count),
         ('Failures: '+$script:Failures)
     )
@@ -84,11 +91,12 @@ function Finish-LogsZip{
     [Console]::Out.WriteLine('Run logs ZIP: '+$zipPath)
 }
 try{
-    Write-Line ('MVS Explorer Toolkit create/update database '+$Version) Cyan
+    Write-Line ('MVS Explorer Toolkit create/update database '+$ToolVersion) Cyan
     Write-Line ('Project root: '+$ProjectRoot)
     Write-Line ('Invocation directory: '+$InvocationDir)
     Write-Line ('Logs: '+$RunLogs)
     Write-Line ('Workers: '+$Workers)
+    Write-Line ('Force validation: '+$ForceValidate)
     $components=Join-Path $ProjectRoot 'create_or_update_mvs_database'
     $manifest=Join-Path $RunLogs 'archives.tsv'
     $discover=Join-Path $components '01_discover_archives.bat'
@@ -126,7 +134,8 @@ try{
         foreach($step in $sequence){
             $path=Join-Path $components $step[0]
             Write-Line ('Starting '+$step[1]+' ...') DarkCyan
-            $args=@($ProjectRoot,$archivePath,$DatabaseRoot,$slotRoot,$RunId,[string]$Workers,$RunLogs,'')
+            $componentExtra=if($step[1] -eq 'validate' -and $ForceValidate){'force-validate'}else{''}
+            $args=@($ProjectRoot,$archivePath,$DatabaseRoot,$slotRoot,$RunId,[string]$Workers,$RunLogs,$componentExtra)
             $rc=Invoke-Component $path $args ((Safe-Name $slot)+'_'+$step[0]+'.log')
             if($rc -ne 0){
                 Write-Line (($step[1])+' FAILED for '+$slot+' rc='+$rc) Red

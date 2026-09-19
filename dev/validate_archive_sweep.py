@@ -270,10 +270,10 @@ def main():
         fail("archive-exclusions.tsv header mismatch")
 
     # Test harness must capture per-invocation elapsed time.
-    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","remaining=","Project: MVS Explorer Toolkit","mvst_project_version=0.19.1"))
+    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","remaining=","Project: MVS Explorer Toolkit","mvst_project_version=0.19.2"))
     if "expected_rc`tactual_rc`telapsed_ms" not in test_all:
         fail("test result TSV does not include elapsed_ms")
-    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","remaining=","Project version:","0.19.1"))
+    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","remaining=","Project version:","0.19.2"))
 
     maintained=(
         "dev/generate_archive_sweep.py","dev/generate_performance_tools.py","dev/generate_report_tools.py",

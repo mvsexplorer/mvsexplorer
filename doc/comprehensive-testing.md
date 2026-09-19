@@ -58,7 +58,7 @@ does not print the 79 per-snapshot planning lines. A subsequent production
 archive build prints its own planning pass once because that plan is persisted
 with the generated database.
 
-The current 0.19.0 public regression has 1,109 assertions. The established
+The current 0.19.2 public regression has 1,114 assertions. The established
 baseline includes three data-dependent note exact-match skips on the
 2019-03-19 fixture.
 
@@ -191,12 +191,12 @@ Cached archive runs are useful for frequent catalog validation. Fresh
 
 ## Product-family feature acceptance (0.15.0)
 
-`test\test_product_family_tools.bat` is an archive-level synthetic regression
+`test\test_product_family_tools.bat` 0.1.4 is an archive-level synthetic regression
 and does not require a real dump argument. It builds the family index from a
 three-snapshot fixture, including one nested `mvs_dmp` layout, then performs 106
 assertions covering normalized output files, hierarchy semantics, false-positive
 guards, exact-title overrides, content-addressed raw notes, every positive
-query wrapper, and every no-result query wrapper.
+query wrapper, and every no-result query wrapper. In 0.19.2 those wrappers are resolved from `tools\`, matching the delivered layout.
 
 The normal `test_all.bat` suite invokes that test once and records one aggregate
 family assertion. `test_everything.bat` therefore exercises the family feature

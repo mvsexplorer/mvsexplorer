@@ -39,6 +39,15 @@ path-derived suffix so they cannot collide.
 
 ## Ordered components
 
+Normal usage:
+
+```bat
+create_or_update_mvs_database.bat [--workers N] [--force-validate]
+```
+
+`--force-validate` bypasses a reusable managed database-validation PASS and
+runs the full 57-check validator plus all 32 family-query smoke executions.
+
 `create_or_update_mvs_database.bat` invokes these standalone components in
 order for each archive:
 
@@ -91,18 +100,29 @@ New, changed, faulty, incomplete, or incompatible snapshots are not partially
 seeded. Their complete snapshot batch is run again. Abandoned
 `archive-analysis.staging-*` directories are deleted before preparation.
 
-The combined archive sweep runs against staging with `--resume`. Archive
-quality validation must pass before staging replaces committed
-`archive-analysis`.
+When preparation finds pending work, the combined archive sweep runs against
+staging with `--resume`. Archive quality validation must pass before staging
+replaces committed `archive-analysis`.
+
+When preparation proves `pending=0` and the archive-wide builders are reusable,
+stage 03 is a true no-op: it updates only maintenance metadata needed for the
+current run, keeps the committed archive analysis, and does not invoke the
+archive sweep or regenerate quality output.
 
 ## Dependent databases
 
 The full product-family index is rebuilt when archive work changed or its
 builder fingerprint changed. The compact index is rebuilt when the full family
-index was rebuilt or its own builder fingerprint changed. The final committed
-archive/full/compact set is always passed through
-`test\test_generated_databases.bat`, including the 32 family query smoke
-executions, before PASS validation state is written.
+index was rebuilt or its own builder fingerprint changed.
+
+After a successful deep validation, stage 06 stores a validator/query-toolset
+fingerprint plus a managed database metadata fingerprint. On a later unchanged
+managed run, validation may be reported `Already done` only when the prior
+status is PASS, archive work is zero, neither family layer rebuilt, and both
+fingerprints still match. `--force-validate` always runs
+`test\test_generated_databases.bat`, including the 32 family-query smoke
+executions. This cache is a performance mechanism only; source-content
+fingerprints and content-addressed evidence hashes remain authoritative.
 
 Stage 06 passes a non-existing `database-validation` output path to the validator; the validator itself owns creation of that directory. This is required by the validator's collision-safety contract.
 
@@ -144,7 +164,9 @@ display_mvs_database_summary.bat
 ```
 
 It searches the current directory and parent for `mvs_databases*`, chooses the
-most recently modified candidate, and prints per-slot colored health. The
+candidate with the newest persisted `database-summary.json.updated` value
+(falling back to directory time when needed), and prints per-slot colored
+health. The
 summary checks:
 
 - committed archive/full/compact database presence;
@@ -156,5 +178,4 @@ summary checks:
 - source snapshots whose current seven-file content fingerprint differs from
   the processed fingerprint.
 
-Quality warnings are advisory unless an error/structural condition promotes the
-slot to FAIL.
+Quality warnings are displayed as numeric advisory counts and do not by themselves change PASS health; an error/structural condition still promotes the slot to FAIL.

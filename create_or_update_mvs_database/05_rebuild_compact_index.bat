@@ -2,7 +2,7 @@
 :setup
 REM Generated internal create/update component. It is standalone but orchestrated by create_or_update_mvs_database.bat.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.1"
+set "app.version=0.1.2"
 set "app.name=05_rebuild_compact_index"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -15,6 +15,7 @@ set "mvsdbm_arg6=%~6"
 set "mvsdbm_arg7=%~7"
 set "mvsdbm_arg8=%~8"
 set "mvsdbm_version=%app.version%"
+set "mvsdbm_project_version=0.19.2"
 :main
 set "RunPowerShellFromLabel.function=MVSDatabaseMaintenance"
 call :RunPowerShellFromLabel
@@ -109,7 +110,8 @@ $Workers=8
 if(   -not    [int]::TryParse([string]$env:mvsdbm_arg6,[ref]$Workers)    -or    $Workers  -lt   1){$Workers=8}
 $RunLogs=[IO.Path]::GetFullPath([string]$env:mvsdbm_arg7)
 $Extra=[string]$env:mvsdbm_arg8
-$Version=[string]$env:mvsdbm_version
+$ToolVersion=[string]$env:mvsdbm_version
+$Version=[string]$env:mvsdbm_project_version
 $KnownSources=@('mvs.txt','mvs_ids.txt','mvs_dates.txt','mvs_names.txt','mvs_notes.html','mvs.sha1','mvs.sha256')
 $SnapshotPattern='^mvs_\d{4}-\d{2}-\d{2}(?:-\d{4})?(?:_\d+)?$'
 $Tab=[char]9
@@ -181,6 +183,7 @@ function Get-ToolsetFingerprint {
     }
     return Get-Sha256Text (($rows -join "`n")+"`n")
 }
+
 function Plan-Key {
     param([object]$Row)
     return @([string]$Row.scope,[string]$Row.snapshot,[string]$Row.next_snapshot,[string]$Row.tool,[string]$Row.search_source,[string]$Row.search_value,[string]$Row.search_origin)-join$US
@@ -239,6 +242,8 @@ $toolHash=Get-Sha256File $tool
 $hashPath=Join-Path $SlotRoot 'compact-toolset-sha256.txt'
 $oldHash=if(Test-Path -LiteralPath $hashPath -PathType Leaf){([IO.File]::ReadAllText($hashPath)).Trim()}else{''}
 $current=Join-Path $SlotRoot 'compact-index'
+$marker=Join-Path $SlotRoot ('compact-rebuilt-'+$RunId+'.flag')
+if(Test-Path -LiteralPath $marker){Remove-Item -LiteralPath $marker -Force}
 $familyMarker=Join-Path $SlotRoot ('family-rebuilt-'+$RunId+'.flag')
 $need=(Test-Path -LiteralPath $familyMarker -PathType Leaf)   -or   (   -not   (Test-Path -LiteralPath $current -PathType Container))   -or   (   -not   [StringComparer]::Ordinal.Equals($oldHash,$toolHash))
 if(   -not   $need){
@@ -251,5 +256,6 @@ Write-Line 'Building compact product-family database ...'
 Invoke-BatChecked $tool @($full,$staging) 'compact product-family builder'
 Swap-Directory $staging $current
 Write-Utf8 $hashPath ($toolHash+"`r`n")
+Write-Utf8 $marker "rebuilt`r`n"
 Write-Line ('Compact product-family database committed: '+$current)
 :_MVSDatabaseMaintenance_end

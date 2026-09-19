@@ -1,3 +1,8 @@
+0.1.2 / project 0.19.2 - 2026-09-10
+- Separates toolkit project version from maintenance component version.
+- Adds true zero-pending archive no-op handling and reusable managed validation state with --force-validate override.
+- Fixes numeric quality summary parsing and persisted update-time selection.
+
 generate_database_maintenance.py
 
 0.1.1 / project 0.19.1 - 2026-09-08

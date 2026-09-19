@@ -812,3 +812,31 @@ PowerShell were caught by a static delimiter audit before packaging. After
 correction, regeneration changed exactly the three affected generated BATs; a
 complete subsequent generator pass is required to remain byte-idempotent.
 
+## 2026-09-10 — 0.19.2 native follow-up
+
+The successful 0.19.1 create/update retry proved the managed incremental path:
+all 79 snapshots, all 78 adjacent compare groups and both archive-wide builders
+were reusable; family/compact rebuilds were skipped; database validation passed
+57/57; timestamped HTML generation completed; and the run ended PASS.
+
+Two presentation/orchestration defects remained. GUI discovery returned a
+nested array, so Windows PowerShell treated five candidate objects as one array
+object and property enumeration turned `.Path` into a space-separated string.
+The summary parser also encountered two `Warnings:` headings and overwrote the
+numeric `19` with the first warning-detail line.
+
+0.19.2 flattens GUI candidates, parses only numeric quality counters, separates
+tool/project versions, and makes persisted database state authoritative for
+summary recency. The unchanged archive stage now exits before the sweep/quality
+runner when preparation proves the whole archive reusable.
+
+The supplied full-pipeline log exposed an independent stale regression path:
+the synthetic product-family test still invoked query wrappers from the old
+root surface after 0.19.0 moved those tools to `tools\`. That regression now
+uses the delivered layout.
+
+A managed validation cache is added only after a successful deep validation.
+It is invalidated by rebuild markers, validator/query-tool changes, or managed
+database metadata changes, and can always be bypassed with `--force-validate`.
+Source dump reuse continues to require the existing SHA-256 content
+fingerprints; timestamps remain non-evidence.

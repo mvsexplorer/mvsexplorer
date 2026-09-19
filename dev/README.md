@@ -1,3 +1,25 @@
+## 0.19.2 native follow-up
+
+`generate_powershell_gui.py` 0.2.1 fixes multi-candidate discovery by returning
+the sorted candidate objects as a flat PowerShell sequence. Do not restore the
+extra unary comma around that array.
+
+`generate_database_maintenance.py` 0.1.2 injects both maintenance tool version
+and toolkit project version. Component common code uses the project version for
+database validator/state metadata.
+
+Stage 03 has an explicit zero-pending/archive-reused exit path and must not call
+`test_all_dumps.bat` or archive quality in that branch. Stage 06 can reuse a
+prior managed validation PASS only when the validator/query toolset fingerprint
+and database metadata fingerprint match and no upstream layer rebuilt;
+`--force-validate` bypasses it.
+
+`database-summary-display.inc.ps1` parses only numeric quality counters and uses
+persisted database-summary update time for root recency.
+
+`test\test_product_family_tools.bat` is a maintained regression artifact; after
+the 0.19.0 layout change its query wrappers must resolve from `tools\`.
+
 ## 0.19.1 validation-output ownership hotfix
 
 `database-maintenance-validate.inc.ps1` must not call

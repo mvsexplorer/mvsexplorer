@@ -1,3 +1,7 @@
+0.11.14 / project 0.19.2 - 2026-09-10
+- Structure grows to 501 assertions.
+- Adds regressions for flat GUI database candidates, project/tool version separation, numeric summary quality parsing, unchanged archive no-op behavior, and product-family tools\ regression resolution.
+
 0.11.12 / project 0.19.0 - 2026-09-07
 0.11.13 / project 0.19.1 - 2026-09-08
 - Adds a regression that rejects maintenance stage 06 pre-creating database-validation before the generated-database validator runs.

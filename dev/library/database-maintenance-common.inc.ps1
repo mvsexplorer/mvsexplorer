@@ -10,7 +10,8 @@ $Workers=8
 if(   -not    [int]::TryParse([string]$env:mvsdbm_arg6,[ref]$Workers)    -or    $Workers  -lt   1){$Workers=8}
 $RunLogs=[IO.Path]::GetFullPath([string]$env:mvsdbm_arg7)
 $Extra=[string]$env:mvsdbm_arg8
-$Version=[string]$env:mvsdbm_version
+$ToolVersion=[string]$env:mvsdbm_version
+$Version=[string]$env:mvsdbm_project_version
 $KnownSources=@('mvs.txt','mvs_ids.txt','mvs_dates.txt','mvs_names.txt','mvs_notes.html','mvs.sha1','mvs.sha256')
 $SnapshotPattern='^mvs_\d{4}-\d{2}-\d{2}(?:-\d{4})?(?:_\d+)?$'
 $Tab=[char]9
@@ -82,6 +83,7 @@ function Get-ToolsetFingerprint {
     }
     return Get-Sha256Text (($rows -join "`n")+"`n")
 }
+
 function Plan-Key {
     param([object]$Row)
     return @([string]$Row.scope,[string]$Row.snapshot,[string]$Row.next_snapshot,[string]$Row.tool,[string]$Row.search_source,[string]$Row.search_value,[string]$Row.search_origin)-join$US

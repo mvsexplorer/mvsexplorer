@@ -135,7 +135,6 @@ if($reuseArchive){
             status=[string]$oldRun.status;rc=[string]$oldRun.rc;stdout_bytes=[string]$oldRun.stdout_bytes;stderr_bytes=[string]$oldRun.stderr_bytes;elapsed_ms=[string]$oldRun.elapsed_ms
         }
     }
-    Copy-TreeHardLinkOrCopy (Join-Path $current 'archive-output') (Join-Path $staging 'archive-output')
     Write-Line 'Already done: archive-wide builders are reusable.'
 }else{Write-Line 'Archive-wide builders will be regenerated after pending dump/compare work.'}
 

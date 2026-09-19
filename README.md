@@ -1,6 +1,37 @@
-# MVS Explorer Toolkit 0.19.1
+# MVS Explorer Toolkit 0.19.2
 
+## 0.19.2 GUI discovery, summary accuracy, and no-op maintenance cleanup
 
+0.19.2 fixes three issues exposed by native 0.19.1 use.
+
+The desktop GUI now returns a flat candidate sequence from compact-database
+discovery. A no-argument launch with multiple usable compact indexes therefore
+shows the intended chooser instead of converting all candidate paths into one
+space-separated invalid path.
+
+`display_mvs_database_summary.bat` now reads numeric quality counters rather
+than accidentally overwriting the first `Warnings:` count with the first
+warning-detail line. It also reports the toolkit project version separately
+from the maintenance-tool version and derives `Last updated` / latest-root
+selection from persisted database summary state instead of relying only on the
+directory entry timestamp.
+
+Create/update maintenance now keeps toolkit project version and maintenance
+component version as separate values. A fully unchanged archive also has a true
+stage-03 no-op path: once preparation proves every snapshot, adjacent compare,
+and archive-wide builder reusable, the existing committed archive analysis is
+retained without re-running the archive sweep or regenerating archive quality.
+A successful deep database validation may be reused on later unchanged managed
+runs when the validator/query toolset and managed database metadata fingerprint
+are unchanged. `--force-validate` always runs a fresh deep validation.
+
+The supplied 0.19.1 production-pipeline log also exposed one stale regression
+caller: `test\test_product_family_tools.bat` still looked for the 32 family
+query wrappers in the project root. 0.19.2 resolves them from `tools\` and
+updates that regression to the current project version.
+
+The archive/single/compare processing semantics and known 79-snapshot legacy
+plan remain unchanged at 34,822 logical checks.
 
 ## 0.19.1 validation-output ownership hotfix
 

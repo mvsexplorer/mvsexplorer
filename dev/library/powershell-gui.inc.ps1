@@ -91,7 +91,7 @@ function Find-CompactIndexCandidates {
             }
         }
     }
-    return ,@($items | Sort-Object @{Expression={$_.Stamp};Descending=$true}, @{Expression={$_.Path};Descending=$false})
+    return @($items | Sort-Object @{Expression={$_.Stamp};Descending=$true}, @{Expression={$_.Path};Descending=$false})
 }
 function Pick-CompactIndexFolder {
     param([AllowNull()][string]$InitialPath)

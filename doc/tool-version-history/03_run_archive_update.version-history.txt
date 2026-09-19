@@ -1,3 +1,7 @@
+0.1.2 / project 0.19.2 - 2026-09-10
+- Adds true no-op exit when preparation proves pending_checks=0 and archive-wide builders reusable.
+- Keeps committed archive analysis instead of invoking the sweep/quality regeneration for unchanged archives.
+
 03_run_archive_update.bat
 
 0.1.0 / project 0.19.0 - 2026-09-07

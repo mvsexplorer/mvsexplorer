@@ -1,3 +1,7 @@
+0.11.14 / project 0.19.2 - 2026-09-10
+- Full public regression grows to 1,114 assertions from the five new structure guards.
+- Product-family aggregate now executes the corrected 0.1.4 regression from the tools\ delivery layout.
+
 0.11.12 / project 0.19.0 - 2026-09-07
 - Public utility resolution follows tools\.
 - All-mode expected assertions: 1,108.

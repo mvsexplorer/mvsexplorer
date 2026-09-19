@@ -2,7 +2,7 @@
 :setup
 REM Generated internal create/update component. It is standalone but orchestrated by create_or_update_mvs_database.bat.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.1"
+set "app.version=0.1.2"
 set "app.name=03_run_archive_update"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -15,6 +15,7 @@ set "mvsdbm_arg6=%~6"
 set "mvsdbm_arg7=%~7"
 set "mvsdbm_arg8=%~8"
 set "mvsdbm_version=%app.version%"
+set "mvsdbm_project_version=0.19.2"
 :main
 set "RunPowerShellFromLabel.function=MVSDatabaseMaintenance"
 call :RunPowerShellFromLabel
@@ -109,7 +110,8 @@ $Workers=8
 if(   -not    [int]::TryParse([string]$env:mvsdbm_arg6,[ref]$Workers)    -or    $Workers  -lt   1){$Workers=8}
 $RunLogs=[IO.Path]::GetFullPath([string]$env:mvsdbm_arg7)
 $Extra=[string]$env:mvsdbm_arg8
-$Version=[string]$env:mvsdbm_version
+$ToolVersion=[string]$env:mvsdbm_version
+$Version=[string]$env:mvsdbm_project_version
 $KnownSources=@('mvs.txt','mvs_ids.txt','mvs_dates.txt','mvs_names.txt','mvs_notes.html','mvs.sha1','mvs.sha256')
 $SnapshotPattern='^mvs_\d{4}-\d{2}-\d{2}(?:-\d{4})?(?:_\d+)?$'
 $Tab=[char]9
@@ -181,6 +183,7 @@ function Get-ToolsetFingerprint {
     }
     return Get-Sha256Text (($rows -join "`n")+"`n")
 }
+
 function Plan-Key {
     param([object]$Row)
     return @([string]$Row.scope,[string]$Row.snapshot,[string]$Row.next_snapshot,[string]$Row.tool,[string]$Row.search_source,[string]$Row.search_value,[string]$Row.search_origin)-join$US
@@ -236,12 +239,24 @@ $staging=Join-Path $SlotRoot ('archive-analysis.staging-'+$RunId)
 if(   -not   (Test-Path -LiteralPath (Join-Path $staging 'update-state.json') -PathType Leaf)){throw ('Prepared staging state missing: '+$staging)}
 $state=ConvertFrom-Json ([IO.File]::ReadAllText((Join-Path $staging 'update-state.json')))
 Write-Line ('Updating archive analysis: pending checks='+$state.pending_checks+', already seeded='+$state.seeded_checks+'.')
+$current=Join-Path $SlotRoot 'archive-analysis'
+if(([int]$state.pending_checks -eq 0) -and ([bool]$state.archive_reused) -and (Test-Path -LiteralPath $current -PathType Container)){
+    foreach($name in @('source-fingerprints.tsv','toolset-sha256.txt','update-state.json')){
+        $fresh=Join-Path $staging $name
+        if(Test-Path -LiteralPath $fresh -PathType Leaf){Copy-Item -LiteralPath $fresh -Destination (Join-Path $current $name) -Force}
+    }
+    Write-Utf8 (Join-Path $SlotRoot 'source-path.txt') ($ArchiveRoot+"`r`n")
+    Write-Utf8 (Join-Path $SlotRoot 'archive-name.txt') ((Split-Path -Leaf $ArchiveRoot)+"`r`n")
+    Write-Utf8 (Join-Path $SlotRoot 'last-archive-update.txt') ((Get-Date).ToString('o')+"`r`n")
+    Remove-Item -LiteralPath $staging -Recurse -Force
+    Write-Line 'Already done: committed archive analysis is current; no archive processing required.'
+    [Environment]::Exit(0)
+}
 $sweep=Join-Path $ProjectRoot 'test\test_all_dumps.bat'
 $cache=Join-Path $SlotRoot 'cache'
 Invoke-BatChecked $sweep @($ArchiveRoot,$staging,'--resume','--workers',[string]$Workers,'--cache-folder',$cache) 'archive analysis update'
 $quality=Join-Path $ProjectRoot 'test\check_archive_sweep_quality.bat'
 Invoke-BatChecked $quality @($staging) 'archive quality validation'
-$current=Join-Path $SlotRoot 'archive-analysis'
 Swap-Directory $staging $current
 Write-Utf8 (Join-Path $SlotRoot 'source-path.txt') ($ArchiveRoot+"`r`n")
 Write-Utf8 (Join-Path $SlotRoot 'archive-name.txt') ((Split-Path -Leaf $ArchiveRoot)+"`r`n")

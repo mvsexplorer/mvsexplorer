@@ -1,3 +1,7 @@
+1.0.8 / project 0.19.2 - 2026-09-10
+- Regenerates the full-pipeline launcher with project 0.19.2 metadata.
+- Database-validation implementation remains semantically unchanged.
+
 1.0.5 - 2026-09-07
 1.0.7 / project 0.19.1 - 2026-09-08
 - Regenerates the legacy full-pipeline launcher with the 0.19.1 project label; pipeline behavior is unchanged.

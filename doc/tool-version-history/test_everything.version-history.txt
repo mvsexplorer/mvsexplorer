@@ -1,3 +1,7 @@
+0.1.4 / project 0.19.2 - 2026-09-10
+- Updates project metadata to 0.19.2.
+- Exercises the corrected product-family regression through test_all.bat.
+
 0.1.3 / project 0.16.4
 - Regenerated with project 0.16.4 progress metadata; suite behavior remains the quiet-plan flow.
 

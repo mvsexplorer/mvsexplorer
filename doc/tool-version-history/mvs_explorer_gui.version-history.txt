@@ -1,3 +1,7 @@
+0.2.1 / project 0.19.2 - 2026-09-10
+- Fixes multiple compact-database discovery candidates being wrapped as one nested array.
+- Multiple matches now reach the chooser as distinct rows; exactly-one and Browse fallback behavior are unchanged.
+
 mvs_explorer_gui.bat
 
 0.2.0 / project 0.19.0 - 2026-09-07

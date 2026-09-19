@@ -2,13 +2,13 @@
 :setup
 REM Standalone product-family feature regression.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.3"
+set "app.version=0.1.4"
 set "app.name=test_product_family_tools"
 set "app.rc=0"
 set "app.self=%~f0"
 set "mvspf_caller=%~nx0"
 set "mvspf_version=%app.version%"
-set "mvspf_project_version=0.16.5"
+set "mvspf_project_version=0.19.2"
 for %%I in ("%~dp0..") do set "mvspf_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSProductFamilyTest"
@@ -155,7 +155,7 @@ function Assert-Semantic {
 }
 function Assert-QueryPositive {
     param([string]$ToolName,[string]$Pattern)
-    $run = Invoke-Batch (Join-Path $Root ($ToolName+'.bat')) @($OutputRoot,$Pattern)
+    $run = Invoke-Batch (Join-Path (Join-Path $Root 'tools') ($ToolName+'.bat')) @($OutputRoot,$Pattern)
     if ($run.rc -eq 0 -and -not [string]::IsNullOrWhiteSpace($run.stdout) -and [string]::IsNullOrWhiteSpace($run.stderr)) {
         Pass ($ToolName+' positive')
     } else {
@@ -164,7 +164,7 @@ function Assert-QueryPositive {
 }
 function Assert-QueryNoResult {
     param([string]$ToolName)
-    $run = Invoke-Batch (Join-Path $Root ($ToolName+'.bat')) @($OutputRoot,'__MVS_FAMILY_NO_MATCH_9E3779B97F4A7C15__')
+    $run = Invoke-Batch (Join-Path (Join-Path $Root 'tools') ($ToolName+'.bat')) @($OutputRoot,'__MVS_FAMILY_NO_MATCH_9E3779B97F4A7C15__')
     if ($run.rc -eq 1 -and [string]::IsNullOrWhiteSpace($run.stdout) -and [string]::IsNullOrWhiteSpace($run.stderr)) {
         Pass ($ToolName+' no-result')
     } else {

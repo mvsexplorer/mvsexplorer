@@ -186,3 +186,10 @@ the active log writer is closed. See `database-maintenance.md`.
 
 The 0.19.1 project patch changes modular database-maintenance validation output ownership only; the accepted full-pipeline data semantics are unchanged.
 
+## 0.19.2 tools-layout regression correction
+
+The supplied 0.19.1 full-pipeline log reached the final product-family aggregate
+inside `test_all.bat` and failed because `test_product_family_tools.bat` still
+resolved the 32 family query wrappers from the project root. The delivered
+utilities moved to `tools\` in 0.19.0. 0.19.2 corrects that test caller and
+updates its project metadata; archive/database semantics are unchanged.

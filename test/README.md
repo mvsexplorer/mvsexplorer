@@ -1,3 +1,21 @@
+# 0.19.2 current regression notes
+
+The current generated public `all` matrix contains **1,114 assertions** and the
+structure subset contains **501 assertions**. The five new structure guards
+cover flat GUI database candidate shape, maintenance project/tool version
+separation, numeric database-summary quality parsing, the zero-pending archive
+no-op branch, and the product-family regression's `tools\` query location.
+
+`test\test_product_family_tools.bat` is now version 0.1.4 / project 0.19.2 and
+continues to contain 106 dedicated product-family/compact assertions. Its 32
+public query wrappers are resolved from `tools\`, matching the 0.19.x delivery
+layout.
+
+The generated-database validator remains 57 checks. Create/update maintenance
+may reuse a prior managed validation PASS on a later unchanged run; use
+`create_or_update_mvs_database.bat --force-validate` to require a fresh 57-check
+validation and all 32 real family-query smoke executions.
+
 # 0.16.5 progress and generated-database validation
 
 All assertion-producing test harnesses now print project version plus

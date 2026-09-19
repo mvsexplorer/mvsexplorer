@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Generate the modular create/update database workflow and summary launcher.
 
-Version: 0.1.1
+Version: 0.1.2
 """
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 DEV=ROOT/"dev"
 OUT=ROOT/"create_or_update_mvs_database"
-TOOL_VERSION="0.1.1"
+TOOL_VERSION="0.1.2"
+PROJECT_VERSION="0.19.2"
 
 def read(path):
     return path.read_text(encoding="utf-8").replace("\r\n","\n").rstrip()
@@ -35,12 +36,12 @@ def main():
     ]
     for name,source,use_common in components:
         ps=(common+"\n\n" if use_common else "")+read(DEV/"library"/source)
-        text=inject(component_tpl,{"TOOL_VERSION":TOOL_VERSION,"APP_NAME":name,"BATCH_COMMON":batch,"POWERSHELL":ps})
+        text=inject(component_tpl,{"TOOL_VERSION":TOOL_VERSION,"PROJECT_VERSION":PROJECT_VERSION,"APP_NAME":name,"BATCH_COMMON":batch,"POWERSHELL":ps})
         write_bat(OUT/(name+".bat"),text)
     launcher=inject(read(DEV/"templates"/"database-maintenance-launcher.bat.tpl"),{
-        "TOOL_VERSION":TOOL_VERSION,"BATCH_COMMON":batch,"POWERSHELL":read(DEV/"library"/"database-maintenance-launcher.inc.ps1")})
+        "TOOL_VERSION":TOOL_VERSION,"PROJECT_VERSION":PROJECT_VERSION,"BATCH_COMMON":batch,"POWERSHELL":read(DEV/"library"/"database-maintenance-launcher.inc.ps1")})
     write_bat(ROOT/"create_or_update_mvs_database.bat",launcher)
     display=inject(read(DEV/"templates"/"database-summary-display.bat.tpl"),{
-        "TOOL_VERSION":TOOL_VERSION,"BATCH_COMMON":batch,"POWERSHELL":read(DEV/"library"/"database-summary-display.inc.ps1")})
+        "TOOL_VERSION":TOOL_VERSION,"PROJECT_VERSION":PROJECT_VERSION,"BATCH_COMMON":batch,"POWERSHELL":read(DEV/"library"/"database-summary-display.inc.ps1")})
     write_bat(ROOT/"display_mvs_database_summary.bat",display)
 if __name__=="__main__": main()
