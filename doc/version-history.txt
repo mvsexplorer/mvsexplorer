@@ -1,0 +1,10 @@
+MVS Explorer Toolkit Version History
+
+0.1.0 - 2026-08-27
+  - Initial scalar-product print/read toolkit.
+  - Added human-readable print_ wrappers.
+  - Added machine-readable TSV read_ wrappers.
+  - Added shared embedded-PowerShell parser.
+  - Implemented ID/title/date/note projections.
+  - Documented title-keyed note ambiguity.
+  - Added id_date_note to complete the non-empty scalar field combinations.
