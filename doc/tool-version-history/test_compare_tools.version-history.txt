@@ -1,0 +1,10 @@
+Tool Version History: test\test_compare_tools.bat
+
+Purpose
+  Test mode: compare
+  Standalone: yes; contains complete injected test harness
+
+0.7.0 - 2026-08-27
+  - Initial comparison-only test entry point.
+  - Runs 19 before-to-after exact-output cases and 19 no-change cases.
+  - Requires no caller-supplied real dump.

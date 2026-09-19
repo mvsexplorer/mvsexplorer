@@ -1,0 +1,10 @@
+--- Alpha TXT Product [ID: 10] ---
+1111111111111111111111111111111111111111 *alpha-common.iso
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa *alpha-common.iso
+
+--- Removed TXT Product [ID: 20] ---
+2222222222222222222222222222222222222222 *removed-txt.iso
+bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb *removed-txt.iso
+
+--- Stable TXT Product [ID: 30] ---
+3333333333333333333333333333333333333333 *stable-txt.iso

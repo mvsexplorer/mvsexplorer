@@ -239,3 +239,24 @@ enumeration explicitly (for example with unary comma) or construct the
 collection directly at the assignment site. Static validation should encode
 this requirement when the helper is injected into hundreds of standalone
 tools.
+
+
+### First cross-dump comparison should remain source-local
+
+A source-local set difference answers a precise question without inventing
+cross-snapshot identity: what values disappeared from this source, and what
+values appeared in the same source? More complex product/variant matching can
+be layered later without changing these basic facts.
+
+### Color must not contaminate redirected comparison output
+
+Red/green console presentation is useful interactively, but terminal control
+sequences would make exact tests, files, and pipelines harder to consume.
+Console-aware coloring keeps the durable output contract as plain `- value` /
+`+ value` lines.
+
+### mvs_names ID comparison must preserve the corrected source domain
+
+The 0.9.x real-dump work proved that `mvs_names.txt` IDs are not universally
+product IDs. Cross-dump comparison therefore treats them as case-insensitive
+text, while product-source IDs continue to use numeric normalization.

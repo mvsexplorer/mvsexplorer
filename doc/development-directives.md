@@ -199,3 +199,15 @@ These directives are distilled from the user's project prompts.
 135. The shared single-dump `New-ArrayList` helper must use a non-enumerating return form and generated-tool validation must enforce it.
 136. A Windows failure shared by every tool in one generated family should first be treated as a common injected-runtime defect before individual operation logic is changed.
 
+
+137. Two-dump comparison tools accept the earlier/baseline dump first and the later/new dump second.
+138. A source value present only in the first dump is removed and is emitted with a `-` prefix; a value present only in the second is added and is emitted with a `+` prefix.
+139. Emit all removals before all additions; preserve first-source order for removals and second-source order for additions.
+140. Comparison output is set-based: duplicate occurrences within one source do not create repeated diff lines.
+141. Interactive comparison output colors removed lines red and added lines green; redirected output remains plain text with no terminal-control bytes.
+142. No differences is a successful comparison with empty stdout and return code 0.
+143. `mvs_names.txt` IDs remain textual source IDs during comparison; product-source IDs use numeric normalization.
+144. Title comparison uses HTML decode, whitespace collapse, trim, and case-insensitive membership; date comparison uses trimmed source text.
+145. Hash comparison is algorithm-specific and filename comparison is source-specific; do not infer cross-source ownership from a filename-only comparison.
+146. Every comparison tool must be exercised on a synthetic before/after pair and on an identical pair.
+147. Cross-dump comparison must build on the validated 0.9.2 single-dump baseline without changing the existing 422 public tools.

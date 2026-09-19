@@ -1538,3 +1538,51 @@ All 166 single-dump failures in the supplied transcript reported return code 5
 and `ERROR: You cannot call a method on a null-valued expression.` The
 transcript is analyzed in `doc\test-run-analysis-0.9.1.md`.
 
+
+
+## Prompt 16
+
+```text
+results
+
+[Complete Windows 0.9.2 test_all console transcript supplied for
+ mvs_2020-04-21.]
+
+SUMMARY: passed=928 failed=0 skipped=3
+Results: C:\Users\user\Downloads\MVS-Explorer-Toolkit-0.9.2\test\test-results-20260827-180704
+```
+
+The attached timestamped result archive is analyzed in
+`doc\test-run-analysis-0.9.2.md` and establishes 0.9.2 as the clean
+single-dump Windows baseline.
+
+## Prompt 17
+
+```text
+Ok now we need
+compare_mvs_dump_id_from_mvs.txt.bat
+compare_mvs_dump_id_from_mvs_ids.txt.bat
+compare_mvs_dump_id_from_mvs_names.txt.bat
+compare_mvs_dump_id_from_mvs_names.txt.bat
+and parameter are going to be two mvs dump folders
+if something is in the first but not the second, we consider that removed
+it will be in red, and start with a - sign
+if something is not in the first but in the second that is added, and it will be in green and start with a plus sign
+output is just what is removed and then what is added
+
+and also for titles
+compare_mvs_dump_title_from_mvs.txt.bat
+compare_mvs_dump_title_from_mvs_ids.txt.bat
+compare_mvs_dump_title_from_mvs_names.txt.bat
+compare_mvs_dump_title_from_mvs_dates.txt.bat
+and dates ?
+compare_mvs_dump_dates_from_mvs_dates.txt.bat
+
+and the sha1 the sha256 and the filenames
+and create tests
+```
+
+The repeated `mvs_names.txt` ID entry is implemented once; the natural
+`mvs_dates.txt` ID comparison is supplied as the fourth source-specific ID
+form. SHA-1/SHA-256 and filename comparisons are expanded across every source
+that actually contains the corresponding value type.

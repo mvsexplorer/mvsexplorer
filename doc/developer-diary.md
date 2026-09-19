@@ -252,3 +252,21 @@ collection into zero pipeline objects, so assignments received `$null`.
 The 0.9.2 repair uses unary comma to emit the collection object itself. The
 repair is again made only in maintained shared source and regenerated into all
 154 standalone single-dump tools. Existing output expectations do not change.
+
+
+## 2026-08-27 — 0.9.2 clean Windows baseline and 0.10.0 comparison layer
+
+The attached 0.9.2 Windows run completed all 931 assertions with 928 passes,
+zero failures, and three expected data-dependent note skips. All 167
+single-dump completeness assertions passed, so cross-dump work can start from a
+validated single-snapshot model rather than mixing new comparison behavior with
+unresolved parser/runtime defects.
+
+The first comparison layer is deliberately source-local and set-based. It
+does not attempt semantic product matching across snapshots. Each public tool
+extracts one property from one named source in both dump folders, reports
+first-only values as removals, then second-only values as additions.
+
+Console color is presentation only. The `-`/`+` prefixes are the durable
+machine-visible markers; redirected output is plain text so tests and pipes do
+not inherit console escape sequences.

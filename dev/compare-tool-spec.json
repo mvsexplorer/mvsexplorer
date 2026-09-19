@@ -1,0 +1,104 @@
+{
+  "tool_version": "0.1.0",
+  "tools": [
+    {
+      "name": "compare_mvs_dump_id_from_mvs.txt",
+      "property": "id",
+      "source_file": "mvs.txt",
+      "id_mode": "numeric"
+    },
+    {
+      "name": "compare_mvs_dump_id_from_mvs_ids.txt",
+      "property": "id",
+      "source_file": "mvs_ids.txt",
+      "id_mode": "numeric"
+    },
+    {
+      "name": "compare_mvs_dump_id_from_mvs_names.txt",
+      "property": "id",
+      "source_file": "mvs_names.txt",
+      "id_mode": "text"
+    },
+    {
+      "name": "compare_mvs_dump_id_from_mvs_dates.txt",
+      "property": "id",
+      "source_file": "mvs_dates.txt",
+      "id_mode": "numeric"
+    },
+    {
+      "name": "compare_mvs_dump_title_from_mvs.txt",
+      "property": "title",
+      "source_file": "mvs.txt"
+    },
+    {
+      "name": "compare_mvs_dump_title_from_mvs_ids.txt",
+      "property": "title",
+      "source_file": "mvs_ids.txt"
+    },
+    {
+      "name": "compare_mvs_dump_title_from_mvs_names.txt",
+      "property": "title",
+      "source_file": "mvs_names.txt"
+    },
+    {
+      "name": "compare_mvs_dump_title_from_mvs_dates.txt",
+      "property": "title",
+      "source_file": "mvs_dates.txt"
+    },
+    {
+      "name": "compare_mvs_dump_dates_from_mvs_dates.txt",
+      "property": "date",
+      "source_file": "mvs_dates.txt"
+    },
+    {
+      "name": "compare_mvs_dump_sha1_from_mvs.txt",
+      "property": "sha1",
+      "source_file": "mvs.txt"
+    },
+    {
+      "name": "compare_mvs_dump_sha1_from_mvs_names.txt",
+      "property": "sha1",
+      "source_file": "mvs_names.txt"
+    },
+    {
+      "name": "compare_mvs_dump_sha1_from_mvs.sha1",
+      "property": "sha1",
+      "source_file": "mvs.sha1"
+    },
+    {
+      "name": "compare_mvs_dump_sha256_from_mvs.txt",
+      "property": "sha256",
+      "source_file": "mvs.txt"
+    },
+    {
+      "name": "compare_mvs_dump_sha256_from_mvs_names.txt",
+      "property": "sha256",
+      "source_file": "mvs_names.txt"
+    },
+    {
+      "name": "compare_mvs_dump_sha256_from_mvs.sha256",
+      "property": "sha256",
+      "source_file": "mvs.sha256"
+    },
+    {
+      "name": "compare_mvs_dump_filenames_from_mvs.txt",
+      "property": "filename",
+      "source_file": "mvs.txt"
+    },
+    {
+      "name": "compare_mvs_dump_filenames_from_mvs_names.txt",
+      "property": "filename",
+      "source_file": "mvs_names.txt"
+    },
+    {
+      "name": "compare_mvs_dump_filenames_from_mvs.sha1",
+      "property": "filename",
+      "source_file": "mvs.sha1"
+    },
+    {
+      "name": "compare_mvs_dump_filenames_from_mvs.sha256",
+      "property": "filename",
+      "source_file": "mvs.sha256"
+    }
+  ]
+}

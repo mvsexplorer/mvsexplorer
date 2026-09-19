@@ -1,30 +1,43 @@
-MVS Explorer Toolkit 0.9.2
-Public standalone batch tools: 422
-  unchanged pre-0.9.0 Windows-tested tools: 268
-  regenerated single-dump tools: 154 (tool version 0.1.2)
-Standalone automated test batch files: 7 (test version 0.6.2)
-Single-dump synthetic fixture: test\test-mvs-dump-single-complete\\
-Fixed single-dump expected outputs: 154
-Expected full-suite assertions: 931
+MVS Explorer Toolkit 0.10.0
+Public standalone batch tools: 441
+  unchanged validated 0.9.2 public tools: 422
+  new two-dump comparison tools: 19 (tool version 0.1.0)
+Standalone automated test batch files: 8 (test version 0.7.0)
+Comparison synthetic fixture: test\test-mvs-dump-compare\
+Fixed comparison expected outputs: 19
+Expected full-suite assertions: 989
 Independent real-dump reference summaries: 2
-Tool/development version-history files: 441
+Tool/development version-history files: 464
 
 Files:
-dev/__pycache__/generate_diagnostic_fixture.cpython-313.pyc
-dev/__pycache__/generate_diagnostic_tools.cpython-313.pyc
-dev/__pycache__/generate_expected_diagnostic_outputs.cpython-313.pyc
-dev/__pycache__/generate_expected_relationship_outputs.cpython-313.pyc
-dev/__pycache__/generate_expected_single_dump_outputs.cpython-313.pyc
-dev/__pycache__/generate_relationship_fixture.cpython-313.pyc
-dev/__pycache__/generate_relationship_tools.cpython-313.pyc
-dev/__pycache__/generate_single_dump_fixture.cpython-313.pyc
-dev/__pycache__/generate_single_dump_tools.cpython-313.pyc
-dev/__pycache__/generate_tests.cpython-313.pyc
-dev/__pycache__/generate_tools.cpython-313.pyc
-dev/__pycache__/validate_generated.cpython-313.pyc
+README.md
+compare_mvs_dump_dates_from_mvs_dates.txt.bat
+compare_mvs_dump_filenames_from_mvs.sha1.bat
+compare_mvs_dump_filenames_from_mvs.sha256.bat
+compare_mvs_dump_filenames_from_mvs.txt.bat
+compare_mvs_dump_filenames_from_mvs_names.txt.bat
+compare_mvs_dump_id_from_mvs.txt.bat
+compare_mvs_dump_id_from_mvs_dates.txt.bat
+compare_mvs_dump_id_from_mvs_ids.txt.bat
+compare_mvs_dump_id_from_mvs_names.txt.bat
+compare_mvs_dump_sha1_from_mvs.sha1.bat
+compare_mvs_dump_sha1_from_mvs.txt.bat
+compare_mvs_dump_sha1_from_mvs_names.txt.bat
+compare_mvs_dump_sha256_from_mvs.sha256.bat
+compare_mvs_dump_sha256_from_mvs.txt.bat
+compare_mvs_dump_sha256_from_mvs_names.txt.bat
+compare_mvs_dump_title_from_mvs.txt.bat
+compare_mvs_dump_title_from_mvs_dates.txt.bat
+compare_mvs_dump_title_from_mvs_ids.txt.bat
+compare_mvs_dump_title_from_mvs_names.txt.bat
+dev/README.md
+dev/compare-tool-spec.json
 dev/diagnostic-tool-spec.json
+dev/generate_compare_fixture.py
+dev/generate_compare_tools.py
 dev/generate_diagnostic_fixture.py
 dev/generate_diagnostic_tools.py
+dev/generate_expected_compare_outputs.py
 dev/generate_expected_diagnostic_outputs.py
 dev/generate_expected_relationship_outputs.py
 dev/generate_expected_single_dump_outputs.py
@@ -35,6 +48,7 @@ dev/generate_single_dump_tools.py
 dev/generate_tests.py
 dev/generate_tools.py
 dev/library/batch-common.inc.bat
+dev/library/compare-query.inc.ps1
 dev/library/diagnostic-query.inc.ps1
 dev/library/lookup-query.inc.ps1
 dev/library/powershell-common.inc.ps1
@@ -42,9 +56,9 @@ dev/library/relationship-query.inc.ps1
 dev/library/scalar-query.inc.ps1
 dev/library/single-dump-query.inc.ps1
 dev/library/test-harness.inc.ps1
-dev/README.md
 dev/relationship-tool-spec.json
 dev/single-dump-tool-spec.json
+dev/templates/compare.bat.tpl
 dev/templates/diagnostic.bat.tpl
 dev/templates/lookup.bat.tpl
 dev/templates/relationship.bat.tpl
@@ -54,6 +68,9 @@ dev/templates/test.bat.tpl
 dev/tool-spec.json
 dev/validate_generated.py
 doc/Batch-File-Style-Guide-v1.8.0.txt
+doc/compare-test-fixture.md
+doc/compare-tool-matrix.tsv
+doc/compare-tools.md
 doc/data-model.md
 doc/developer-diary.md
 doc/development-directives.md
@@ -82,7 +99,27 @@ doc/test-run-analysis-0.7.0.md
 doc/test-run-analysis-0.8.0.md
 doc/test-run-analysis-0.9.0.md
 doc/test-run-analysis-0.9.1.md
+doc/test-run-analysis-0.9.2.md
 doc/tool-catalog.tsv
+doc/tool-version-history/compare_mvs_dump_dates_from_mvs_dates.txt.version-history.txt
+doc/tool-version-history/compare_mvs_dump_filenames_from_mvs.sha1.version-history.txt
+doc/tool-version-history/compare_mvs_dump_filenames_from_mvs.sha256.version-history.txt
+doc/tool-version-history/compare_mvs_dump_filenames_from_mvs.txt.version-history.txt
+doc/tool-version-history/compare_mvs_dump_filenames_from_mvs_names.txt.version-history.txt
+doc/tool-version-history/compare_mvs_dump_id_from_mvs.txt.version-history.txt
+doc/tool-version-history/compare_mvs_dump_id_from_mvs_dates.txt.version-history.txt
+doc/tool-version-history/compare_mvs_dump_id_from_mvs_ids.txt.version-history.txt
+doc/tool-version-history/compare_mvs_dump_id_from_mvs_names.txt.version-history.txt
+doc/tool-version-history/compare_mvs_dump_sha1_from_mvs.sha1.version-history.txt
+doc/tool-version-history/compare_mvs_dump_sha1_from_mvs.txt.version-history.txt
+doc/tool-version-history/compare_mvs_dump_sha1_from_mvs_names.txt.version-history.txt
+doc/tool-version-history/compare_mvs_dump_sha256_from_mvs.sha256.version-history.txt
+doc/tool-version-history/compare_mvs_dump_sha256_from_mvs.txt.version-history.txt
+doc/tool-version-history/compare_mvs_dump_sha256_from_mvs_names.txt.version-history.txt
+doc/tool-version-history/compare_mvs_dump_title_from_mvs.txt.version-history.txt
+doc/tool-version-history/compare_mvs_dump_title_from_mvs_dates.txt.version-history.txt
+doc/tool-version-history/compare_mvs_dump_title_from_mvs_ids.txt.version-history.txt
+doc/tool-version-history/compare_mvs_dump_title_from_mvs_names.txt.version-history.txt
 doc/tool-version-history/find_mvs_duplicate_date_in_mvs_date.txt.version-history.txt
 doc/tool-version-history/find_mvs_duplicate_date_in_mvs_dates.txt.version-history.txt
 doc/tool-version-history/find_mvs_duplicate_filename_in_mvs.txt.version-history.txt
@@ -144,8 +181,11 @@ doc/tool-version-history/find_mvs_unparsed_lines_in_mvs.txt.version-history.txt
 doc/tool-version-history/find_mvs_unparsed_lines_in_mvs_dates.txt.version-history.txt
 doc/tool-version-history/find_mvs_unparsed_lines_in_mvs_ids.txt.version-history.txt
 doc/tool-version-history/find_mvs_unparsed_lines_in_mvs_names.txt.version-history.txt
+doc/tool-version-history/generate_compare_fixture.version-history.txt
+doc/tool-version-history/generate_compare_tools.version-history.txt
 doc/tool-version-history/generate_diagnostic_fixture.version-history.txt
 doc/tool-version-history/generate_diagnostic_tools.version-history.txt
+doc/tool-version-history/generate_expected_compare_outputs.version-history.txt
 doc/tool-version-history/generate_expected_diagnostic_outputs.version-history.txt
 doc/tool-version-history/generate_expected_relationship_outputs.version-history.txt
 doc/tool-version-history/generate_expected_single_dump_outputs.version-history.txt
@@ -517,6 +557,7 @@ doc/tool-version-history/read_mvs_unparsed_lines_in_mvs_dates.txt.version-histor
 doc/tool-version-history/read_mvs_unparsed_lines_in_mvs_ids.txt.version-history.txt
 doc/tool-version-history/read_mvs_unparsed_lines_in_mvs_names.txt.version-history.txt
 doc/tool-version-history/test_all.version-history.txt
+doc/tool-version-history/test_compare_tools.version-history.txt
 doc/tool-version-history/test_diagnostic_tools.version-history.txt
 doc/tool-version-history/test_lookup_tools.version-history.txt
 doc/tool-version-history/test_relationship_tools.version-history.txt
@@ -947,7 +988,26 @@ read_mvs_unparsed_lines_in_mvs.txt.bat
 read_mvs_unparsed_lines_in_mvs_dates.txt.bat
 read_mvs_unparsed_lines_in_mvs_ids.txt.bat
 read_mvs_unparsed_lines_in_mvs_names.txt.bat
-README.md
+test/README.md
+test/expected-compare/compare_mvs_dump_dates_from_mvs_dates.txt.expected.txt
+test/expected-compare/compare_mvs_dump_filenames_from_mvs.sha1.expected.txt
+test/expected-compare/compare_mvs_dump_filenames_from_mvs.sha256.expected.txt
+test/expected-compare/compare_mvs_dump_filenames_from_mvs.txt.expected.txt
+test/expected-compare/compare_mvs_dump_filenames_from_mvs_names.txt.expected.txt
+test/expected-compare/compare_mvs_dump_id_from_mvs.txt.expected.txt
+test/expected-compare/compare_mvs_dump_id_from_mvs_dates.txt.expected.txt
+test/expected-compare/compare_mvs_dump_id_from_mvs_ids.txt.expected.txt
+test/expected-compare/compare_mvs_dump_id_from_mvs_names.txt.expected.txt
+test/expected-compare/compare_mvs_dump_sha1_from_mvs.sha1.expected.txt
+test/expected-compare/compare_mvs_dump_sha1_from_mvs.txt.expected.txt
+test/expected-compare/compare_mvs_dump_sha1_from_mvs_names.txt.expected.txt
+test/expected-compare/compare_mvs_dump_sha256_from_mvs.sha256.expected.txt
+test/expected-compare/compare_mvs_dump_sha256_from_mvs.txt.expected.txt
+test/expected-compare/compare_mvs_dump_sha256_from_mvs_names.txt.expected.txt
+test/expected-compare/compare_mvs_dump_title_from_mvs.txt.expected.txt
+test/expected-compare/compare_mvs_dump_title_from_mvs_dates.txt.expected.txt
+test/expected-compare/compare_mvs_dump_title_from_mvs_ids.txt.expected.txt
+test/expected-compare/compare_mvs_dump_title_from_mvs_names.txt.expected.txt
 test/expected-diagnostics/find_mvs_duplicate_date_in_mvs_date.txt.expected.txt
 test/expected-diagnostics/find_mvs_duplicate_date_in_mvs_dates.txt.expected.txt
 test/expected-diagnostics/find_mvs_duplicate_filename_in_mvs.txt.expected.txt
@@ -1293,8 +1353,21 @@ test/expected-single-dump/read_mvs_unparsed_lines_in_mvs.txt.expected.txt
 test/expected-single-dump/read_mvs_unparsed_lines_in_mvs_dates.txt.expected.txt
 test/expected-single-dump/read_mvs_unparsed_lines_in_mvs_ids.txt.expected.txt
 test/expected-single-dump/read_mvs_unparsed_lines_in_mvs_names.txt.expected.txt
-test/README.md
+test/test-mvs-dump-compare/README.txt
+test/test-mvs-dump-compare/after/mvs.sha1
+test/test-mvs-dump-compare/after/mvs.sha256
+test/test-mvs-dump-compare/after/mvs.txt
+test/test-mvs-dump-compare/after/mvs_dates.txt
+test/test-mvs-dump-compare/after/mvs_ids.txt
+test/test-mvs-dump-compare/after/mvs_names.txt
+test/test-mvs-dump-compare/before/mvs.sha1
+test/test-mvs-dump-compare/before/mvs.sha256
+test/test-mvs-dump-compare/before/mvs.txt
+test/test-mvs-dump-compare/before/mvs_dates.txt
+test/test-mvs-dump-compare/before/mvs_ids.txt
+test/test-mvs-dump-compare/before/mvs_names.txt
 test/test-mvs-dump-diagnostics/EXPECTED-FINDINGS.txt
+test/test-mvs-dump-diagnostics/README.txt
 test/test-mvs-dump-diagnostics/mvs.sha1
 test/test-mvs-dump-diagnostics/mvs.sha256
 test/test-mvs-dump-diagnostics/mvs.txt
@@ -1302,15 +1375,16 @@ test/test-mvs-dump-diagnostics/mvs_dates.txt
 test/test-mvs-dump-diagnostics/mvs_ids.txt
 test/test-mvs-dump-diagnostics/mvs_names.txt
 test/test-mvs-dump-diagnostics/mvs_notes.html
-test/test-mvs-dump-diagnostics/README.txt
+test/test-mvs-dump-relationships/README.txt
+test/test-mvs-dump-relationships/TEST-VALUES.txt
 test/test-mvs-dump-relationships/mvs.sha1
 test/test-mvs-dump-relationships/mvs.sha256
 test/test-mvs-dump-relationships/mvs.txt
 test/test-mvs-dump-relationships/mvs_dates.txt
 test/test-mvs-dump-relationships/mvs_ids.txt
 test/test-mvs-dump-relationships/mvs_notes.html
-test/test-mvs-dump-relationships/README.txt
-test/test-mvs-dump-relationships/TEST-VALUES.txt
+test/test-mvs-dump-single-complete/README.txt
+test/test-mvs-dump-single-complete/TEST-VALUES.txt
 test/test-mvs-dump-single-complete/mvs.sha1
 test/test-mvs-dump-single-complete/mvs.sha256
 test/test-mvs-dump-single-complete/mvs.txt
@@ -1318,9 +1392,8 @@ test/test-mvs-dump-single-complete/mvs_dates.txt
 test/test-mvs-dump-single-complete/mvs_ids.txt
 test/test-mvs-dump-single-complete/mvs_names.txt
 test/test-mvs-dump-single-complete/mvs_notes.html
-test/test-mvs-dump-single-complete/README.txt
-test/test-mvs-dump-single-complete/TEST-VALUES.txt
 test/test_all.bat
+test/test_compare_tools.bat
 test/test_diagnostic_tools.bat
 test/test_lookup_tools.bat
 test/test_relationship_tools.bat

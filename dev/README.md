@@ -78,3 +78,23 @@ generate_expected_single_dump_outputs.py
 
 `generate_expected_single_dump_outputs.py` is an independent Python reference
 parser and never invokes the public batch files.
+
+
+Two-dump comparison development files:
+
+```text
+compare-tool-spec.json
+library\compare-query.inc.ps1
+templates\compare.bat.tpl
+generate_compare_tools.py
+generate_compare_fixture.py
+generate_expected_compare_outputs.py
+```
+
+`generate_compare_tools.py` injects the complete two-folder comparison
+implementation into all 19 public `compare_mvs_dump_*` tools.
+
+The synthetic pair under `test\test-mvs-dump-compare\` forces both removals and
+additions for every tool. `generate_expected_compare_outputs.py` is an
+independent Python reference implementation and never invokes the public batch
+files.

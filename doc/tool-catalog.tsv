@@ -1,6 +1,28 @@
 tool	family	mode	fields	sort	lookup_source	lookup_target	version
+compare_mvs_dump_dates_from_mvs_dates.txt.bat	compare	human	date	source-order	mvs_dates.txt		0.1.0
+compare_mvs_dump_filenames_from_mvs.sha1.bat	compare	human	filename	source-order	mvs.sha1		0.1.0
+compare_mvs_dump_filenames_from_mvs.sha256.bat	compare	human	filename	source-order	mvs.sha256		0.1.0
+compare_mvs_dump_filenames_from_mvs.txt.bat	compare	human	filename	source-order	mvs.txt		0.1.0
+compare_mvs_dump_filenames_from_mvs_names.txt.bat	compare	human	filename	source-order	mvs_names.txt		0.1.0
+compare_mvs_dump_id_from_mvs.txt.bat	compare	human	id	source-order	mvs.txt		0.1.0
+compare_mvs_dump_id_from_mvs_dates.txt.bat	compare	human	id	source-order	mvs_dates.txt		0.1.0
+compare_mvs_dump_id_from_mvs_ids.txt.bat	compare	human	id	source-order	mvs_ids.txt		0.1.0
+compare_mvs_dump_id_from_mvs_names.txt.bat	compare	human	id	source-order	mvs_names.txt		0.1.0
+compare_mvs_dump_sha1_from_mvs.sha1.bat	compare	human	sha1	source-order	mvs.sha1		0.1.0
+compare_mvs_dump_sha1_from_mvs.txt.bat	compare	human	sha1	source-order	mvs.txt		0.1.0
+compare_mvs_dump_sha1_from_mvs_names.txt.bat	compare	human	sha1	source-order	mvs_names.txt		0.1.0
+compare_mvs_dump_sha256_from_mvs.sha256.bat	compare	human	sha256	source-order	mvs.sha256		0.1.0
+compare_mvs_dump_sha256_from_mvs.txt.bat	compare	human	sha256	source-order	mvs.txt		0.1.0
+compare_mvs_dump_sha256_from_mvs_names.txt.bat	compare	human	sha256	source-order	mvs_names.txt		0.1.0
+compare_mvs_dump_title_from_mvs.txt.bat	compare	human	title	source-order	mvs.txt		0.1.0
+compare_mvs_dump_title_from_mvs_dates.txt.bat	compare	human	title	source-order	mvs_dates.txt		0.1.0
+compare_mvs_dump_title_from_mvs_ids.txt.bat	compare	human	title	source-order	mvs_ids.txt		0.1.0
+compare_mvs_dump_title_from_mvs_names.txt.bat	compare	human	title	source-order	mvs_names.txt		0.1.0
+dev\generate_compare_fixture.py	development	generator	compare-fixture				0.1.0
+dev\generate_compare_tools.py	development	generator	compare-tools				0.1.0
 dev\generate_diagnostic_fixture.py	development	generator	diagnostic-fixture				0.1.0
 dev\generate_diagnostic_tools.py	development	generator	diagnostics				0.1.0
+dev\generate_expected_compare_outputs.py	development	generator	compare-expected				0.1.0
 dev\generate_expected_diagnostic_outputs.py	development	generator	diagnostic-expected				0.1.0
 dev\generate_expected_relationship_outputs.py	development	generator	relationship-expected				0.1.0
 dev\generate_expected_single_dump_outputs.py	development	generator	single-dump-expected				0.1.1
@@ -8,7 +30,7 @@ dev\generate_relationship_fixture.py	development	generator	relationship-fixture	
 dev\generate_relationship_tools.py	development	generator	relationship-tools				0.1.0
 dev\generate_single_dump_fixture.py	development	generator	single-dump-fixture				0.2.0
 dev\generate_single_dump_tools.py	development	generator	single-dump-tools				0.1.1
-dev\generate_tests.py	development	generator	tests				0.6.2
+dev\generate_tests.py	development	generator	tests				0.7.0
 find_mvs_duplicate_date_in_mvs_date.txt.bat	diagnostic	human	date	source-order	mvs_dates.txt		0.1.0
 find_mvs_duplicate_date_in_mvs_dates.txt.bat	diagnostic	human	date	source-order	mvs_dates.txt		0.1.0
 find_mvs_duplicate_filename_in_mvs.txt.bat	diagnostic	human	filename	source-order	mvs.txt		0.1.0
@@ -431,10 +453,11 @@ read_mvs_unparsed_lines_in_mvs.txt.bat	single-dump	machine	line,raw	source-order
 read_mvs_unparsed_lines_in_mvs_dates.txt.bat	single-dump	machine	line,raw	source-order		mvs_dates.txt	0.1.2
 read_mvs_unparsed_lines_in_mvs_ids.txt.bat	single-dump	machine	line,raw	source-order		mvs_ids.txt	0.1.2
 read_mvs_unparsed_lines_in_mvs_names.txt.bat	single-dump	machine	line,raw	source-order		mvs_names.txt	0.1.2
-test\test_all.bat	test	console	all				0.6.2
-test\test_diagnostic_tools.bat	test	console	diagnostic				0.6.2
-test\test_lookup_tools.bat	test	console	lookup				0.6.2
-test\test_relationship_tools.bat	test	console	relationship				0.6.2
-test\test_scalar_tools.bat	test	console	scalar				0.6.2
-test\test_single_dump_tools.bat	test	console	single-dump				0.6.2
-test\test_structure.bat	test	console	structure				0.6.2
+test\test_all.bat	test	console	all				0.7.0
+test\test_compare_tools.bat	test	console	compare				0.7.0
+test\test_diagnostic_tools.bat	test	console	diagnostic				0.7.0
+test\test_lookup_tools.bat	test	console	lookup				0.7.0
+test\test_relationship_tools.bat	test	console	relationship				0.7.0
+test\test_scalar_tools.bat	test	console	scalar				0.7.0
+test\test_single_dump_tools.bat	test	console	single-dump				0.7.0
+test\test_structure.bat	test	console	structure				0.7.0

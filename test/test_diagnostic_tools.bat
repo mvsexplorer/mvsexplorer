@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.6.2"
+set "app.version=0.7.0"
 set "app.name=test_diagnostic_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -158,6 +158,7 @@ function New-ResultsFolder {
         diagnostic = Join-Path $candidate 'diagnostic-results.tsv'
         relationship = Join-Path $candidate 'relationship-results.tsv'
         single_dump = Join-Path $candidate 'single-dump-results.tsv'
+        compare = Join-Path $candidate 'compare-results.tsv'
     }
     Write-TextUtf8 $script:ConsoleLog ''
     $header = "index`tscope`tstatus`tcase`treason`texpected_rc`tactual_rc`n"
@@ -178,6 +179,7 @@ Files:
   diagnostic-results.tsv Duplicate/orphan diagnostic assertions.
   relationship-results.tsv Filename/hash relationship assertions.
   single-dump-results.tsv Single-dump completeness assertions.
+  compare-results.tsv     Two-dump comparison assertions.
   failures\              Full expected/actual/stderr/meta files for
                          behavioral failures. Empty when none fail.
 '@
@@ -244,6 +246,7 @@ function Write-RunInfo {
         ('Diagnostic fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-diagnostics')),
         ('Relationship fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-relationships')),
         ('Single-dump fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-single-complete')),
+        ('Compare fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-compare')),
         ('Result folder: ' + $script:ResultsFolder)
     )
     Write-TextUtf8 (Join-Path $script:ResultsFolder 'run-info.txt') (($info -join [Environment]::NewLine) + [Environment]::NewLine)
@@ -264,6 +267,7 @@ function Write-Summary {
         ('Diagnostic fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-diagnostics')),
         ('Relationship fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-relationships')),
         ('Single-dump fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-single-complete')),
+        ('Compare fixture: ' + (Join-Path (Join-Path $Root 'test') 'test-mvs-dump-compare')),
         ('Result folder: ' + $script:ResultsFolder)
     )
     Write-TextUtf8 (Join-Path $script:ResultsFolder 'summary.txt') (($summary -join [Environment]::NewLine) + [Environment]::NewLine)
@@ -271,7 +275,7 @@ function Write-Summary {
 
 function Show-Usage {
     Write-Line ('MVS Explorer Toolkit test ' + $Version)
-    if (@('structure','diagnostic','relationship','single_dump') -contains $Mode) {
+    if (@('structure','diagnostic','relationship','single_dump','compare') -contains $Mode) {
         Write-Line ('Usage: ' + $Caller)
     } else {
         Write-Line ('Usage: ' + $Caller + ' dump-folder')
@@ -744,6 +748,31 @@ function Get-SingleDumpTools {
     )
 }
 
+
+function Get-CompareTools {
+    return @(
+        [pscustomobject]@{name='compare_mvs_dump_id_from_mvs.txt'; property='id'; source_file='mvs.txt'},
+        [pscustomobject]@{name='compare_mvs_dump_id_from_mvs_ids.txt'; property='id'; source_file='mvs_ids.txt'},
+        [pscustomobject]@{name='compare_mvs_dump_id_from_mvs_names.txt'; property='id'; source_file='mvs_names.txt'},
+        [pscustomobject]@{name='compare_mvs_dump_id_from_mvs_dates.txt'; property='id'; source_file='mvs_dates.txt'},
+        [pscustomobject]@{name='compare_mvs_dump_title_from_mvs.txt'; property='title'; source_file='mvs.txt'},
+        [pscustomobject]@{name='compare_mvs_dump_title_from_mvs_ids.txt'; property='title'; source_file='mvs_ids.txt'},
+        [pscustomobject]@{name='compare_mvs_dump_title_from_mvs_names.txt'; property='title'; source_file='mvs_names.txt'},
+        [pscustomobject]@{name='compare_mvs_dump_title_from_mvs_dates.txt'; property='title'; source_file='mvs_dates.txt'},
+        [pscustomobject]@{name='compare_mvs_dump_dates_from_mvs_dates.txt'; property='date'; source_file='mvs_dates.txt'},
+        [pscustomobject]@{name='compare_mvs_dump_sha1_from_mvs.txt'; property='sha1'; source_file='mvs.txt'},
+        [pscustomobject]@{name='compare_mvs_dump_sha1_from_mvs_names.txt'; property='sha1'; source_file='mvs_names.txt'},
+        [pscustomobject]@{name='compare_mvs_dump_sha1_from_mvs.sha1'; property='sha1'; source_file='mvs.sha1'},
+        [pscustomobject]@{name='compare_mvs_dump_sha256_from_mvs.txt'; property='sha256'; source_file='mvs.txt'},
+        [pscustomobject]@{name='compare_mvs_dump_sha256_from_mvs_names.txt'; property='sha256'; source_file='mvs_names.txt'},
+        [pscustomobject]@{name='compare_mvs_dump_sha256_from_mvs.sha256'; property='sha256'; source_file='mvs.sha256'},
+        [pscustomobject]@{name='compare_mvs_dump_filenames_from_mvs.txt'; property='filename'; source_file='mvs.txt'},
+        [pscustomobject]@{name='compare_mvs_dump_filenames_from_mvs_names.txt'; property='filename'; source_file='mvs_names.txt'},
+        [pscustomobject]@{name='compare_mvs_dump_filenames_from_mvs.sha1'; property='filename'; source_file='mvs.sha1'},
+        [pscustomobject]@{name='compare_mvs_dump_filenames_from_mvs.sha256'; property='filename'; source_file='mvs.sha256'}
+    )
+}
+
 function Normalize-CapturedText {
     param([AllowNull()][string]$Text)
     if ($null -eq $Text) { return '' }
@@ -780,6 +809,36 @@ function Invoke-PublicTool {
     } else {
         $psi.Arguments = '/d /s /c ""%MVS_TEST_TOOL%" "%MVS_TEST_DUMP%""'
     }
+    if ($psi.PSObject.Properties.Name -contains 'StandardOutputEncoding') {
+        $psi.StandardOutputEncoding = $utf8
+        $psi.StandardErrorEncoding = $utf8
+    }
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $psi
+    [void]$process.Start()
+    $outTask = $process.StandardOutput.ReadToEndAsync()
+    $errTask = $process.StandardError.ReadToEndAsync()
+    $process.WaitForExit()
+    return [pscustomobject]@{
+        rc = $process.ExitCode
+        stdout = Normalize-CapturedText $outTask.Result
+        stderr = Normalize-CapturedText $errTask.Result
+    }
+}
+
+
+function Invoke-ComparePublicTool {
+    param([string]$ToolPath, [string]$FirstDump, [string]$SecondDump)
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = if ([string]::IsNullOrWhiteSpace($env:ComSpec)) { 'cmd.exe' } else { $env:ComSpec }
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.EnvironmentVariables['MVS_TEST_TOOL'] = $ToolPath
+    $psi.EnvironmentVariables['MVS_TEST_FIRST'] = $FirstDump
+    $psi.EnvironmentVariables['MVS_TEST_SECOND'] = $SecondDump
+    $psi.Arguments = '/d /s /c ""%MVS_TEST_TOOL%" "%MVS_TEST_FIRST%" "%MVS_TEST_SECOND%""'
     if ($psi.PSObject.Properties.Name -contains 'StandardOutputEncoding') {
         $psi.StandardOutputEncoding = $utf8
         $psi.StandardErrorEncoding = $utf8
@@ -908,9 +967,10 @@ function Test-Structure {
     foreach ($diagnostic in Get-Diagnostics) { [void]$expected.Add($diagnostic + '.bat') }
     foreach ($relationship in Get-Relationships) { [void]$expected.Add($relationship + '.bat') }
     foreach ($single in Get-SingleDumpTools) { [void]$expected.Add($single.name + '.bat') }
+    foreach ($compare in Get-CompareTools) { [void]$expected.Add($compare.name + '.bat') }
 
     $actual = @(Get-ChildItem -LiteralPath $Root -Filter '*.bat' -File | Select-Object -ExpandProperty Name)
-    if ($actual.Count -eq 422) { Write-Pass 'root public .bat count = 422' } else { Write-Fail 'root public .bat count' ('expected 422, got ' + $actual.Count) }
+    if ($actual.Count -eq 441) { Write-Pass 'root public .bat count = 441' } else { Write-Fail 'root public .bat count' ('expected 441, got ' + $actual.Count) }
 
     foreach ($name in $expected) {
         $path = Join-Path $Root $name
@@ -922,7 +982,7 @@ function Test-Structure {
         foreach ($label in @(':setup',':main',':end',':SetErrorLevel',':RunPowerShellFromLabel')) {
             if (-not $text.Contains($label)) { [void]$problems.Add('missing ' + $label) }
         }
-        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start') -and -not $text.Contains(':_MVSRelationship_start') -and -not $text.Contains(':_MVSSingleDump_start')) { [void]$problems.Add('missing injected PowerShell block') }
+        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start') -and -not $text.Contains(':_MVSRelationship_start') -and -not $text.Contains(':_MVSSingleDump_start') -and -not $text.Contains(':_MVSCompare_start')) { [void]$problems.Add('missing injected PowerShell block') }
         if ($text.Contains('dev\library') -or $text.Contains('generate_tools.py')) { [void]$problems.Add('development runtime dependency reference') }
         if ($text.Contains(':_MVSSingleDump_start') -and -not $text.Contains('return ,(New-Object System.Collections.ArrayList)')) {
             [void]$problems.Add('single-dump New-ArrayList can collapse empty collection to null')
@@ -1210,10 +1270,51 @@ function Test-SingleDumpTools {
     }
 }
 
+
+function Test-CompareTools {
+    $script:CurrentScope = 'compare'
+    Write-Line '=== Two-dump comparison tests ==='
+
+    $fixtureRoot = Join-Path (Join-Path $Root 'test') 'test-mvs-dump-compare'
+    $before = Join-Path $fixtureRoot 'before'
+    $after = Join-Path $fixtureRoot 'after'
+    $expectedRoot = Join-Path (Join-Path $Root 'test') 'expected-compare'
+
+    if (-not (Test-Path -LiteralPath $before -PathType Container) -or
+        -not (Test-Path -LiteralPath $after -PathType Container)) {
+        Write-Fail 'comparison synthetic dumps' ('missing before/after fixture under: ' + $fixtureRoot)
+        return
+    }
+    if (-not (Test-Path -LiteralPath $expectedRoot -PathType Container)) {
+        Write-Fail 'comparison expected outputs' ('missing expected folder: ' + $expectedRoot)
+        return
+    }
+
+    Write-Pass 'comparison synthetic dumps present'
+
+    foreach ($tool in Get-CompareTools) {
+        $name = [string]$tool.name
+        $expectedPath = Join-Path $expectedRoot ($name + '.expected.txt')
+        if (-not (Test-Path -LiteralPath $expectedPath -PathType Leaf)) {
+            Write-Fail $name ('missing expected output: ' + $expectedPath)
+            continue
+        }
+        $expected = Normalize-CapturedText (Get-Content -LiteralPath $expectedPath -Raw -Encoding UTF8)
+        $run = Invoke-ComparePublicTool (Join-Path $Root ($name + '.bat')) $before $after
+        Compare-Run $name $run 0 $expected
+    }
+
+    foreach ($tool in Get-CompareTools) {
+        $name = [string]$tool.name
+        $run = Invoke-ComparePublicTool (Join-Path $Root ($name + '.bat')) $before $before
+        Compare-Run ($name + ' [no-change]') $run 0 ''
+    }
+}
+
 New-ResultsFolder
 Write-Line ('Test results: ' + $script:ResultsFolder)
 
-if (@('all','structure','scalar','lookup','diagnostic','relationship','single_dump') -notcontains $Mode) {
+if (@('all','structure','scalar','lookup','diagnostic','relationship','single_dump','compare') -notcontains $Mode) {
     $script:CurrentScope = 'general'
     Show-Usage
     Write-Fail 'test mode' ('unsupported mode: ' + $Mode)
@@ -1269,6 +1370,7 @@ if ($Mode -eq 'all' -or $Mode -eq 'lookup') { Test-Lookups $Products }
 if ($Mode -eq 'all' -or $Mode -eq 'diagnostic') { Test-Diagnostics }
 if ($Mode -eq 'all' -or $Mode -eq 'relationship') { Test-Relationships }
 if ($Mode -eq 'all' -or $Mode -eq 'single_dump') { Test-SingleDumpTools }
+if ($Mode -eq 'all' -or $Mode -eq 'compare') { Test-CompareTools }
 
 Write-Line ''
 Write-Line ('SUMMARY: passed=' + $script:Passed + ' failed=' + $script:Failed + ' skipped=' + $script:Skipped)

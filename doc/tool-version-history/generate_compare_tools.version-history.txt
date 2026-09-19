@@ -1,0 +1,5 @@
+Tool Version History: dev\generate_compare_tools.py
+
+0.1.0 - 2026-08-27
+  - Initial generator for 19 standalone two-dump comparison tools.
+  - Injects shared batch functions and compare-query PowerShell into each root .bat.

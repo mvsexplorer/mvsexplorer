@@ -369,3 +369,16 @@ function New-ArrayList {
 The unary comma suppresses enumeration of the returned collection. Generated
 single-dump tools must be statically checked for this requirement.
 
+
+
+## 33. Console-aware comparison color
+
+For comparison tools, color the complete removal/addition line only when
+`[Console]::IsOutputRedirected` is false.
+
+Use `System.Console.ForegroundColor` and restore the previous color in a
+`finally` block. When output is redirected, write the exact same `- value` or
+`+ value` text without escape/control bytes.
+
+This keeps interactive readability separate from the machine-visible output
+contract.

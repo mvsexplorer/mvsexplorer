@@ -196,3 +196,23 @@ keys, and the same ID/title pair can repeat in some dumps.
 
 Hash provenance is intentionally distinct from a derived filename relationship
 because the same filename can have multiple observed digests and sources.
+
+
+## Cross-dump source-local comparison model (0.10.0)
+
+The first comparison layer does not create cross-snapshot product identities.
+It compares normalized value sets within the same source file:
+
+```text
+(first dump, source, property)  -> set A
+(second dump, source, property) -> set B
+
+removed = A - B
+added   = B - A
+```
+
+This source-local model is intentionally weaker than semantic product matching
+and therefore safer. It can later serve as an input to richer history logic
+without changing the literal facts it reports.
+
+`mvs_names.txt` IDs remain textual source IDs in this layer.

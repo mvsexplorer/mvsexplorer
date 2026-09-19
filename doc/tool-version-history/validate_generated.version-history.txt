@@ -1,5 +1,9 @@
 Tool Version History: dev\validate_generated.py
 
+0.5.0 - 2026-08-27
+  - Recognizes standalone MVSCompare embedded PowerShell blocks.
+  - Enforces 441 public root tools and comparison color/two-dump structure guards.
+
 0.4.2 - 2026-08-27
   - Rejects generated single-dump tools whose New-ArrayList helper can
     collapse an empty collection to null through PowerShell output enumeration.

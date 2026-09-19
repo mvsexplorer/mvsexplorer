@@ -1,0 +1,20 @@
+tool	property	source	id_mode	removed_order	added_order	version
+compare_mvs_dump_id_from_mvs.txt.bat	id	mvs.txt	numeric	first-source	second-source	0.1.0
+compare_mvs_dump_id_from_mvs_ids.txt.bat	id	mvs_ids.txt	numeric	first-source	second-source	0.1.0
+compare_mvs_dump_id_from_mvs_names.txt.bat	id	mvs_names.txt	text	first-source	second-source	0.1.0
+compare_mvs_dump_id_from_mvs_dates.txt.bat	id	mvs_dates.txt	numeric	first-source	second-source	0.1.0
+compare_mvs_dump_title_from_mvs.txt.bat	title	mvs.txt		first-source	second-source	0.1.0
+compare_mvs_dump_title_from_mvs_ids.txt.bat	title	mvs_ids.txt		first-source	second-source	0.1.0
+compare_mvs_dump_title_from_mvs_names.txt.bat	title	mvs_names.txt		first-source	second-source	0.1.0
+compare_mvs_dump_title_from_mvs_dates.txt.bat	title	mvs_dates.txt		first-source	second-source	0.1.0
+compare_mvs_dump_dates_from_mvs_dates.txt.bat	date	mvs_dates.txt		first-source	second-source	0.1.0
+compare_mvs_dump_sha1_from_mvs.txt.bat	sha1	mvs.txt		first-source	second-source	0.1.0
+compare_mvs_dump_sha1_from_mvs_names.txt.bat	sha1	mvs_names.txt		first-source	second-source	0.1.0
+compare_mvs_dump_sha1_from_mvs.sha1.bat	sha1	mvs.sha1		first-source	second-source	0.1.0
+compare_mvs_dump_sha256_from_mvs.txt.bat	sha256	mvs.txt		first-source	second-source	0.1.0
+compare_mvs_dump_sha256_from_mvs_names.txt.bat	sha256	mvs_names.txt		first-source	second-source	0.1.0
+compare_mvs_dump_sha256_from_mvs.sha256.bat	sha256	mvs.sha256		first-source	second-source	0.1.0
+compare_mvs_dump_filenames_from_mvs.txt.bat	filename	mvs.txt		first-source	second-source	0.1.0
+compare_mvs_dump_filenames_from_mvs_names.txt.bat	filename	mvs_names.txt		first-source	second-source	0.1.0
+compare_mvs_dump_filenames_from_mvs.sha1.bat	filename	mvs.sha1		first-source	second-source	0.1.0
+compare_mvs_dump_filenames_from_mvs.sha256.bat	filename	mvs.sha256		first-source	second-source	0.1.0

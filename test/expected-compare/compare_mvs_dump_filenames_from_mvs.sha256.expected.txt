@@ -1,0 +1,2 @@
+- manifest-removed-256.iso
++ manifest-added-256.iso

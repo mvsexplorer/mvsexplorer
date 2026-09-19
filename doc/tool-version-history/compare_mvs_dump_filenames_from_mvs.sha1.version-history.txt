@@ -1,0 +1,17 @@
+Tool Version History: compare_mvs_dump_filenames_from_mvs.sha1.bat
+
+Purpose
+  Operation: two-dump source-local set comparison
+  Property: filename
+  Source file: mvs.sha1
+  ID mode: 
+  Output: removals (-) first, then additions (+)
+  Interactive colors: red removals, green additions
+  Redirected output: plain text
+  Standalone: yes; complete injected batch/PowerShell runtime
+
+0.1.0 - 2026-08-27
+  - Initial version for the 0.10.0 two-dump comparison milestone.
+  - Accepts first-dump-folder and second-dump-folder.
+  - Collapses duplicate source occurrences to set membership.
+  - Preserves first-source order for removals and second-source order for additions.

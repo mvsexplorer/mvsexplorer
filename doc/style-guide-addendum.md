@@ -338,3 +338,25 @@ For the shared single-dump runtime, `New-ArrayList` uses unary comma on return.
 Release validation must reject generated single-dump tools that omit this
 behavior.
 
+
+
+## 32. Two-dump comparison presentation
+
+Comparison tools use a durable textual prefix plus optional console color:
+
+```text
+- removed-value
++ added-value
+```
+
+Color is presentation-only. Use red for removals and green for additions only
+when stdout is attached to an interactive console. Redirected output must stay
+plain.
+
+A no-change comparison is successful and silent.
+
+## 33. Comparison ordering and deduplication
+
+Comparison is set-based per source/property. Emit first-only values in first
+source order, followed by second-only values in second source order. Do not
+emit duplicate occurrences of the same normalized value.

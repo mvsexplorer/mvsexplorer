@@ -1,0 +1,2 @@
+- manifest-removed.iso
++ manifest-added.iso

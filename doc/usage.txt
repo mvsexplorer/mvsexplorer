@@ -204,3 +204,15 @@ VARIANT ID NOTE
   The ID printed by mvs_names.txt is a source-level ID, not a product ID.
   It may be numeric, alphanumeric, or hyphenated.
   Variant ..._from_id tools compare it case-insensitively as text.
+
+
+TWO-DUMP COMPARISON
+  compare_mvs_dump_id_from_mvs.txt.bat first-dump-folder second-dump-folder
+  compare_mvs_dump_title_from_mvs_ids.txt.bat first-dump-folder second-dump-folder
+  compare_mvs_dump_dates_from_mvs_dates.txt.bat first-dump-folder second-dump-folder
+  compare_mvs_dump_sha1_from_mvs.sha1.bat first-dump-folder second-dump-folder
+  compare_mvs_dump_sha256_from_mvs.sha256.bat first-dump-folder second-dump-folder
+  compare_mvs_dump_filenames_from_mvs_names.txt.bat first-dump-folder second-dump-folder
+
+COMPARISON TEST
+  test\test_compare_tools.bat

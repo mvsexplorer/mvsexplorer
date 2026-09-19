@@ -4,6 +4,11 @@ Purpose
   Test mode: structure
   Standalone: yes; contains complete injected test harness
 
+0.7.0 - 2026-08-27
+  - Regenerated with two-dump comparison scope support.
+  - Structure expectations now cover 441 public tools.
+  - Full-suite mode includes 39 comparison assertions.
+
 0.6.2 - 2026-08-27
   - Added structure validation that single-dump runtimes return empty
     ArrayLists without PowerShell output enumeration collapsing them to null.

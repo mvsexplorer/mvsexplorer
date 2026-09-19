@@ -192,3 +192,23 @@ Machine:
 ```text
 metric.key<TAB>value
 ```
+
+
+## Two-dump comparison output
+
+Comparison tools emit only set differences.
+
+Plain/redirected output:
+
+```text
+- removed-value
++ added-value
+```
+
+All removals appear before additions. Removed lines follow the first dump's
+source order; added lines follow the second dump's source order.
+
+Interactive consoles color removed lines red and added lines green. Redirected
+stdout contains no color/control sequences.
+
+No differences produces empty stdout and return code `0`.

@@ -1,0 +1,5 @@
+Tool Version History: dev\generate_compare_fixture.py
+
+0.1.0 - 2026-08-27
+  - Initial deterministic before/after comparison fixture generator.
+  - Ensures every comparison family has shared, removed, and added values.

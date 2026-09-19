@@ -1,0 +1,10 @@
+--- Alpha Variant [ID: common-id] ---
+1111111111111111111111111111111111111111 *variant-common.iso
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa *variant-common.iso
+
+--- Added Variant [ID: new-variant-id] ---
+5555555555555555555555555555555555555555 *added-variant.iso
+bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb *added-variant.iso
+
+--- Stable Variant [ID: stable-id] ---
+7777777777777777777777777777777777777777 *stable-variant.iso

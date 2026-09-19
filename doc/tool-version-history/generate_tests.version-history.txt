@@ -1,5 +1,9 @@
 Tool Version History: dev\generate_tests.py
 
+0.7.0 - 2026-08-27
+  - Added test_compare_tools.bat and the compare result scope.
+  - Full suite now includes 39 comparison assertions and 441 public-tool structure coverage.
+
 0.6.2 - 2026-08-27
   - Added the single-dump New-ArrayList structure regression guard.
 

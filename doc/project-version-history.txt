@@ -1,5 +1,29 @@
 MVS Explorer Toolkit Project Version History
 
+0.10.0 - 2026-08-27
+  - Recorded the clean attached 0.9.2 Windows baseline on mvs_2020-04-21:
+    928 passed, 0 failed, 3 data-dependent note skips (931 total).
+  - Added 19 standalone two-dump comparison tools.
+  - Added ID comparisons for mvs.txt, mvs_ids.txt, mvs_names.txt, and
+    mvs_dates.txt; the repeated requested mvs_names entry was implemented once
+    and the natural mvs_dates form completes the source matrix.
+  - Added title comparisons for mvs.txt, mvs_ids.txt, mvs_names.txt, and
+    mvs_dates.txt.
+  - Added requested date comparison for mvs_dates.txt.
+  - Added SHA-1 comparisons for mvs.txt, mvs_names.txt, and mvs.sha1.
+  - Added SHA-256 comparisons for mvs.txt, mvs_names.txt, and mvs.sha256.
+  - Added filename comparisons for mvs.txt, mvs_names.txt, mvs.sha1, and
+    mvs.sha256.
+  - Comparison output is removals first (-), then additions (+), with source
+    order preserved on each side and duplicate occurrences collapsed.
+  - Interactive console removals are red and additions green; redirected
+    stdout is plain text for tests/pipelines.
+  - Added synthetic before/after comparison fixture, 19 fixed independent
+    expected-output files, and test_compare_tools.bat.
+  - Added 39 comparison assertions (19 diff + 19 no-change + fixture check).
+  - Public standalone tool count is now 441; full suite is now 989 assertions.
+  - Existing 422 public tools remain unchanged.
+
 0.9.2 - 2026-08-27
   - Analyzed the supplied Windows 0.9.1 full run on mvs_2019-10-16:
     762 passed, 166 failed, 3 data-dependent note skips.

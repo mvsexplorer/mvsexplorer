@@ -20,6 +20,7 @@ test\test_lookup_tools.bat path_to_real_mvs_dump_folder
 test\test_diagnostic_tools.bat
 test\test_relationship_tools.bat
 test\test_single_dump_tools.bat
+test\test_compare_tools.bat
 ```
 
 Every test invocation creates a timestamped result directory below `test\`.
@@ -81,3 +82,31 @@ return-code checks covering each query operation family, and one fixture
 presence assertion.
 
 0.9.2 regenerates all standalone test entry points at test version 0.6.2; the assertion matrix remains 931. Structure checks also require the non-enumerating single-dump `New-ArrayList` return.
+
+
+Two-dump comparison fixture:
+
+```text
+test\test-mvs-dump-compare\before\
+test\test-mvs-dump-compare\after\
+test\expected-compare\
+```
+
+The 0.10.0 full-suite assertion matrix is:
+
+```text
+Structure:      442
+Scalar:         120
+Lookup:          24
+Diagnostic:      46
+Relationship:   151
+Single-dump:    167
+Compare:         39
+-------------------
+Total:          989 assertions
+```
+
+The compare scope is 19 exact before-to-after comparisons, 19 identical
+before-to-before no-change comparisons, and one fixture-presence assertion.
+
+All eight standalone test entry points are generated at test version 0.7.0.

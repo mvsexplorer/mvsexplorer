@@ -1,4 +1,4 @@
-# MVS Explorer Toolkit 0.9.2
+# MVS Explorer Toolkit 0.10.0
 
 MVS Explorer Toolkit is a growing collection of console tools for exploring MVS dump snapshots, intended to culminate in the graphical **MVS Explorer** application.
 
@@ -460,7 +460,7 @@ note lookups are data-dependent skips, so the expected clean result is:
 SUMMARY: passed=928 failed=0 skipped=3
 ```
 
-Windows runtime execution is still required to confirm this release.
+Windows 10 / Windows PowerShell 5.1 validation is now clean: the attached 0.9.2 run completed 928 passed, 0 failed, 3 data-dependent note skips.
 
 ## 0.9.1 parser bugfix
 
@@ -514,3 +514,119 @@ integrity.unparsed.total: 0
 These files are reference outputs from the independent Python parser. The
 actual standalone Windows batch runtime still requires the external 0.9.2
 Windows test run.
+
+
+## 0.10.0 two-dump comparison layer
+
+Version 0.10.0 begins cross-snapshot comparison while preserving the validated
+0.9.2 single-dump baseline. It adds **19 standalone comparison tools**, bringing
+the project to **441 public root `.bat` tools**.
+
+Every comparison tool accepts two dump folders:
+
+```text
+compare_mvs_dump_<property>_from_<source>.bat first-dump-folder second-dump-folder
+```
+
+The first dump is the old/baseline side and the second dump is the new side.
+
+Normal output contains only differences:
+
+```text
+- removed-value
++ added-value
+```
+
+All removals are printed first, preserving first-dump source order. All
+additions follow, preserving second-dump source order. Values present in both
+dumps are omitted. Duplicate occurrences inside one source are collapsed to
+set membership.
+
+When stdout is an interactive console, removed lines are red and added lines
+are green. When stdout is redirected or captured, the same lines are emitted
+as plain text with no ANSI/control bytes.
+
+Comparison families in 0.10.0:
+
+```text
+ID:
+  mvs.txt
+  mvs_ids.txt
+  mvs_names.txt
+  mvs_dates.txt
+
+TITLE:
+  mvs.txt
+  mvs_ids.txt
+  mvs_names.txt
+  mvs_dates.txt
+
+DATE:
+  mvs_dates.txt
+
+SHA1:
+  mvs.txt
+  mvs_names.txt
+  mvs.sha1
+
+SHA256:
+  mvs.txt
+  mvs_names.txt
+  mvs.sha256
+
+FILENAME:
+  mvs.txt
+  mvs_names.txt
+  mvs.sha1
+  mvs.sha256
+```
+
+`mvs_names.txt` IDs remain a textual source-ID domain; they are not coerced to
+product IDs. Product-source IDs are normalized numerically. Titles compare
+case-insensitively after HTML decode/whitespace normalization. Filenames and
+hashes compare case-insensitively; hashes are displayed lowercase. Dates
+compare as trimmed source text.
+
+No differences is a successful comparison: stdout is empty and return code is
+`0`.
+
+Comparison return codes are:
+
+```text
+0  successful comparison, whether or not differences exist
+2  invalid/missing arguments or unsupported embedded configuration
+3  one of the dump folders was not found
+4  the required source file is missing from either dump
+5  parse/runtime comparison failure
+```
+
+The dedicated synthetic comparison regression suite is:
+
+```text
+test\test_compare_tools.bat
+```
+
+It validates every comparison tool against an intentionally different
+before/after pair and also validates every tool against an identical
+before/before pair. The full suite remains:
+
+```text
+test\test_all.bat path_to_real_mvs_dump_folder
+```
+
+The 0.10.0 full test matrix contains **989 assertions** before data-dependent
+lookup skips:
+
+```text
+Structure:       442
+Scalar:          120
+Lookup:           24
+Diagnostic:       46
+Relationship:    151
+Single-dump:     167
+Compare:          39
+Total:           989
+```
+
+See `doc\compare-tools.md` and `doc\compare-tool-matrix.tsv` for the exact
+tool list and comparison contract.

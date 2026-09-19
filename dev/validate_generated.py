@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validator for generated public batch files.
 
-Version: 0.4.2
+Version: 0.5.0
 """
 from pathlib import Path
 import collections
@@ -23,7 +23,7 @@ def main():
         for label in (":setup", ":main", ":end", ":RunPowerShellFromLabel", ":SetErrorLevel"):
             if label not in text:
                 issues.append(f"{path.name}: missing {label}")
-        if ":_MVSQuery_start" not in text and ":_MVSLookup_start" not in text and ":_MVSDiagnostic_start" not in text and ":_MVSRelationship_start" not in text and ":_MVSSingleDump_start" not in text:
+        if ":_MVSQuery_start" not in text and ":_MVSLookup_start" not in text and ":_MVSDiagnostic_start" not in text and ":_MVSRelationship_start" not in text and ":_MVSSingleDump_start" not in text and ":_MVSCompare_start" not in text:
             issues.append(f"{path.name}: missing embedded PowerShell block")
         if "dev\\library" in text or "generate_tools.py" in text:
             issues.append(f"{path.name}: development dependency leaked into runtime")
@@ -41,6 +41,13 @@ def main():
                 issues.append(f"{path.name}: missing textual variant ID matcher")
             if "return ,(New-Object System.Collections.ArrayList)" not in text:
                 issues.append(f"{path.name}: New-ArrayList may collapse empty collection to null")
+        if ":_MVSCompare_start" in text:
+            if "[Console]::IsOutputRedirected" not in text:
+                issues.append(f"{path.name}: comparison output does not suppress console colors when redirected")
+            if "([System.ConsoleColor]::Red)" not in text or "([System.ConsoleColor]::Green)" not in text:
+                issues.append(f"{path.name}: comparison output missing red/green console colors")
+            if "mvsc_first_dump" not in text or "mvsc_second_dump" not in text:
+                issues.append(f"{path.name}: comparison tool missing two dump arguments")
         labels = []
         for line in text.splitlines():
             if re.match(r"^:[A-Za-z_]", line):
@@ -50,6 +57,8 @@ def main():
         dup = [k for k, v in collections.Counter(x.casefold() for x in labels).items() if v > 1]
         if dup:
             issues.append(f"{path.name}: duplicate labels {dup}")
+    if len(files) != 441:
+        issues.append(f"root public .bat count expected 441, got {len(files)}")
     if issues:
         print("\n".join(issues), file=sys.stderr)
         return 1
