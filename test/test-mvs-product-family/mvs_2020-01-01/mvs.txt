@@ -1,0 +1,15 @@
+--- Microsoft Office Communications Server 2007 Standard Edition (English) [ID: 101] ---
+1111111111111111111111111111111111111111 *ocs2007-standard.iso
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa *ocs2007-standard.iso
+
+--- Office 2007 Proofing Tools (x86) - DVD (English) [ID: 102] ---
+2222222222222222222222222222222222222222 *office2007-proofing.iso
+
+--- Microsoft Office System Developer Kit 3.0 (English) [ID: 103] ---
+3333333333333333333333333333333333333333 *office-sdk-3.iso
+
+--- Contoso Security for Microsoft Office Communications Server 2007 [ID: 104] ---
+4444444444444444444444444444444444444444 *contoso-security.iso
+
+--- Microsoft Mystery Suite 1.0 [ID: 105] ---
+5555555555555555555555555555555555555555 *mystery-suite.iso

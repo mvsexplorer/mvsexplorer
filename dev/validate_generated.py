@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validator for generated public batch files.
 
-Version: 0.7.0
+Version: 0.8.0
 """
 from pathlib import Path
 import collections
@@ -14,6 +14,7 @@ def main():
     issues = []
     files = sorted(ROOT.glob("*.bat"))
     optimized = {"scalar":0,"lookup":0,"relationship":0,"single":0}
+    family = {"builder":0,"query":0}
     for path in files:
         raw = path.read_bytes()
         if raw.startswith(b"\xef\xbb\xbf"):
@@ -37,10 +38,18 @@ def main():
             optimized["single"] += 1
             if "$needed.Contains('mvs_names.txt')" not in text or "hash_by_filename" not in text or "New-IgnoreCaseSet" not in text:
                 issues.append(f"{path.name}: single-dump lazy/index/hashset optimization missing")
+        if ":_MVSProductFamily_start" in text:
+            family["builder"] += 1
+            if "product-family-memberships.tsv" not in text or "family-parent-relationships.tsv" not in text or "mvs_dmp" not in text:
+                issues.append(f"{path.name}: product-family builder missing normalized DAG/source-resolution markers")
+        if ":_MVSProductFamilyQuery_start" in text:
+            family["query"] += 1
+            if "product-family-memberships.tsv" not in text or "Matches-Pattern" not in text:
+                issues.append(f"{path.name}: product-family query missing index/wildcard markers")
         for label in (":setup", ":main", ":end", ":RunPowerShellFromLabel", ":SetErrorLevel"):
             if label not in text:
                 issues.append(f"{path.name}: missing {label}")
-        if ":_MVSQuery_start" not in text and ":_MVSLookup_start" not in text and ":_MVSDiagnostic_start" not in text and ":_MVSRelationship_start" not in text and ":_MVSSingleDump_start" not in text and ":_MVSCompare_start" not in text and ":_MVSHistory_start" not in text:
+        if ":_MVSQuery_start" not in text and ":_MVSLookup_start" not in text and ":_MVSDiagnostic_start" not in text and ":_MVSRelationship_start" not in text and ":_MVSSingleDump_start" not in text and ":_MVSCompare_start" not in text and ":_MVSHistory_start" not in text and ":_MVSProductFamily_start" not in text and ":_MVSProductFamilyQuery_start" not in text:
             issues.append(f"{path.name}: missing embedded PowerShell block")
         if "dev\\library" in text or "generate_tools.py" in text:
             issues.append(f"{path.name}: development dependency leaked into runtime")
@@ -83,8 +92,10 @@ def main():
         dup = [k for k, v in collections.Counter(x.casefold() for x in labels).items() if v > 1]
         if dup:
             issues.append(f"{path.name}: duplicate labels {dup}")
-    if len(files) != 443:
-        issues.append(f"root public .bat count expected 443, got {len(files)}")
+    if len(files) != 476:
+        issues.append(f"root public .bat count expected 476, got {len(files)}")
+    if family != {"builder":1,"query":32}:
+        issues.append(f"product-family tool counts expected builder=1 query=32, got {family}")
     expected_optimized = {"scalar":120,"lookup":7,"relationship":96,"single":154}
     if optimized != expected_optimized:
         issues.append(f"optimized family counts expected {expected_optimized}, got {optimized}")
@@ -92,7 +103,8 @@ def main():
         print("\n".join(issues), file=sys.stderr)
         return 1
     print(f"PASS: {len(files)} public standalone batch files")
-    print(f"PASS: 377 optimized generated public tools ({optimized})")
+    print(f"PASS: 377 optimized generated legacy public tools ({optimized})")
+    print(f"PASS: 33 product-family public tools ({family})")
     return 0
 
 if __name__ == "__main__":

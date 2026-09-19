@@ -1,5 +1,9 @@
 validate_archive_sweep.py Version History
 
+0.6.0 - 2026-09-01
+  - Validates the separate 33-tool product-family class and its 92-assertion synthetic regression.
+  - Preserves static 34,822/1,306 legacy archive plan invariants while the root public surface grows to 476.
+
 0.5.2 - 2026-08-30
   - Requires streamed fast archive progress instead of stdout suppression.
   - Guards the archive-worker hot-path optimizations and archive-scope performance outlier report.

@@ -1,0 +1,2 @@
+product_title	action	broad_family	product_family	release	specific_release_family	broad_release_family	confidence	reason
+Contoso Office Add-in 1.0	set	Microsoft Office	Microsoft Office Add-ins	1.0	Microsoft Office Add-ins 1.0		override	example exact-title taxonomy decision

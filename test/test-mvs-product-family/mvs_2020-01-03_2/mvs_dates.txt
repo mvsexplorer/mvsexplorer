@@ -1,0 +1,8 @@
+2007-10-01T00:00:00Z - Microsoft Office Communications Server 2007 Standard Edition (English) [ID: 301]
+2010-06-01T00:00:00Z - Microsoft Office Professional Plus 2010 (English) [ID: 302]
+2011-01-01T00:00:00Z - FabriKam 3.1: The Microsoft Office System Solutions Learning Kit [ID: 303]
+2012-01-01T00:00:00Z - Contoso Office Add-in 1.0 [ID: 304]
+2019-01-01T00:00:00Z - SQL Server 2019 Standard Edition (English) [ID: 305]
+2019-02-01T00:00:00Z - Windows Server 2019 Standard (English) [ID: 306]
+2012-03-01T00:00:00Z - Agents for Visual Studio 2012 (English) [ID: 307]
+2019-04-01T00:00:00Z - Office Online Server 2019 (English) [ID: 308]

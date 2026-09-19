@@ -1,0 +1,5 @@
+dev\generate_product_family_tools.py
+
+0.1.0 - 2026-09-01
+  - Initial generator for the 33 standalone product-family public tools.
+  - Injects builder/query PowerShell so delivered public tools have no dev runtime dependency.

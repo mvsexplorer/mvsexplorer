@@ -269,3 +269,34 @@ Cross-dump product/variant state is used for evolution analysis, not as a new
 public canonical entity ID. Variant source ID is explicitly excluded from the
 state identity so source-ID regime changes can be measured rather than mistaken
 for wholesale new content.
+
+## Product-family analytical layer (0.15.0)
+
+Concrete source product titles remain the evidence-bearing entities. The
+product-family index adds classifications above those titles; it does not
+replace them with a supposedly canonical external identity.
+
+A family classification can contain four orthogonal relationships:
+
+```text
+broad_family
+product_family
+broad_release
+specific_release
+```
+
+The hierarchy is a DAG because a specific release family may descend from both
+its product family and a broad release rollup. Classification rows record
+`confidence`, `basis`, and `rule_id`.
+
+Product IDs/dates retain snapshot and source-file provenance. Family membership
+never turns a numeric ID into a durable cross-snapshot identity.
+`mvs_names.txt` variant IDs remain outside the product-family ownership model.
+
+Product file/hash inheritance comes only from the concrete `mvs.txt` product
+section that observed the relationship. Standalone hash manifests are not
+joined to products by filename. Notes remain title-level historical evidence
+with raw markup preserved by content hash.
+
+See `product-family-tools.md`.
+

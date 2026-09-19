@@ -148,7 +148,7 @@ The fast snapshot worker uses snapshot-local lookup indexes, frozen source
 inventories, and content-addressed result keys. The archive worker emits the
 legacy history/all-ever products plus evidence-preserving evolution data.
 
-`validate_archive_sweep.py` checks the fixed 443-tool public surface, generated
+`validate_archive_sweep.py` checks the 443-tool legacy sweep surface plus the separate 33-tool family surface, generated
 fast/test artifacts, duplicate batch labels, CRLF/no-BOM requirements, concrete
 synthetic evolution assertions, indexed-worker markers, and the 34,822/1,306
 logical plan counts.
@@ -156,3 +156,33 @@ logical plan counts.
 The synthetic archive fixture is maintained by
 `generate_history_fixture.py`. Its notes intentionally exercise both historical
 h3+ID and current h1 heading forms.
+
+## 0.15.0 product-family sources
+
+The standalone product-family feature is generated from:
+
+```text
+product-family-tool-spec.json
+library\product-family-builder.inc.ps1
+library\product-family-query.inc.ps1
+templates\product-family-builder.bat.tpl
+templates\product-family-query.bat.tpl
+generate_product_family_tools.py
+generate_product_family_fixture.py
+```
+
+`generate_product_family_tools.py` injects the complete runtime into one index
+builder and 32 print/read query wrappers. Public family tools have no runtime
+dependency on `dev\`.
+
+The synthetic acceptance lives at:
+
+```text
+test\test-mvs-product-family\
+test\test_product_family_tools.bat
+```
+
+Family classification is analytical. Development changes must not reinterpret
+`mvs_names.txt` IDs as product identities, infer SHA-1/SHA-256 pairings by
+filename, or turn embedded product-name references into ownership.
+

@@ -414,3 +414,29 @@ The fast worker and archive evidence parser already understood legacy
 `<h3>Title [ID: ...]</h3>` notes, but the archive sweep's representative-value
 profiler only recognized `<h1>`. Profiling and execution parsers need the same
 historical heading vocabulary or valid checks can be planned as no-result.
+
+## 2026-09-01 — Family classification observations
+
+Product-family ownership cannot safely be derived from arbitrary substring
+matches. Titles that merely reference "Microsoft Office" are retained as
+unclassified in the synthetic guard cases. Curated structural prefixes receive
+high confidence; unmatched Microsoft-leading stems enter a review tier.
+
+A release rollup such as `Microsoft Office 2007` is analytically different from
+the product family `Microsoft Office Communications Server`. The same concrete
+title may legitimately belong to both via separate DAG edges. Product IDs and
+dates retain snapshot/source provenance and are not promoted to cross-snapshot
+identities.
+
+### Family aliases should canonicalize source-leading names, not substrings
+
+The real archive frequently omits `Microsoft` from product-leading titles.
+Useful family coverage therefore needs curated aliases such as `SQL Server` ->
+`Microsoft SQL Server` and `Office` -> `Microsoft Office`. The safe boundary is
+structural: the alias must begin the normalized title and end on a token
+boundary. Embedded references remain insufficient evidence of ownership.
+
+Coverage itself is a measured archive property, not a hard-coded invariant.
+The accepted 0.14.4 title ledger measures 7,295 high-confidence, 314 review, and
+514 unclassified titles out of 8,123; future snapshots may change that mix.
+

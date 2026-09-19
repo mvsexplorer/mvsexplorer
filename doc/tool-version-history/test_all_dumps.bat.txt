@@ -1,5 +1,9 @@
 test_all_dumps.bat
 
+0.4.4 - 2026-09-01
+  - Excludes product-family index/query tools from per-snapshot sweep planning.
+  - Reports the separate family-tool count while preserving the established 422/19/2 logical plan.
+
 0.4.3 - 2026-08-30
   - Streams fast archive worker progress into the sweep console/log instead of suppressing stdout.
 

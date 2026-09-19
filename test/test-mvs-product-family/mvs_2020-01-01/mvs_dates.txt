@@ -1,0 +1,5 @@
+2007-10-01T00:00:00Z - Microsoft Office Communications Server 2007 Standard Edition (English) [ID: 101]
+2007-11-01T00:00:00Z - Office 2007 Proofing Tools (x86) - DVD (English) [ID: 102]
+2006-05-01T00:00:00Z - Microsoft Office System Developer Kit 3.0 (English) [ID: 103]
+2008-01-01T00:00:00Z - Contoso Security for Microsoft Office Communications Server 2007 [ID: 104]
+2010-01-01T00:00:00Z - Microsoft Mystery Suite 1.0 [ID: 105]

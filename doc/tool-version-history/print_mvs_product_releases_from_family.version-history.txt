@@ -1,0 +1,6 @@
+print_mvs_product_releases_from_family.bat
+
+0.1.0 - 2026-09-01
+  - Initial standalone product-family query tool.
+  - Emits human-readable output from a prebuilt product-family index.
+  - Uses case-insensitive wildcard matching and preserves provenance fields relevant to the query direction.

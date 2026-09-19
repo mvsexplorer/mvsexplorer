@@ -1,0 +1,5 @@
+dev\generate_product_family_fixture.py
+
+0.1.0 - 2026-09-01
+  - Initial deterministic generator for the three-snapshot product-family synthetic archive.
+  - Includes nested mvs_dmp layout, Office hierarchy cases, no-Microsoft-prefix alias cases, false-reference cases, review classification, and an exact-title override.

@@ -1,5 +1,9 @@
 Tool Version History: dev\validate_generated.py
 
+0.8.0 - 2026-09-01
+  - Recognizes the product-family builder/query embedded PowerShell blocks.
+  - Enforces 476 public tools: 443 legacy plus 33 product-family tools.
+
 0.5.0 - 2026-08-27
   - Recognizes standalone MVSCompare embedded PowerShell blocks.
   - Enforces 441 public root tools and comparison color/two-dump structure guards.

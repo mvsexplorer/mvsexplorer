@@ -281,3 +281,13 @@ plan or alter historical evidence keys. It records per-snapshot parse time for
 each source plus domain-union, adjacent-diff, state-union, notes, variant-ID
 transition, flush, and total elapsed milliseconds.
 
+## 0.15.0 family-tool scope
+
+The root public surface is 476 tools in 0.15.0, but the historical sweep plan
+intentionally continues to cover only the original 443 sweep-eligible tools:
+422 single-snapshot tools, 19 adjacent-comparison tools and two history
+builders. The 33 product-family tools are archive-level index/query operations
+and are tested separately by `test\test_product_family_tools.bat`; invoking
+them once per snapshot would be semantically wrong and would change the
+established 34,822-row logical plan for the known 79-snapshot archive.
+

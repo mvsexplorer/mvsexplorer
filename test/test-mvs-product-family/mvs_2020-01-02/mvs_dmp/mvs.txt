@@ -1,0 +1,12 @@
+--- Microsoft Office Communications Server 2007 Enterprise Edition (English) [ID: 201] ---
+6666666666666666666666666666666666666666 *ocs2007-enterprise.iso
+bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb *ocs2007-enterprise.iso
+
+--- Office 2007 Proofing Tools (x86) - DVD (English) [ID: 202] ---
+2222222222222222222222222222222222222222 *office2007-proofing.iso
+
+--- Microsoft SQL Server 2008 Standard Edition (English) [ID: 203] ---
+7777777777777777777777777777777777777777 *sql2008-standard.iso
+
+--- Microsoft Office Professional Plus 2007 (English) [ID: 204] ---
+8888888888888888888888888888888888888888 *office2007-proplus.iso

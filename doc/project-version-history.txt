@@ -1,5 +1,18 @@
 MVS Explorer Toolkit Project Version History
 
+0.15.0 - 2026-09-01
+  - Feature release adding an analytical product-family DAG above concrete historical product titles.
+  - Kept the original 443 public root tools byte-for-byte identical to 0.14.4 and added 33 standalone family/index tools, for 476 public root tools total.
+  - Added bidirectional family queries for product title, source product ID, source date, filename, hash and snapshot provenance, plus family parent/child navigation.
+  - Added family-to-note and family-to-release views while preserving raw note HTML and source-observed product/hash relationships.
+  - Added explicit broad-family, product-family, broad-release and specific-release memberships so Microsoft Office 2007 rollups remain distinct from Communications Server, Proofing Tools and Developer Kit families.
+  - Added conservative classification confidence/basis fields, unclassified/review outputs, and exact-title set/exclude overrides.
+  - Added curated leading aliases for archive titles that omit the Microsoft prefix, anchored at the beginning of the title with token-boundary matching.
+  - Measured the accepted 0.14.4 title vocabulary at 8,123 source titles: 7,295 high-confidence classifications (89.8%), 314 review-tier titles, and 514 intentionally unclassified titles.
+  - Added a three-snapshot product-family fixture (including nested mvs_dmp layout) and a 92-assertion standalone family regression integrated into test_all.bat.
+  - Kept the legacy archive-sweep plan unchanged at 34,822 logical checks for the known 79-snapshot archive by treating the 33 family tools as a separate archive-level feature class.
+  - Recorded the accepted 0.14.4 native archive-builder benchmark at 967,234 ms with historical output equivalent to the accepted 0.14.3 data.
+
 0.14.4 - 2026-08-30
   - Archive-builder performance/profiling maintenance release.
   - Kept all 443 public root tools byte-for-byte identical to 0.14.3.

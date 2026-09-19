@@ -1,5 +1,9 @@
 Tool Version History: dev\generate_tests.py
 
+0.11.0 - 2026-09-01
+  - Adds the 476-tool structure surface and product-family regression integration.
+  - Adds family-results.tsv to normal test_all result bundles.
+
 0.10.0 - 2026-08-30
   - Test result rows now record public-tool elapsed_ms for performance analysis.
   - History/archive public-builder assertions also retain measured invocation time.

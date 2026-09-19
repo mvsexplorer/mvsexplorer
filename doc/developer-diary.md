@@ -468,3 +468,31 @@ those costs without changing value/state keys or ordering and adds a detailed
 phase timing ledger so the next optimization is based on measured parse/union/
 diff/note/transition/finalization cost.
 
+## 2026-09-01 — 0.15.0 product-family DAG
+
+Added a separate analytical family layer rather than changing concrete product
+identity. The key design choice is a DAG: specific release families can have a
+product-family parent and a broad release-rollup parent simultaneously.
+Source-backed facts remain normalized against concrete titles; queries join
+through membership instead of multiplying file/hash/note rows into every
+ancestor family.
+
+The public surface grows by 33 tools, but the original 443 tools are unchanged.
+Archive-sweep discovery explicitly removes the new family class before deriving
+the 422/19/2 legacy plan.
+
+## 2026-09-01 — 0.15.0 real-title taxonomy coverage pass
+
+Before packaging the family feature, the classifier was measured against the
+accepted 0.14.4 `title_from_mvs.txt` all-ever ledger. The first conservative
+rules covered only a small part of the real archive because many source titles
+begin with `Windows`, `SQL Server`, `Visual Studio`, `Office`, `Dynamics`, and
+other product names without the word `Microsoft`.
+
+The classifier now has an auditable curated leading-alias table. Alias matching
+is start-anchored and token-boundary constrained; it does not turn embedded
+references into ownership. On the 8,123-title baseline, 7,295 titles classify at
+high confidence, 314 enter the review tier, and 514 remain unclassified. The
+synthetic family regression was expanded from 88 to 92 assertions with explicit
+SQL Server, Windows Server, Visual Studio Agents, and Office Online alias cases.
+

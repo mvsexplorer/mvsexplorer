@@ -1,0 +1,6 @@
+build_mvs_product_family_index.bat
+
+0.1.0 - 2026-09-01
+  - Initial standalone archive-level product-family index builder.
+  - Preserves concrete title/source provenance while deriving an analytical family DAG.
+  - Supports direct/nested mvs_dmp snapshots, curated leading aliases, raw-note retention, review/unclassified output, and exact-title overrides.

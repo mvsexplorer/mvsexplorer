@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.10.0"
+set "app.version=0.11.0"
 set "app.name=test_diagnostic_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -160,6 +160,7 @@ function New-ResultsFolder {
         single_dump = Join-Path $candidate 'single-dump-results.tsv'
         compare = Join-Path $candidate 'compare-results.tsv'
         history = Join-Path $candidate 'history-results.tsv'
+        family = Join-Path $candidate 'family-results.tsv'
     }
     Write-TextUtf8 $script:ConsoleLog ''
     $header = "index`tscope`tstatus`tcase`treason`texpected_rc`tactual_rc`telapsed_ms`n"
@@ -182,6 +183,7 @@ Files:
   single-dump-results.tsv Single-dump completeness assertions.
   compare-results.tsv     Two-dump comparison assertions.
   history-results.tsv     Archive-history/all-ever assertions.
+  family-results.tsv      Product-family feature regression wrapper assertion.
   failures\              Full expected/actual/stderr/meta files for
                          behavioral failures. Empty when none fail.
 '@
@@ -962,6 +964,34 @@ function Get-LookupExpected {
     }
 }
 
+function Get-ProductFamilyToolNames {
+    $bases = @(
+        'product_titles_from_family',
+        'product_families_from_title',
+        'product_ids_from_family',
+        'product_families_from_id',
+        'product_dates_from_family',
+        'product_families_from_date',
+        'product_filenames_from_family',
+        'product_families_from_filename',
+        'product_hashes_from_family',
+        'product_families_from_hash',
+        'product_snapshots_from_family',
+        'product_families_from_snapshot',
+        'product_family_parents_from_family',
+        'product_family_children_from_family',
+        'product_notes_from_family',
+        'product_releases_from_family'
+    )
+    $names = New-Object System.Collections.ArrayList
+    [void]$names.Add('build_mvs_product_family_index')
+    foreach ($base in $bases) {
+        [void]$names.Add('print_mvs_'+$base)
+        [void]$names.Add('read_mvs_'+$base)
+    }
+    return @($names)
+}
+
 function Test-Structure {
     $script:CurrentScope = 'structure'
     Write-Line '=== Structure tests ==='
@@ -979,9 +1009,10 @@ function Test-Structure {
     foreach ($single in Get-SingleDumpTools) { [void]$expected.Add($single.name + '.bat') }
     foreach ($compare in Get-CompareTools) { [void]$expected.Add($compare.name + '.bat') }
     foreach ($historyTool in @('build_mvs_dump_change_history','build_mvs_dump_all_ever')) { [void]$expected.Add($historyTool + '.bat') }
+    foreach ($familyTool in Get-ProductFamilyToolNames) { [void]$expected.Add($familyTool + '.bat') }
 
     $actual = @(Get-ChildItem -LiteralPath $Root -Filter '*.bat' -File | Select-Object -ExpandProperty Name)
-    if ($actual.Count -eq 443) { Write-Pass 'root public .bat count = 443' } else { Write-Fail 'root public .bat count' ('expected 443, got ' + $actual.Count) }
+    if ($actual.Count -eq 476) { Write-Pass 'root public .bat count = 476' } else { Write-Fail 'root public .bat count' ('expected 476, got ' + $actual.Count) }
 
     foreach ($name in $expected) {
         $path = Join-Path $Root $name
@@ -993,7 +1024,7 @@ function Test-Structure {
         foreach ($label in @(':setup',':main',':end',':SetErrorLevel',':RunPowerShellFromLabel')) {
             if (-not $text.Contains($label)) { [void]$problems.Add('missing ' + $label) }
         }
-        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start') -and -not $text.Contains(':_MVSRelationship_start') -and -not $text.Contains(':_MVSSingleDump_start') -and -not $text.Contains(':_MVSCompare_start') -and -not $text.Contains(':_MVSHistory_start')) { [void]$problems.Add('missing injected PowerShell block') }
+        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start') -and -not $text.Contains(':_MVSRelationship_start') -and -not $text.Contains(':_MVSSingleDump_start') -and -not $text.Contains(':_MVSCompare_start') -and -not $text.Contains(':_MVSHistory_start') -and -not $text.Contains(':_MVSProductFamily_start') -and -not $text.Contains(':_MVSProductFamilyQuery_start')) { [void]$problems.Add('missing injected PowerShell block') }
         if ($text.Contains('dev\library') -or $text.Contains('generate_tools.py')) { [void]$problems.Add('development runtime dependency reference') }
         if ($text.Contains(':_MVSSingleDump_start') -and -not $text.Contains('return ,(New-Object System.Collections.ArrayList)')) {
             [void]$problems.Add('single-dump New-ArrayList can collapse empty collection to null')
@@ -1409,6 +1440,24 @@ function Test-HistoryTools {
     if ($preserved) { Write-Pass 'all-ever preserves history ledgers' } else { Write-Fail 'all-ever preserves history ledgers' 'history files disappeared after all-ever build' }
 }
 
+function Test-ProductFamilyFeature {
+    $script:CurrentScope = 'family'
+    Write-Line '=== Product-family hierarchy/query tests ==='
+    $path = Join-Path (Join-Path $Root 'test') 'test_product_family_tools.bat'
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        Write-Fail 'product-family regression' ('missing: ' + $path)
+        return
+    }
+    $run = Invoke-PublicTool $path '' $null $false
+    if ($run.rc -eq 0 -and [string]::IsNullOrWhiteSpace($run.stderr) -and $run.stdout -match 'SUMMARY: passed=92 failed=0') {
+        Write-Pass 'product-family regression 92 assertions' '0' ([string]$run.rc) ([string]$run.elapsed_ms)
+    } else {
+        $reason = 'rc=' + $run.rc + '; stdout=' + (Short-Text $run.stdout) + '; stderr=' + (Short-Text $run.stderr)
+        Write-Fail 'product-family regression 92 assertions' $reason '0' ([string]$run.rc) ([string]$run.elapsed_ms)
+        Save-FailureArtifacts 'product-family regression' $run 0 'SUMMARY: passed=92 failed=0' $reason
+    }
+}
+
 New-ResultsFolder
 Write-Line ('Test results: ' + $script:ResultsFolder)
 
@@ -1470,6 +1519,7 @@ if ($Mode -eq 'all' -or $Mode -eq 'relationship') { Test-Relationships }
 if ($Mode -eq 'all' -or $Mode -eq 'single_dump') { Test-SingleDumpTools }
 if ($Mode -eq 'all' -or $Mode -eq 'compare') { Test-CompareTools }
 if ($Mode -eq 'all' -or $Mode -eq 'history') { Test-HistoryTools }
+if ($Mode -eq 'all') { Test-ProductFamilyFeature }
 
 Write-Line ''
 Write-Line ('SUMMARY: passed=' + $script:Passed + ' failed=' + $script:Failed + ' skipped=' + $script:Skipped)

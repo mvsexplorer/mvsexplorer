@@ -1,0 +1,6 @@
+read_mvs_product_family_parents_from_family.bat
+
+0.1.0 - 2026-09-01
+  - Initial standalone product-family query tool.
+  - Emits machine-readable TSV output from a prebuilt product-family index.
+  - Uses case-insensitive wildcard matching and preserves provenance fields relevant to the query direction.

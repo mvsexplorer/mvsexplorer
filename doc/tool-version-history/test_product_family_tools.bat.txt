@@ -1,0 +1,5 @@
+test\test_product_family_tools.bat
+
+0.1.0 - 2026-09-01
+  - Initial 92-assertion synthetic product-family regression.
+  - Covers hierarchy semantics, curated leading aliases, provenance, overrides, false-positive guards, raw notes, and all 32 query wrappers.

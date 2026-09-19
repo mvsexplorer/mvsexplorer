@@ -1,0 +1,23 @@
+--- Microsoft Office Communications Server 2007 Standard Edition (English) [ID: 301] ---
+9999999999999999999999999999999999999999 *ocs2007-standard.iso
+
+--- Microsoft Office Professional Plus 2010 (English) [ID: 302] ---
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa *office2010-proplus.iso
+
+--- FabriKam 3.1: The Microsoft Office System Solutions Learning Kit [ID: 303] ---
+bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb *fabrikam-learning.iso
+
+--- Contoso Office Add-in 1.0 [ID: 304] ---
+cccccccccccccccccccccccccccccccccccccccc *contoso-office-addin.iso
+
+--- SQL Server 2019 Standard Edition (English) [ID: 305] ---
+dddddddddddddddddddddddddddddddddddddddd *sql2019-standard.iso
+
+--- Windows Server 2019 Standard (English) [ID: 306] ---
+eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee *windows-server-2019.iso
+
+--- Agents for Visual Studio 2012 (English) [ID: 307] ---
+ffffffffffffffffffffffffffffffffffffffff *vs2012-agents.iso
+
+--- Office Online Server 2019 (English) [ID: 308] ---
+1212121212121212121212121212121212121212 *office-online-2019.iso

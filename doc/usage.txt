@@ -261,3 +261,18 @@ Public regression timing analysis:
 
 Rebuild self-contained HTML report:
   test\build_archive_html_report.bat result-folder
+
+PRODUCT-FAMILY INDEX (0.15.0)
+
+Build once across the archive:
+  build_mvs_product_family_index.bat mvs-dumps-root output-folder [overrides.tsv]
+
+Examples:
+  read_mvs_product_titles_from_family.bat family-index "Microsoft Office"
+  read_mvs_product_filenames_from_family.bat family-index "Microsoft Office 2007"
+  read_mvs_product_families_from_filename.bat family-index "example.iso"
+  read_mvs_product_families_from_id.bat family-index "469"
+  read_mvs_product_family_children_from_family.bat family-index "Microsoft Office"
+
+See doc\product-family-tools.md and doc\product-family-tool-matrix.tsv.
+

@@ -140,7 +140,7 @@ tools:
 test\test_all_dumps.bat ..\mvs_dumps_archive --plan-only
 ```
 
-For the supplied 79-snapshot archive and current 443 public tools, the plan is
+For the supplied 79-snapshot archive, the legacy sweep-eligible public surface remains 443 tools and the plan is
 34,822 invocations: 422 single-snapshot tools on 79 snapshots, 19 comparison
 tools on 78 adjacent transitions, and two archive builders.
 
@@ -256,3 +256,42 @@ test\build_archive_html_report.bat result-folder
 
 `test\archive-exclusions.tsv` is an optional non-destructive canonical
 interpretation file. Excluded snapshots remain tested and fully ingested.
+
+## 0.15.0 product-family regression
+
+The product-family feature has its own archive-level synthetic acceptance:
+
+```bat
+test\test_product_family_tools.bat
+```
+
+It performs 92 assertions: builder/output schema checks, hierarchy semantics,
+false-positive classification guards, curated no-Microsoft-prefix alias checks, override/raw-note integrity, positive
+execution of all 32 query wrappers, and no-result checks for all 32 wrappers.
+
+`test_all.bat` invokes this suite once and records its aggregate result in
+`family-results.tsv`. With the 33 new standalone public tools, the normal
+0.15.0 `test_all.bat` matrix is expected to be:
+
+```text
+Structure:       477
+Scalar:          120
+Lookup:           24
+Diagnostic:       46
+Relationship:    151
+Single-dump:     167
+Compare:          39
+History:          62
+Family wrapper:    1
+---------------------
+Total:          1087 assertions
+```
+
+The three data-dependent exact note lookup cases may still be SKIP on the
+representative real dump, so the established baseline becomes 1084 PASS /
+0 FAIL / 3 SKIP when those same skips apply.
+
+The 33 family tools are intentionally a separate archive-level class. They do
+not alter the legacy `test_all_dumps.bat` 79-snapshot plan, which remains
+34,822 logical checks.
+

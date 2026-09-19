@@ -1,0 +1,71 @@
+{
+  "version": "0.1.0",
+  "release": "0.15.0",
+  "builder": "build_mvs_product_family_index",
+  "operations": [
+    {
+      "base": "product_titles_from_family",
+      "operation": "titles_from_family"
+    },
+    {
+      "base": "product_families_from_title",
+      "operation": "families_from_title"
+    },
+    {
+      "base": "product_ids_from_family",
+      "operation": "ids_from_family"
+    },
+    {
+      "base": "product_families_from_id",
+      "operation": "families_from_id"
+    },
+    {
+      "base": "product_dates_from_family",
+      "operation": "dates_from_family"
+    },
+    {
+      "base": "product_families_from_date",
+      "operation": "families_from_date"
+    },
+    {
+      "base": "product_filenames_from_family",
+      "operation": "filenames_from_family"
+    },
+    {
+      "base": "product_families_from_filename",
+      "operation": "families_from_filename"
+    },
+    {
+      "base": "product_hashes_from_family",
+      "operation": "hashes_from_family"
+    },
+    {
+      "base": "product_families_from_hash",
+      "operation": "families_from_hash"
+    },
+    {
+      "base": "product_snapshots_from_family",
+      "operation": "snapshots_from_family"
+    },
+    {
+      "base": "product_families_from_snapshot",
+      "operation": "families_from_snapshot"
+    },
+    {
+      "base": "product_family_parents_from_family",
+      "operation": "family_parents_from_family"
+    },
+    {
+      "base": "product_family_children_from_family",
+      "operation": "family_children_from_family"
+    },
+    {
+      "base": "product_notes_from_family",
+      "operation": "notes_from_family"
+    },
+    {
+      "base": "product_releases_from_family",
+      "operation": "releases_from_family"
+    }
+  ]
+}

@@ -148,3 +148,21 @@ test
 
 Cached archive runs are useful for frequent catalog validation. Fresh
 `--no-cache` runs are the authoritative performance measurement.
+
+## Product-family feature acceptance (0.15.0)
+
+`test\test_product_family_tools.bat` is an archive-level synthetic regression
+and does not require a real dump argument. It builds the family index from a
+three-snapshot fixture, including one nested `mvs_dmp` layout, then performs 88
+assertions covering normalized output files, hierarchy semantics, false-positive
+guards, exact-title overrides, content-addressed raw notes, every positive
+query wrapper, and every no-result query wrapper.
+
+The normal `test_all.bat` suite invokes that test once and records one aggregate
+family assertion. `test_everything.bat` therefore exercises the family feature
+through its normal `test_all.bat` stage.
+
+The archive sweep deliberately excludes the 33 family tools from per-snapshot
+planning; their semantics require one archive-level index. The established
+legacy plan remains 34,822 logical checks on the known 79-snapshot archive.
+

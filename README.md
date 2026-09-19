@@ -1,4 +1,116 @@
-# MVS Explorer Toolkit 0.14.4
+# MVS Explorer Toolkit 0.15.0
+
+## 0.15.0 product-family hierarchy and bidirectional queries
+
+Version 0.15.0 adds an analytical product-family hierarchy on top of the
+historical concrete product titles. The original 443 public root tools are
+unchanged; 33 new standalone family tools expand the public surface to 476.
+
+The family model is a DAG rather than a simple prefix tree. A product such as:
+
+```text
+Microsoft Office Communications Server 2007 Standard Edition (English)
+```
+
+can simultaneously belong to:
+
+```text
+Microsoft Office
+Microsoft Office Communications Server
+Microsoft Office 2007
+Microsoft Office Communications Server 2007
+```
+
+This keeps a broad family, a specific product family, a broad release rollup
+and a specific release family distinct. Consequently `Microsoft Office 2007`
+can be queried independently from `Microsoft Office Communications Server`,
+`Microsoft Office Proofing Tools`, or `Microsoft Office System Developer Kit`.
+
+Build the index once:
+
+```bat
+build_mvs_product_family_index.bat ..\mvs_dumps_archive family-index
+```
+
+For safety the output folder must not already exist. An optional third
+`overrides.tsv` argument applies exact-title taxonomy decisions without
+modifying source evidence.
+
+Then query it in either direction, for example:
+
+```bat
+read_mvs_product_ids_from_family.bat family-index "Microsoft Office"
+read_mvs_product_families_from_id.bat family-index 469
+read_mvs_product_dates_from_family.bat family-index "Microsoft Office 2007"
+read_mvs_product_families_from_date.bat family-index "2007-*"
+
+read_mvs_product_filenames_from_family.bat family-index "Microsoft Office"
+read_mvs_product_filenames_from_family.bat family-index "Microsoft Office 2007"
+read_mvs_product_families_from_filename.bat family-index "some-file.iso"
+
+read_mvs_product_hashes_from_family.bat family-index "Microsoft Office Communications Server"
+read_mvs_product_families_from_hash.bat family-index "012345..."
+
+read_mvs_product_family_parents_from_family.bat family-index "Microsoft Office Communications Server 2007"
+read_mvs_product_family_children_from_family.bat family-index "Microsoft Office"
+```
+
+The index stores family membership separately from concrete title facts.
+Product IDs and dates retain the snapshot and source file that observed them and
+are not promoted to immutable identities. Product files/hashes are inherited only from
+source-observed `mvs.txt` product sections; hash pairings are never inferred from filenames. Notes retain their
+historical title evidence, raw HTML and source IDs only where the source
+actually supplied an ID. No `mvs_names.txt` variant ID is reinterpreted as a
+stable product identity.
+
+Automatic classification uses curated high-confidence structural prefixes plus
+curated leading aliases for source titles that omit the word `Microsoft`
+(`Windows ...`, `SQL Server ...`, `Visual Studio ...`, `Office ...`, and other
+known product-leading forms). Matching is anchored at the beginning of the
+normalized title and requires a token boundary; arbitrary substring references
+never establish family ownership.
+
+Against the accepted 0.14.4 archive's 8,123 all-ever `mvs.txt` product titles,
+the shipped rules classify 7,295 (89.8%) at high confidence, place 314 (3.9%)
+generic Microsoft-leading titles in the explicit `review` tier, and leave 514
+(6.3%) unclassified rather than guessing. These are a baseline for that archive,
+not hard-coded discovery counts. Unsupported titles are written to
+`unclassified-products.tsv`. Exact-title `set`/`exclude` overrides are supported
+for reviewed taxonomy corrections.
+
+Testing is integrated into the normal harness:
+
+```bat
+test\test_product_family_tools.bat
+test\test_all.bat dump-folder
+test\test_everything.bat archive-root
+```
+
+The family regression builds a three-snapshot synthetic index from scratch,
+validates every normalized index table plus content-addressed raw-note blobs,
+runs all 32 query wrappers in positive and no-result modes, tests a nested
+`mvs_dmp\` snapshot, and guards against false family ownership from embedded
+product-name references. It performs 92 dedicated assertions and is invoked
+once from the normal `test_all.bat` suite.
+
+The legacy archive sweep remains intentionally unchanged at 34,822 logical
+checks (422 snapshot tools x discovered snapshots, 19 adjacent-comparison
+tools, and 2 history builders). The 33 family tools form a separate archive-level
+class and are not incorrectly invoked once per snapshot.
+
+See `doc\product-family-tools.md` and
+`doc\product-family-tool-matrix.tsv` for the complete model and tool matrix.
+
+## 0.14.4 archive-builder benchmark result
+
+Native Windows PowerShell 5.1 validation of 0.14.4 completed the full
+79-snapshot fast archive builder in 967,234 ms (16 m 7.234 s), down from
+13,975,326 ms for 0.14.3. The historical output remained byte-equivalent to the
+accepted 0.14.3 result except for elapsed-time metadata and the intentionally
+new phase-timing ledger. The accepted historical totals remain 572,143 added,
+474,501 removed, 648,293 all-ever source-local records, 12,103 product states,
+100,139 variant states, 3,974 note versions, 820 note bodies and 6,210 raw-note
+variants.
 
 ## 0.14.4 archive-builder allocation reduction and phase profiling
 
