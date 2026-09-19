@@ -81,6 +81,8 @@ $summary=@(
 'Strict: '+$Strict
 )
 [IO.File]::WriteAllText((Join-Path $out 'summary.txt'),(($summary-join[Environment]::NewLine)+[Environment]::NewLine),$utf8)
-foreach($line in $summary){[Console]::Out.WriteLine($line)}
+[Console]::Out.WriteLine('MVS Explorer Toolkit public regression performance')
+[Console]::Out.WriteLine(('Cases={0} | threshold_ms={1} | outliers={2}' -f $timed.Count,$ThresholdMs,$outliers.Count))
+[Console]::Out.WriteLine(('Latency_ms: median={0} p95={1} max={2} | strict={3}' -f [math]::Round((Median $vals),2),[math]::Round((Pctl $vals 0.95),2),[math]::Round((Pctl $vals 1),2),$Strict))
 if($Strict-and$outliers.Count-gt0){exit 1}
 exit 0

@@ -2,14 +2,14 @@
 :setup
 REM MVS database create/update launcher. Components live in create_or_update_mvs_database\.
 setlocal DisableDelayedExpansion
-set "app.version=0.2.2"
+set "app.version=0.2.3"
 set "app.name=create_or_update_mvs_database"
 set "app.rc=0"
 set "app.self=%~f0"
 set "mvscu_project_root=%~dp0"
 set "mvscu_invocation_dir=%CD%"
 set "mvscu_version=%app.version%"
-set "mvscu_project_version=0.21.0"
+set "mvscu_project_version=0.21.1"
 set "mvscu_arg1=%~1"
 set "mvscu_arg2=%~2"
 set "mvscu_arg3=%~3"
@@ -165,9 +165,28 @@ $script:MasterWriter=New-Object IO.StreamWriter($MasterPath,$false,$utf8,65536)
 $script:MasterWriter.AutoFlush=$true
 $script:Failures=0
 $script:ArchiveResults=New-Object System.Collections.ArrayList
+$script:TransientWidth=0
+$script:TransientPrefix='__MVS_TRANSIENT__'
 
+function Clear-TransientConsole{
+    if($script:TransientWidth-le0){return}
+    if(-not[Console]::IsOutputRedirected){
+        try{[Console]::Out.Write("`r"+(' ' * $script:TransientWidth)+"`r")}catch{}
+    }
+    $script:TransientWidth=0
+}
+function Write-TransientConsole{
+    param([AllowEmptyString()][string]$Text)
+    if([Console]::IsOutputRedirected){return}
+    try{
+        $width=[Math]::Max($script:TransientWidth,$Text.Length)
+        [Console]::Out.Write("`r"+$Text+(' ' * ($width-$Text.Length)))
+        $script:TransientWidth=$width
+    }catch{$script:TransientWidth=0}
+}
 function Write-Line{
     param([AllowEmptyString()][string]$Text,[ConsoleColor]$Color=[ConsoleColor]::Gray)
+    Clear-TransientConsole
     $old=[Console]::ForegroundColor
     try{if(   -not   [Console]::IsOutputRedirected){[Console]::ForegroundColor=$Color};[Console]::Out.WriteLine($Text)}
     finally{if(   -not   [Console]::IsOutputRedirected){[Console]::ForegroundColor=$old}}
@@ -179,19 +198,36 @@ function Invoke-Component{
     if(   -not   (Test-Path -LiteralPath $Path -PathType Leaf)){Write-Line ('Missing component: '+$Path) Red;return 4}
     $logPath=Join-Path $RunLogs $LogName
     $writer=New-Object IO.StreamWriter($logPath,$false,$utf8,65536)
+    $oldTransientProtocol=[string]$env:MVS_TRANSIENT_PROTOCOL
     try{
+        # Nested archive/family tools inherit this marker and can retain detailed
+        # status in logs while the launcher renders it as one overwriteable
+        # bottom-of-console line.
+        $env:MVS_TRANSIENT_PROTOCOL='1'
         & $Path @Arguments 2>&1 | ForEach-Object{
             $line=[string]$_
-            [Console]::Out.WriteLine($line)
-            $writer.WriteLine($line)
-            if($null  -ne  $script:MasterWriter){$script:MasterWriter.WriteLine($line)}
+            if($line.StartsWith($script:TransientPrefix,[StringComparison]::Ordinal)){
+                $render=$line.Substring($script:TransientPrefix.Length)
+                Write-TransientConsole $render
+                $writer.WriteLine($render)
+                if($null  -ne  $script:MasterWriter){$script:MasterWriter.WriteLine($render)}
+            } else {
+                Clear-TransientConsole
+                [Console]::Out.WriteLine($line)
+                $writer.WriteLine($line)
+                if($null  -ne  $script:MasterWriter){$script:MasterWriter.WriteLine($line)}
+            }
         }
         $rc=$LASTEXITCODE
     }catch{
+        Clear-TransientConsole
         $line='ERROR: '+[string]$_
         [Console]::Error.WriteLine($line);$writer.WriteLine($line);if($null  -ne  $script:MasterWriter){$script:MasterWriter.WriteLine($line)}
         $rc=1
-    }finally{$writer.Flush();$writer.Dispose()}
+    }finally{
+        if([string]::IsNullOrEmpty($oldTransientProtocol)){Remove-Item Env:MVS_TRANSIENT_PROTOCOL -ErrorAction SilentlyContinue}else{$env:MVS_TRANSIENT_PROTOCOL=$oldTransientProtocol}
+        $writer.Flush();$writer.Dispose()
+    }
     return [int]$rc
 }
 function Finish-LogsZip{

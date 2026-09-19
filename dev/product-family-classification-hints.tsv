@@ -1,0 +1,98 @@
+kind	prefix	broad_family	product_family	release	confidence	rationale
+subproduct	Microsoft Windows Point of Service Software Development Kit (SDK)	Microsoft Windows	Microsoft Windows Point of Service SDK		high	Windows-branded SDK is a distinct product family, not a Microsoft Windows release variant.
+subproduct	Windows Point of Service Software Development Kit (SDK)	Microsoft Windows	Microsoft Windows Point of Service SDK		high	Windows-branded SDK is a distinct product family, not a Microsoft Windows release variant.
+subproduct	Microsoft Windows Point of Service SDK	Microsoft Windows	Microsoft Windows Point of Service SDK		high	Windows-branded SDK is a distinct product family.
+subproduct	Windows Point of Service SDK	Microsoft Windows	Microsoft Windows Point of Service SDK		high	Windows-branded SDK is a distinct product family.
+subproduct	Microsoft Windows Rights Management Client	Microsoft Windows	Microsoft Windows Rights Management Client		high	Windows-branded client is a distinct product family.
+subproduct	Windows Rights Management Client	Microsoft Windows	Microsoft Windows Rights Management Client		high	Windows-branded client is a distinct product family.
+subproduct	Microsoft Windows Rights Management Services	Microsoft Windows	Microsoft Windows Rights Management Services		high	Windows-branded service is a distinct product family.
+subproduct	Windows Rights Management Services	Microsoft Windows	Microsoft Windows Rights Management Services		high	Windows-branded service is a distinct product family.
+subproduct	Microsoft Windows Services for UNIX	Microsoft Windows	Microsoft Windows Services for UNIX		high	Windows-branded interoperability product is distinct from Microsoft Windows.
+subproduct	Windows Services for UNIX	Microsoft Windows	Microsoft Windows Services for UNIX		high	Windows-branded interoperability product is distinct from Microsoft Windows.
+subproduct	Microsoft Windows Vista Upgrade Advisor	Microsoft Windows	Microsoft Windows Vista Upgrade Advisor		high	Upgrade Advisor is a separate utility, not the Windows Vista OS release.
+subproduct	Windows Vista Upgrade Advisor	Microsoft Windows	Microsoft Windows Vista Upgrade Advisor		high	Upgrade Advisor is a separate utility, not the Windows Vista OS release.
+subproduct	Windows Automated Installation Kit (WAIK)	Microsoft Windows	Microsoft Windows Automated Installation Kit		high	Deployment kit is a distinct Windows-branded tool family.
+subproduct	Windows Automated Installation Kit (AIK)	Microsoft Windows	Microsoft Windows Automated Installation Kit		high	Deployment kit is a distinct Windows-branded tool family.
+subproduct	Windows Automated Installation Kit	Microsoft Windows	Microsoft Windows Automated Installation Kit		high	Deployment kit is a distinct Windows-branded tool family.
+subproduct	Windows AIK	Microsoft Windows	Microsoft Windows Automated Installation Kit		high	Deployment kit alias.
+subproduct	Windows Vista Windows Automated Installation Kit (WAIK)	Microsoft Windows	Microsoft Windows Automated Installation Kit		high	Deployment kit is a distinct Windows-branded tool family.
+subproduct	Windows Vista WAIK	Microsoft Windows	Microsoft Windows Automated Installation Kit		high	Deployment kit alias.
+subproduct	Windows CE DirectX Platform Adaptation Kit	Microsoft Windows	Microsoft Windows CE		high	Windows CE tooling belongs to the Windows CE product family.
+subproduct	Windows CE DirectX Kit	Microsoft Windows	Microsoft Windows CE		high	Windows CE tooling belongs to the Windows CE product family.
+subproduct	Windows CE .NET Platform Builder	Microsoft Windows	Microsoft Windows CE		high	Windows CE platform builder belongs to the Windows CE product family.
+subproduct	Windows CE .NET	Microsoft Windows	Microsoft Windows CE		high	Windows CE is distinct from desktop Windows.
+subproduct	Windows CE	Microsoft Windows	Microsoft Windows CE		high	Windows CE is distinct from desktop Windows.
+subproduct	Windows Component Update for Visual Studio .NET	Microsoft Visual Studio	Microsoft Visual Studio Component Update		high	The title names a Visual Studio component update despite beginning with Windows.
+subproduct	Windows DNA XML Resource Kit Volume 2	Microsoft Windows	Microsoft Windows DNA XML Resource Kit		high	Windows DNA XML resource kit is a distinct developer resource family.
+subproduct	Windows DNA XML Resource Kit	Microsoft Windows	Microsoft Windows DNA XML Resource Kit		high	Windows DNA XML resource kit is a distinct developer resource family.
+subproduct	Windows DNA XML SDK and DDKs	Microsoft Windows	Microsoft Windows DNA XML SDK		high	Windows DNA XML SDK/DDKs are developer tooling, not an OS release.
+subproduct	Windows Driver Kit (WDK)	Microsoft Windows	Microsoft Windows Driver Kit		high	WDK is a distinct developer kit family.
+subproduct	Windows Driver Kit	Microsoft Windows	Microsoft Windows Driver Kit		high	WDK is a distinct developer kit family.
+subproduct	Windows XP Driver Development Kit (DDK)	Microsoft Windows	Microsoft Windows Driver Development Kit		high	DDK is developer tooling, not an OS variant.
+subproduct	Windows NT Driver Development Kit (DDK)	Microsoft Windows	Microsoft Windows Driver Development Kit		high	DDK is developer tooling, not an OS variant.
+subproduct	Windows Hardware Compatibility Test Kit	Microsoft Windows	Microsoft Windows Hardware Compatibility Kit		high	Compatibility test kit is a distinct tool family.
+subproduct	Windows Hardware Compatibility SDK and DDKs	Microsoft Windows	Microsoft Windows Hardware Compatibility Kit		high	Compatibility SDK/DDKs are a distinct tool family.
+subproduct	Windows Home Server Edition Connector Disc	Microsoft Windows	Microsoft Windows Home Server		high	Home Server media belongs to the Windows Home Server product family.
+subproduct	Windows Home Server Edition Installation Disc	Microsoft Windows	Microsoft Windows Home Server		high	Home Server media belongs to the Windows Home Server product family.
+subproduct	Windows Home Server Edition Restore Disc	Microsoft Windows	Microsoft Windows Home Server		high	Home Server media belongs to the Windows Home Server product family.
+subproduct	Windows Home Server Connector Disc	Microsoft Windows	Microsoft Windows Home Server		high	Home Server media belongs to the Windows Home Server product family.
+subproduct	Windows Home Server Installation Disc	Microsoft Windows	Microsoft Windows Home Server		high	Home Server media belongs to the Windows Home Server product family.
+subproduct	Windows Home Server Restore Disc	Microsoft Windows	Microsoft Windows Home Server		high	Home Server media belongs to the Windows Home Server product family.
+subproduct	Windows Home Server	Microsoft Windows	Microsoft Windows Home Server		high	Windows Home Server is distinct from desktop Windows.
+subproduct	Windows Installer	Microsoft Windows	Microsoft Windows Installer		high	Windows Installer is a distinct component family.
+subproduct	Windows Internet Explorer	Microsoft Internet Explorer	Microsoft Internet Explorer		high	Internet Explorer is a browser product, not a Windows OS release.
+subproduct	Windows Media Format	Microsoft Windows Media	Microsoft Windows Media Format		high	Windows Media Format is a distinct media technology family.
+subproduct	Windows Media Player	Microsoft Windows Media	Microsoft Windows Media Player		high	Windows Media Player is a distinct product family.
+subproduct	Windows Media Toolkit	Microsoft Windows Media	Microsoft Windows Media Toolkit		high	Windows Media Toolkit is a distinct tool family.
+subproduct	Windows Media SDK and DDKs	Microsoft Windows Media	Microsoft Windows Media SDK		high	Windows Media SDK/DDKs are developer tooling.
+subproduct	Windows Media	Microsoft Windows Media	Microsoft Windows Media		high	Windows Media is distinct from Microsoft Windows OS.
+subproduct	Windows MultiPoint Mouse Software Development Kit (SDK)	Microsoft Windows	Microsoft Windows MultiPoint Mouse SDK		high	MultiPoint Mouse SDK is a distinct developer tool family.
+subproduct	Windows MultiPoint Mouse Software Development Kit	Microsoft Windows	Microsoft Windows MultiPoint Mouse SDK		high	MultiPoint Mouse SDK is a distinct developer tool family.
+subproduct	Windows MultiPoint Mouse SDK	Microsoft Windows	Microsoft Windows MultiPoint Mouse SDK		high	MultiPoint Mouse SDK is a distinct developer tool family.
+subproduct	Windows MultiPoint Mouse	Microsoft Windows	Microsoft Windows MultiPoint Mouse		high	MultiPoint Mouse software is a distinct product family.
+subproduct	Windows Real-Time Communications Client API Software Development Kit (SDK)	Microsoft Windows	Microsoft Windows Real-Time Communications SDK		high	RTC SDK is a distinct developer tool family.
+subproduct	Windows Real-Time Communications Client API SDK	Microsoft Windows	Microsoft Windows Real-Time Communications SDK		high	RTC SDK is a distinct developer tool family.
+subproduct	Windows Real-Time Communications SDK and DDKs	Microsoft Windows	Microsoft Windows Real-Time Communications SDK		high	RTC SDK/DDKs are a distinct developer tool family.
+subproduct	Windows Software Development Kit (WSDK)	Microsoft Windows	Microsoft Windows SDK		high	Windows SDK is developer tooling, not an OS variant.
+subproduct	Windows Software Development Kit (SDK)	Microsoft Windows	Microsoft Windows SDK		high	Windows SDK is developer tooling, not an OS variant.
+subproduct	Windows Software Development Kit	Microsoft Windows	Microsoft Windows SDK		high	Windows SDK is developer tooling, not an OS variant.
+subproduct	Windows SDK and DDKs	Microsoft Windows	Microsoft Windows SDK		high	Windows SDK/DDKs are developer tooling, not an OS variant.
+subproduct	Windows SDK	Microsoft Windows	Microsoft Windows SDK		high	Windows SDK is developer tooling, not an OS variant.
+subproduct	Windows SharePoint Services Software Development Kit (SDK)	Microsoft SharePoint	Microsoft Windows SharePoint Services SDK		high	SharePoint Services SDK is separate from the Windows OS family.
+subproduct	Windows SharePoint Services SDK and DDKs	Microsoft SharePoint	Microsoft Windows SharePoint Services SDK		high	SharePoint Services SDK/DDKs are separate developer tooling.
+subproduct	Windows SharePoint Services SDK	Microsoft SharePoint	Microsoft Windows SharePoint Services SDK		high	SharePoint Services SDK is separate developer tooling.
+subproduct	Windows SharePoint Services	Microsoft SharePoint	Microsoft Windows SharePoint Services		high	Windows SharePoint Services is a distinct server product family.
+subproduct	Windows Thin PC	Microsoft Windows	Microsoft Windows Thin PC		high	Windows Thin PC is a distinct Windows product family.
+subproduct	Windows Virtual PC	Microsoft Windows	Microsoft Windows Virtual PC		high	Windows Virtual PC is a distinct virtualization product family.
+subproduct	Windows Workflow Foundation	Microsoft Windows	Microsoft Windows Workflow Foundation		high	Workflow Foundation is a framework, not an OS variant.
+subproduct	Windows Azure Authoring Tools	Microsoft Azure	Microsoft Windows Azure Authoring Tools		high	Azure authoring tools are distinct from Microsoft Windows OS.
+subproduct	Windows Azure Client Libraries for .NET	Microsoft Azure	Microsoft Windows Azure Client Libraries		high	Azure client libraries are distinct from Microsoft Windows OS.
+subproduct	Windows Azure Storage Emulator	Microsoft Azure	Microsoft Windows Azure Storage Emulator		high	Azure storage emulator is distinct from Microsoft Windows OS.
+subproduct	Windows Azure Storage Tools	Microsoft Azure	Microsoft Windows Azure Storage Tools		high	Azure storage tools are distinct from Microsoft Windows OS.
+subproduct	Windows Azure Emulator	Microsoft Azure	Microsoft Windows Azure Emulator		high	Azure emulator is distinct from Microsoft Windows OS.
+subproduct	Windows Azure	Microsoft Azure	Microsoft Windows Azure		high	Windows Azure is an Azure product family, not a Windows OS release.
+subproduct	Windows Storage Server	Microsoft Windows	Microsoft Windows Storage Server		high	Storage Server is a server product family, not a desktop Windows release.
+subproduct	Windows Essential Business Server	Microsoft Windows	Microsoft Windows Essential Business Server		high	Essential Business Server is a server product family.
+subproduct	Windows Web Server	Microsoft Windows	Microsoft Windows Server		high	Windows Web Server is a Windows Server edition.
+subproduct	Windows Advanced Server, Limited Edition	Microsoft Windows	Microsoft Windows Server		high	Advanced Server Limited Edition is a server product.
+subproduct	Windows Advanced Server Limited	Microsoft Windows	Microsoft Windows Server		high	Advanced Server Limited is a server product.
+release	Windows Vista	Microsoft Windows	Microsoft Windows	Vista	high	Vista is a Windows operating-system release name.
+release	Windows XP	Microsoft Windows	Microsoft Windows	XP	high	XP is a Windows operating-system release name.
+release	Windows 11	Microsoft Windows	Microsoft Windows	11	high	Windows 11 is an operating-system release.
+release	Windows 10	Microsoft Windows	Microsoft Windows	10	high	Windows 10 is an operating-system release.
+release	Windows 8.1	Microsoft Windows	Microsoft Windows	8.1	high	Windows 8.1 is an operating-system release.
+release	Windows 8	Microsoft Windows	Microsoft Windows	8	high	Windows 8 is an operating-system release.
+release	Windows 7	Microsoft Windows	Microsoft Windows	7	high	Windows 7 is an operating-system release.
+release	Windows 2000	Microsoft Windows	Microsoft Windows	2000	high	Windows 2000 is an operating-system release.
+release	Windows 98	Microsoft Windows	Microsoft Windows	98	high	Windows 98 is an operating-system release.
+release	Windows 95	Microsoft Windows	Microsoft Windows	95	high	Windows 95 is an operating-system release.
+release	Windows Me	Microsoft Windows	Microsoft Windows	Me	high	Windows Me is an operating-system release.
+release	Windows NT 4.0	Microsoft Windows	Microsoft Windows	NT 4.0	high	Windows NT 4.0 is an operating-system release.
+release	Windows NT 3.51	Microsoft Windows	Microsoft Windows	NT 3.51	high	Windows NT 3.51 is an operating-system release.
+release	Windows for Workgroups 3.11	Microsoft Windows	Microsoft Windows	3.11	high	Windows for Workgroups 3.11 is a Windows operating-system release.
+release	Windows 3.11 Workgroup Edition	Microsoft Windows	Microsoft Windows	3.11	high	Workgroup Edition is a Windows 3.11 OS title variant.
+release	Windows 3.11 Workgroup	Microsoft Windows	Microsoft Windows	3.11	high	Workgroup is a Windows 3.11 OS title variant.
+release	Windows 3.11 for Workgroups	Microsoft Windows	Microsoft Windows	3.11	high	Windows 3.11 for Workgroups is an OS title variant.
+release	Windows 3.11	Microsoft Windows	Microsoft Windows	3.11	high	Windows 3.11 is an operating-system release.
+release	Windows 3.2	Microsoft Windows	Microsoft Windows	3.2	high	Windows 3.2 is an operating-system release.
+release	Windows 3.1	Microsoft Windows	Microsoft Windows	3.1	high	Windows 3.1 is an operating-system release.

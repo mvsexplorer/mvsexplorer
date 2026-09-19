@@ -1,5 +1,42 @@
-# MVS Explorer Toolkit 0.21.0
+# MVS Explorer Toolkit 0.21.1
 
+
+## 0.21.1 quieter long-running console, bidirectional adaptive scaling, and inspectable family hints
+
+0.21.1 follows the successful native 0.21.0 fresh-build and managed-update runs.
+The 0.21.0 run completed all 34,822 archive checks with zero FAIL rows, all
+1,119 regression assertions with zero failures, and all 57 generated-database
+checks with zero failures.
+
+Long-running archive planning and per-snapshot completion messages now use the
+same transient bottom-of-console protocol as adaptive worker telemetry. They
+remain captured in detailed logs, but they no longer accumulate as permanent
+console history. Generated-database validation likewise keeps every assertion
+in `database-tests.tsv` while printing one PASS/FAIL summary for structural
+integrity and one for the 32 family-query smoke tests; individual failures remain
+immediate and visible. Product-family per-snapshot ingest progress is also
+transient while retaining each snapshot duration and fact counts in captured
+pipeline logs.
+
+Adaptive archive concurrency can now decrease as well as increase. It still
+scales upward one worker at a time only with sufficient CPU, memory, and disk
+headroom plus non-regressing completed-work throughput. If headroom drops below
+the safety threshold or completed-work throughput materially regresses, the
+target decreases by one without cancelling active work. This addresses the
+0.21.0 native run where concurrency kept rising even after additional workers
+stopped improving throughput.
+
+Product-family prior-knowledge rules are now maintained in the explicitly
+inspectable `dev/product-family-classification-hints.tsv`. The standalone family
+builder embeds those hints at generation time, prints their source name, rule
+count, and SHA-256 when it runs, and therefore retains the no-`dev\` runtime
+contract. Windows-branded utilities, SDKs, services, server products, media
+products, SharePoint products, Azure products, and similar non-OS titles are
+evaluated before generic Windows handling. Named desktop Windows OS releases
+such as Vista and XP are then mapped as releases of `Microsoft Windows`, so
+titles such as `Windows Vista Business` no longer fall into the generic
+unversioned bucket while `Windows Vista Upgrade Advisor` remains a distinct
+utility product.
 
 ## 0.21.0 concise console, richer Explorer controls, safer Windows families, and family-build optimization
 

@@ -33,6 +33,7 @@ $MaxWorkersOptionSeen = $false
 $ScaleIntervalSeconds = 30
 $HeadroomThresholdPercent = 15.0
 $ThroughputTolerance = 0.95
+$ScaleDownThroughputTolerance = 0.90
 $GenerateReport = $true
 $ExclusionsInput = ''
 $UseCache = $true
@@ -112,7 +113,7 @@ function Show-Usage {
     Write-Line '--start-workers N sets the adaptive starting concurrency (default: ceil(logical CPUs / 4), minimum 1).'
     Write-Line '--max-workers N caps adaptive concurrency (default: logical CPU count).'
     Write-Line '--workers N is the backward-compatible fixed-concurrency form; it sets start=max=N and disables scaling.'
-    Write-Line ('Adaptive scaling samples CPU, physical-memory and physical-disk headroom every '+$ScaleIntervalSeconds+' seconds; all three must have at least '+$HeadroomThresholdPercent+'% headroom and recent throughput must not regress.')
+    Write-Line ('Adaptive scaling samples CPU, physical-memory and physical-disk headroom every '+$ScaleIntervalSeconds+' seconds; it scales up only with safe headroom/non-regressing throughput and scales down when headroom is low or throughput materially regresses.')
     Write-Line '--exclusions FILE supplies non-destructive canonical-analysis exclusions; evidence is still ingested.'
     Write-Line '--no-report skips interactive HTML generation.'
     Write-Line '--cache-folder DIR reuses content-addressed snapshot results across runs; --no-cache disables it.'
@@ -207,7 +208,22 @@ function Invoke-AdaptiveScaleEvaluation {
         if($null -eq $previous -or [double]$previous -le 0){$performanceOk=$true}
         else{$performanceOk=($throughput -ge ([double]$previous*$ThroughputTolerance))}
     }
-    if($script:WorkerTarget -ge $WorkerMax){
+    # Adaptive concurrency is intentionally asymmetric: scale up one worker at
+    # a time, but also back off one worker when sustained completed-work
+    # throughput materially regresses or resource headroom falls below the
+    # safety threshold. Existing jobs are never cancelled; the lower target
+    # only throttles future launches.
+    $materialRegression=$false
+    if($windowChecks -gt 0 -and $null-ne$previous -and [double]$previous -gt 0){
+        $materialRegression=($throughput -lt ([double]$previous*$ScaleDownThroughputTolerance))
+    }
+    if($script:WorkerTarget -gt $WorkerStart -and $sample.complete -and (-not $resourceOk)){
+        $script:WorkerTarget--
+        $decision='scale-down:headroom'
+    } elseif($script:WorkerTarget -gt $WorkerStart -and $materialRegression){
+        $script:WorkerTarget--
+        $decision='scale-down:throughput-regressed'
+    } elseif($script:WorkerTarget -ge $WorkerMax){
         $decision='hold:max'
     } elseif(-not $sample.complete){
         $decision='hold:resource-metrics-unavailable'
@@ -1451,7 +1467,7 @@ $snapshotSb = New-Object Text.StringBuilder
 for ($i = 0; $i -lt $snapshotDirs.Count; $i++) {
     $dir = $snapshotDirs[$i]
     $dataPath = Resolve-SnapshotDataPath $dir.FullName
-    if(-not $QuietPlan){Write-Line ('Planning snapshot ' + ($i + 1) + '/' + $snapshotDirs.Count + ': ' + $dir.Name)}
+    if(-not $QuietPlan){Write-Transient ('Planning snapshot ' + ($i + 1) + '/' + $snapshotDirs.Count + ': ' + $dir.Name)}
     $profile = Get-SnapshotProfile $dataPath
     $snapshot = [pscustomobject]@{ name=$dir.Name; snapshot_path=$dir.FullName; data_path=$dataPath; profile=$profile }
     [void]$snapshots.Add($snapshot)
@@ -1632,7 +1648,7 @@ if ($Executor -eq 'external-public') {
         }
         $script:ScaleWindowChecks += $ctx.entries.Count
         Invoke-AdaptiveScaleEvaluation $active.Count
-        Write-Line ('Completed snapshot '+$ctx.snapshot+' in '+([Math]::Round($ctx.stopwatch.Elapsed.TotalSeconds,3))+' s. Progress: '+$completed+'/'+$plan.Count+' PASS='+$counts.PASS+' NO_RESULT='+$counts.NO_RESULT+' SOURCE_MISSING='+$counts.SOURCE_MISSING+' FAIL='+$counts.FAIL)
+        Write-Transient ('Completed snapshot '+$ctx.snapshot+' in '+([Math]::Round($ctx.stopwatch.Elapsed.TotalSeconds,3))+' s. Progress: '+$completed+'/'+$plan.Count+' PASS='+$counts.PASS+' NO_RESULT='+$counts.NO_RESULT+' SOURCE_MISSING='+$counts.SOURCE_MISSING+' FAIL='+$counts.FAIL)
         Write-Summary $summaryPath $summaryMode $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
     }
     $snapshotPhaseSw.Stop()

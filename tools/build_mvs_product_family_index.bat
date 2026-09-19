@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone product-family index builder embeds PowerShell.
 setlocal DisableDelayedExpansion
-set "app.version=0.2.0"
+set "app.version=0.2.1"
 set "app.name=build_mvs_product_family_index"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -103,9 +103,33 @@ $OverrideInput = [string]$env:mvsf_overrides
 $Caller = [string]$env:mvsf_caller
 $Version = [string]$env:mvsf_version
 
+$script:TransientWidth = 0
+$script:TransientPrefix = '__MVS_TRANSIENT__'
+
+function Clear-TransientConsole {
+    if($script:TransientWidth -le 0){return}
+    if(-not [Console]::IsOutputRedirected -and [string]::IsNullOrWhiteSpace($env:MVS_TRANSIENT_PROTOCOL)){
+        try{[Console]::Out.Write("`r"+(' ' * $script:TransientWidth)+"`r")}catch{}
+    }
+    $script:TransientWidth=0
+}
 function Write-Line {
     param([AllowEmptyString()][string]$Text)
+    Clear-TransientConsole
     [Console]::Out.WriteLine($Text)
+}
+function Write-Transient {
+    param([AllowEmptyString()][string]$Text)
+    if(-not [string]::IsNullOrWhiteSpace($env:MVS_TRANSIENT_PROTOCOL)){
+        [Console]::Out.WriteLine($script:TransientPrefix+$Text)
+        return
+    }
+    if([Console]::IsOutputRedirected){[Console]::Out.WriteLine($Text);return}
+    try{
+        $width=[Math]::Max($script:TransientWidth,$Text.Length)
+        [Console]::Out.Write("`r"+$Text+(' ' * ($width-$Text.Length)))
+        $script:TransientWidth=$width
+    }catch{[Console]::Out.WriteLine($Text);$script:TransientWidth=0}
 }
 
 function Write-Err {
@@ -332,6 +356,7 @@ $RuleRows = @(
     [pscustomobject]@{rule_id='OFFICE_GENERIC';priority='40';confidence='high';description='Microsoft Office or Office YEAR prefix'},
     [pscustomobject]@{rule_id='CURATED_MICROSOFT';priority='50';confidence='high';description='Curated Microsoft product-family prefix'},
     [pscustomobject]@{rule_id='WINDOWS_BRANDED_SUBPRODUCT';priority='55';confidence='high';description='Curated Windows-branded SDK/service/client/tool subproduct kept distinct from the generic Windows product family'},
+    [pscustomobject]@{rule_id='WINDOWS_OS_RELEASE_HINT';priority='57';confidence='high';description='Curated named Windows operating-system release hint evaluated after Windows-branded subproducts'},
     [pscustomobject]@{rule_id='CURATED_ALIAS_PREFIX';priority='60';confidence='high';description='Curated leading alias mapped to canonical Microsoft broad/product family'},
     [pscustomobject]@{rule_id='GENERIC_MICROSOFT_REVIEW';priority='900';confidence='review';description='Generic Microsoft-leading title; review before canonical use'}
 )
@@ -384,23 +409,122 @@ $OfficeComponentPrefixes = @(
     'Microsoft Office InfoPath'
 )
 
-# Windows is both an operating-system family name and a branding prefix used by
-# independent SDKs/services/tools. These source-backed prefixes are curated
-# before the generic "Windows" alias so "Windows Services for UNIX 1.0" does
-# not become a variant of a fictitious "Microsoft Windows 1.0" release.
+# Curated classification hints are maintained as a simple TSV and embedded into
+# this standalone tool by dev/generate_product_family_tools.py.  Runtime use
+# therefore has no dependency on dev\, while the source of every prior-knowledge
+# hint remains directly inspectable in the toolkit source tree.
+$EmbeddedFamilyHintSource = 'dev/product-family-classification-hints.tsv'
+$EmbeddedFamilyHintSha256 = '3eee38af5c853e7f1ae52bcf1cbf194bf4c52ba9e134448030ccaa45f5c768f4'
+$EmbeddedFamilyHintCount = 97
+$EmbeddedFamilyHints = @(
+    [pscustomobject]@{kind='subproduct';prefix='Microsoft Windows Point of Service Software Development Kit (SDK)';broad_family='Microsoft Windows';product_family='Microsoft Windows Point of Service SDK';release='';confidence='high';rationale='Windows-branded SDK is a distinct product family, not a Microsoft Windows release variant.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Point of Service Software Development Kit (SDK)';broad_family='Microsoft Windows';product_family='Microsoft Windows Point of Service SDK';release='';confidence='high';rationale='Windows-branded SDK is a distinct product family, not a Microsoft Windows release variant.'}
+    [pscustomobject]@{kind='subproduct';prefix='Microsoft Windows Point of Service SDK';broad_family='Microsoft Windows';product_family='Microsoft Windows Point of Service SDK';release='';confidence='high';rationale='Windows-branded SDK is a distinct product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Point of Service SDK';broad_family='Microsoft Windows';product_family='Microsoft Windows Point of Service SDK';release='';confidence='high';rationale='Windows-branded SDK is a distinct product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Microsoft Windows Rights Management Client';broad_family='Microsoft Windows';product_family='Microsoft Windows Rights Management Client';release='';confidence='high';rationale='Windows-branded client is a distinct product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Rights Management Client';broad_family='Microsoft Windows';product_family='Microsoft Windows Rights Management Client';release='';confidence='high';rationale='Windows-branded client is a distinct product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Microsoft Windows Rights Management Services';broad_family='Microsoft Windows';product_family='Microsoft Windows Rights Management Services';release='';confidence='high';rationale='Windows-branded service is a distinct product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Rights Management Services';broad_family='Microsoft Windows';product_family='Microsoft Windows Rights Management Services';release='';confidence='high';rationale='Windows-branded service is a distinct product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Microsoft Windows Services for UNIX';broad_family='Microsoft Windows';product_family='Microsoft Windows Services for UNIX';release='';confidence='high';rationale='Windows-branded interoperability product is distinct from Microsoft Windows.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Services for UNIX';broad_family='Microsoft Windows';product_family='Microsoft Windows Services for UNIX';release='';confidence='high';rationale='Windows-branded interoperability product is distinct from Microsoft Windows.'}
+    [pscustomobject]@{kind='subproduct';prefix='Microsoft Windows Vista Upgrade Advisor';broad_family='Microsoft Windows';product_family='Microsoft Windows Vista Upgrade Advisor';release='';confidence='high';rationale='Upgrade Advisor is a separate utility, not the Windows Vista OS release.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Vista Upgrade Advisor';broad_family='Microsoft Windows';product_family='Microsoft Windows Vista Upgrade Advisor';release='';confidence='high';rationale='Upgrade Advisor is a separate utility, not the Windows Vista OS release.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Automated Installation Kit (WAIK)';broad_family='Microsoft Windows';product_family='Microsoft Windows Automated Installation Kit';release='';confidence='high';rationale='Deployment kit is a distinct Windows-branded tool family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Automated Installation Kit (AIK)';broad_family='Microsoft Windows';product_family='Microsoft Windows Automated Installation Kit';release='';confidence='high';rationale='Deployment kit is a distinct Windows-branded tool family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Automated Installation Kit';broad_family='Microsoft Windows';product_family='Microsoft Windows Automated Installation Kit';release='';confidence='high';rationale='Deployment kit is a distinct Windows-branded tool family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows AIK';broad_family='Microsoft Windows';product_family='Microsoft Windows Automated Installation Kit';release='';confidence='high';rationale='Deployment kit alias.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Vista Windows Automated Installation Kit (WAIK)';broad_family='Microsoft Windows';product_family='Microsoft Windows Automated Installation Kit';release='';confidence='high';rationale='Deployment kit is a distinct Windows-branded tool family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Vista WAIK';broad_family='Microsoft Windows';product_family='Microsoft Windows Automated Installation Kit';release='';confidence='high';rationale='Deployment kit alias.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows CE DirectX Platform Adaptation Kit';broad_family='Microsoft Windows';product_family='Microsoft Windows CE';release='';confidence='high';rationale='Windows CE tooling belongs to the Windows CE product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows CE DirectX Kit';broad_family='Microsoft Windows';product_family='Microsoft Windows CE';release='';confidence='high';rationale='Windows CE tooling belongs to the Windows CE product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows CE .NET Platform Builder';broad_family='Microsoft Windows';product_family='Microsoft Windows CE';release='';confidence='high';rationale='Windows CE platform builder belongs to the Windows CE product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows CE .NET';broad_family='Microsoft Windows';product_family='Microsoft Windows CE';release='';confidence='high';rationale='Windows CE is distinct from desktop Windows.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows CE';broad_family='Microsoft Windows';product_family='Microsoft Windows CE';release='';confidence='high';rationale='Windows CE is distinct from desktop Windows.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Component Update for Visual Studio .NET';broad_family='Microsoft Visual Studio';product_family='Microsoft Visual Studio Component Update';release='';confidence='high';rationale='The title names a Visual Studio component update despite beginning with Windows.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows DNA XML Resource Kit Volume 2';broad_family='Microsoft Windows';product_family='Microsoft Windows DNA XML Resource Kit';release='';confidence='high';rationale='Windows DNA XML resource kit is a distinct developer resource family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows DNA XML Resource Kit';broad_family='Microsoft Windows';product_family='Microsoft Windows DNA XML Resource Kit';release='';confidence='high';rationale='Windows DNA XML resource kit is a distinct developer resource family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows DNA XML SDK and DDKs';broad_family='Microsoft Windows';product_family='Microsoft Windows DNA XML SDK';release='';confidence='high';rationale='Windows DNA XML SDK/DDKs are developer tooling, not an OS release.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Driver Kit (WDK)';broad_family='Microsoft Windows';product_family='Microsoft Windows Driver Kit';release='';confidence='high';rationale='WDK is a distinct developer kit family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Driver Kit';broad_family='Microsoft Windows';product_family='Microsoft Windows Driver Kit';release='';confidence='high';rationale='WDK is a distinct developer kit family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows XP Driver Development Kit (DDK)';broad_family='Microsoft Windows';product_family='Microsoft Windows Driver Development Kit';release='';confidence='high';rationale='DDK is developer tooling, not an OS variant.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows NT Driver Development Kit (DDK)';broad_family='Microsoft Windows';product_family='Microsoft Windows Driver Development Kit';release='';confidence='high';rationale='DDK is developer tooling, not an OS variant.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Hardware Compatibility Test Kit';broad_family='Microsoft Windows';product_family='Microsoft Windows Hardware Compatibility Kit';release='';confidence='high';rationale='Compatibility test kit is a distinct tool family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Hardware Compatibility SDK and DDKs';broad_family='Microsoft Windows';product_family='Microsoft Windows Hardware Compatibility Kit';release='';confidence='high';rationale='Compatibility SDK/DDKs are a distinct tool family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Home Server Edition Connector Disc';broad_family='Microsoft Windows';product_family='Microsoft Windows Home Server';release='';confidence='high';rationale='Home Server media belongs to the Windows Home Server product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Home Server Edition Installation Disc';broad_family='Microsoft Windows';product_family='Microsoft Windows Home Server';release='';confidence='high';rationale='Home Server media belongs to the Windows Home Server product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Home Server Edition Restore Disc';broad_family='Microsoft Windows';product_family='Microsoft Windows Home Server';release='';confidence='high';rationale='Home Server media belongs to the Windows Home Server product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Home Server Connector Disc';broad_family='Microsoft Windows';product_family='Microsoft Windows Home Server';release='';confidence='high';rationale='Home Server media belongs to the Windows Home Server product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Home Server Installation Disc';broad_family='Microsoft Windows';product_family='Microsoft Windows Home Server';release='';confidence='high';rationale='Home Server media belongs to the Windows Home Server product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Home Server Restore Disc';broad_family='Microsoft Windows';product_family='Microsoft Windows Home Server';release='';confidence='high';rationale='Home Server media belongs to the Windows Home Server product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Home Server';broad_family='Microsoft Windows';product_family='Microsoft Windows Home Server';release='';confidence='high';rationale='Windows Home Server is distinct from desktop Windows.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Installer';broad_family='Microsoft Windows';product_family='Microsoft Windows Installer';release='';confidence='high';rationale='Windows Installer is a distinct component family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Internet Explorer';broad_family='Microsoft Internet Explorer';product_family='Microsoft Internet Explorer';release='';confidence='high';rationale='Internet Explorer is a browser product, not a Windows OS release.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Media Format';broad_family='Microsoft Windows Media';product_family='Microsoft Windows Media Format';release='';confidence='high';rationale='Windows Media Format is a distinct media technology family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Media Player';broad_family='Microsoft Windows Media';product_family='Microsoft Windows Media Player';release='';confidence='high';rationale='Windows Media Player is a distinct product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Media Toolkit';broad_family='Microsoft Windows Media';product_family='Microsoft Windows Media Toolkit';release='';confidence='high';rationale='Windows Media Toolkit is a distinct tool family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Media SDK and DDKs';broad_family='Microsoft Windows Media';product_family='Microsoft Windows Media SDK';release='';confidence='high';rationale='Windows Media SDK/DDKs are developer tooling.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Media';broad_family='Microsoft Windows Media';product_family='Microsoft Windows Media';release='';confidence='high';rationale='Windows Media is distinct from Microsoft Windows OS.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows MultiPoint Mouse Software Development Kit (SDK)';broad_family='Microsoft Windows';product_family='Microsoft Windows MultiPoint Mouse SDK';release='';confidence='high';rationale='MultiPoint Mouse SDK is a distinct developer tool family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows MultiPoint Mouse Software Development Kit';broad_family='Microsoft Windows';product_family='Microsoft Windows MultiPoint Mouse SDK';release='';confidence='high';rationale='MultiPoint Mouse SDK is a distinct developer tool family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows MultiPoint Mouse SDK';broad_family='Microsoft Windows';product_family='Microsoft Windows MultiPoint Mouse SDK';release='';confidence='high';rationale='MultiPoint Mouse SDK is a distinct developer tool family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows MultiPoint Mouse';broad_family='Microsoft Windows';product_family='Microsoft Windows MultiPoint Mouse';release='';confidence='high';rationale='MultiPoint Mouse software is a distinct product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Real-Time Communications Client API Software Development Kit (SDK)';broad_family='Microsoft Windows';product_family='Microsoft Windows Real-Time Communications SDK';release='';confidence='high';rationale='RTC SDK is a distinct developer tool family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Real-Time Communications Client API SDK';broad_family='Microsoft Windows';product_family='Microsoft Windows Real-Time Communications SDK';release='';confidence='high';rationale='RTC SDK is a distinct developer tool family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Real-Time Communications SDK and DDKs';broad_family='Microsoft Windows';product_family='Microsoft Windows Real-Time Communications SDK';release='';confidence='high';rationale='RTC SDK/DDKs are a distinct developer tool family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Software Development Kit (WSDK)';broad_family='Microsoft Windows';product_family='Microsoft Windows SDK';release='';confidence='high';rationale='Windows SDK is developer tooling, not an OS variant.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Software Development Kit (SDK)';broad_family='Microsoft Windows';product_family='Microsoft Windows SDK';release='';confidence='high';rationale='Windows SDK is developer tooling, not an OS variant.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Software Development Kit';broad_family='Microsoft Windows';product_family='Microsoft Windows SDK';release='';confidence='high';rationale='Windows SDK is developer tooling, not an OS variant.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows SDK and DDKs';broad_family='Microsoft Windows';product_family='Microsoft Windows SDK';release='';confidence='high';rationale='Windows SDK/DDKs are developer tooling, not an OS variant.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows SDK';broad_family='Microsoft Windows';product_family='Microsoft Windows SDK';release='';confidence='high';rationale='Windows SDK is developer tooling, not an OS variant.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows SharePoint Services Software Development Kit (SDK)';broad_family='Microsoft SharePoint';product_family='Microsoft Windows SharePoint Services SDK';release='';confidence='high';rationale='SharePoint Services SDK is separate from the Windows OS family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows SharePoint Services SDK and DDKs';broad_family='Microsoft SharePoint';product_family='Microsoft Windows SharePoint Services SDK';release='';confidence='high';rationale='SharePoint Services SDK/DDKs are separate developer tooling.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows SharePoint Services SDK';broad_family='Microsoft SharePoint';product_family='Microsoft Windows SharePoint Services SDK';release='';confidence='high';rationale='SharePoint Services SDK is separate developer tooling.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows SharePoint Services';broad_family='Microsoft SharePoint';product_family='Microsoft Windows SharePoint Services';release='';confidence='high';rationale='Windows SharePoint Services is a distinct server product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Thin PC';broad_family='Microsoft Windows';product_family='Microsoft Windows Thin PC';release='';confidence='high';rationale='Windows Thin PC is a distinct Windows product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Virtual PC';broad_family='Microsoft Windows';product_family='Microsoft Windows Virtual PC';release='';confidence='high';rationale='Windows Virtual PC is a distinct virtualization product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Workflow Foundation';broad_family='Microsoft Windows';product_family='Microsoft Windows Workflow Foundation';release='';confidence='high';rationale='Workflow Foundation is a framework, not an OS variant.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Azure Authoring Tools';broad_family='Microsoft Azure';product_family='Microsoft Windows Azure Authoring Tools';release='';confidence='high';rationale='Azure authoring tools are distinct from Microsoft Windows OS.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Azure Client Libraries for .NET';broad_family='Microsoft Azure';product_family='Microsoft Windows Azure Client Libraries';release='';confidence='high';rationale='Azure client libraries are distinct from Microsoft Windows OS.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Azure Storage Emulator';broad_family='Microsoft Azure';product_family='Microsoft Windows Azure Storage Emulator';release='';confidence='high';rationale='Azure storage emulator is distinct from Microsoft Windows OS.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Azure Storage Tools';broad_family='Microsoft Azure';product_family='Microsoft Windows Azure Storage Tools';release='';confidence='high';rationale='Azure storage tools are distinct from Microsoft Windows OS.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Azure Emulator';broad_family='Microsoft Azure';product_family='Microsoft Windows Azure Emulator';release='';confidence='high';rationale='Azure emulator is distinct from Microsoft Windows OS.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Azure';broad_family='Microsoft Azure';product_family='Microsoft Windows Azure';release='';confidence='high';rationale='Windows Azure is an Azure product family, not a Windows OS release.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Storage Server';broad_family='Microsoft Windows';product_family='Microsoft Windows Storage Server';release='';confidence='high';rationale='Storage Server is a server product family, not a desktop Windows release.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Essential Business Server';broad_family='Microsoft Windows';product_family='Microsoft Windows Essential Business Server';release='';confidence='high';rationale='Essential Business Server is a server product family.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Web Server';broad_family='Microsoft Windows';product_family='Microsoft Windows Server';release='';confidence='high';rationale='Windows Web Server is a Windows Server edition.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Advanced Server, Limited Edition';broad_family='Microsoft Windows';product_family='Microsoft Windows Server';release='';confidence='high';rationale='Advanced Server Limited Edition is a server product.'}
+    [pscustomobject]@{kind='subproduct';prefix='Windows Advanced Server Limited';broad_family='Microsoft Windows';product_family='Microsoft Windows Server';release='';confidence='high';rationale='Advanced Server Limited is a server product.'}
+    [pscustomobject]@{kind='release';prefix='Windows Vista';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='Vista';confidence='high';rationale='Vista is a Windows operating-system release name.'}
+    [pscustomobject]@{kind='release';prefix='Windows XP';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='XP';confidence='high';rationale='XP is a Windows operating-system release name.'}
+    [pscustomobject]@{kind='release';prefix='Windows 11';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='11';confidence='high';rationale='Windows 11 is an operating-system release.'}
+    [pscustomobject]@{kind='release';prefix='Windows 10';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='10';confidence='high';rationale='Windows 10 is an operating-system release.'}
+    [pscustomobject]@{kind='release';prefix='Windows 8.1';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='8.1';confidence='high';rationale='Windows 8.1 is an operating-system release.'}
+    [pscustomobject]@{kind='release';prefix='Windows 8';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='8';confidence='high';rationale='Windows 8 is an operating-system release.'}
+    [pscustomobject]@{kind='release';prefix='Windows 7';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='7';confidence='high';rationale='Windows 7 is an operating-system release.'}
+    [pscustomobject]@{kind='release';prefix='Windows 2000';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='2000';confidence='high';rationale='Windows 2000 is an operating-system release.'}
+    [pscustomobject]@{kind='release';prefix='Windows 98';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='98';confidence='high';rationale='Windows 98 is an operating-system release.'}
+    [pscustomobject]@{kind='release';prefix='Windows 95';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='95';confidence='high';rationale='Windows 95 is an operating-system release.'}
+    [pscustomobject]@{kind='release';prefix='Windows Me';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='Me';confidence='high';rationale='Windows Me is an operating-system release.'}
+    [pscustomobject]@{kind='release';prefix='Windows NT 4.0';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='NT 4.0';confidence='high';rationale='Windows NT 4.0 is an operating-system release.'}
+    [pscustomobject]@{kind='release';prefix='Windows NT 3.51';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='NT 3.51';confidence='high';rationale='Windows NT 3.51 is an operating-system release.'}
+    [pscustomobject]@{kind='release';prefix='Windows for Workgroups 3.11';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='3.11';confidence='high';rationale='Windows for Workgroups 3.11 is a Windows operating-system release.'}
+    [pscustomobject]@{kind='release';prefix='Windows 3.11 Workgroup Edition';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='3.11';confidence='high';rationale='Workgroup Edition is a Windows 3.11 OS title variant.'}
+    [pscustomobject]@{kind='release';prefix='Windows 3.11 Workgroup';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='3.11';confidence='high';rationale='Workgroup is a Windows 3.11 OS title variant.'}
+    [pscustomobject]@{kind='release';prefix='Windows 3.11 for Workgroups';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='3.11';confidence='high';rationale='Windows 3.11 for Workgroups is an OS title variant.'}
+    [pscustomobject]@{kind='release';prefix='Windows 3.11';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='3.11';confidence='high';rationale='Windows 3.11 is an operating-system release.'}
+    [pscustomobject]@{kind='release';prefix='Windows 3.2';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='3.2';confidence='high';rationale='Windows 3.2 is an operating-system release.'}
+    [pscustomobject]@{kind='release';prefix='Windows 3.1';broad_family='Microsoft Windows';product_family='Microsoft Windows';release='3.1';confidence='high';rationale='Windows 3.1 is an operating-system release.'}
+)
+
 $WindowsSubproductRules = @(
-    [pscustomobject]@{prefix='Microsoft Windows Point of Service Software Development Kit (SDK)';family='Microsoft Windows Point of Service SDK'},
-    [pscustomobject]@{prefix='Windows Point of Service Software Development Kit (SDK)';family='Microsoft Windows Point of Service SDK'},
-    [pscustomobject]@{prefix='Microsoft Windows Point of Service SDK';family='Microsoft Windows Point of Service SDK'},
-    [pscustomobject]@{prefix='Windows Point of Service SDK';family='Microsoft Windows Point of Service SDK'},
-    [pscustomobject]@{prefix='Microsoft Windows Rights Management Client';family='Microsoft Windows Rights Management Client'},
-    [pscustomobject]@{prefix='Windows Rights Management Client';family='Microsoft Windows Rights Management Client'},
-    [pscustomobject]@{prefix='Microsoft Windows Rights Management Services';family='Microsoft Windows Rights Management Services'},
-    [pscustomobject]@{prefix='Windows Rights Management Services';family='Microsoft Windows Rights Management Services'},
-    [pscustomobject]@{prefix='Microsoft Windows Services for UNIX';family='Microsoft Windows Services for UNIX'},
-    [pscustomobject]@{prefix='Windows Services for UNIX';family='Microsoft Windows Services for UNIX'},
-    [pscustomobject]@{prefix='Microsoft Windows Vista Upgrade Advisor';family='Microsoft Windows Vista Upgrade Advisor'},
-    [pscustomobject]@{prefix='Windows Vista Upgrade Advisor';family='Microsoft Windows Vista Upgrade Advisor'}
+    $EmbeddedFamilyHints |
+        Where-Object { ([string]$_.kind).Equals('subproduct',[StringComparison]::OrdinalIgnoreCase) } |
+        Sort-Object @{Expression={([string]$_.prefix).Length};Descending=$true},prefix
+)
+$WindowsReleaseRules = @(
+    $EmbeddedFamilyHints |
+        Where-Object { ([string]$_.kind).Equals('release',[StringComparison]::OrdinalIgnoreCase) } |
+        Sort-Object @{Expression={([string]$_.prefix).Length};Descending=$true},prefix
 )
 
 # These are structural aliases only: they must occur at the beginning of the
@@ -612,12 +736,30 @@ function Classify-TitleAutomatic {
             $next = $title.Substring($prefix.Length,1)
             if ($next -notmatch '[\s:,\-\(\[]') { continue }
         }
-        $broad = 'Microsoft Windows'
-        $family = [string]$windowsRule.family
+        $broad = [string]$windowsRule.broad_family
+        $family = [string]$windowsRule.product_family
         $release = Get-ReleaseToken $title $prefix $family
         $specific = if ([string]::IsNullOrEmpty($release)) { '' } else { $family + ' ' + $release }
-        $broadRelease = if ($release -match '^(?:19|20)\d{2}$') { $broad + ' ' + $release } else { '' }
-        return New-Classification $title $broad $family $release $specific $broadRelease 'high' 'curated-prefix' 'WINDOWS_BRANDED_SUBPRODUCT'
+        $broadRelease = if ($release -match '^(?:19|20)\d{2}$' -and $broad.Equals($family,[StringComparison]::OrdinalIgnoreCase)) { $broad + ' ' + $release } else { '' }
+        return New-Classification $title $broad $family $release $specific $broadRelease ([string]$windowsRule.confidence) ('embedded-hint:'+([string]$windowsRule.rationale)) 'WINDOWS_BRANDED_SUBPRODUCT'
+    }
+
+    # Named Windows OS releases are deliberately evaluated after the distinct
+    # Windows-branded subproducts above.  Thus "Windows Vista Upgrade Advisor"
+    # remains a utility, while "Windows Vista Business" is a Vista OS variant.
+    foreach ($windowsRule in $WindowsReleaseRules) {
+        $prefix = [string]$windowsRule.prefix
+        if (-not $title.StartsWith($prefix,[StringComparison]::OrdinalIgnoreCase)) { continue }
+        if ($title.Length -gt $prefix.Length) {
+            $next = $title.Substring($prefix.Length,1)
+            if ($next -notmatch '[\s:,\.\-\(\[]') { continue }
+        }
+        $broad=[string]$windowsRule.broad_family
+        $family=[string]$windowsRule.product_family
+        $release=[string]$windowsRule.release
+        $specific=if([string]::IsNullOrWhiteSpace($release)){''}else{$family+' '+$release}
+        $broadRelease=if($broad.Equals($family,[StringComparison]::OrdinalIgnoreCase)){$specific}else{''}
+        return New-Classification $title $broad $family $release $specific $broadRelease ([string]$windowsRule.confidence) ('embedded-hint:'+([string]$windowsRule.rationale)) 'WINDOWS_OS_RELEASE_HINT'
     }
 
     foreach ($aliasRule in $AliasPrefixRules) {
@@ -983,6 +1125,7 @@ try {
     Write-Line ('Archive: ' + $ArchiveRoot)
     Write-Line ('Output: ' + $OutputRoot)
     Write-Line ('Snapshots discovered: ' + $Snapshots.Count)
+    Write-Line ('Classification hints: embedded from ' + $EmbeddedFamilyHintSource + ' | rules=' + $EmbeddedFamilyHintCount + ' sha256=' + $EmbeddedFamilyHintSha256)
     if (-not [string]::IsNullOrEmpty($OverridePath)) { Write-Line ('Overrides: ' + $OverridePath) }
 
     $ingestSw=[Diagnostics.Stopwatch]::StartNew()
@@ -1012,7 +1155,7 @@ try {
         }
         foreach ($writer in $Writers.Values) { $writer.Flush() }
         $snapshotSw.Stop()
-        Write-Line (('Family index snapshot {0}/{1}: {2} | duration={3} titles={4} ids={5} files={6} hashes={7} notes={8}' -f
+        Write-Transient (('Family index snapshot {0}/{1}: {2} | duration={3} titles={4} ids={5} files={6} hashes={7} notes={8}' -f
             ($i+1),$Snapshots.Count,$snapshot.name,$snapshotSw.Elapsed.ToString(),$order.Count,
             ([int64]$Counts['product-ids.tsv']-$idBefore),([int64]$Counts['product-files.tsv']-$fileBefore),
             ([int64]$Counts['product-hashes.tsv']-$hashBefore),([int64]$Counts['product-notes.tsv']-$noteBefore)))

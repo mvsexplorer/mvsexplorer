@@ -8,9 +8,33 @@ $OverrideInput = [string]$env:mvsf_overrides
 $Caller = [string]$env:mvsf_caller
 $Version = [string]$env:mvsf_version
 
+$script:TransientWidth = 0
+$script:TransientPrefix = '__MVS_TRANSIENT__'
+
+function Clear-TransientConsole {
+    if($script:TransientWidth -le 0){return}
+    if(-not [Console]::IsOutputRedirected -and [string]::IsNullOrWhiteSpace($env:MVS_TRANSIENT_PROTOCOL)){
+        try{[Console]::Out.Write("`r"+(' ' * $script:TransientWidth)+"`r")}catch{}
+    }
+    $script:TransientWidth=0
+}
 function Write-Line {
     param([AllowEmptyString()][string]$Text)
+    Clear-TransientConsole
     [Console]::Out.WriteLine($Text)
+}
+function Write-Transient {
+    param([AllowEmptyString()][string]$Text)
+    if(-not [string]::IsNullOrWhiteSpace($env:MVS_TRANSIENT_PROTOCOL)){
+        [Console]::Out.WriteLine($script:TransientPrefix+$Text)
+        return
+    }
+    if([Console]::IsOutputRedirected){[Console]::Out.WriteLine($Text);return}
+    try{
+        $width=[Math]::Max($script:TransientWidth,$Text.Length)
+        [Console]::Out.Write("`r"+$Text+(' ' * ($width-$Text.Length)))
+        $script:TransientWidth=$width
+    }catch{[Console]::Out.WriteLine($Text);$script:TransientWidth=0}
 }
 
 function Write-Err {
@@ -237,6 +261,7 @@ $RuleRows = @(
     [pscustomobject]@{rule_id='OFFICE_GENERIC';priority='40';confidence='high';description='Microsoft Office or Office YEAR prefix'},
     [pscustomobject]@{rule_id='CURATED_MICROSOFT';priority='50';confidence='high';description='Curated Microsoft product-family prefix'},
     [pscustomobject]@{rule_id='WINDOWS_BRANDED_SUBPRODUCT';priority='55';confidence='high';description='Curated Windows-branded SDK/service/client/tool subproduct kept distinct from the generic Windows product family'},
+    [pscustomobject]@{rule_id='WINDOWS_OS_RELEASE_HINT';priority='57';confidence='high';description='Curated named Windows operating-system release hint evaluated after Windows-branded subproducts'},
     [pscustomobject]@{rule_id='CURATED_ALIAS_PREFIX';priority='60';confidence='high';description='Curated leading alias mapped to canonical Microsoft broad/product family'},
     [pscustomobject]@{rule_id='GENERIC_MICROSOFT_REVIEW';priority='900';confidence='review';description='Generic Microsoft-leading title; review before canonical use'}
 )
@@ -289,23 +314,21 @@ $OfficeComponentPrefixes = @(
     'Microsoft Office InfoPath'
 )
 
-# Windows is both an operating-system family name and a branding prefix used by
-# independent SDKs/services/tools. These source-backed prefixes are curated
-# before the generic "Windows" alias so "Windows Services for UNIX 1.0" does
-# not become a variant of a fictitious "Microsoft Windows 1.0" release.
+# Curated classification hints are maintained as a simple TSV and embedded into
+# this standalone tool by dev/generate_product_family_tools.py.  Runtime use
+# therefore has no dependency on dev\, while the source of every prior-knowledge
+# hint remains directly inspectable in the toolkit source tree.
+@@PRODUCT_FAMILY_HINTS_POWERSHELL@@
+
 $WindowsSubproductRules = @(
-    [pscustomobject]@{prefix='Microsoft Windows Point of Service Software Development Kit (SDK)';family='Microsoft Windows Point of Service SDK'},
-    [pscustomobject]@{prefix='Windows Point of Service Software Development Kit (SDK)';family='Microsoft Windows Point of Service SDK'},
-    [pscustomobject]@{prefix='Microsoft Windows Point of Service SDK';family='Microsoft Windows Point of Service SDK'},
-    [pscustomobject]@{prefix='Windows Point of Service SDK';family='Microsoft Windows Point of Service SDK'},
-    [pscustomobject]@{prefix='Microsoft Windows Rights Management Client';family='Microsoft Windows Rights Management Client'},
-    [pscustomobject]@{prefix='Windows Rights Management Client';family='Microsoft Windows Rights Management Client'},
-    [pscustomobject]@{prefix='Microsoft Windows Rights Management Services';family='Microsoft Windows Rights Management Services'},
-    [pscustomobject]@{prefix='Windows Rights Management Services';family='Microsoft Windows Rights Management Services'},
-    [pscustomobject]@{prefix='Microsoft Windows Services for UNIX';family='Microsoft Windows Services for UNIX'},
-    [pscustomobject]@{prefix='Windows Services for UNIX';family='Microsoft Windows Services for UNIX'},
-    [pscustomobject]@{prefix='Microsoft Windows Vista Upgrade Advisor';family='Microsoft Windows Vista Upgrade Advisor'},
-    [pscustomobject]@{prefix='Windows Vista Upgrade Advisor';family='Microsoft Windows Vista Upgrade Advisor'}
+    $EmbeddedFamilyHints |
+        Where-Object { ([string]$_.kind).Equals('subproduct',[StringComparison]::OrdinalIgnoreCase) } |
+        Sort-Object @{Expression={([string]$_.prefix).Length};Descending=$true},prefix
+)
+$WindowsReleaseRules = @(
+    $EmbeddedFamilyHints |
+        Where-Object { ([string]$_.kind).Equals('release',[StringComparison]::OrdinalIgnoreCase) } |
+        Sort-Object @{Expression={([string]$_.prefix).Length};Descending=$true},prefix
 )
 
 # These are structural aliases only: they must occur at the beginning of the
@@ -517,12 +540,30 @@ function Classify-TitleAutomatic {
             $next = $title.Substring($prefix.Length,1)
             if ($next -notmatch '[\s:,\-\(\[]') { continue }
         }
-        $broad = 'Microsoft Windows'
-        $family = [string]$windowsRule.family
+        $broad = [string]$windowsRule.broad_family
+        $family = [string]$windowsRule.product_family
         $release = Get-ReleaseToken $title $prefix $family
         $specific = if ([string]::IsNullOrEmpty($release)) { '' } else { $family + ' ' + $release }
-        $broadRelease = if ($release -match '^(?:19|20)\d{2}$') { $broad + ' ' + $release } else { '' }
-        return New-Classification $title $broad $family $release $specific $broadRelease 'high' 'curated-prefix' 'WINDOWS_BRANDED_SUBPRODUCT'
+        $broadRelease = if ($release -match '^(?:19|20)\d{2}$' -and $broad.Equals($family,[StringComparison]::OrdinalIgnoreCase)) { $broad + ' ' + $release } else { '' }
+        return New-Classification $title $broad $family $release $specific $broadRelease ([string]$windowsRule.confidence) ('embedded-hint:'+([string]$windowsRule.rationale)) 'WINDOWS_BRANDED_SUBPRODUCT'
+    }
+
+    # Named Windows OS releases are deliberately evaluated after the distinct
+    # Windows-branded subproducts above.  Thus "Windows Vista Upgrade Advisor"
+    # remains a utility, while "Windows Vista Business" is a Vista OS variant.
+    foreach ($windowsRule in $WindowsReleaseRules) {
+        $prefix = [string]$windowsRule.prefix
+        if (-not $title.StartsWith($prefix,[StringComparison]::OrdinalIgnoreCase)) { continue }
+        if ($title.Length -gt $prefix.Length) {
+            $next = $title.Substring($prefix.Length,1)
+            if ($next -notmatch '[\s:,\.\-\(\[]') { continue }
+        }
+        $broad=[string]$windowsRule.broad_family
+        $family=[string]$windowsRule.product_family
+        $release=[string]$windowsRule.release
+        $specific=if([string]::IsNullOrWhiteSpace($release)){''}else{$family+' '+$release}
+        $broadRelease=if($broad.Equals($family,[StringComparison]::OrdinalIgnoreCase)){$specific}else{''}
+        return New-Classification $title $broad $family $release $specific $broadRelease ([string]$windowsRule.confidence) ('embedded-hint:'+([string]$windowsRule.rationale)) 'WINDOWS_OS_RELEASE_HINT'
     }
 
     foreach ($aliasRule in $AliasPrefixRules) {
@@ -888,6 +929,7 @@ try {
     Write-Line ('Archive: ' + $ArchiveRoot)
     Write-Line ('Output: ' + $OutputRoot)
     Write-Line ('Snapshots discovered: ' + $Snapshots.Count)
+    Write-Line ('Classification hints: embedded from ' + $EmbeddedFamilyHintSource + ' | rules=' + $EmbeddedFamilyHintCount + ' sha256=' + $EmbeddedFamilyHintSha256)
     if (-not [string]::IsNullOrEmpty($OverridePath)) { Write-Line ('Overrides: ' + $OverridePath) }
 
     $ingestSw=[Diagnostics.Stopwatch]::StartNew()
@@ -917,7 +959,7 @@ try {
         }
         foreach ($writer in $Writers.Values) { $writer.Flush() }
         $snapshotSw.Stop()
-        Write-Line (('Family index snapshot {0}/{1}: {2} | duration={3} titles={4} ids={5} files={6} hashes={7} notes={8}' -f
+        Write-Transient (('Family index snapshot {0}/{1}: {2} | duration={3} titles={4} ids={5} files={6} hashes={7} notes={8}' -f
             ($i+1),$Snapshots.Count,$snapshot.name,$snapshotSw.Elapsed.ToString(),$order.Count,
             ([int64]$Counts['product-ids.tsv']-$idBefore),([int64]$Counts['product-files.tsv']-$fileBefore),
             ([int64]$Counts['product-hashes.tsv']-$hashBefore),([int64]$Counts['product-notes.tsv']-$noteBefore)))

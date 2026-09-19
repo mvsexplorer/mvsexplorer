@@ -1,5 +1,14 @@
 ## 0.21.0 reporting/UI/taxonomy/performance rules
 
+## 0.21.1 maintained classification hints and concise runtime reporting
+
+`product-family-classification-hints.tsv` is the maintained, reviewable source
+for product-family prior-knowledge hints. `generate_product_family_tools.py`
+embeds it into the standalone builder and records its SHA-256 provenance.
+Archive/database/family console progress uses transient status for repetitive
+successful work while machine-readable result files retain full detail.
+
+
 `test-harness.inc.ps1` owns section-level interactive PASS compaction; do not
 remove assertion rows from the result files or detailed test log.
 

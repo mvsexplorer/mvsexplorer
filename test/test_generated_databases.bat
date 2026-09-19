@@ -2,7 +2,7 @@
 :setup
 REM Validates freshly generated archive/full-family/compact-family databases and executes every family query tool.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.3"
+set "app.version=0.1.4"
 set "app.name=test_generated_databases"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -130,9 +130,32 @@ function Add-Result{
     $script:Index++
     if($Status-eq'PASS'){$script:Passed++}else{$script:Failed++}
     $prefix='[MVS '+$ProjectVersion+'] [DB TEST '+$script:Index+'/'+$script:Total+']'
-    if($Status-eq'PASS'){Write-Line ($prefix+' [PASS] '+$Name)}else{Write-Line ($prefix+' [FAIL] '+$Name+' - '+$Reason)}
+    # Successful assertions remain in database-tests.tsv.  Only failures are
+    # emitted individually to the interactive console; successful work is
+    # summarized once per logical validation section.
+    if($Status-ne'PASS'){Write-Line ($prefix+' [FAIL] '+$Name+' - '+$Reason)}
     $script:ResultWriter.WriteLine((@($script:Index,$Status,$Name,$Reason,$ElapsedMs)|ForEach-Object{Clean-Tsv $_})-join"`t")
     $script:ResultWriter.Flush()
+}
+function Start-ValidationSection{
+    param([string]$Name)
+    $script:SectionName=$Name
+    $script:SectionStartIndex=$script:Index
+    $script:SectionStartPassed=$script:Passed
+    $script:SectionStartFailed=$script:Failed
+    $script:SectionStopwatch=[Diagnostics.Stopwatch]::StartNew()
+    Write-Line ('=== '+$Name.ToUpperInvariant()+' START ===')
+}
+function End-ValidationSection{
+    if($null-eq$script:SectionStopwatch){return}
+    $script:SectionStopwatch.Stop()
+    $assertions=$script:Index-$script:SectionStartIndex
+    $passed=$script:Passed-$script:SectionStartPassed
+    $failed=$script:Failed-$script:SectionStartFailed
+    $status=if($failed-eq0){'PASS'}else{'FAIL'}
+    Write-Line ('['+$status+'] '+$script:SectionName+': assertions='+$assertions+' passed='+$passed+' failed='+$failed+' duration='+$script:SectionStopwatch.Elapsed.ToString())
+    Write-Line ('=== '+$script:SectionName.ToUpperInvariant()+' END ===')
+    $script:SectionStopwatch=$null
 }
 function Test-Case{
     param([string]$Name,[scriptblock]$Action)
@@ -330,6 +353,8 @@ try{$unclassified=@(Import-Csv -LiteralPath (Join-Path $FamilyRoot 'unclassified
 $familyRequired=@('family-nodes.tsv','family-parent-relationships.tsv','classification-rules.tsv','product-classifications.tsv','product-family-memberships.tsv','product-ids.tsv','product-dates.tsv','product-files.tsv','product-hashes.tsv','product-notes.tsv','product-snapshots.tsv','unclassified-products.tsv','overrides-applied.tsv','family-index-summary.txt')
 $compactRequired=@('snapshot-catalog.tsv','snapshot-sets.tsv','product-ids-all-ever.tsv','product-dates-all-ever.tsv','product-files-all-ever.tsv','product-file-hashes-all-ever.tsv','file-hashes-all-ever.tsv','product-notes-all-ever.tsv','product-presence-all-ever.tsv','filename-hash-conflicts.tsv','filename-hash-conflict-details.tsv','product-file-hash-conflicts.tsv','hash-filename-aliases.tsv','compact-index-summary.txt','product-classifications.tsv','product-family-memberships.tsv','family-nodes.tsv','family-parent-relationships.tsv')
 
+Start-ValidationSection 'Database structure and integrity'
+
 Test-Case 'archive database required files present' {
     foreach($r in @('plan.tsv','runs.tsv','summary.txt','archive-output\fast-archive-summary.txt','archive-summary.html','quality-check\summary.txt')){if(-not(Test-Path -LiteralPath (Join-Path $ArchiveRoot $r) -PathType Leaf)){return $false}}
     return $true
@@ -496,6 +521,8 @@ Test-Case 'compact provenance/pairing semantic flags are safe' {
     return (([string]$s['Exact snapshot provenance preserved via snapshot_set_id']).ToLowerInvariant()-eq'true'-and([string]$s['SHA1/SHA256 pairings inferred by filename']).ToLowerInvariant()-eq'false')
 }
 Test-Case 'all 32 public family query tools are present for final-database smoke execution' {return ($queryTools.Count-eq32)}
+End-ValidationSection
+Start-ValidationSection 'Family query tool smoke tests'
 
 # Prepare low-volume exact patterns for every query direction.
 $familyCounts=@{};foreach($m in $memberships){$k=[string]$m.family;if(-not$familyCounts.ContainsKey($k)){$familyCounts[$k]=0};$familyCounts[$k]++}
@@ -557,6 +584,8 @@ foreach($tool in $queryTools){
         Add-Result 'FAIL' $name $_.Exception.Message $sw.ElapsedMilliseconds
     }
 }
+
+End-ValidationSection
 
 $finished=Get-Date
 $summary=@(

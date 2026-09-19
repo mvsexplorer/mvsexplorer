@@ -1,5 +1,3 @@
-MANIFEST.txt
-README.md
 all_test_then_all_database_then_test_database_and_all_tools.bat
 create_or_update_mvs_database.bat
 create_or_update_mvs_database/01_discover_archives.bat
@@ -10,7 +8,6 @@ create_or_update_mvs_database/05_rebuild_compact_index.bat
 create_or_update_mvs_database/06_validate_database.bat
 create_or_update_mvs_database/07_create_html_browser.bat
 create_or_update_mvs_database/08_write_database_summary.bat
-dev/README.md
 dev/compare-tool-spec.json
 dev/diagnostic-tool-spec.json
 dev/generate_all_pipeline.py
@@ -77,7 +74,9 @@ dev/library/single-dump-query.inc.ps1
 dev/library/test-everything.inc.ps1
 dev/library/test-harness.inc.ps1
 dev/library/test-performance.inc.ps1
+dev/product-family-classification-hints.tsv
 dev/product-family-tool-spec.json
+dev/README.md
 dev/relationship-tool-spec.json
 dev/single-dump-tool-spec.json
 dev/templates/all-pipeline.bat.tpl
@@ -111,9 +110,9 @@ dev/tool-spec.json
 dev/validate_archive_sweep.py
 dev/validate_generated.py
 display_mvs_database_summary.bat
-doc/Batch-File-Style-Guide-v1.8.0.txt
 doc/archive-evolution-and-quality.md
 doc/archive-sweep.md
+doc/Batch-File-Style-Guide-v1.8.0.txt
 doc/compare-test-fixture.md
 doc/compare-tool-matrix.tsv
 doc/compare-tools.md
@@ -711,8 +710,9 @@ doc/tool-version-history/test_structure.version-history.txt
 doc/tool-version-history/validate_archive_sweep.py.version-history.txt
 doc/tool-version-history/validate_generated.version-history.txt
 doc/usage.txt
+MANIFEST.txt
 mvs_explorer_gui.bat
-test/README.md
+README.md
 test/analyze_archive_sweep_performance.bat
 test/analyze_test_performance.bat
 test/archive-exclusions.tsv
@@ -1146,7 +1146,7 @@ test/expected-single-dump/read_mvs_unparsed_lines_in_mvs_names.txt.expected.txt
 test/fast/run_archive_tools_fast.bat
 test/fast/run_compare_tools_fast.bat
 test/fast/run_snapshot_tools_fast.bat
-test/test-mvs-dump-compare/README.txt
+test/README.md
 test/test-mvs-dump-compare/after/mvs.sha1
 test/test-mvs-dump-compare/after/mvs.sha256
 test/test-mvs-dump-compare/after/mvs.txt
@@ -1159,8 +1159,8 @@ test/test-mvs-dump-compare/before/mvs.txt
 test/test-mvs-dump-compare/before/mvs_dates.txt
 test/test-mvs-dump-compare/before/mvs_ids.txt
 test/test-mvs-dump-compare/before/mvs_names.txt
+test/test-mvs-dump-compare/README.txt
 test/test-mvs-dump-diagnostics/EXPECTED-FINDINGS.txt
-test/test-mvs-dump-diagnostics/README.txt
 test/test-mvs-dump-diagnostics/mvs.sha1
 test/test-mvs-dump-diagnostics/mvs.sha256
 test/test-mvs-dump-diagnostics/mvs.txt
@@ -1168,7 +1168,7 @@ test/test-mvs-dump-diagnostics/mvs_dates.txt
 test/test-mvs-dump-diagnostics/mvs_ids.txt
 test/test-mvs-dump-diagnostics/mvs_names.txt
 test/test-mvs-dump-diagnostics/mvs_notes.html
-test/test-mvs-dump-history/README.txt
+test/test-mvs-dump-diagnostics/README.txt
 test/test-mvs-dump-history/mvs_2020-01-01/mvs.sha1
 test/test-mvs-dump-history/mvs_2020-01-01/mvs.sha256
 test/test-mvs-dump-history/mvs_2020-01-01/mvs.txt
@@ -1190,16 +1190,15 @@ test/test-mvs-dump-history/mvs_2020-01-03_2/mvs_dates.txt
 test/test-mvs-dump-history/mvs_2020-01-03_2/mvs_ids.txt
 test/test-mvs-dump-history/mvs_2020-01-03_2/mvs_names.txt
 test/test-mvs-dump-history/mvs_2020-01-03_2/mvs_notes.html
-test/test-mvs-dump-relationships/README.txt
-test/test-mvs-dump-relationships/TEST-VALUES.txt
+test/test-mvs-dump-history/README.txt
 test/test-mvs-dump-relationships/mvs.sha1
 test/test-mvs-dump-relationships/mvs.sha256
 test/test-mvs-dump-relationships/mvs.txt
 test/test-mvs-dump-relationships/mvs_dates.txt
 test/test-mvs-dump-relationships/mvs_ids.txt
 test/test-mvs-dump-relationships/mvs_notes.html
-test/test-mvs-dump-single-complete/README.txt
-test/test-mvs-dump-single-complete/TEST-VALUES.txt
+test/test-mvs-dump-relationships/README.txt
+test/test-mvs-dump-relationships/TEST-VALUES.txt
 test/test-mvs-dump-single-complete/mvs.sha1
 test/test-mvs-dump-single-complete/mvs.sha256
 test/test-mvs-dump-single-complete/mvs.txt
@@ -1207,6 +1206,8 @@ test/test-mvs-dump-single-complete/mvs_dates.txt
 test/test-mvs-dump-single-complete/mvs_ids.txt
 test/test-mvs-dump-single-complete/mvs_names.txt
 test/test-mvs-dump-single-complete/mvs_notes.html
+test/test-mvs-dump-single-complete/README.txt
+test/test-mvs-dump-single-complete/TEST-VALUES.txt
 test/test-mvs-product-family/family-overrides.tsv
 test/test-mvs-product-family/mvs_2020-01-01/mvs.txt
 test/test-mvs-product-family/mvs_2020-01-01/mvs_dates.txt

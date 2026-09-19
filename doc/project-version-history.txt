@@ -1,3 +1,10 @@
+0.21.1
+- Repetitive archive planning/snapshot and family-ingest progress is transient in interactive consoles while detailed logs retain it.
+- Generated-database validation prints section summaries on success and immediate individual failures.
+- Adaptive archive workers can scale down on headroom pressure or material throughput regression.
+- Product-family prior-knowledge hints moved to an inspectable maintained TSV and are embedded with SHA-256 provenance.
+- Expanded Windows-branded subproduct separation and named Windows OS release hints.
+
 0.21.0 - 2026-09-13
 - Native 0.20.2 acceptance: fresh pipeline PASS in 03:18:28; test_all 1,116 PASS / 0 FAIL / 3 SKIP, archive 34,822/34,822 with 33,903 PASS / 574 NO_RESULT / 345 expected SOURCE_MISSING / 0 FAIL, database validation 57/57 including all 32 family queries, and managed database health PASS.
 - Compacts `test_all.bat` console success output to one summary line per logical section while retaining assertion-level TSV/log evidence and immediate SKIP/FAIL visibility.

@@ -257,7 +257,7 @@ def main():
         "Office Online update stamp is not a release",
         ".NET semantic version beats referenced year",
         "explicit non-year version beats update timestamp",
-        "mvspf_project_version=0.21.0"
+        "mvspf_project_version=0.21.1"
     ))
     test_all_text=(ROOT/"test"/"test_all.bat").read_text(encoding="utf-8")
     if ("public layout = tools\\ 478 BATs, root 4 launchers, create/update 8 components" not in test_all_text or
@@ -279,10 +279,10 @@ def main():
         fail("test_all_dumps.bat still truncates options at cmd.exe positional argument 9")
 
     # Test harness must capture per-invocation elapsed time.
-    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","Project: MVS Explorer Toolkit","mvst_project_version=0.21.0"))
+    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","Project: MVS Explorer Toolkit","mvst_project_version=0.21.1"))
     if "expected_rc`tactual_rc`telapsed_ms" not in test_all:
         fail("test result TSV does not include elapsed_ms")
-    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","Project version:","0.21.0","--start-workers","--max-workers"))
+    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","Project version:","0.21.1","--start-workers","--max-workers"))
 
     maintained=(
         "dev/generate_archive_sweep.py","dev/generate_performance_tools.py","dev/generate_report_tools.py",

@@ -1080,10 +1080,12 @@ function Test-Structure {
             $archiveSweepText.Contains('$ScaleIntervalSeconds = 30') -and
             $archiveSweepText.Contains('$HeadroomThresholdPercent = 15.0') -and
             $archiveSweepText.Contains('hold:throughput-regressed') -and
+            $archiveSweepText.Contains('scale-down:throughput-regressed') -and
+            $archiveSweepText.Contains('scale-down:headroom') -and
             $archiveSweepText.Contains('worker-scaling.tsv')) {
-            Write-Pass 'archive sweep adaptively scales workers from CPU memory IO headroom plus non-regressing throughput'
+            Write-Pass 'archive sweep adaptively scales workers up and down from CPU memory IO headroom plus throughput'
         } else {
-            Write-Fail 'archive sweep adaptive worker controller' 'start/max worker options or CPU/memory/IO/throughput scaling markers missing'
+            Write-Fail 'archive sweep adaptive worker controller' 'start/max worker options or CPU/memory/IO/throughput up/down scaling markers missing'
         }
     } else {
         Write-Fail 'archive sweep adaptive worker controller' 'test_all_dumps.bat missing'
@@ -1242,7 +1244,7 @@ function Test-Structure {
         $prepareText = [IO.File]::ReadAllText($prepareComponent,[Text.Encoding]::UTF8)
         $summaryText = [IO.File]::ReadAllText($summaryLauncher,[Text.Encoding]::UTF8)
         $htmlComponentText = [IO.File]::ReadAllText($htmlComponent,[Text.Encoding]::UTF8)
-        foreach ($marker in @('mvs_dumps_archive*','create-or-update-','CreateFromDirectory','archives.tsv','08_write_database_summary.bat')) {
+        foreach ($marker in @('mvs_dumps_archive*','create-or-update-','CreateFromDirectory','archives.tsv','08_write_database_summary.bat','MVS_TRANSIENT_PROTOCOL','__MVS_TRANSIENT__')) {
             if (-not $maintenanceText.Contains($marker)) { [void]$maintenanceProblems.Add('launcher missing ' + $marker) }
         }
         foreach ($marker in @('source-fingerprints.tsv','reuse-decisions.tsv','Reuse summary:','Processing from scratch:','toolset-sha256.txt','pending_checks')) {
@@ -1301,16 +1303,22 @@ function Test-Structure {
     }
 
     $familyRegression = Join-Path (Join-Path $Root 'test') 'test_product_family_tools.bat'
-    if (Test-Path -LiteralPath $familyRegression -PathType Leaf) {
+    $familyBuilderPath = Join-Path $ToolsRoot 'build_mvs_product_family_index.bat'
+    if ((Test-Path -LiteralPath $familyRegression -PathType Leaf) -and (Test-Path -LiteralPath $familyBuilderPath -PathType Leaf)) {
         $familyRegressionText = [IO.File]::ReadAllText($familyRegression,[Text.Encoding]::UTF8)
+        $familyBuilderText = [IO.File]::ReadAllText($familyBuilderPath,[Text.Encoding]::UTF8)
         if ($familyRegressionText.Contains('Join-Path (Join-Path $Root ''tools'') ($ToolName+''.bat'')') -and
-            $familyRegressionText.Contains(('mvspf_project_version='+$ProjectVersion))) {
-            Write-Pass 'product-family regression executes moved query tools from tools\ with current project version'
+            $familyRegressionText.Contains(('mvspf_project_version='+$ProjectVersion)) -and
+            $familyBuilderText.Contains('product-family-classification-hints.tsv') -and
+            $familyBuilderText.Contains('WINDOWS_OS_RELEASE_HINT') -and
+            $familyBuilderText.Contains('Microsoft Windows Vista Upgrade Advisor') -and
+            $familyBuilderText.Contains('Microsoft Windows Installer')) {
+            Write-Pass 'product-family regression uses current query paths/version plus inspectable embedded classification hints'
         } else {
-            Write-Fail 'product-family regression executes moved query tools from tools\ with current project version' 'stale root query path or project version'
+            Write-Fail 'product-family regression uses current query paths/version plus inspectable embedded classification hints' 'stale query metadata or missing embedded hint provenance/rules'
         }
     } else {
-        Write-Fail 'product-family regression executes moved query tools from tools\ with current project version' 'test_product_family_tools.bat missing'
+        Write-Fail 'product-family regression uses current query paths/version plus inspectable embedded classification hints' 'test_product_family_tools.bat or family builder missing'
     }
 
     $validateComponent = Join-Path (Join-Path $Root 'create_or_update_mvs_database') '06_validate_database.bat'
