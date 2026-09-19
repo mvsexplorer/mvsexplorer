@@ -15,7 +15,7 @@ set "mvste_arg7=%~7"
 set "mvste_script_root=%~dp0"
 set "mvste_caller=%~nx0"
 set "mvste_version=%app.version%"
-set "mvste_project_version=0.16.5"
+set "mvste_project_version=0.17.0"
 :main
 set "RunPowerShellFromLabel.function=MVSTestEverything"
 call :RunPowerShellFromLabel

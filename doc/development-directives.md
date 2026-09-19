@@ -284,3 +284,16 @@ These directives are distilled from the user's project prompts.
 192. Never ZIP the pipeline log directory while active pipeline writers are open; final log ZIP creation must occur after those writers are flushed and disposed.
 193. Use retained real-data performance logs to select optimization targets, and require regression/equivalence coverage before accepting performance changes.
 
+## Self-contained browser continuation
+
+194. The MVS browser must remain self-contained and usable directly from a local HTML file without an external web service, CDN, script, stylesheet, font, API, or analytics dependency.
+195. Build browser hierarchy from the existing conservative product-family taxonomy before inventing any parallel or stronger classification model.
+196. The initial browser hierarchy is broad family -> product family -> release -> exact historical product title/variant, with multi-selection and filter-as-you-type in each list.
+197. Typing in a list filter changes list visibility only; it must not silently create evidence selection. An empty selection means all currently available values.
+198. Preserve source-backed unclassified/historical titles in an explicit browser bucket rather than hiding them or assigning an unsupported family.
+199. Browser file/hash presentation may use only product-backed `mvs.txt` section evidence already represented in the family database; do not join standalone manifests to products by filename.
+200. Browser note presentation remains title-level historical evidence and should retain enough provenance to distinguish normalized text from raw retained HTML evidence.
+201. Large browser result sets must avoid unbounded DOM rendering; filtering, paging, virtualization, or equivalent techniques may improve responsiveness without changing evidence semantics.
+202. Browser-specific payload compaction may dictionary-encode repeated strings and use integer references provided the transformation is lossless for the values exposed by the browser.
+203. Keep browser generation independent from the fail-gated production pipeline until its UX and output contract have had a native acceptance cycle.
+

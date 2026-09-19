@@ -1,5 +1,39 @@
-# MVS Explorer Toolkit 0.16.5
+# MVS Explorer Toolkit 0.17.0
 
+
+
+## 0.17.0 self-contained MVS HTML browser
+
+0.17.0 adds the first browser-oriented delivery tool:
+`build_mvs_html_browser.bat`. It consumes an existing compact product-family
+index and emits one offline `.html` file with no external scripts, stylesheets,
+fonts, services, or network dependency.
+
+The browser presents a horizontal cascading hierarchy of **basic family ->
+product family -> release -> exact product title/variant**. Every column has a
+filter-as-you-type box, supports multi-selection, and constrains the columns to
+its right without silently treating typed text as evidence selection. Empty
+selection means all currently available values.
+
+The lower evidence area summarizes the active match set and provides paged
+product details, product-backed filenames and SHA-1/SHA-256 values, normalized
+historical notes with retained raw-HTML evidence hashes, IDs, dates, and
+first/last observed snapshots. Source-backed titles which are not conservatively
+classified remain visible under an explicit `(Unclassified / historical)`
+bucket instead of being hidden or force-classified.
+
+The HTML payload is compacted specifically for browser use with integer indexes
+for shared filenames/hashes/note text while preserving the existing semantic
+boundaries: family membership is analytical classification; file/hash rows come
+only from actual `mvs.txt` product-section evidence; notes remain title-level
+historical evidence; no standalone-manifest filename join is invented.
+
+The public root now contains **479** standalone tools: the prior 478-tool
+surface plus the HTML browser builder. The accepted production pipeline is not
+yet changed to build the browser automatically; browser UX can therefore evolve
+without destabilizing the native-accepted 0.16.5 pipeline. The known legacy
+archive plan remains 34,822 logical checks because the browser builder is not a
+snapshot/compare/archive-sweep subject.
 
 
 ## 0.16.5 large-family-query performance and deterministic ZIP metadata
@@ -270,7 +304,7 @@ folder, archive-database top-level sweep/quality logs and the database
 validation folder containing `database-tests.tsv` and
 `all-family-tools-performance.tsv`.
 
-The public root now contains 478 tools: the established 443 legacy tools, 34
+The public root now contains 479 tools: the established 443 legacy tools, 34
 product-family tools, and one orchestration tool. The orchestration tool is
 excluded from snapshot/compare planning, so the known 79-snapshot archive plan
 remains exactly 34,822 logical checks.

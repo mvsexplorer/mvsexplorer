@@ -1,0 +1,7 @@
+0.1.0 / project 0.17.0 - 2026-09-07
+- Initial standalone self-contained HTML browser builder.
+- Consumes an existing compact product-family index and emits one offline HTML file.
+- Cascading multi-select hierarchy: broad family, product family, release, exact historical product title.
+- Includes product metadata, IDs/dates, product-backed filenames/hashes, notes, raw-note evidence hashes, and observed ranges.
+- Preserves explicit unclassified/historical titles and the existing conservative evidence semantics.
+- Dictionary-encodes repeated browser payload strings and pages large detail tables.

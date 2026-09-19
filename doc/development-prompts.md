@@ -1659,3 +1659,14 @@ Development response for 0.16.5 therefore targets the real retained
 family-query timings first and treats ZIP timestamps as packaging metadata
 without weakening content-addressed evidence hashes.
 
+## Prompt 19
+
+```text
+Ok, next I would like a basic html based self contained MVS browser
+It should have an horizontal, hierarchical arrangement of searchable/filterable lists
+starting on the left with the basic families
+, where you can select one of more of them, and at its top a filter-as-you-type textbox to only keep what is matching the filter
+and in the next list, you might have the various products themselves, maybe without the year components, then maybe years or rest or all, then variants, etc.
+
+and below that you would display information about each selections, up to including lists of applicable file list & hashes for the current selection/filters, display applicable notes
+```

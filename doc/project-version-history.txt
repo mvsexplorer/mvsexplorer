@@ -1,3 +1,13 @@
+0.17.0 - 2026-09-07
+- Adds `build_mvs_html_browser.bat`, the first self-contained offline MVS browser builder.
+- The generated browser uses a horizontal broad-family -> product-family -> release -> exact-title hierarchy with filter-as-you-type and multi-selection in every list.
+- Adds lower evidence views for products, IDs/dates, source-backed files/hashes, normalized notes, retained raw-HTML evidence hashes, and active-selection semantics.
+- Retains unclassified/historical source-backed titles in an explicit browser bucket rather than inventing family assignments.
+- Browser payload dictionary-encodes repeated filenames, hashes, and note text while preserving the existing conservative family/file/hash/note boundaries.
+- Public root becomes 479 standalone BATs. The browser builder is intentionally not yet added to the fail-gated production pipeline or the 34,822-check legacy archive plan.
+- Structure becomes 491 assertions and all mode 1,104 after adding the new public standalone check and a browser-specific self-contained/source-conservative guard.
+- 0.16.5 remains the native-accepted production-pipeline baseline; 0.17.0 requires native browser-builder/UI acceptance.
+
 0.16.5 - 2026-09-07
 - Native 0.16.4 resume acceptance passes the complete production path: 487/487 structure, archive quality with zero errors, 57/57 generated-database checks, all 32 real family queries, database ZIPs, deferred log ZIP, SEND-ME hardlinks, and final Status: PASS.
 - Reworks product-family query execution for large TSVs. Exact fact lookups use a native `Select-String -SimpleMatch` candidate scan and materialize only verified matching rows; wildcard/escaped patterns use one-pass buffered streaming instead of eager multi-million-row `Import-Csv`.

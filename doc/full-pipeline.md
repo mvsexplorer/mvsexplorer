@@ -22,7 +22,7 @@ failures.
 
 ## Resume already-built databases
 
-0.16.5 retains the recovery path introduced in 0.16.1 for a late-stage validator/packaging failure after
+0.17.0 retains the recovery path introduced in 0.16.1 for a late-stage validator/packaging failure after
 the three reusable databases were already generated:
 
 ```bat
@@ -144,3 +144,8 @@ metadata.
 It deliberately treats source-local product IDs as provenance rather than
 cross-snapshot identities and never infers SHA-1/SHA-256 pairing solely by
 filename.
+
+
+## HTML browser
+
+0.17.0 adds `build_mvs_html_browser.bat` as an independent public tool. Browser generation is intentionally not inserted into this fail-gated pipeline during the first browser UX cycle.

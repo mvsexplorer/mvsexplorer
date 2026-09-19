@@ -1,5 +1,37 @@
 # Development Observation Journal
 
+## 2026-09-07 — browser exploration layer
+
+### The compact family database is already a sufficient browser source
+
+A useful first browser does not need a new database format. The compact family
+index already provides taxonomy, exact titles, IDs/dates, product-backed
+files/hashes, historical notes, and observed ranges.
+
+### UI hierarchy must not strengthen data semantics
+
+Broad family -> product family -> release -> exact title is a presentation of
+existing classification. Unclassified historical titles must remain explicit
+rather than being heuristically forced into the hierarchy.
+
+### Search text and selection are different concepts
+
+Filter-as-you-type should reduce visible list rows. It should not silently
+change the evidence set until the user selects a value; otherwise typing becomes
+an invisible query predicate with surprising downstream effects.
+
+### One-file HTML is practical with dictionary encoding
+
+The large tables contain heavy repetition. Integer references to shared
+filename/hash/note dictionaries keep the browser payload far smaller than
+embedding raw TSV observations while preserving the values needed by the UI.
+
+### Large result sets should be paged at rendering time
+
+Holding the compact data in memory is acceptable, but creating tens of
+thousands of DOM rows on each selection change is not. Pagination keeps the
+browser responsive without discarding applicable evidence.
+
 ## 2026-08-27
 
 ### Source order and sorted order serve different purposes

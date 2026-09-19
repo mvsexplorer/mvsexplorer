@@ -1,3 +1,20 @@
+## 0.17.0 self-contained HTML browser maintenance
+
+`generate_html_browser.py` maintains `build_mvs_html_browser.bat` from
+`templates/html-browser-builder.bat.tpl` and
+`library/html-browser-builder.inc.ps1`.
+
+The delivered builder must remain standalone. Its generated HTML must contain
+all CSS, JavaScript, and browser data inline, and must preserve the compact
+family database's conservative evidence boundaries. The browser builder is a
+separate public class: it is excluded from the 422 single-snapshot / 19 compare
+/ 2 archive legacy sweep plan.
+
+0.17.0 structure has 491 assertions and all mode has 1,104. The browser-specific
+structure guard checks the standalone marker, compact-family source tables,
+inline application/json payload, files/hashes view, and absence of external
+script/HTTP dependencies in the generated builder template.
+
 ## 0.16.5 performance and deterministic packaging maintenance
 
 The maintained product-family query library now streams large fact TSVs instead

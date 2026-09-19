@@ -1,6 +1,7 @@
 all_test_then_all_database_then_test_database_and_all_tools.bat
 build_mvs_dump_all_ever.bat
 build_mvs_dump_change_history.bat
+build_mvs_html_browser.bat
 build_mvs_product_family_compact_index.bat
 build_mvs_product_family_index.bat
 compare_mvs_dump_dates_from_mvs_dates.txt.bat
@@ -37,6 +38,7 @@ dev/generate_expected_relationship_outputs.py
 dev/generate_expected_single_dump_outputs.py
 dev/generate_history_fixture.py
 dev/generate_history_tools.py
+dev/generate_html_browser.py
 dev/generate_performance_tools.py
 dev/generate_product_family_fixture.py
 dev/generate_product_family_tools.py
@@ -61,6 +63,7 @@ dev/library/diagnostic-query.inc.ps1
 dev/library/fast-archive.inc.ps1
 dev/library/fast-sweep.inc.ps1
 dev/library/history-query.inc.ps1
+dev/library/html-browser-builder.inc.ps1
 dev/library/lookup-query.inc.ps1
 dev/library/powershell-common.inc.ps1
 dev/library/product-family-builder.inc.ps1
@@ -87,6 +90,7 @@ dev/templates/fast-archive-test.bat.tpl
 dev/templates/fast-archive.bat.tpl
 dev/templates/fast-sweep.bat.tpl
 dev/templates/history.bat.tpl
+dev/templates/html-browser-builder.bat.tpl
 dev/templates/lookup.bat.tpl
 dev/templates/performance-analyzer.bat.tpl
 dev/templates/product-family-builder.bat.tpl
@@ -119,6 +123,7 @@ doc/full-pipeline.md
 doc/history-test-fixture.md
 doc/history-tool-matrix.tsv
 doc/history-tools.md
+doc/html-browser.md
 doc/observation-journal.md
 doc/output-format.md
 doc/performance-analysis-0.12.0-partial-sweep.md
@@ -158,6 +163,7 @@ doc/tool-version-history/analyze_test_performance.version-history.txt
 doc/tool-version-history/build_archive_html_report.version-history.txt
 doc/tool-version-history/build_mvs_dump_all_ever.txt
 doc/tool-version-history/build_mvs_dump_change_history.txt
+doc/tool-version-history/build_mvs_html_browser.version-history.txt
 doc/tool-version-history/build_mvs_product_family_compact_index.version-history.txt
 doc/tool-version-history/build_mvs_product_family_index.version-history.txt
 doc/tool-version-history/check_archive_sweep_quality.version-history.txt

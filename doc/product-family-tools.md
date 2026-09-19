@@ -233,7 +233,7 @@ analytical family classification; it does not modify any source evidence.
 
 ## Large-index query execution
 
-Starting in 0.16.5, query semantics and output formats are unchanged, but large
+Starting in 0.17.0, query semantics and output formats are unchanged, but large
 fact tables are no longer eagerly loaded through `Import-Csv` before filtering.
 Exact filename/hash/ID/date/snapshot searches use a native literal candidate
 scan and instantiate row objects only for verified matches. Wildcard or escaped
@@ -323,3 +323,8 @@ The synthetic regression builds a three-snapshot index (including one nested
 `test_all.bat` invokes this regression once as the family scope. Family tools
 are deliberately excluded from the legacy archive-sweep plan, which remains
 422 single-snapshot tools + 19 adjacent comparisons + 2 history builders.
+
+
+## Self-contained browser
+
+0.17.0 can project the compact family database into one offline HTML explorer with `build_mvs_html_browser.bat`. See `html-browser.md`. The browser reuses this taxonomy and the product-backed evidence tables; it does not add a new family inference layer.

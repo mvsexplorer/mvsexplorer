@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.11.8"
+set "app.version=0.11.9"
 set "app.name=test_lookup_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -10,7 +10,7 @@ set "mvst_mode=lookup"
 set "mvst_dump=%~1"
 set "mvst_caller=%~nx0"
 set "mvst_version=%app.version%"
-set "mvst_project_version=0.16.5"
+set "mvst_project_version=0.17.0"
 for %%I in ("%~dp0..") do set "mvst_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSTest"
@@ -105,7 +105,7 @@ $Caller = [string]$env:mvst_caller
 $Version = [string]$env:mvst_version
 $ProjectVersion = [string]$env:mvst_project_version
 $script:ExpectedAssertions = switch ($Mode) {
-    'structure' { 489 }
+    'structure' { 491 }
     'scalar' { 120 }
     'lookup' { 24 }
     'diagnostic' { 46 }
@@ -113,7 +113,7 @@ $script:ExpectedAssertions = switch ($Mode) {
     'single_dump' { 167 }
     'compare' { 39 }
     'history' { 65 }
-    'all' { 1102 }
+    'all' { 1104 }
     default { 0 }
 }
 
@@ -1034,10 +1034,11 @@ function Test-Structure {
     foreach ($compare in Get-CompareTools) { [void]$expected.Add($compare.name + '.bat') }
     foreach ($historyTool in @('build_mvs_dump_change_history','build_mvs_dump_all_ever')) { [void]$expected.Add($historyTool + '.bat') }
     foreach ($familyTool in Get-ProductFamilyToolNames) { [void]$expected.Add($familyTool + '.bat') }
+    [void]$expected.Add('build_mvs_html_browser.bat')
     [void]$expected.Add('all_test_then_all_database_then_test_database_and_all_tools.bat')
 
     $actual = @(Get-ChildItem -LiteralPath $Root -Filter '*.bat' -File | Select-Object -ExpandProperty Name)
-    if ($actual.Count -eq 478) { Write-Pass 'root public .bat count = 478' } else { Write-Fail 'root public .bat count' ('expected 478, got ' + $actual.Count) }
+    if ($actual.Count -eq 479) { Write-Pass 'root public .bat count = 479' } else { Write-Fail 'root public .bat count' ('expected 479, got ' + $actual.Count) }
 
     foreach ($name in $expected) {
         $path = Join-Path $Root $name
@@ -1049,7 +1050,7 @@ function Test-Structure {
         foreach ($label in @(':setup',':main',':end',':SetErrorLevel',':RunPowerShellFromLabel')) {
             if (-not $text.Contains($label)) { [void]$problems.Add('missing ' + $label) }
         }
-        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start') -and -not $text.Contains(':_MVSRelationship_start') -and -not $text.Contains(':_MVSSingleDump_start') -and -not $text.Contains(':_MVSCompare_start') -and -not $text.Contains(':_MVSHistory_start') -and -not $text.Contains(':_MVSProductFamily_start') -and -not $text.Contains(':_MVSProductFamilyCompact_start') -and -not $text.Contains(':_MVSProductFamilyQuery_start') -and -not $text.Contains(':_MVSAllPipeline_start')) { [void]$problems.Add('missing injected PowerShell block') }
+        if (-not $text.Contains(':_MVSQuery_start') -and -not $text.Contains(':_MVSLookup_start') -and -not $text.Contains(':_MVSDiagnostic_start') -and -not $text.Contains(':_MVSRelationship_start') -and -not $text.Contains(':_MVSSingleDump_start') -and -not $text.Contains(':_MVSCompare_start') -and -not $text.Contains(':_MVSHistory_start') -and -not $text.Contains(':_MVSProductFamily_start') -and -not $text.Contains(':_MVSProductFamilyCompact_start') -and -not $text.Contains(':_MVSProductFamilyQuery_start') -and -not $text.Contains(':_MVSHtmlBrowser_start') -and -not $text.Contains(':_MVSAllPipeline_start')) { [void]$problems.Add('missing injected PowerShell block') }
         if ($text.Contains('dev\library') -or $text.Contains('generate_tools.py')) { [void]$problems.Add('development runtime dependency reference') }
         if ($text.Contains(':_MVSSingleDump_start') -and -not $text.Contains('return ,(New-Object System.Collections.ArrayList)')) {
             [void]$problems.Add('single-dump New-ArrayList can collapse empty collection to null')
@@ -1139,6 +1140,25 @@ function Test-Structure {
         }
     } else {
         Write-Fail 'product-family queries stream large fact tables with native exact-match prefilter' 'family query batch missing'
+    }
+
+    $browserPath = Join-Path $Root 'build_mvs_html_browser.bat'
+    if (Test-Path -LiteralPath $browserPath -PathType Leaf) {
+        $browserText = [IO.File]::ReadAllText($browserPath,[Text.Encoding]::UTF8)
+        if ($browserText.Contains(':_MVSHtmlBrowser_start') -and
+            $browserText.Contains('product-classifications.tsv') -and
+            $browserText.Contains('product-file-hashes-all-ever.tsv') -and
+            $browserText.Contains('type="application/json"') -and
+            $browserText.Contains('Files &amp; hashes') -and
+            -not $browserText.Contains('<script src=') -and
+            -not $browserText.Contains('https://') -and
+            -not $browserText.Contains('http://')) {
+            Write-Pass 'HTML browser builder is standalone, self-contained and source-conservative'
+        } else {
+            Write-Fail 'HTML browser builder is standalone, self-contained and source-conservative' 'offline/data-source markers missing'
+        }
+    } else {
+        Write-Fail 'HTML browser builder is standalone, self-contained and source-conservative' 'build_mvs_html_browser.bat missing'
     }
 
     if (Test-Path -LiteralPath $pipelinePath -PathType Leaf) {

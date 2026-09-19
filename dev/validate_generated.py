@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validator for generated public batch files.
 
-Version: 0.9.3
+Version: 0.9.4
 """
 from pathlib import Path
 import collections
@@ -16,6 +16,7 @@ def main():
     optimized = {"scalar":0,"lookup":0,"relationship":0,"single":0}
     family = {"builder":0,"compact_builder":0,"query":0}
     pipeline = 0
+    browser = 0
     for path in files:
         raw = path.read_bytes()
         if raw.startswith(b"\xef\xbb\xbf"):
@@ -51,6 +52,13 @@ def main():
             family["query"] += 1
             if "product-family-memberships.tsv" not in text or "Matches-Pattern" not in text:
                 issues.append(f"{path.name}: product-family query missing index/wildcard markers")
+        if ":_MVSHtmlBrowser_start" in text:
+            browser += 1
+            for marker in ("product-classifications.tsv","product-file-hashes-all-ever.tsv","type=\"application/json\"","Files &amp; hashes","Unclassified / historical"):
+                if marker not in text:
+                    issues.append(f"{path.name}: HTML browser builder missing {marker}")
+            if "http://" in text or "https://" in text or "<script src=" in text:
+                issues.append(f"{path.name}: HTML browser builder is not self-contained/offline")
         if ":_MVSAllPipeline_start" in text:
             pipeline += 1
             for marker in ("ALL TESTS","BUILD ARCHIVE ANALYSIS DATABASE","BUILD FULL PRODUCT-FAMILY EVIDENCE DATABASE","BUILD COMPACT ALL-EVER PRODUCT-FAMILY DATABASE","test_generated_databases.bat","SEND-ME-","phase-performance.tsv","--resume-built","mvspipe_arg9","RESUME PRECHECK: STRUCTURE + DATABASE-VALIDATOR GUARDS","Get-StatusTokenColor","Write-ConsoleTokenized","[IO.FileShare]::ReadWrite","[Console]::ForegroundColor"):
@@ -59,7 +67,7 @@ def main():
         for label in (":setup", ":main", ":end", ":RunPowerShellFromLabel", ":SetErrorLevel"):
             if label not in text:
                 issues.append(f"{path.name}: missing {label}")
-        if ":_MVSQuery_start" not in text and ":_MVSLookup_start" not in text and ":_MVSDiagnostic_start" not in text and ":_MVSRelationship_start" not in text and ":_MVSSingleDump_start" not in text and ":_MVSCompare_start" not in text and ":_MVSHistory_start" not in text and ":_MVSProductFamily_start" not in text and ":_MVSProductFamilyCompact_start" not in text and ":_MVSProductFamilyQuery_start" not in text and ":_MVSAllPipeline_start" not in text:
+        if ":_MVSQuery_start" not in text and ":_MVSLookup_start" not in text and ":_MVSDiagnostic_start" not in text and ":_MVSRelationship_start" not in text and ":_MVSSingleDump_start" not in text and ":_MVSCompare_start" not in text and ":_MVSHistory_start" not in text and ":_MVSProductFamily_start" not in text and ":_MVSProductFamilyCompact_start" not in text and ":_MVSProductFamilyQuery_start" not in text and ":_MVSHtmlBrowser_start" not in text and ":_MVSAllPipeline_start" not in text:
             issues.append(f"{path.name}: missing embedded PowerShell block")
         if "dev\\library" in text or "generate_tools.py" in text:
             issues.append(f"{path.name}: development dependency leaked into runtime")
@@ -126,10 +134,12 @@ def main():
             issues.append("database-validation DAG check must compare visited nodes with unique indegree keys, not raw family-node rows")
         if "return ($seen-eq$Nodes.Count)" in db_text:
             issues.append("database-validation DAG check incorrectly counts duplicate family-node role rows")
-    if len(files) != 478:
-        issues.append(f"root public .bat count expected 478, got {len(files)}")
+    if len(files) != 479:
+        issues.append(f"root public .bat count expected 479, got {len(files)}")
     if pipeline != 1:
         issues.append(f"pipeline tool count expected 1, got {pipeline}")
+    if browser != 1:
+        issues.append(f"HTML browser builder count expected 1, got {browser}")
     if family != {"builder":1,"compact_builder":1,"query":32}:
         issues.append(f"product-family tool counts expected builder=1 compact_builder=1 query=32, got {family}")
     expected_optimized = {"scalar":120,"lookup":7,"relationship":96,"single":154}
@@ -141,6 +151,7 @@ def main():
     print(f"PASS: {len(files)} public standalone batch files")
     print(f"PASS: 377 optimized generated legacy public tools ({optimized})")
     print(f"PASS: 34 product-family public tools ({family})")
+    print(f"PASS: {browser} self-contained HTML browser builder public tool")
     print(f"PASS: {pipeline} full-pipeline orchestration public tool")
     return 0
 

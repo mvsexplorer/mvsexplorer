@@ -1,3 +1,34 @@
+## 0.17.0 - first self-contained browser surface
+
+The next product step is deliberately browser-first rather than pipeline-first.
+The compact family database already contains the conservative taxonomy and the
+product-backed file/hash/note evidence needed for useful exploration, so the
+first browser can be generated without changing database formats or rebuilding
+the archive.
+
+The browser hierarchy uses broad family, product family, release, and exact
+historical product title. This maps the requested left-to-right exploration
+model onto existing classified relationships. Titles which are source-backed
+but not classified are placed in an explicit unclassified/historical bucket;
+the browser does not manufacture a family merely to fill a UI column.
+
+The lower pane derives files and hashes only from compact
+`product-files-all-ever.tsv` and `product-file-hashes-all-ever.tsv`, preserving
+the `mvs.txt` product-section ownership rule. Notes use normalized text while
+retaining raw-HTML content hashes as provenance. Search text filters what is
+visible in a hierarchy list but does not silently act as selection.
+
+A direct JSON embedding of the compact evidence needed for browsing is already
+small enough to be practical when repeated strings are dictionary-encoded.
+The current real database produces an approximately 13.8 MiB one-file browser
+prototype covering 8,201 exact titles, 61,768 distinct filenames, 80,506
+distinct hashes, and normalized notes. The browser paginates large detail
+tables rather than pushing every matched file/hash row into the DOM.
+
+The builder is kept outside the production pipeline for this first UX cycle.
+That avoids turning layout/interaction changes into fail-gated pipeline
+changes before the browser contract has been exercised on native Windows.
+
 ## 0.16.5 - stream large family queries and normalize ZIP dates
 
 The native 0.16.4 resume run closes the production-pipeline acceptance loop:

@@ -1,4 +1,4 @@
-## 0.16.5 recommended production run
+## 0.17.0 recommended production run
 
 For a clean test + database rebuild + database integrity/query sweep + packaging
 run, use the root command:
@@ -12,7 +12,7 @@ logs. The ordinary `test_everything.bat` remains the test-only comprehensive
 gate.
 
 For a previously failed 0.16.0/0.16.1 pipeline where all three databases were
-already built, 0.16.5 can resume validation and packaging without rebuilding:
+already built, 0.17.0 can resume validation and packaging without rebuilding:
 
 ```bat
 all_test_then_all_database_then_test_database_and_all_tools.bat --resume-built archive-db family-db compact-db
@@ -47,7 +47,7 @@ does not print the 79 per-snapshot planning lines. A subsequent production
 archive build prints its own planning pass once because that plan is persisted
 with the generated database.
 
-The current 0.16.5 public regression has 1,102 assertions: 1,099 expected
+The current 0.17.0 public regression has 1,104 assertions: 1,099 expected
 passes and three data-dependent note exact-match skips on the established
 2019-03-19 baseline.
 

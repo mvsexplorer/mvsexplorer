@@ -18,5 +18,5 @@ def main():
     write_bat(ROOT/"test"/"analyze_test_performance.bat",inject(read(DEV/"templates"/"test-performance.bat.tpl"),{
         "VERSION":"0.1.0","BATCH_COMMON":common,"TEST_PERFORMANCE_POWERSHELL":read(DEV/"library"/"test-performance.inc.ps1")}))
     write_bat(ROOT/"test"/"test_everything.bat",inject(read(DEV/"templates"/"test-everything.bat.tpl"),{
-        "VERSION":"0.1.3","PROJECT_VERSION":"0.16.5","BATCH_COMMON":common,"TEST_EVERYTHING_POWERSHELL":read(DEV/"library"/"test-everything.inc.ps1")}))
+        "VERSION":"0.1.3","PROJECT_VERSION":"0.17.0","BATCH_COMMON":common,"TEST_EVERYTHING_POWERSHELL":read(DEV/"library"/"test-everything.inc.ps1")}))
 if __name__=="__main__": main()

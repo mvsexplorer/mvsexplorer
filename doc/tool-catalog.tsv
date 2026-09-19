@@ -1,4 +1,5 @@
 tool	family	mode	fields	sort	lookup_source	lookup_target	version
+build_mvs_html_browser.bat	browser	builder	family/product/release/title + evidence	hierarchical	compact-family-index	self-contained-html	0.1.0
 build_mvs_dump_all_ever.bat	history	file-output	19 source-local unions	chronological	archive-root		0.1.0
 build_mvs_dump_change_history.bat	history	file-output	19 source-local domains	chronological	archive-root		0.1.0
 build_mvs_product_family_index.bat	product-family	builder	index	archive-order	archive	family-index	0.1.0
