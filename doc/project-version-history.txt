@@ -1,3 +1,15 @@
+0.20.0 - 2026-09-12
+- Native 0.19.3 production acceptance completed successfully: 1,112 PASS / 0 FAIL / 3 SKIP, 34,822/34,822 archive checks with zero FAIL, 57/57 database checks, all 32 family queries, final pipeline PASS, and managed database health PASS.
+- Removes redundant `remaining=N` text from test, suite-test, database-test, and pipeline-phase progress markers; progress retains current/total.
+- Replaces fixed default archive snapshot concurrency with adaptive scaling: default start is ceil(logical CPUs / 4), minimum 1; default maximum is the logical CPU count.
+- Adds `--start-workers N` and `--max-workers N`; preserves `--workers N` as fixed-concurrency backward compatibility.
+- Adaptive scaling evaluates at 30-second intervals and adds at most one worker when CPU, physical-memory, and physical-disk headroom are each at least 15% and recent completed-work throughput has not regressed.
+- Adds `worker-scaling.tsv` with resource/throughput evidence for every adaptive decision; unavailable resource telemetry conservatively prevents scale-up.
+- Full pipeline, comprehensive suite, and modular create/update workflow propagate the same worker policy.
+- Changes managed archive reuse to a semantic result-producer fingerprint that excludes scheduler-only `test_all_dumps.bat` bytes; includes a guarded 0.19.2/0.19.3 legacy-to-semantic fingerprint migration.
+- The 440 unchanged result-producing files retain semantic fingerprint f6cda38a68f276386a136cd43518c67f917732405875b8148c0611d255784bde; known archive plan remains 34,822 logical checks.
+- Adds three structure guards for adaptive resource/throughput scaling, concise progress, and safe semantic fingerprint migration. Structure becomes 505 assertions; all mode becomes 1,118 assertions.
+
 0.19.3 - 2026-09-11
 - Fixes two false-negative structure assertions in project 0.19.2 by testing literal PowerShell source markers without accidental variable interpolation.
 - The timestamped root HTML and tools\ product-family regression behaviors are unchanged; both were already proven by native execution.

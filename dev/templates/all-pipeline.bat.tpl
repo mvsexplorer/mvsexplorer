@@ -2,7 +2,7 @@
 :setup
 REM One-command full test -> database build -> database validation -> all family query tools -> ZIP/hardlink pipeline.
 setlocal DisableDelayedExpansion
-set "app.version=1.0.4"
+set "app.version=1.1.0"
 set "app.name=all_test_then_all_database_then_test_database_and_all_tools"
 set "app.rc=0"
 set "app.self=%~f0"

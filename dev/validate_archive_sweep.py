@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validation for archive sweep, quality, reporting, and performance helpers.
 
-Version: 0.8.1
+Version: 0.8.2
 """
 from pathlib import Path
 import sys
@@ -46,9 +46,10 @@ def main():
     text=check_batch(batch,(
         "@echo off\r\n:setup\r\n","\r\n:main\r\n","\r\n:end\r\n","\r\nGoTo :EOF\r\n",
         "\r\n:_MVSArchiveSweep_start\r\n","\r\n:_MVSArchiveSweep_end\r\n",
-        "--plan-only","--quiet-plan","--resume","--external-tools","--workers","--exclusions","--no-report",
+        "--plan-only","--quiet-plan","--resume","--external-tools","--workers","--start-workers","--max-workers","--exclusions","--no-report",
         "--cache-folder","--no-cache","fast-combined","external-public","engine_version",
-        "plan-sha256.txt","runs.tsv","fast-batches.tsv","SOURCE_MISSING","NO_RESULT",
+        "plan-sha256.txt","runs.tsv","fast-batches.tsv","worker-scaling.tsv","Get-SystemHeadroom",
+        "Win32_Processor","Win32_OperatingSystem","Win32_PerfFormattedData_PerfDisk_PhysicalDisk","SOURCE_MISSING","NO_RESULT",
         "archive-output","mvs_dmp","run_snapshot_tools_fast.bat","run_compare_tools_fast.bat",
         "run_archive_tools_fast.bat","Start-FastWorkerJob","Complete-FastWorkerJob",
         "build_archive_html_report.bat","Content cache:","Family tools:",
@@ -270,10 +271,10 @@ def main():
         fail("archive-exclusions.tsv header mismatch")
 
     # Test harness must capture per-invocation elapsed time.
-    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","remaining=","Project: MVS Explorer Toolkit","mvst_project_version=0.19.3"))
+    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","Project: MVS Explorer Toolkit","mvst_project_version=0.20.0"))
     if "expected_rc`tactual_rc`telapsed_ms" not in test_all:
         fail("test result TSV does not include elapsed_ms")
-    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","remaining=","Project version:","0.19.3"))
+    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","Project version:","0.20.0","--start-workers","--max-workers"))
 
     maintained=(
         "dev/generate_archive_sweep.py","dev/generate_performance_tools.py","dev/generate_report_tools.py",
@@ -295,7 +296,7 @@ def main():
 
     print("PASS: archive sweep/quality/performance static validation")
     print("public tools: tools\\=478 (single=422 compare=19 archive=2 family=34 browser=1) + root apps=4 (gui=1 pipeline=1 maintenance=2)")
-    print("fast executor: indexed + source-stable + bounded parallel workers + content cache")
+    print("fast executor: indexed + source-stable + adaptive CPU/memory/I/O/throughput workers + content cache")
     print("analysis: per-dump contributions, quality, re-ID, notes, exclusions, interactive HTML")
     print("supplied archive plan: 34,822 logical checks for 79 snapshots")
     print("fast-test plan: 1,306 logical checks for 3 snapshots")

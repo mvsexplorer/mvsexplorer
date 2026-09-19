@@ -418,12 +418,12 @@ The 33 family tools are intentionally a separate archive-level class. They do
 not alter the legacy `test_all_dumps.bat` 79-snapshot plan, which remains
 34,822 logical checks.
 
-## Current project 0.19.3 matrix
+## Current project 0.20.0 matrix
 
 The current normal `test_all.bat` matrix is:
 
 ```text
-Structure:       502
+Structure:       505
 Scalar:          120
 Lookup:           24
 Diagnostic:       46
@@ -433,9 +433,9 @@ Compare:          39
 History:          65
 Family wrapper:    1
 ---------------------
-Total:          1115 assertions
+Total:          1118 assertions
 ```
 
 On the established representative real dump, the three note-dependent exact
-lookup cases may remain SKIP, so the expected clean result is 1112 PASS /
+lookup cases may remain SKIP, so the expected clean result is 1115 PASS /
 0 FAIL / 3 SKIP.

@@ -2,7 +2,7 @@
 :setup
 REM Generated internal create/update component. It is standalone but orchestrated by create_or_update_mvs_database.bat.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.3"
+set "app.version=0.2.0"
 set "app.name=02_prepare_archive_update"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -15,7 +15,7 @@ set "mvsdbm_arg6=%~6"
 set "mvsdbm_arg7=%~7"
 set "mvsdbm_arg8=%~8"
 set "mvsdbm_version=%app.version%"
-set "mvsdbm_project_version=0.19.3"
+set "mvsdbm_project_version=0.20.0"
 :main
 set "RunPowerShellFromLabel.function=MVSDatabaseMaintenance"
 call :RunPowerShellFromLabel
@@ -106,8 +106,20 @@ $ArchiveRoot=[IO.Path]::GetFullPath([string]$env:mvsdbm_arg2)
 $DatabaseRoot=[IO.Path]::GetFullPath([string]$env:mvsdbm_arg3)
 $SlotRoot=[IO.Path]::GetFullPath([string]$env:mvsdbm_arg4)
 $RunId=[string]$env:mvsdbm_arg5
-$Workers=8
-if(   -not    [int]::TryParse([string]$env:mvsdbm_arg6,[ref]$Workers)    -or    $Workers  -lt   1){$Workers=8}
+$WorkerSpec=[string]$env:mvsdbm_arg6
+$LogicalCores=[Math]::Max(1,[Environment]::ProcessorCount)
+$WorkerStart=[Math]::Max(1,[int][Math]::Ceiling($LogicalCores/4.0))
+$WorkerMax=$LogicalCores
+$WorkerMode='adaptive'
+if($WorkerSpec -match '^fixed:(?<n>\d+)$'){
+    $WorkerStart=[int]$Matches.n;$WorkerMax=$WorkerStart;$WorkerMode='fixed'
+}elseif($WorkerSpec -match '^adaptive:(?<start>\d+):(?<max>\d+)$'){
+    $WorkerStart=[int]$Matches.start;$WorkerMax=[int]$Matches.max;$WorkerMode='adaptive'
+}else{
+    $legacy=0
+    if([int]::TryParse($WorkerSpec,[ref]$legacy) -and $legacy -gt 0){$WorkerStart=$legacy;$WorkerMax=$legacy;$WorkerMode='fixed'}
+}
+if($WorkerStart -lt 1 -or $WorkerMax -lt 1 -or $WorkerStart -gt $WorkerMax){throw ('Invalid worker specification: '+$WorkerSpec)}
 $RunLogs=[IO.Path]::GetFullPath([string]$env:mvsdbm_arg7)
 $Extra=[string]$env:mvsdbm_arg8
 $ToolVersion=[string]$env:mvsdbm_version
@@ -172,7 +184,9 @@ function Get-ToolsetFingerprint {
             [void]$paths.Add($file)
         }
     }
-    foreach($relative in @('test\test_all_dumps.bat','test\fast\run_snapshot_tools_fast.bat','test\fast\run_compare_tools_fast.bat','test\fast\run_archive_tools_fast.bat')){
+    # The archive sweep orchestrator itself is deliberately excluded: scheduling,
+    # progress text, and worker-policy changes do not change logical result semantics.
+    foreach($relative in @('test\fast\run_snapshot_tools_fast.bat','test\fast\run_compare_tools_fast.bat','test\fast\run_archive_tools_fast.bat')){
         $path=Join-Path $Root $relative
         if(Test-Path -LiteralPath $path -PathType Leaf){[void]$paths.Add((Get-Item -LiteralPath $path))}
     }
@@ -182,6 +196,15 @@ function Get-ToolsetFingerprint {
         [void]$rows.Add(($relative+'='+(Get-Sha256File $file.FullName)))
     }
     return Get-Sha256Text (($rows -join "`n")+"`n")
+}
+function Test-LegacyToolsetCompatibility {
+    param([string]$OldFingerprint,[string]$NewFingerprint)
+    # 0.19.2/0.19.3 used a v1 aggregate that also hashed test_all_dumps.bat.
+    # Its processing workers and public result-producing tools are byte-identical
+    # to the v2 semantic fingerprint below, so this one-time migration is safe.
+    $legacyV1='0e4b3684c228141691369687dca9fba6d9a4abcfd8170e81650f056aaeb2a4ee'
+    $semanticV2='f6cda38a68f276386a136cd43518c67f917732405875b8148c0611d255784bde'
+    return [StringComparer]::Ordinal.Equals($OldFingerprint,$legacyV1) -and [StringComparer]::Ordinal.Equals($NewFingerprint,$semanticV2)
 }
 
 function Plan-Key {
@@ -247,7 +270,8 @@ foreach($oldStage in @(Get-ChildItem -LiteralPath $SlotRoot -Directory -Filter '
 $cache=Join-Path $SlotRoot 'cache'
 Ensure-Directory $cache
 $sweep=Join-Path $ProjectRoot 'test\test_all_dumps.bat'
-Invoke-BatChecked $sweep @($ArchiveRoot,$staging,'--plan-only','--quiet-plan','--workers',[string]$Workers,'--cache-folder',$cache) 'archive plan preflight'
+$workerArgs=if($WorkerMode -eq 'fixed'){@('--workers',[string]$WorkerStart)}else{@('--start-workers',[string]$WorkerStart,'--max-workers',[string]$WorkerMax)}
+Invoke-BatChecked $sweep (@($ArchiveRoot,$staging,'--plan-only','--quiet-plan')+@($workerArgs)+@('--cache-folder',$cache)) 'archive plan preflight'
 
 $newPlan=@(Import-Csv -LiteralPath (Join-Path $staging 'plan.tsv') -Delimiter "`t")
 if($newPlan.Count -eq 0){throw 'Generated archive plan is empty.'}
@@ -279,7 +303,13 @@ if(Test-Path -LiteralPath $current -PathType Container){
     if(Test-Path -LiteralPath (Join-Path $current 'toolset-sha256.txt') -PathType Leaf){$oldToolset=([IO.File]::ReadAllText((Join-Path $current 'toolset-sha256.txt'))).Trim()}
 }
 $toolsetReusable=($oldToolset  -and  [StringComparer]::Ordinal.Equals($oldToolset,$newToolset))
-if($oldPlan.Count -gt 0  -and    -not  $toolsetReusable){Write-Line 'Sweep toolset changed or lacks a prior fingerprint; prior dump results will not be reused.'}
+$legacyToolsetMigrated=$false
+if(-not $toolsetReusable -and $oldToolset -and (Test-LegacyToolsetCompatibility $oldToolset $newToolset)){
+    $toolsetReusable=$true
+    $legacyToolsetMigrated=$true
+    Write-Line 'Compatible sweep fingerprint migration: prior result-producing tools are unchanged; scheduler-only changes do not invalidate archive evidence.'
+}
+if($oldPlan.Count -gt 0  -and    -not  $toolsetReusable){Write-Line 'Sweep result-producing toolset changed or lacks a compatible prior fingerprint; prior dump results will not be reused.'}
 
 $oldPlanByKey=New-OrdinalObjectDictionary
 foreach($r in $oldPlan){$oldPlanByKey[(Plan-Key $r)]=$r}
@@ -406,7 +436,7 @@ $pending=$newPlan.Count-$seededByNewIndex.Count
 $state=[ordered]@{
     run_id=$RunId;archive_root=$ArchiveRoot;staging=$staging;planned_checks=$newPlan.Count;seeded_checks=$seededByNewIndex.Count;pending_checks=$pending;
     already_done_snapshots=$alreadySnapshots;pending_snapshots=$pendingSnapshots.Count;new_snapshots=$newSnapshots;changed_snapshots=$changedSnapshots;
-    faulty_or_incomplete_snapshots=$faultySnapshots;toolset_reusable=$toolsetReusable;archive_reused=$reuseArchive
+    faulty_or_incomplete_snapshots=$faultySnapshots;toolset_reusable=$toolsetReusable;legacy_toolset_fingerprint_migrated=$legacyToolsetMigrated;archive_reused=$reuseArchive
 }
 Write-Utf8 (Join-Path $staging 'update-state.json') ((ConvertTo-Json $state -Depth 4)+"`r`n")
 Write-Line ('Prepared: seeded='+$seededByNewIndex.Count+' pending='+$pending+' planned='+$newPlan.Count+'.')

@@ -12,7 +12,16 @@ $PlanOnly = $false
 $QuietPlan = $false
 $Resume = $false
 $Executor = 'fast-combined'
-$Workers = [Math]::Min(4,[Math]::Max(1,[int][Math]::Ceiling([Environment]::ProcessorCount / 2.0)))
+$LogicalCores = [Math]::Max(1,[Environment]::ProcessorCount)
+$WorkerStart = [Math]::Max(1,[int][Math]::Ceiling($LogicalCores / 4.0))
+$WorkerMax = $LogicalCores
+$WorkerMode = 'adaptive'
+$WorkersOptionSeen = $false
+$StartWorkersOptionSeen = $false
+$MaxWorkersOptionSeen = $false
+$ScaleIntervalSeconds = 30
+$HeadroomThresholdPercent = 15.0
+$ThroughputTolerance = 0.95
 $GenerateReport = $true
 $ExclusionsInput = ''
 $UseCache = $true
@@ -42,10 +51,13 @@ function Fail {
 
 function Show-Usage {
     Write-Line ('MVS Explorer Toolkit archive-wide tool sweep ' + $Version)
-    Write-Line ('Usage: ' + $Caller + ' mvs-dumps-root [results-folder] [--plan-only] [--quiet-plan] [--resume] [--external-tools] [--workers N] [--exclusions FILE] [--no-report] [--cache-folder DIR] [--no-cache]')
+    Write-Line ('Usage: ' + $Caller + ' mvs-dumps-root [results-folder] [--plan-only] [--quiet-plan] [--resume] [--external-tools] [--start-workers N] [--max-workers N] [--workers N] [--exclusions FILE] [--no-report] [--cache-folder DIR] [--no-cache]')
     Write-Line 'Default executor: fast-combined (indexed shared parse, logical status validation).'
     Write-Line '--external-tools executes every public .bat wrapper literally.'
-    Write-Line '--workers N controls bounded parallel snapshot workers in fast mode (default: auto up to 4).'
+    Write-Line '--start-workers N sets the adaptive starting concurrency (default: ceil(logical CPUs / 4), minimum 1).'
+    Write-Line '--max-workers N caps adaptive concurrency (default: logical CPU count).'
+    Write-Line '--workers N is the backward-compatible fixed-concurrency form; it sets start=max=N and disables scaling.'
+    Write-Line ('Adaptive scaling samples CPU, physical-memory and physical-disk headroom every '+$ScaleIntervalSeconds+' seconds; all three must have at least '+$HeadroomThresholdPercent+'% headroom and recent throughput must not regress.')
     Write-Line '--exclusions FILE supplies non-destructive canonical-analysis exclusions; evidence is still ingested.'
     Write-Line '--no-report skips interactive HTML generation.'
     Write-Line '--cache-folder DIR reuses content-addressed snapshot results across runs; --no-cache disables it.'
@@ -65,6 +77,103 @@ function Write-TextUtf8 {
 function Add-TextUtf8 {
     param([string]$Path, [AllowEmptyString()][string]$Text)
     [IO.File]::AppendAllText($Path, $Text, $utf8)
+}
+
+function Clamp-Percent {
+    param([double]$Value)
+    if($Value -lt 0){return 0.0}
+    if($Value -gt 100){return 100.0}
+    return [double]$Value
+}
+
+function Get-SystemHeadroom {
+    $cpu=$null;$memory=$null;$io=$null;$notes=New-Object System.Collections.ArrayList
+    try{
+        $processors=@(Get-CimInstance -ClassName Win32_Processor -ErrorAction Stop)
+        if($processors.Count -gt 0){
+            $avg=($processors|Measure-Object -Property LoadPercentage -Average).Average
+            if($null -ne $avg){$cpu=Clamp-Percent (100.0-[double]$avg)}
+        }
+    }catch{[void]$notes.Add('cpu:'+($_.Exception.Message -replace '[\t\r\n]+',' '))}
+    try{
+        $os=Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
+        if($null -ne $os -and [double]$os.TotalVisibleMemorySize -gt 0){
+            $memory=Clamp-Percent ((100.0*[double]$os.FreePhysicalMemory)/[double]$os.TotalVisibleMemorySize)
+        }
+    }catch{[void]$notes.Add('memory:'+($_.Exception.Message -replace '[\t\r\n]+',' '))}
+    try{
+        $disk=@(Get-CimInstance -ClassName Win32_PerfFormattedData_PerfDisk_PhysicalDisk -ErrorAction Stop |
+            Where-Object {$_.Name -eq '_Total'} | Select-Object -First 1)
+        if($disk.Count -gt 0 -and $null -ne $disk[0].PercentIdleTime){
+            $io=Clamp-Percent ([double]$disk[0].PercentIdleTime)
+        }
+    }catch{[void]$notes.Add('io:'+($_.Exception.Message -replace '[\t\r\n]+',' '))}
+    return [pscustomobject]@{
+        cpu_headroom=$cpu
+        memory_headroom=$memory
+        io_headroom=$io
+        complete=($null-ne$cpu -and $null-ne$memory -and $null-ne$io)
+        note=($notes -join '; ')
+    }
+}
+
+function Format-OptionalNumber {
+    param([AllowNull()][object]$Value,[int]$Digits=2)
+    if($null -eq $Value){return 'n/a'}
+    return ([Math]::Round([double]$Value,$Digits)).ToString([Globalization.CultureInfo]::InvariantCulture)
+}
+
+function Write-WorkerScaleRow {
+    param([datetime]$Timestamp,[int]$Active,[int]$Target,[object]$Sample,[int]$WindowChecks,[double]$Throughput,[AllowNull()][object]$PreviousThroughput,[string]$Decision)
+    if([string]::IsNullOrWhiteSpace($script:WorkerScalePath)){return}
+    $fields=@(
+        $Timestamp.ToString('o'),$WorkerMode,$WorkerStart,$WorkerMax,$Active,$Target,
+        (Format-OptionalNumber $Sample.cpu_headroom),(Format-OptionalNumber $Sample.memory_headroom),(Format-OptionalNumber $Sample.io_headroom),
+        $WindowChecks,(Format-OptionalNumber $Throughput 4),(Format-OptionalNumber $PreviousThroughput 4),$Decision,[string]$Sample.note
+    ) | ForEach-Object { Convert-TsvField ([string]$_) }
+    Add-TextUtf8 $script:WorkerScalePath (($fields -join [char]9)+[Environment]::NewLine)
+}
+
+function Invoke-AdaptiveScaleEvaluation {
+    param([int]$ActiveWorkers)
+    if($WorkerMode -ne 'adaptive'){return}
+    $now=Get-Date
+    $elapsed=($now-$script:ScaleWindowStart).TotalSeconds
+    if($elapsed -lt $ScaleIntervalSeconds){return}
+    $windowChecks=[int]$script:ScaleWindowChecks
+    $throughput=if($elapsed -gt 0){[double]$windowChecks/$elapsed}else{0.0}
+    $previous=$script:PreviousThroughput
+    $sample=Get-SystemHeadroom
+    $decision='hold'
+    $resourceOk=$sample.complete -and [double]$sample.cpu_headroom -ge $HeadroomThresholdPercent -and
+        [double]$sample.memory_headroom -ge $HeadroomThresholdPercent -and [double]$sample.io_headroom -ge $HeadroomThresholdPercent
+    $performanceOk=$false
+    if($windowChecks -gt 0){
+        if($null -eq $previous -or [double]$previous -le 0){$performanceOk=$true}
+        else{$performanceOk=($throughput -ge ([double]$previous*$ThroughputTolerance))}
+    }
+    if($script:WorkerTarget -ge $WorkerMax){
+        $decision='hold:max'
+    } elseif(-not $sample.complete){
+        $decision='hold:resource-metrics-unavailable'
+    } elseif(-not $resourceOk){
+        $decision='hold:headroom-below-threshold'
+    } elseif($windowChecks -le 0){
+        $decision='hold:no-completed-work-in-window'
+    } elseif(-not $performanceOk){
+        $decision='hold:throughput-regressed'
+    } else {
+        $script:WorkerTarget++
+        $decision='scale-up'
+    }
+    Write-WorkerScaleRow $now $ActiveWorkers $script:WorkerTarget $sample $windowChecks $throughput $previous $decision
+    Write-Line ('Adaptive workers: active='+$ActiveWorkers+' target='+$script:WorkerTarget+'/'+$WorkerMax+
+        ' cpu_headroom='+(Format-OptionalNumber $sample.cpu_headroom)+'% memory_headroom='+(Format-OptionalNumber $sample.memory_headroom)+
+        '% io_headroom='+(Format-OptionalNumber $sample.io_headroom)+'% throughput='+(Format-OptionalNumber $throughput 4)+
+        ' checks/s decision='+$decision)
+    if($windowChecks -gt 0){$script:PreviousThroughput=$throughput}
+    $script:ScaleWindowChecks=0
+    $script:ScaleWindowStart=$now
 }
 
 function Convert-TsvField {
@@ -984,7 +1093,10 @@ function Write-Summary {
         '',
         ('Mode: ' + $Mode),
         ('Executor: ' + $Executor),
-        ('Workers: ' + $Workers),
+        ('Worker mode: ' + $WorkerMode),
+        ('Worker start: ' + $WorkerStart),
+        ('Worker max: ' + $WorkerMax),
+        ('Worker current target: ' + $script:WorkerTarget),
         ('Exclusions: ' + $ExclusionsPath),
         ('Content cache: ' + $(if($UseCache){$CachePath}else{'disabled'})),
         ('Interactive report: ' + $(if($GenerateReport -and $Executor -eq 'fast-combined'){'enabled'}else{'disabled'})),
@@ -1055,16 +1167,46 @@ for($argIndex=0;$argIndex-lt$argsList.Count;$argIndex++){
         continue
     }
     if($arg -match '^--workers=(?<n>\d+)$'){
-        $Workers=[int]$Matches.n
+        if($StartWorkersOptionSeen -or $MaxWorkersOptionSeen){Fail 2 '--workers cannot be combined with --start-workers/--max-workers.'}
+        $WorkerStart=[int]$Matches.n;$WorkerMax=$WorkerStart;$WorkerMode='fixed';$WorkersOptionSeen=$true
         continue
     }
     if($arg -eq '--workers'){
+        if($StartWorkersOptionSeen -or $MaxWorkersOptionSeen){Fail 2 '--workers cannot be combined with --start-workers/--max-workers.'}
         $argIndex++
         if($argIndex-ge$argsList.Count){Fail 2 '--workers requires an integer value.'}
         $value=[string]$argsList[$argIndex]
         $parsed=0
         if(-not [int]::TryParse($value,[ref]$parsed)){Fail 2 ('Invalid --workers value: '+$value)}
-        $Workers=$parsed
+        $WorkerStart=$parsed;$WorkerMax=$parsed;$WorkerMode='fixed';$WorkersOptionSeen=$true
+        continue
+    }
+    if($arg -match '^--start-workers=(?<n>\d+)$'){
+        if($WorkersOptionSeen){Fail 2 '--start-workers cannot be combined with --workers.'}
+        $WorkerStart=[int]$Matches.n;$StartWorkersOptionSeen=$true
+        continue
+    }
+    if($arg -eq '--start-workers'){
+        if($WorkersOptionSeen){Fail 2 '--start-workers cannot be combined with --workers.'}
+        $argIndex++
+        if($argIndex-ge$argsList.Count){Fail 2 '--start-workers requires an integer value.'}
+        $value=[string]$argsList[$argIndex];$parsed=0
+        if(-not [int]::TryParse($value,[ref]$parsed)){Fail 2 ('Invalid --start-workers value: '+$value)}
+        $WorkerStart=$parsed;$StartWorkersOptionSeen=$true
+        continue
+    }
+    if($arg -match '^--max-workers=(?<n>\d+)$'){
+        if($WorkersOptionSeen){Fail 2 '--max-workers cannot be combined with --workers.'}
+        $WorkerMax=[int]$Matches.n;$MaxWorkersOptionSeen=$true
+        continue
+    }
+    if($arg -eq '--max-workers'){
+        if($WorkersOptionSeen){Fail 2 '--max-workers cannot be combined with --workers.'}
+        $argIndex++
+        if($argIndex-ge$argsList.Count){Fail 2 '--max-workers requires an integer value.'}
+        $value=[string]$argsList[$argIndex];$parsed=0
+        if(-not [int]::TryParse($value,[ref]$parsed)){Fail 2 ('Invalid --max-workers value: '+$value)}
+        $WorkerMax=$parsed;$MaxWorkersOptionSeen=$true
         continue
     }
     if($arg -match '^--exclusions=(?<path>.+)$'){
@@ -1081,8 +1223,16 @@ for($argIndex=0;$argIndex-lt$argsList.Count;$argIndex++){
     if(-not [string]::IsNullOrWhiteSpace($OutputInput)){Fail 2 'More than one results-folder was supplied.'}
     $OutputInput=$arg
 }
-if($Workers -lt 1 -or $Workers -gt 32){Fail 2 '--workers must be between 1 and 32.'}
-if($Executor -eq 'external-public'){$Workers=1}
+if($WorkerStart -lt 1 -or $WorkerStart -gt 256){Fail 2 '--start-workers/--workers must be between 1 and 256.'}
+if($WorkerMax -lt 1 -or $WorkerMax -gt 256){Fail 2 '--max-workers/--workers must be between 1 and 256.'}
+if($WorkerMode -eq 'adaptive' -and $MaxWorkersOptionSeen -and -not $StartWorkersOptionSeen -and $WorkerStart -gt $WorkerMax){$WorkerStart=$WorkerMax}
+if($WorkerMode -eq 'adaptive' -and $StartWorkersOptionSeen -and -not $MaxWorkersOptionSeen -and $WorkerStart -gt $WorkerMax){$WorkerMax=$WorkerStart}
+if($WorkerStart -gt $WorkerMax){Fail 2 '--start-workers cannot exceed --max-workers.'}
+if($Executor -eq 'external-public'){$WorkerStart=1;$WorkerMax=1;$WorkerMode='fixed'}
+$script:WorkerTarget=$WorkerStart
+$script:ScaleWindowStart=Get-Date
+$script:ScaleWindowChecks=0
+$script:PreviousThroughput=$null
 if ($PlanOnly -and $Resume) { Fail 2 '--plan-only and --resume cannot be combined.' }
 if ($Resume -and [string]::IsNullOrWhiteSpace($OutputInput)) {
     Fail 2 '--resume requires an existing results-folder argument.'
@@ -1168,6 +1318,7 @@ $planPath = Join-Path $ResultsFolder 'plan.tsv'
 $planHashPath = Join-Path $ResultsFolder 'plan-sha256.txt'
 $runsPath = Join-Path $ResultsFolder 'runs.tsv'
 $fastBatchesPath = Join-Path $ResultsFolder 'fast-batches.tsv'
+$script:WorkerScalePath = Join-Path $ResultsFolder 'worker-scaling.tsv'
 $summaryPath = Join-Path $ResultsFolder 'summary.txt'
 $snapshotsPath = Join-Path $ResultsFolder 'snapshots.tsv'
 $runInfoPath = Join-Path $ResultsFolder 'run-info.txt'
@@ -1185,6 +1336,7 @@ if (-not $Resume) {
         'snapshots.tsv     Snapshot names and resolved data directories.',
         'runs.tsv          One row per completed logical check.',
         'fast-batches.tsv  Combined-worker wall times (fast executor only).',
+        'worker-scaling.tsv Adaptive worker resource/throughput decisions (fast executor only).',
         'summary.txt       Aggregate status counts.',
         'run-info.txt      Environment and archive/project paths.',
         'console.log       Progress/failure transcript.',
@@ -1207,6 +1359,8 @@ if (-not $Resume) {
 Write-Line ('Archive: ' + $ArchiveRoot)
 Write-Line ('Project: ' + $ProjectRoot)
 Write-Line ('Executor: ' + $Executor)
+Write-Line ('Worker mode: '+$WorkerMode+' start='+$WorkerStart+' max='+$WorkerMax+' logical_cores='+$LogicalCores)
+if($WorkerMode -eq 'adaptive'){Write-Line ('Adaptive worker policy: sample='+$ScaleIntervalSeconds+'s minimum_headroom='+$HeadroomThresholdPercent+'% resources=CPU,memory,physical-disk; scale step=+1 only when recent throughput does not regress.')}
 Write-Line ('Snapshots discovered: ' + $snapshotDirs.Count)
 Write-Line ('Public tools: single=' + $singleFiles.Count + ' compare=' + $compareFiles.Count + ' archive=' + $archiveFiles.Count)
 if ($familyFiles.Count -gt 0) { Write-Line ('Family tools: ' + $familyFiles.Count + ' (separate archive-level feature; excluded from legacy sweep plan)') }
@@ -1290,7 +1444,10 @@ $runInfo = @(
     ('Sweep version: ' + $Version),
     ('Mode: ' + $(if ($PlanOnly) { 'plan-only' } elseif ($Resume) { 'resume' } else { 'execute' })),
     ('Executor: ' + $Executor),
-    ('Workers: ' + $Workers),
+    ('Worker mode: ' + $WorkerMode),
+        ('Worker start: ' + $WorkerStart),
+        ('Worker max: ' + $WorkerMax),
+        ('Worker current target: ' + $script:WorkerTarget),
     ('Content cache: ' + $(if($UseCache){$CachePath}else{'disabled'})),
     ('Exclusions: ' + $ExclusionsPath),
     ('Interactive report: ' + $GenerateReport),
@@ -1323,8 +1480,10 @@ if (-not $Resume) {
     $runsHeader = "index`texecutor`tscope`tsnapshot`tnext_snapshot`ttool`tsearch_source`tsearch_value`tsearch_origin`tstatus`trc`tstdout_bytes`tstderr_bytes`telapsed_ms`n"
     Write-TextUtf8 $runsPath $runsHeader
     Write-TextUtf8 $fastBatchesPath "scope`tsnapshot`tnext_snapshot`tlogical_checks`tworker`telapsed_ms`trc`n"
-} elseif (-not (Test-Path -LiteralPath $fastBatchesPath -PathType Leaf)) {
-    Write-TextUtf8 $fastBatchesPath "scope`tsnapshot`tnext_snapshot`tlogical_checks`tworker`telapsed_ms`trc`n"
+    Write-TextUtf8 $script:WorkerScalePath "timestamp`tmode`tstart_workers`tmax_workers`tactive_workers`ttarget_workers`tcpu_headroom_percent`tmemory_headroom_percent`tio_headroom_percent`twindow_checks`tthroughput_checks_per_second`tprevious_throughput_checks_per_second`tdecision`tnote`n"
+} else {
+    if(-not (Test-Path -LiteralPath $fastBatchesPath -PathType Leaf)){Write-TextUtf8 $fastBatchesPath "scope`tsnapshot`tnext_snapshot`tlogical_checks`tworker`telapsed_ms`trc`n"}
+    if(-not (Test-Path -LiteralPath $script:WorkerScalePath -PathType Leaf)){Write-TextUtf8 $script:WorkerScalePath "timestamp`tmode`tstart_workers`tmax_workers`tactive_workers`ttarget_workers`tcpu_headroom_percent`tmemory_headroom_percent`tio_headroom_percent`twindow_checks`tthroughput_checks_per_second`tprevious_throughput_checks_per_second`tdecision`tnote`n"}
 }
 
 $state = Get-ExistingRunState $runsPath
@@ -1383,21 +1542,25 @@ if ($Executor -eq 'external-public') {
     $active=New-Object System.Collections.ArrayList
     $nextBatch=0
     while($nextBatch-lt$snapshotBatches.Count -or $active.Count -gt 0){
-        while($nextBatch-lt$snapshotBatches.Count -and $active.Count-lt$Workers){
+        while($nextBatch-lt$snapshotBatches.Count -and $active.Count-lt$script:WorkerTarget){
             $batch=$snapshotBatches[$nextBatch]
             $nextBatch++
-            Write-Line ('Starting snapshot '+$batch.snapshot.name+' [fast-combined '+$batch.entries.Count+' checks; worker '+($active.Count+1)+'/'+$Workers+'] ...')
+            Write-Line ('Starting snapshot '+$batch.snapshot.name+' [fast-combined '+$batch.entries.Count+' checks; worker '+($active.Count+1)+'/'+$script:WorkerTarget+'; max '+$WorkerMax+'] ...')
             $ctx=Start-FastWorkerJob $batch.entries $snapshotWorker $batch.snapshot.data_path '' $ResultsFolder $CachePath
             [void]$active.Add($ctx)
         }
         if($active.Count -eq 0){continue}
-        $jobList=@($active | ForEach-Object {$_.job})
-        $finished=Wait-Job -Job $jobList -Any
+
         $ctx=$null
-        foreach($candidate in @($active)){
-            if($candidate.job.Id -eq $finished.Id){$ctx=$candidate;break}
+        while($null -eq $ctx){
+            foreach($candidate in @($active)){
+                if($candidate.job.State -in @('Completed','Failed','Stopped')){$ctx=$candidate;break}
+            }
+            if($null -ne $ctx){break}
+            Invoke-AdaptiveScaleEvaluation $active.Count
+            Start-Sleep -Milliseconds 500
         }
-        if($null -eq $ctx){Fail 5 'Could not resolve completed fast worker job.'}
+
         [void]$active.Remove($ctx)
         $statuses=@(Complete-FastWorkerJob $ctx $runsPath $fastBatchesPath $failureFolder)
         for($n=0;$n-lt$ctx.entries.Count;$n++){
@@ -1406,6 +1569,8 @@ if ($Executor -eq 'external-public') {
             [void]$done.Add([int]$ctx.entries[$n].index)
             $completed++
         }
+        $script:ScaleWindowChecks += $ctx.entries.Count
+        Invoke-AdaptiveScaleEvaluation $active.Count
         Write-Line ('Completed snapshot '+$ctx.snapshot+' in '+([Math]::Round($ctx.stopwatch.Elapsed.TotalSeconds,3))+' s. Progress: '+$completed+'/'+$plan.Count+' PASS='+$counts.PASS+' NO_RESULT='+$counts.NO_RESULT+' SOURCE_MISSING='+$counts.SOURCE_MISSING+' FAIL='+$counts.FAIL)
         Write-Summary $summaryPath $summaryMode $snapshots.Count $singleFiles.Count $compareFiles.Count $archiveFiles.Count $plan.Count $counts $completed
     }

@@ -354,3 +354,19 @@ These directives are distilled from the user's project prompts.
 246. A fail-gated production pipeline must preserve the newest test-results evidence even when the test child exits nonzero; failure packaging must include that evidence when available.
 247. Downstream phases that were never executed because an earlier gate failed must be reported explicitly as NOT RUN, not as empty counters that resemble malformed results.
 248. Narrow test/reporting hotfixes must not invalidate archive-processing reuse when processing semantics are unchanged; preserve the established 34,822-row plan and processing bytes where possible.
+
+## 0.20.0 adaptive concurrency and progress
+
+249. Test/suite/database/pipeline bracketed progress should report `current/total` only; do not also print a mathematically redundant remaining counter.
+250. Fast archive snapshot execution defaults to adaptive concurrency starting at `ceil(logical_processors / 4)` with a minimum of one worker.
+251. The default adaptive maximum is the detected logical-processor count. `--max-workers N` may impose a smaller or larger explicit ceiling, and the scheduler must never start more workers than that ceiling.
+252. `--start-workers N` controls adaptive initial concurrency. If only an explicit maximum is supplied, the automatic start must clamp down to that maximum rather than fail.
+253. Preserve `--workers N` as the backward-compatible fixed-concurrency contract: start and maximum both equal N and adaptive scale-up is disabled.
+254. Adaptive scale-up is one worker per observation decision, with a default 30-second observation interval.
+255. Scale up only when CPU headroom, free physical-memory percentage, and physical-disk idle/headroom are all measurable and at least 15 percent, and recent completed-work throughput has not regressed beyond the scheduler tolerance.
+256. Missing CPU/memory/I/O telemetry is a reason to hold concurrency, never a reason to assume spare capacity.
+257. Adaptive worker decisions must be retained as structured evidence including resource headroom, throughput, previous throughput, active/target workers, and decision.
+258. Scheduler, progress, and worker-policy changes do not by themselves alter logical archive evidence. Maintenance invalidation fingerprints must track result-producing tools/fast workers rather than orchestration-only scheduler bytes.
+259. Migration from an older aggregate fingerprint is allowed only for an explicitly recognized accepted fingerprint whose result-producing bytes are known to map to the current semantic fingerprint; do not make compatibility wildcard-based.
+260. Adaptive snapshot concurrency must not imply that inherently single-process family/compact/archive-wide builder phases are parallel; parallelize those separately only after semantic/performance acceptance.
+

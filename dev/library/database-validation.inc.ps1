@@ -31,8 +31,7 @@ function Add-Result{
     param([string]$Status,[string]$Name,[string]$Reason,[long]$ElapsedMs)
     $script:Index++
     if($Status-eq'PASS'){$script:Passed++}else{$script:Failed++}
-    $remaining=[Math]::Max(0,$script:Total-$script:Index)
-    $prefix='[MVS '+$ProjectVersion+'] [DB TEST '+$script:Index+'/'+$script:Total+' | remaining='+$remaining+']'
+    $prefix='[MVS '+$ProjectVersion+'] [DB TEST '+$script:Index+'/'+$script:Total+']'
     if($Status-eq'PASS'){Write-Line ($prefix+' [PASS] '+$Name)}else{Write-Line ($prefix+' [FAIL] '+$Name+' - '+$Reason)}
     $script:ResultWriter.WriteLine((@($script:Index,$Status,$Name,$Reason,$ElapsedMs)|ForEach-Object{Clean-Tsv $_})-join"`t")
     $script:ResultWriter.Flush()

@@ -10,7 +10,8 @@ foreach($oldStage in @(Get-ChildItem -LiteralPath $SlotRoot -Directory -Filter '
 $cache=Join-Path $SlotRoot 'cache'
 Ensure-Directory $cache
 $sweep=Join-Path $ProjectRoot 'test\test_all_dumps.bat'
-Invoke-BatChecked $sweep @($ArchiveRoot,$staging,'--plan-only','--quiet-plan','--workers',[string]$Workers,'--cache-folder',$cache) 'archive plan preflight'
+$workerArgs=if($WorkerMode -eq 'fixed'){@('--workers',[string]$WorkerStart)}else{@('--start-workers',[string]$WorkerStart,'--max-workers',[string]$WorkerMax)}
+Invoke-BatChecked $sweep (@($ArchiveRoot,$staging,'--plan-only','--quiet-plan')+@($workerArgs)+@('--cache-folder',$cache)) 'archive plan preflight'
 
 $newPlan=@(Import-Csv -LiteralPath (Join-Path $staging 'plan.tsv') -Delimiter "`t")
 if($newPlan.Count -eq 0){throw 'Generated archive plan is empty.'}
@@ -42,7 +43,13 @@ if(Test-Path -LiteralPath $current -PathType Container){
     if(Test-Path -LiteralPath (Join-Path $current 'toolset-sha256.txt') -PathType Leaf){$oldToolset=([IO.File]::ReadAllText((Join-Path $current 'toolset-sha256.txt'))).Trim()}
 }
 $toolsetReusable=($oldToolset  -and  [StringComparer]::Ordinal.Equals($oldToolset,$newToolset))
-if($oldPlan.Count -gt 0  -and    -not  $toolsetReusable){Write-Line 'Sweep toolset changed or lacks a prior fingerprint; prior dump results will not be reused.'}
+$legacyToolsetMigrated=$false
+if(-not $toolsetReusable -and $oldToolset -and (Test-LegacyToolsetCompatibility $oldToolset $newToolset)){
+    $toolsetReusable=$true
+    $legacyToolsetMigrated=$true
+    Write-Line 'Compatible sweep fingerprint migration: prior result-producing tools are unchanged; scheduler-only changes do not invalidate archive evidence.'
+}
+if($oldPlan.Count -gt 0  -and    -not  $toolsetReusable){Write-Line 'Sweep result-producing toolset changed or lacks a compatible prior fingerprint; prior dump results will not be reused.'}
 
 $oldPlanByKey=New-OrdinalObjectDictionary
 foreach($r in $oldPlan){$oldPlanByKey[(Plan-Key $r)]=$r}
@@ -169,7 +176,7 @@ $pending=$newPlan.Count-$seededByNewIndex.Count
 $state=[ordered]@{
     run_id=$RunId;archive_root=$ArchiveRoot;staging=$staging;planned_checks=$newPlan.Count;seeded_checks=$seededByNewIndex.Count;pending_checks=$pending;
     already_done_snapshots=$alreadySnapshots;pending_snapshots=$pendingSnapshots.Count;new_snapshots=$newSnapshots;changed_snapshots=$changedSnapshots;
-    faulty_or_incomplete_snapshots=$faultySnapshots;toolset_reusable=$toolsetReusable;archive_reused=$reuseArchive
+    faulty_or_incomplete_snapshots=$faultySnapshots;toolset_reusable=$toolsetReusable;legacy_toolset_fingerprint_migrated=$legacyToolsetMigrated;archive_reused=$reuseArchive
 }
 Write-Utf8 (Join-Path $staging 'update-state.json') ((ConvertTo-Json $state -Depth 4)+"`r`n")
 Write-Line ('Prepared: seeded='+$seededByNewIndex.Count+' pending='+$pending+' planned='+$newPlan.Count+'.')

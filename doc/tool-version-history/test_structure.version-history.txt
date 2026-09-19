@@ -1,3 +1,8 @@
+0.11.16 - 2026-09-12
+- Project 0.20.0.
+- Removes redundant remaining=N from assertion progress.
+- Adds adaptive-worker, concise-progress, and semantic-fingerprint migration guards.
+
 0.11.15 / project 0.19.3 - 2026-09-11
 - Fixes literal marker handling for timestamped HTML and tools\ family-query regression checks.
 - Adds failed-test evidence and downstream NOT RUN pipeline reporting guard.

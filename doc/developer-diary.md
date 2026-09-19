@@ -856,3 +856,31 @@ the test-results directory in a `finally` block around the ALL TESTS child
 phase, copies it into the pipeline log package, and reports downstream archive
 work as explicitly NOT RUN when the test gate fails. No archive/database
 processing semantics are changed.
+
+## 2026-09-12 - 0.20.0 adaptive worker controller
+
+The first complete native 0.19.3 production run closed the 0.19.2 test-gate
+false negatives: the representative suite completed 1,112 PASS / 0 FAIL /
+3 SKIP, the production archive sweep completed all 34,822 logical rows with
+zero FAIL, the 57 database checks and all 32 family-query smoke tools passed,
+and the overall pipeline completed in 03:18:32.
+
+The run also made fixed concurrency look increasingly artificial. With eight
+snapshot workers, early snapshot batches completed around 67-70 seconds while
+later batches commonly exceeded 300 seconds. That does not by itself prove
+eight workers caused the increase because later dumps are larger, but it is
+enough evidence not to encode one machine-wide fixed default.
+
+0.20.0 therefore moves worker choice into a conservative feedback controller.
+It begins at one quarter of logical CPUs, samples CPU, free physical memory and
+physical-disk idle headroom, and raises the target only one worker at a time
+after a 30-second window with at least 15% headroom on all resources and
+non-regressing completed-check throughput. If telemetry is missing, scaling
+stops safely rather than guessing.
+
+Because this is scheduling rather than result semantics, maintenance reuse also
+moves from hashing the sweep orchestrator to hashing the actual result-producing
+tool/worker set. A narrowly recognized migration from the accepted 0.19.2/
+0.19.3 aggregate avoids making the user's freshly accepted 34,822 rows stale
+for no analytical reason.
+

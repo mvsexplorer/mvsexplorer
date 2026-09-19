@@ -1,3 +1,6 @@
+0.1.3 - 2026-09-12
+- Removes redundant remaining=N from database-test progress; validation semantics remain unchanged.
+
 0.1.2 / project 0.16.2
 - Reconciles parallel archive `runs.tsv` to `plan.tsv` by stable plan index instead of physical row position.
 - Preserves one-element `snapshot-sets.tsv` lists as typed string arrays under Windows PowerShell 5.1.

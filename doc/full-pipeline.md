@@ -206,3 +206,25 @@ Archive logical checks: NOT RUN - gated by failed test phase
 ```
 
 This changes failure reporting only; the fail gate remains strict.
+
+## 0.20.0 adaptive worker policy
+
+Fresh pipeline runs use adaptive archive-snapshot concurrency by default:
+
+```bat
+all_test_then_all_database_then_test_database_and_all_tools.bat
+```
+
+The start is one quarter of detected logical CPUs (rounded up, minimum one) and
+the ceiling is the logical CPU count. Override either bound with
+`--start-workers N` / `--max-workers N`. The historical `--workers N` form
+remains fixed-concurrency mode.
+
+The pipeline passes the same policy through `test_everything.bat` and the fresh
+archive-analysis build. Family-index and compact-index builders remain
+single-process and are not mislabeled as adaptive-worker phases.
+
+Phase/suite/test/database-test progress now prints only current/total. The
+native 0.19.3 baseline for comparison was 03:18:32 overall, with Phase 2 at
+01:10:47, full-family Phase 4 at 01:16:11, and compact Phase 5 at 00:32:52.
+

@@ -2,7 +2,7 @@
 :setup
 REM Validates freshly generated archive/full-family/compact-family databases and executes every family query tool.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.2"
+set "app.version=0.1.3"
 set "app.name=test_generated_databases"
 set "app.rc=0"
 set "app.self=%~f0"

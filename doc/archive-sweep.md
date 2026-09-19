@@ -303,3 +303,26 @@ public surface is therefore 477 tools and the family class is 34 tools. Both
 family builders and all 32 family query wrappers remain excluded from the
 legacy snapshot/comparison/history sweep; the established 34,822-row logical
 plan is unchanged.
+
+## 0.20.0 adaptive snapshot workers
+
+Fast-combined snapshot execution is adaptive by default. The starting target is
+`ceil(logical CPUs / 4)` with a minimum of one and the default ceiling is the
+logical CPU count.
+
+```bat
+test_all_dumps.bat ARCHIVE RESULTS --start-workers 2 --max-workers 8
+```
+
+`--workers 8` remains supported and selects fixed 8-worker behavior. Adaptive
+mode evaluates every 30 seconds and increases the target by one only when CPU
+headroom, free physical-memory percentage, and physical-disk idle percentage
+are all at least 15%, and the latest completed-check throughput is not below
+95% of the preceding non-empty observation window. Missing resource telemetry,
+insufficient completed work, low headroom, or throughput regression holds the
+current target.
+
+Each decision is appended to `worker-scaling.tsv`. The worker policy is runtime
+scheduling only; it is not part of the deterministic logical plan and does not
+change single/compare/archive evidence identities.
+

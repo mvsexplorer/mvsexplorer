@@ -377,3 +377,16 @@ timestamped HTML and moved-family-tool structure checks. `library\all-pipeline.i
 captures failed ALL TESTS result folders before the gate exception propagates
 and reports downstream archive work as NOT RUN when appropriate. Processing
 tools and archive-plan semantics are unchanged.
+
+## 0.20.0 adaptive scheduler
+
+`library\archive-sweep.inc.ps1` owns the adaptive snapshot scheduler. Keep the
+resource/throughput controller in maintained source and regenerate
+`test\test_all_dumps.bat`; never patch the generated BAT directly.
+
+The semantic maintenance fingerprint intentionally excludes
+`test\test_all_dumps.bat` orchestration but continues to include all
+result-producing dump tools and the three fast workers. This distinction is
+what allows scheduler-only changes to reuse previously accepted logical rows
+without weakening content or processing compatibility.
+

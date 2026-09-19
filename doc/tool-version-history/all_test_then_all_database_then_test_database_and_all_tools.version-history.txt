@@ -1,3 +1,8 @@
+1.1.0 - 2026-09-12
+- Project 0.20.0.
+- Defaults to adaptive archive-snapshot worker start/max policy; --workers N remains fixed mode.
+- Removes redundant remaining=N from phase progress.
+
 Project 0.19.0 layout note - 2026-09-07
 - Root full-pipeline entry point is retained.
 - Utility tool resolution follows the 0.19.0 tools\ layout; production semantics are otherwise unchanged.

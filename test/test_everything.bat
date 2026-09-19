@@ -1,7 +1,7 @@
 @echo off
 :setup
 setlocal DisableDelayedExpansion
-set "app.version=0.1.5"
+set "app.version=0.2.0"
 set "app.name=test_everything"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -15,7 +15,7 @@ set "mvste_arg7=%~7"
 set "mvste_script_root=%~dp0"
 set "mvste_caller=%~nx0"
 set "mvste_version=%app.version%"
-set "mvste_project_version=0.19.3"
+set "mvste_project_version=0.20.0"
 :main
 set "RunPowerShellFromLabel.function=MVSTestEverything"
 call :RunPowerShellFromLabel
@@ -111,17 +111,22 @@ $script:SuitePhaseIndex=0
 $script:SuitePhaseTotal=0
 $FullArchive=$false
 $StrictPerformance=$false
-$Workers=[Math]::Min(4,[Math]::Max(1,[int][Math]::Ceiling([Environment]::ProcessorCount/2.0)))
+$LogicalCores=[Math]::Max(1,[Environment]::ProcessorCount)
+$WorkerStart=[Math]::Max(1,[int][Math]::Ceiling($LogicalCores/4.0))
+$WorkerMax=$LogicalCores
+$WorkerMode='adaptive'
+$WorkersOptionSeen=$false
+$StartWorkersOptionSeen=$false
+$MaxWorkersOptionSeen=$false
 $ExistingResults=''
 
 function Fail {param([int]$Code,[string]$Message)[Console]::Error.WriteLine('[FAIL] '+$Message);exit $Code}
 function Run {
     param([string]$Tool,[object[]]$ToolArgs)
     $script:SuitePhaseIndex++
-    $remaining=[Math]::Max(0,$script:SuitePhaseTotal-$script:SuitePhaseIndex)
     [Console]::Out.WriteLine('')
     [Console]::Out.WriteLine('================================================================================')
-    [Console]::Out.WriteLine('[PROJECT '+$ProjectVersion+'] [SUITE TEST '+$script:SuitePhaseIndex+'/'+$script:SuitePhaseTotal+' | remaining='+$remaining+'] '+[IO.Path]::GetFileName($Tool))
+    [Console]::Out.WriteLine('[PROJECT '+$ProjectVersion+'] [SUITE TEST '+$script:SuitePhaseIndex+'/'+$script:SuitePhaseTotal+'] '+[IO.Path]::GetFileName($Tool))
     [Console]::Out.WriteLine('>>> '+[IO.Path]::GetFileName($Tool)+' '+(@($ToolArgs)-join' '))
     $global:LASTEXITCODE=0
     & $Tool @ToolArgs
@@ -135,8 +140,9 @@ function New-TempFolder {
 
 if(@('--help','-h','-?','/h','/?')-contains$ArchiveInput){
     [Console]::Out.WriteLine('MVS Explorer Toolkit comprehensive quality/performance tester '+$Version)
-    [Console]::Out.WriteLine('Usage: '+$Caller+' mvs-dumps-root [--full-archive] [--workers N] [--strict-performance] [--archive-results DIR]')
+    [Console]::Out.WriteLine('Usage: '+$Caller+' mvs-dumps-root [--full-archive] [--start-workers N] [--max-workers N] [--workers N] [--strict-performance] [--archive-results DIR]')
     [Console]::Out.WriteLine('Default: public regression + public performance analysis + fast synthetic acceptance + full archive plan validation.')
+    [Console]::Out.WriteLine('Default worker policy is adaptive: start=ceil(logical CPUs / 4), max=logical CPUs; --workers N retains fixed mode.')
     [Console]::Out.WriteLine('--full-archive additionally performs a fresh no-cache archive sweep, quality check, and HTML report.')
     exit 0
 }
@@ -147,10 +153,28 @@ for($i=0;$i-lt$args.Count;$i++){
     $a=[string]$args[$i]
     if($a-eq'--full-archive'){$FullArchive=$true;continue}
     if($a-eq'--strict-performance'){$StrictPerformance=$true;continue}
-    if($a-eq'--workers'){$i++;if($i-ge$args.Count){Fail 2 '--workers requires a value'};$n=0;if(-not[int]::TryParse([string]$args[$i],[ref]$n)-or$n-lt1-or$n-gt32){Fail 2 'invalid --workers'};$Workers=$n;continue}
+    if($a-eq'--workers'){
+        if($StartWorkersOptionSeen -or $MaxWorkersOptionSeen){Fail 2 '--workers cannot be combined with --start-workers/--max-workers'}
+        $i++;if($i-ge$args.Count){Fail 2 '--workers requires a value'};$n=0;if(-not[int]::TryParse([string]$args[$i],[ref]$n)-or$n-lt1-or$n-gt256){Fail 2 'invalid --workers'}
+        $WorkerStart=$n;$WorkerMax=$n;$WorkerMode='fixed';$WorkersOptionSeen=$true;continue
+    }
+    if($a-eq'--start-workers'){
+        if($WorkersOptionSeen){Fail 2 '--start-workers cannot be combined with --workers'}
+        $i++;if($i-ge$args.Count){Fail 2 '--start-workers requires a value'};$n=0;if(-not[int]::TryParse([string]$args[$i],[ref]$n)-or$n-lt1-or$n-gt256){Fail 2 'invalid --start-workers'}
+        $WorkerStart=$n;$StartWorkersOptionSeen=$true;continue
+    }
+    if($a-eq'--max-workers'){
+        if($WorkersOptionSeen){Fail 2 '--max-workers cannot be combined with --workers'}
+        $i++;if($i-ge$args.Count){Fail 2 '--max-workers requires a value'};$n=0;if(-not[int]::TryParse([string]$args[$i],[ref]$n)-or$n-lt1-or$n-gt256){Fail 2 'invalid --max-workers'}
+        $WorkerMax=$n;$MaxWorkersOptionSeen=$true;continue
+    }
     if($a-eq'--archive-results'){$i++;if($i-ge$args.Count){Fail 2 '--archive-results requires a folder'};$ExistingResults=[string]$args[$i];continue}
     Fail 2 ('Unknown option: '+$a)
 }
+
+if($WorkerMode -eq 'adaptive' -and $MaxWorkersOptionSeen -and -not $StartWorkersOptionSeen -and $WorkerStart -gt $WorkerMax){$WorkerStart=$WorkerMax}
+if($WorkerMode -eq 'adaptive' -and $StartWorkersOptionSeen -and -not $MaxWorkersOptionSeen -and $WorkerStart -gt $WorkerMax){$WorkerMax=$WorkerStart}
+if($WorkerStart -gt $WorkerMax){Fail 2 '--start-workers cannot exceed --max-workers'}
 
 $script:SuitePhaseTotal=4
 if(-not[string]::IsNullOrWhiteSpace($ExistingResults)){$script:SuitePhaseTotal++}
@@ -159,6 +183,9 @@ if($FullArchive){$script:SuitePhaseTotal+=2}
 [Console]::Out.WriteLine('Project version: '+$ProjectVersion)
 [Console]::Out.WriteLine('Suite tool version: '+$Version)
 [Console]::Out.WriteLine('Planned suite tests: '+$script:SuitePhaseTotal)
+
+$workerArgs=if($WorkerMode -eq 'fixed'){@('--workers',[string]$WorkerStart)}else{@('--start-workers',[string]$WorkerStart,'--max-workers',[string]$WorkerMax)}
+[Console]::Out.WriteLine('Worker mode: '+$WorkerMode+' start='+$WorkerStart+' max='+$WorkerMax+' logical_cores='+$LogicalCores)
 
 $testAll=Join-Path $ScriptRoot 'test_all.bat'
 $perf=Join-Path $ScriptRoot 'analyze_test_performance.bat'
@@ -185,7 +212,7 @@ Run $fastTest @()
 
 $planFolder=New-TempFolder 'mvs-everything-plan'
 try{
-    Run $sweep @($Archive,$planFolder,'--plan-only','--quiet-plan','--workers',[string]$Workers,'--no-report','--no-cache')
+    Run $sweep (@($Archive,$planFolder,'--plan-only','--quiet-plan')+@($workerArgs)+@('--no-report','--no-cache'))
 } finally {if(Test-Path -LiteralPath $planFolder){Remove-Item -LiteralPath $planFolder -Recurse -Force -ErrorAction SilentlyContinue}}
 
 if(-not[string]::IsNullOrWhiteSpace($ExistingResults)){
@@ -195,7 +222,7 @@ if(-not[string]::IsNullOrWhiteSpace($ExistingResults)){
 if($FullArchive){
     $tag=Get-Date -Format 'yyyyMMdd-HHmmss'
     $archiveResult=Join-Path $ScriptRoot ('everything-archive-results-'+$tag)
-    Run $sweep @($Archive,$archiveResult,'--workers',[string]$Workers,'--no-cache')
+    Run $sweep (@($Archive,$archiveResult)+@($workerArgs)+@('--no-cache'))
     $qr=@($archiveResult);if($StrictPerformance){$qr+=@('--strict-performance')};Run $quality $qr
 }
 

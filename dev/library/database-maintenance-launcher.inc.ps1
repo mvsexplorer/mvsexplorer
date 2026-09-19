@@ -6,15 +6,22 @@ $InvocationDir=[IO.Path]::GetFullPath([string]$env:mvscu_invocation_dir)
 $ToolVersion=[string]$env:mvscu_version
 $ProjectVersion=[string]$env:mvscu_project_version
 $raw=@([string]$env:mvscu_arg1,[string]$env:mvscu_arg2,[string]$env:mvscu_arg3,[string]$env:mvscu_arg4,[string]$env:mvscu_arg5,[string]$env:mvscu_arg6)
-$Workers=8
+$LogicalCores=[Math]::Max(1,[Environment]::ProcessorCount)
+$WorkerStart=[Math]::Max(1,[int][Math]::Ceiling($LogicalCores/4.0))
+$WorkerMax=$LogicalCores
+$WorkerMode='adaptive'
+$WorkersOptionSeen=$false
+$StartWorkersOptionSeen=$false
+$MaxWorkersOptionSeen=$false
 $ForceValidate=$false
 for($i=0;$i  -lt  $raw.Count;$i++){
     $a=$raw[$i]
     if([string]::IsNullOrWhiteSpace($a)){continue}
     if($a  -in  @('--help','-h','-?','/h','/?')){
         [Console]::Out.WriteLine('MVS Explorer Toolkit create/update database '+$ToolVersion)
-        [Console]::Out.WriteLine('Usage: create_or_update_mvs_database.bat [--workers N] [--force-validate]')
+        [Console]::Out.WriteLine('Usage: create_or_update_mvs_database.bat [--start-workers N] [--max-workers N] [--workers N] [--force-validate]')
         [Console]::Out.WriteLine('Searches current and parent folders for every mvs_dumps_archive* directory.')
+        [Console]::Out.WriteLine('Default worker policy is adaptive: start=ceil(logical CPUs / 4), max=logical CPUs; --workers N retains fixed mode.')
         [Environment]::Exit(0)
     }
     if($a  -eq  '--force-validate'){
@@ -22,12 +29,32 @@ for($i=0;$i  -lt  $raw.Count;$i++){
         continue
     }
     if($a  -eq  '--workers'){
+        if($StartWorkersOptionSeen -or $MaxWorkersOptionSeen){throw '--workers cannot be combined with --start-workers/--max-workers.'}
         if($i+1  -ge  $raw.Count){throw '--workers requires a value.'}
-        $i++;if(   -not   [int]::TryParse($raw[$i],[ref]$Workers)   -or   $Workers -lt 1){throw 'Invalid --workers value.'}
+        $n=0;$i++;if(   -not   [int]::TryParse($raw[$i],[ref]$n)   -or   $n -lt 1 -or $n -gt 256){throw 'Invalid --workers value.'}
+        $WorkerStart=$n;$WorkerMax=$n;$WorkerMode='fixed';$WorkersOptionSeen=$true
+        continue
+    }
+    if($a  -eq  '--start-workers'){
+        if($WorkersOptionSeen){throw '--start-workers cannot be combined with --workers.'}
+        if($i+1  -ge  $raw.Count){throw '--start-workers requires a value.'}
+        $n=0;$i++;if(   -not   [int]::TryParse($raw[$i],[ref]$n)   -or   $n -lt 1 -or $n -gt 256){throw 'Invalid --start-workers value.'}
+        $WorkerStart=$n;$StartWorkersOptionSeen=$true
+        continue
+    }
+    if($a  -eq  '--max-workers'){
+        if($WorkersOptionSeen){throw '--max-workers cannot be combined with --workers.'}
+        if($i+1  -ge  $raw.Count){throw '--max-workers requires a value.'}
+        $n=0;$i++;if(   -not   [int]::TryParse($raw[$i],[ref]$n)   -or   $n -lt 1 -or $n -gt 256){throw 'Invalid --max-workers value.'}
+        $WorkerMax=$n;$MaxWorkersOptionSeen=$true
         continue
     }
     throw ('Unknown argument: '+$a)
 }
+if($WorkerMode -eq 'adaptive' -and $MaxWorkersOptionSeen -and -not $StartWorkersOptionSeen -and $WorkerStart -gt $WorkerMax){$WorkerStart=$WorkerMax}
+if($WorkerMode -eq 'adaptive' -and $StartWorkersOptionSeen -and -not $MaxWorkersOptionSeen -and $WorkerStart -gt $WorkerMax){$WorkerMax=$WorkerStart}
+if($WorkerStart -gt $WorkerMax){throw '--start-workers cannot exceed --max-workers.'}
+$WorkerSpec=if($WorkerMode -eq 'fixed'){'fixed:'+$WorkerStart}else{'adaptive:'+$WorkerStart+':'+$WorkerMax}
 $RunId=Get-Date -Format 'yyyyMMdd-HHmmss'
 $LogsRoot=Join-Path $ProjectRoot 'logs'
 if(   -not   (Test-Path -LiteralPath $LogsRoot -PathType Container)){[void](New-Item -ItemType Directory -Path $LogsRoot -Force)}
@@ -75,7 +102,9 @@ function Finish-LogsZip{
         ('Run ID: '+$RunId),
         ('Status: '+$Status),
         ('Invocation directory: '+$InvocationDir),
-        ('Workers: '+$Workers),
+        ('Worker mode: '+$WorkerMode),
+        ('Worker start: '+$WorkerStart),
+        ('Worker max: '+$WorkerMax),
         ('Force validation: '+$ForceValidate),
         ('Archives attempted: '+$script:ArchiveResults.Count),
         ('Failures: '+$script:Failures)
@@ -95,7 +124,7 @@ try{
     Write-Line ('Project root: '+$ProjectRoot)
     Write-Line ('Invocation directory: '+$InvocationDir)
     Write-Line ('Logs: '+$RunLogs)
-    Write-Line ('Workers: '+$Workers)
+    Write-Line ('Worker mode: '+$WorkerMode+' start='+$WorkerStart+' max='+$WorkerMax+' logical_cores='+$LogicalCores)
     Write-Line ('Force validation: '+$ForceValidate)
     $components=Join-Path $ProjectRoot 'create_or_update_mvs_database'
     $manifest=Join-Path $RunLogs 'archives.tsv'
@@ -135,7 +164,7 @@ try{
             $path=Join-Path $components $step[0]
             Write-Line ('Starting '+$step[1]+' ...') DarkCyan
             $componentExtra=if($step[1] -eq 'validate' -and $ForceValidate){'force-validate'}else{''}
-            $args=@($ProjectRoot,$archivePath,$DatabaseRoot,$slotRoot,$RunId,[string]$Workers,$RunLogs,$componentExtra)
+            $args=@($ProjectRoot,$archivePath,$DatabaseRoot,$slotRoot,$RunId,$WorkerSpec,$RunLogs,$componentExtra)
             $rc=Invoke-Component $path $args ((Safe-Name $slot)+'_'+$step[0]+'.log')
             if($rc -ne 0){
                 Write-Line (($step[1])+' FAILED for '+$slot+' rc='+$rc) Red
@@ -143,7 +172,7 @@ try{
             }else{Write-Line (($step[1])+' PASS for '+$slot) Green}
         }
         $statePath=Join-Path $components '08_write_database_summary.bat'
-        $stateArgs=@($ProjectRoot,$archivePath,$DatabaseRoot,$slotRoot,$RunId,[string]$Workers,$RunLogs,$status)
+        $stateArgs=@($ProjectRoot,$archivePath,$DatabaseRoot,$slotRoot,$RunId,$WorkerSpec,$RunLogs,$status)
         $stateRc=Invoke-Component $statePath $stateArgs ((Safe-Name $slot)+'_08_write_database_summary.bat.log')
         if($stateRc -ne 0  -and  $status  -eq  'PASS'){$status='FAIL';$script:Failures++;Write-Line ('summary state FAILED for '+$slot+' rc='+$stateRc) Red}
         [void]$script:ArchiveResults.Add([pscustomobject]@{slot=$slot;status=$status;path=$archivePath})

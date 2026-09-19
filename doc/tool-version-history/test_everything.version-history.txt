@@ -1,3 +1,8 @@
+0.2.0 - 2026-09-12
+- Project 0.20.0.
+- Propagates adaptive --start-workers/--max-workers policy and preserves fixed --workers compatibility.
+- Removes redundant remaining=N from suite-test progress.
+
 0.1.5 / project 0.19.3 - 2026-09-11
 - Updates project metadata to 0.19.3; suite orchestration semantics are unchanged.
 

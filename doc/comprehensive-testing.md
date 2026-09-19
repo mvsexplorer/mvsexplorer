@@ -214,3 +214,17 @@ tools now compare literal source markers without PowerShell variable
 interpolation. A new structure assertion verifies that early pipeline test-gate
 failures preserve test-result evidence and explicitly report downstream archive
 work as NOT RUN.
+
+## Project 0.20.0 adaptive-worker/progress regression
+
+Structure scope is 505 assertions and all mode is 1,118 assertions. Three new
+guards require: (1) adaptive snapshot workers with start/max controls plus
+CPU/memory/physical-disk headroom and throughput checks; (2) concise
+`current/total` progress without redundant `remaining=` counters; and (3) a
+semantic maintenance fingerprint that excludes scheduler-only changes while
+allowing only the explicitly accepted 0.19.2/0.19.3 fingerprint migration.
+
+On the established representative real dump, the same three note-dependent
+exact lookups may SKIP, so the expected clean result is 1,115 PASS / 0 FAIL /
+3 SKIP.
+

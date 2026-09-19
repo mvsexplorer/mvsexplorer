@@ -179,3 +179,23 @@ summary checks:
   the processed fingerprint.
 
 Quality warnings are displayed as numeric advisory counts and do not by themselves change PASS health; an error/structural condition still promotes the slot to FAIL.
+
+## 0.20.0 adaptive workers and semantic reuse
+
+`create_or_update_mvs_database.bat` now defaults to the same adaptive snapshot
+worker policy as the full pipeline. Examples:
+
+```bat
+create_or_update_mvs_database.bat
+create_or_update_mvs_database.bat --max-workers 4
+create_or_update_mvs_database.bat --start-workers 2 --max-workers 8
+create_or_update_mvs_database.bat --workers 8
+```
+
+The last form is fixed concurrency for compatibility. Scheduler-only changes no
+longer invalidate committed archive evidence: the maintenance fingerprint
+covers result-producing public tools and fast workers, not the archive sweep
+orchestrator. A one-time guarded migration recognizes the accepted
+0.19.2/0.19.3 aggregate fingerprint and converts it to the unchanged semantic
+fingerprint before reuse decisions.
+

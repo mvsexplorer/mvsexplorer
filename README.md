@@ -1,4 +1,48 @@
-# MVS Explorer Toolkit 0.19.3
+# MVS Explorer Toolkit 0.20.0
+
+## 0.20.0 adaptive archive-sweep concurrency and concise progress
+
+0.20.0 follows the fully successful native 0.19.3 production run: 1,112 PASS /
+0 FAIL / 3 SKIP in `test_all`, all 57 generated-database checks and all 32
+family query tools passed, the 34,822-row archive sweep finished with zero
+FAIL rows, and the final managed database health was PASS.
+
+The archive snapshot sweep now defaults to adaptive concurrency instead of a
+fixed worker count. It starts at `ceil(logical CPUs / 4)` (minimum 1), uses the
+logical CPU count as the default maximum, and evaluates one scale-up step every
+30 seconds. A worker is added only when CPU, physical-memory, and physical-disk
+headroom are all at least 15% and the most recent completed-work throughput has
+not regressed. If any resource metric is unavailable or the throughput check
+does not pass, concurrency is held rather than increased.
+
+New controls are:
+
+```text
+--start-workers N
+--max-workers N
+```
+
+The existing `--workers N` option remains backward compatible and means fixed
+concurrency (`start=max=N`, adaptive scaling disabled). Supplying only
+`--max-workers 4`, for example, safely clamps the automatic starting value to
+4 when needed.
+
+Every adaptive decision is retained in `worker-scaling.tsv` with timestamp,
+active/target workers, CPU/memory/I/O headroom, completed checks, throughput,
+prior throughput, and the scale/hold decision. The full pipeline,
+`test_everything.bat`, and modular create/update workflow propagate the same
+worker policy.
+
+Scheduler/progress changes are not result semantics. Managed database reuse now
+fingerprints the public result-producing tools and fast workers, not the
+`test_all_dumps.bat` scheduler wrapper. A guarded migration recognizes the
+accepted 0.19.2/0.19.3 toolset fingerprint and maps it to the unchanged semantic
+fingerprint, preventing a scheduler-only release from needlessly invalidating
+all 34,822 archived results.
+
+Progress lines are also shorter. Test, suite, database-validation and pipeline
+phase markers now use only `current/total`; the redundant `remaining=N` field
+has been removed.
 
 ## 0.19.3 pipeline-gate test correction
 

@@ -1,3 +1,7 @@
+0.2.0 - 2026-09-12
+- Project 0.20.0.
+- Adds adaptive worker policy propagation and semantic archive-result fingerprint migration.
+
 0.1.3 / project 0.19.3 - 2026-09-11
 - Updates maintenance project metadata for the 0.19.3 test/reporting hotfix; maintenance semantics are unchanged.
 

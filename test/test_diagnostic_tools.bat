@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.11.15"
+set "app.version=0.11.16"
 set "app.name=test_diagnostic_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -10,7 +10,7 @@ set "mvst_mode=diagnostic"
 set "mvst_dump=%~1"
 set "mvst_caller=%~nx0"
 set "mvst_version=%app.version%"
-set "mvst_project_version=0.19.3"
+set "mvst_project_version=0.20.0"
 for %%I in ("%~dp0..") do set "mvst_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSTest"
@@ -106,7 +106,7 @@ $Caller = [string]$env:mvst_caller
 $Version = [string]$env:mvst_version
 $ProjectVersion = [string]$env:mvst_project_version
 $script:ExpectedAssertions = switch ($Mode) {
-    'structure' { 502 }
+    'structure' { 505 }
     'scalar' { 120 }
     'lookup' { 24 }
     'diagnostic' { 46 }
@@ -114,7 +114,7 @@ $script:ExpectedAssertions = switch ($Mode) {
     'single_dump' { 167 }
     'compare' { 39 }
     'history' { 65 }
-    'all' { 1115 }
+    'all' { 1118 }
     default { 0 }
 }
 
@@ -227,8 +227,7 @@ function Add-Result {
 function Get-TestProgressPrefix {
     $total=[int]$script:ExpectedAssertions
     $current=[int]$script:CaseIndex
-    $remaining=if($total-gt0){[Math]::Max(0,$total-$current)}else{0}
-    return ('[MVS '+$ProjectVersion+'] [TEST '+$current+'/'+$total+' | remaining='+$remaining+']')
+    return ('[MVS '+$ProjectVersion+'] [TEST '+$current+'/'+$total+']')
 }
 
 function Write-Pass {
@@ -1129,6 +1128,25 @@ function Test-Structure {
         Write-Fail 'archive sweep reports paired start/completion progress with durations' 'test_all_dumps.bat missing'
     }
 
+    if (Test-Path -LiteralPath $archiveSweepPath -PathType Leaf) {
+        if ($archiveSweepText.Contains('--start-workers') -and
+            $archiveSweepText.Contains('--max-workers') -and
+            $archiveSweepText.Contains('Get-SystemHeadroom') -and
+            $archiveSweepText.Contains('Win32_Processor') -and
+            $archiveSweepText.Contains('Win32_OperatingSystem') -and
+            $archiveSweepText.Contains('Win32_PerfFormattedData_PerfDisk_PhysicalDisk') -and
+            $archiveSweepText.Contains('$ScaleIntervalSeconds = 30') -and
+            $archiveSweepText.Contains('$HeadroomThresholdPercent = 15.0') -and
+            $archiveSweepText.Contains('hold:throughput-regressed') -and
+            $archiveSweepText.Contains('worker-scaling.tsv')) {
+            Write-Pass 'archive sweep adaptively scales workers from CPU memory IO headroom plus non-regressing throughput'
+        } else {
+            Write-Fail 'archive sweep adaptive worker controller' 'start/max worker options or CPU/memory/IO/throughput scaling markers missing'
+        }
+    } else {
+        Write-Fail 'archive sweep adaptive worker controller' 'test_all_dumps.bat missing'
+    }
+
     $everythingPath = Join-Path $Root 'test\test_everything.bat'
     if (Test-Path -LiteralPath $everythingPath -PathType Leaf) {
         $everythingText = [IO.File]::ReadAllText($everythingPath,[Text.Encoding]::UTF8)
@@ -1139,6 +1157,26 @@ function Test-Structure {
         }
     } else {
         Write-Fail 'comprehensive suite uses concise archive plan preflight' 'test_everything.bat missing'
+    }
+
+    $progressFiles=@(
+        (Join-Path $Root 'test\test_all.bat'),
+        (Join-Path $Root 'test\test_everything.bat'),
+        (Join-Path $Root 'test\test_generated_databases.bat'),
+        (Join-Path $Root 'all_test_then_all_database_then_test_database_and_all_tools.bat')
+    )
+    $progressOk=$true
+    $legacyRemainingA='| '+'remaining='
+    $legacyRemainingB=' remaining='+'0]'
+    foreach($progressFile in $progressFiles){
+        if(-not(Test-Path -LiteralPath $progressFile -PathType Leaf)){$progressOk=$false;break}
+        $progressText=[IO.File]::ReadAllText($progressFile,[Text.Encoding]::UTF8)
+        if($progressText.Contains($legacyRemainingA) -or $progressText.Contains($legacyRemainingB)){$progressOk=$false;break}
+    }
+    if($progressOk){
+        Write-Pass 'test suite progress uses current/total without redundant remaining counters'
+    }else{
+        Write-Fail 'test suite progress uses current/total without redundant remaining counters' 'legacy remaining counter marker found in test/suite/database/pipeline progress'
     }
 
     $familyQueryPath = Join-Path $ToolsRoot 'print_mvs_product_families_from_hash.bat'
@@ -1248,6 +1286,17 @@ function Test-Structure {
         Write-Pass 'modular database maintenance uses content-safe reuse, centralized zipped logs, health summary and timestamped root HTML'
     } else {
         Write-Fail 'modular database maintenance contract' ($maintenanceProblems -join '; ')
+    }
+
+    if ($prepareText.Contains('Test-LegacyToolsetCompatibility') -and
+        $prepareText.Contains('0e4b3684c228141691369687dca9fba6d9a4abcfd8170e81650f056aaeb2a4ee') -and
+        $prepareText.Contains('f6cda38a68f276386a136cd43518c67f917732405875b8148c0611d255784bde') -and
+        $prepareText.Contains('scheduler-only changes do not invalidate archive evidence') -and
+        $prepareText.Contains('orchestrator itself is deliberately excluded') -and
+        -not $prepareText.Contains("foreach(`$relative in @('test\test_all_dumps.bat'")) {
+        Write-Pass 'maintenance result fingerprint excludes scheduler-only changes and migrates the accepted 0.19.2/0.19.3 fingerprint safely'
+    } else {
+        Write-Fail 'maintenance semantic toolset fingerprint migration' 'scheduler exclusion or accepted legacy-to-semantic fingerprint migration markers missing'
     }
 
     if ($maintenanceText.Contains('mvscu_project_version') -and

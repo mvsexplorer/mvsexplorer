@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Generate the modular create/update database workflow and summary launcher.
 
-Version: 0.1.3
+Version: 0.2.0
 """
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 DEV=ROOT/"dev"
 OUT=ROOT/"create_or_update_mvs_database"
-TOOL_VERSION="0.1.3"
-PROJECT_VERSION="0.19.3"
+TOOL_VERSION="0.2.0"
+PROJECT_VERSION="0.20.0"
 
 def read(path):
     return path.read_text(encoding="utf-8").replace("\r\n","\n").rstrip()

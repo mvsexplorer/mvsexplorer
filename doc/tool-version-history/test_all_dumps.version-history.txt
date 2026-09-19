@@ -1,3 +1,9 @@
+0.5.0 - 2026-09-12
+- Replaces the fixed default snapshot worker count with adaptive start/max concurrency.
+- Default start is ceil(logical CPUs / 4), minimum 1; default maximum is logical CPUs.
+- Adds --start-workers and --max-workers while preserving --workers N as fixed mode.
+- Adds 30-second CPU/memory/physical-disk headroom and throughput-gated scale-up plus worker-scaling.tsv evidence.
+
 0.4.6 - 2026-09-06
   - Replaces banner-only snapshot/compare output with paired Starting/Completed lines.
   - Completion lines include elapsed seconds and the cumulative logical status counters.

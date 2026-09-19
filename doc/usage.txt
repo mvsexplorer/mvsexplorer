@@ -291,3 +291,20 @@ Both browser surfaces use the compact product-family database and preserve the
 same broad-family -> product-family -> release -> exact-title hierarchy and
 conservative product-backed file/hash evidence rules.
 
+ADAPTIVE ARCHIVE WORKERS (0.20.0)
+---------------------------------
+Default snapshot-worker policy:
+  start = ceil(logical CPU count / 4), minimum 1
+  max   = logical CPU count
+  scale = +1 after a 30-second observation only when CPU, memory and disk
+          headroom are each at least 15% and recent throughput did not regress
+
+Examples:
+  test\test_all_dumps.bat ARCHIVE RESULTS --max-workers 4
+  test\test_all_dumps.bat ARCHIVE RESULTS --start-workers 2 --max-workers 8
+  all_test_then_all_database_then_test_database_and_all_tools.bat --max-workers 4
+  create_or_update_mvs_database.bat --start-workers 2 --max-workers 8
+
+Backward-compatible fixed mode:
+  --workers N
+

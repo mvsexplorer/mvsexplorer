@@ -251,3 +251,24 @@ HTML uses an in-memory content-hash seen set.
 phase timings per snapshot. Total builder time minus the sum of snapshot totals
 also exposes final all-ever/retention serialization cost.
 
+## 0.20.0 resource-aware snapshot concurrency
+
+The snapshot phase now treats worker count as a feedback-control problem rather
+than a fixed machine constant. Adaptive mode starts at one quarter of logical
+processors (rounded up), samples system headroom every 30 seconds, and adds at
+most one worker when CPU, free physical memory, and physical-disk idle
+percentages are each at least 15% and recent completed-check throughput has not
+regressed.
+
+This is intentionally conservative. It does not infer spare I/O capacity when
+disk telemetry is unavailable, and it does not extrapolate worker suitability
+from logical-core count alone. `worker-scaling.tsv` makes each scale/hold
+decision auditable.
+
+The controller currently governs only independently executable snapshot
+batches. Compare work remains serial because each batch is already short, while
+the archive-wide, full-family, and compact-family builders remain
+single-process. Their native 0.19.3 elapsed times make them separate future
+parallelization/streaming targets rather than reasons to overstate what the
+snapshot worker controller can improve.
+

@@ -29,7 +29,13 @@ $script:ArchiveDatabase = ''
 $script:FamilyDatabase = ''
 $script:CompactDatabase = ''
 $StrictPerformance = $false
-$Workers = [Math]::Min(8,[Math]::Max(1,[Environment]::ProcessorCount))
+$LogicalCores = [Math]::Max(1,[Environment]::ProcessorCount)
+$WorkerStart = [Math]::Max(1,[int][Math]::Ceiling($LogicalCores / 4.0))
+$WorkerMax = $LogicalCores
+$WorkerMode = 'adaptive'
+$WorkersOptionSeen = $false
+$StartWorkersOptionSeen = $false
+$MaxWorkersOptionSeen = $false
 $ArchiveInput = ''
 $OutputInput = ''
 $ResumeMode = $false
@@ -104,13 +110,18 @@ function Clean-Tsv {
 }
 function Show-Usage {
     Write-Console ('MVS Explorer Toolkit all-test/database/all-tools pipeline '+$ProjectVersion)
-    Write-Console ('Usage: '+$Caller+' [mvs-dumps-root] [--workers N] [--output-root DIR] [--strict-performance]')
+    Write-Console ('Usage: '+$Caller+' [mvs-dumps-root] [--start-workers N] [--max-workers N] [--workers N] [--output-root DIR] [--strict-performance]')
     Write-Console ('       '+$Caller+' [mvs-dumps-root] --resume-built ARCHIVE_DB FAMILY_DB COMPACT_DB [--resume-test-results DIR] [--output-root DIR]')
     Write-Console ('Default archive: '+(Join-Path (Split-Path -Parent $ProjectRoot) 'mvs_dumps_archive'))
     Write-Console ('Default output root: '+(Split-Path -Parent $ProjectRoot))
+    Write-Console ('Default worker policy: adaptive, start=ceil(logical CPUs / 4), max=logical CPUs. --workers N retains fixed-concurrency compatibility.')
     Write-Console 'Runs all tests first. Database generation starts only after the test gate passes.'
     Write-Console 'Creates archive-analysis, full family, and compact family databases; validates them; runs all family query tools; zips outputs and hardlinks the ZIPs into the invocation directory.'
     Write-Console 'Resume mode reuses already-built databases, revalidates them, runs all 32 family query tools, then performs ZIP/log/hardlink packaging without rebuilding.'
+}
+function Get-WorkerArguments {
+    if($WorkerMode -eq 'fixed'){return @('--workers',[string]$WorkerStart)}
+    return @('--start-workers',[string]$WorkerStart,'--max-workers',[string]$WorkerMax)
 }
 function Resolve-FullPath {
     param([string]$Value,[string]$Base)
@@ -129,10 +140,9 @@ function New-UniquePath {
 function Begin-Phase {
     param([string]$Name)
     $script:PhaseIndex++
-    $remaining=$PhaseTotal-$script:PhaseIndex
     Write-Log ''
     Write-Log ('================================================================================')
-    Write-Log ('[PROJECT '+$ProjectVersion+'] [PHASE '+$script:PhaseIndex+'/'+$PhaseTotal+' | remaining='+$remaining+'] '+$Name)
+    Write-Log ('[PROJECT '+$ProjectVersion+'] [PHASE '+$script:PhaseIndex+'/'+$PhaseTotal+'] '+$Name)
     Write-Log ('Started: '+(Get-Date).ToString('o'))
     return [Diagnostics.Stopwatch]::StartNew()
 }
@@ -415,9 +425,22 @@ for($i=0;$i-lt$args.Count;$i++){
     $a=[string]$args[$i]
     if(@('--help','-h','-?','/h','/?')-contains$a){Show-Usage;exit 0}
     if($a-eq'--workers'){
+        if($StartWorkersOptionSeen -or $MaxWorkersOptionSeen){Write-Console 'ERROR: --workers cannot be combined with --start-workers/--max-workers';exit 2}
         $i++;if($i-ge$args.Count){Write-Console 'ERROR: --workers requires a value';exit 2}
-        $n=0;if(-not[int]::TryParse([string]$args[$i],[ref]$n)-or$n-lt1-or$n-gt32){Write-Console 'ERROR: --workers must be 1..32';exit 2}
-        $Workers=$n;continue
+        $n=0;if(-not[int]::TryParse([string]$args[$i],[ref]$n)-or$n-lt1-or$n-gt256){Write-Console 'ERROR: --workers must be 1..256';exit 2}
+        $WorkerStart=$n;$WorkerMax=$n;$WorkerMode='fixed';$WorkersOptionSeen=$true;continue
+    }
+    if($a-eq'--start-workers'){
+        if($WorkersOptionSeen){Write-Console 'ERROR: --start-workers cannot be combined with --workers';exit 2}
+        $i++;if($i-ge$args.Count){Write-Console 'ERROR: --start-workers requires a value';exit 2}
+        $n=0;if(-not[int]::TryParse([string]$args[$i],[ref]$n)-or$n-lt1-or$n-gt256){Write-Console 'ERROR: --start-workers must be 1..256';exit 2}
+        $WorkerStart=$n;$StartWorkersOptionSeen=$true;continue
+    }
+    if($a-eq'--max-workers'){
+        if($WorkersOptionSeen){Write-Console 'ERROR: --max-workers cannot be combined with --workers';exit 2}
+        $i++;if($i-ge$args.Count){Write-Console 'ERROR: --max-workers requires a value';exit 2}
+        $n=0;if(-not[int]::TryParse([string]$args[$i],[ref]$n)-or$n-lt1-or$n-gt256){Write-Console 'ERROR: --max-workers must be 1..256';exit 2}
+        $WorkerMax=$n;$MaxWorkersOptionSeen=$true;continue
     }
     if($a-eq'--output-root'){
         $i++;if($i-ge$args.Count){Write-Console 'ERROR: --output-root requires a directory';exit 2}
@@ -443,6 +466,9 @@ for($i=0;$i-lt$args.Count;$i++){
     $ArchiveInput=$a
 }
 
+if($WorkerMode -eq 'adaptive' -and $MaxWorkersOptionSeen -and -not $StartWorkersOptionSeen -and $WorkerStart -gt $WorkerMax){$WorkerStart=$WorkerMax}
+if($WorkerMode -eq 'adaptive' -and $StartWorkersOptionSeen -and -not $MaxWorkersOptionSeen -and $WorkerStart -gt $WorkerMax){$WorkerMax=$WorkerStart}
+if($WorkerStart -gt $WorkerMax){Write-Console 'ERROR: --start-workers cannot exceed --max-workers';exit 2}
 $ParentRoot=Split-Path -Parent $ProjectRoot
 if([string]::IsNullOrWhiteSpace($ArchiveInput)){$ArchiveInput=Join-Path $ParentRoot 'mvs_dumps_archive'}
 $ArchiveRoot=Resolve-FullPath $ArchiveInput $InvocationDirectory
@@ -506,7 +532,7 @@ try{
     Write-Log ('Archive: '+$ArchiveRoot)
     Write-Log ('Output root: '+$OutputRoot)
     Write-Log ('Invocation directory: '+$InvocationDirectory)
-    Write-Log ('Workers: '+$Workers)
+    Write-Log ('Worker mode: '+$WorkerMode+' start='+$WorkerStart+' max='+$WorkerMax+' logical_cores='+$LogicalCores)
     Write-Log ('Strict performance: '+$StrictPerformance)
     Write-Log ('Resume existing databases: '+$ResumeMode)
     if($ResumeMode){
@@ -547,7 +573,7 @@ try{
     }else{
         $testParent=Join-Path $ProjectRoot 'test'
         $beforeTests=@(Get-ChildItem -LiteralPath $testParent -Directory -Filter 'test-results-*' -ErrorAction SilentlyContinue|ForEach-Object{$_.FullName})
-        $testArgs=@($ArchiveRoot,'--workers',[string]$Workers)
+        $testArgs=@($ArchiveRoot)+@(Get-WorkerArguments)
         if($StrictPerformance){$testArgs+=@('--strict-performance')}
         try{
             Invoke-ChildPhase 'ALL TESTS' $testEverything $testArgs
@@ -556,7 +582,8 @@ try{
         }
         if([string]::IsNullOrWhiteSpace($testResults)){throw 'Could not locate test_all result folder after test gate.'}
 
-        Invoke-ChildPhase 'BUILD ARCHIVE ANALYSIS DATABASE (34,822 logical archive checks on current known archive)' $sweep @($ArchiveRoot,$ArchiveDatabase,'--workers',[string]$Workers,'--no-cache')
+        $archiveBuildArgs=@($ArchiveRoot,$ArchiveDatabase)+@(Get-WorkerArguments)+@('--no-cache')
+        Invoke-ChildPhase 'BUILD ARCHIVE ANALYSIS DATABASE (34,822 logical archive checks on current known archive)' $sweep $archiveBuildArgs
 
         $qualityArgs=@($ArchiveDatabase)
         if($StrictPerformance){$qualityArgs+=@('--strict-performance')}

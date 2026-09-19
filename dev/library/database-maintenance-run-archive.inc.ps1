@@ -17,7 +17,8 @@ if(([int]$state.pending_checks -eq 0) -and ([bool]$state.archive_reused) -and (T
 }
 $sweep=Join-Path $ProjectRoot 'test\test_all_dumps.bat'
 $cache=Join-Path $SlotRoot 'cache'
-Invoke-BatChecked $sweep @($ArchiveRoot,$staging,'--resume','--workers',[string]$Workers,'--cache-folder',$cache) 'archive analysis update'
+$workerArgs=if($WorkerMode -eq 'fixed'){@('--workers',[string]$WorkerStart)}else{@('--start-workers',[string]$WorkerStart,'--max-workers',[string]$WorkerMax)}
+Invoke-BatChecked $sweep (@($ArchiveRoot,$staging,'--resume')+@($workerArgs)+@('--cache-folder',$cache)) 'archive analysis update'
 $quality=Join-Path $ProjectRoot 'test\check_archive_sweep_quality.bat'
 Invoke-BatChecked $quality @($staging) 'archive quality validation'
 Swap-Directory $staging $current

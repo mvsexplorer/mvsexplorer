@@ -6,8 +6,20 @@ $ArchiveRoot=[IO.Path]::GetFullPath([string]$env:mvsdbm_arg2)
 $DatabaseRoot=[IO.Path]::GetFullPath([string]$env:mvsdbm_arg3)
 $SlotRoot=[IO.Path]::GetFullPath([string]$env:mvsdbm_arg4)
 $RunId=[string]$env:mvsdbm_arg5
-$Workers=8
-if(   -not    [int]::TryParse([string]$env:mvsdbm_arg6,[ref]$Workers)    -or    $Workers  -lt   1){$Workers=8}
+$WorkerSpec=[string]$env:mvsdbm_arg6
+$LogicalCores=[Math]::Max(1,[Environment]::ProcessorCount)
+$WorkerStart=[Math]::Max(1,[int][Math]::Ceiling($LogicalCores/4.0))
+$WorkerMax=$LogicalCores
+$WorkerMode='adaptive'
+if($WorkerSpec -match '^fixed:(?<n>\d+)$'){
+    $WorkerStart=[int]$Matches.n;$WorkerMax=$WorkerStart;$WorkerMode='fixed'
+}elseif($WorkerSpec -match '^adaptive:(?<start>\d+):(?<max>\d+)$'){
+    $WorkerStart=[int]$Matches.start;$WorkerMax=[int]$Matches.max;$WorkerMode='adaptive'
+}else{
+    $legacy=0
+    if([int]::TryParse($WorkerSpec,[ref]$legacy) -and $legacy -gt 0){$WorkerStart=$legacy;$WorkerMax=$legacy;$WorkerMode='fixed'}
+}
+if($WorkerStart -lt 1 -or $WorkerMax -lt 1 -or $WorkerStart -gt $WorkerMax){throw ('Invalid worker specification: '+$WorkerSpec)}
 $RunLogs=[IO.Path]::GetFullPath([string]$env:mvsdbm_arg7)
 $Extra=[string]$env:mvsdbm_arg8
 $ToolVersion=[string]$env:mvsdbm_version
@@ -72,7 +84,9 @@ function Get-ToolsetFingerprint {
             [void]$paths.Add($file)
         }
     }
-    foreach($relative in @('test\test_all_dumps.bat','test\fast\run_snapshot_tools_fast.bat','test\fast\run_compare_tools_fast.bat','test\fast\run_archive_tools_fast.bat')){
+    # The archive sweep orchestrator itself is deliberately excluded: scheduling,
+    # progress text, and worker-policy changes do not change logical result semantics.
+    foreach($relative in @('test\fast\run_snapshot_tools_fast.bat','test\fast\run_compare_tools_fast.bat','test\fast\run_archive_tools_fast.bat')){
         $path=Join-Path $Root $relative
         if(Test-Path -LiteralPath $path -PathType Leaf){[void]$paths.Add((Get-Item -LiteralPath $path))}
     }
@@ -82,6 +96,15 @@ function Get-ToolsetFingerprint {
         [void]$rows.Add(($relative+'='+(Get-Sha256File $file.FullName)))
     }
     return Get-Sha256Text (($rows -join "`n")+"`n")
+}
+function Test-LegacyToolsetCompatibility {
+    param([string]$OldFingerprint,[string]$NewFingerprint)
+    # 0.19.2/0.19.3 used a v1 aggregate that also hashed test_all_dumps.bat.
+    # Its processing workers and public result-producing tools are byte-identical
+    # to the v2 semantic fingerprint below, so this one-time migration is safe.
+    $legacyV1='0e4b3684c228141691369687dca9fba6d9a4abcfd8170e81650f056aaeb2a4ee'
+    $semanticV2='f6cda38a68f276386a136cd43518c67f917732405875b8148c0611d255784bde'
+    return [StringComparer]::Ordinal.Equals($OldFingerprint,$legacyV1) -and [StringComparer]::Ordinal.Equals($NewFingerprint,$semanticV2)
 }
 
 function Plan-Key {

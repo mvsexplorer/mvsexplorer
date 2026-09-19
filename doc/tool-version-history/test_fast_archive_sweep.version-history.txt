@@ -1,3 +1,6 @@
+0.4.5 - 2026-09-12
+- Updates project label to 0.20.0 and removes redundant remaining counters from its three acceptance assertions.
+
 0.4.4 / project 0.16.4
 - Regenerated with project 0.16.4 metadata; the three synthetic fast-archive acceptance assertions are unchanged.
 

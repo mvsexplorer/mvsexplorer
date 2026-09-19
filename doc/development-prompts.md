@@ -1739,3 +1739,21 @@ than a timestamp rule: unchanged SHA-256 fingerprints plus compatible toolset
 and complete valid terminal plan/run rows are reusable. Faulty, incomplete,
 changed, or incompatible snapshots are rerun as whole snapshot batches.
 
+## Prompt 22 — concise progress and adaptive workers
+
+The user supplied a fully successful native 0.19.3 production run and requested
+two follow-up changes:
+
+- progress such as `[TEST 484/1115 | remaining=631]` should not print both
+  current/total and the redundant remaining count; and
+- worker concurrency should become adaptive instead of relying on one fixed
+  amount. The requested policy is to observe CPU, memory and I/O usage for
+  roughly 30 seconds, add one worker when at least about 15% headroom remains
+  and performance has not dropped, continue cautiously up to a configurable
+  ceiling, default that ceiling to the logical CPU count, and provide an
+  explicit starting-worker control whose default is one quarter of logical
+  CPUs with a minimum of one.
+
+The implementation preserves `--workers N` as fixed-mode backward
+compatibility and adds `--start-workers N` / `--max-workers N`.
+

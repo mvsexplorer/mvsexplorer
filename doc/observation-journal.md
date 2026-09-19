@@ -605,3 +605,29 @@ need a few fields for browsing. Deduplicated strings grouped by product title
 provide a substantially smaller PowerShell object graph than one PSCustomObject
 per row, while still retaining every exposed filename, algorithm and hash.
 
+### Fixed worker counts hide machine and workload differences
+
+The native 0.19.3 archive sweep used eight workers throughout. Snapshot wall
+times grew from about one minute in early dumps to more than five minutes for
+some later dumps, while compare batches remained sub-second and the archive
+builder was single-process. Snapshot size growth is a confounder, so these
+timings do not justify a simplistic claim that eight workers caused slowdown.
+They do justify replacing a universal fixed default with measured resource
+headroom and throughput feedback.
+
+### Scheduler bytes are not result semantics
+
+`test_all_dumps.bat` owns orchestration, progress, and concurrency. A change in
+those concerns should not invalidate already accepted logical rows when the
+public result-producing tools and fast worker implementations are unchanged.
+The maintenance fingerprint should therefore follow semantic producers rather
+than the scheduler wrapper. Legacy-fingerprint migration must still be exact
+and enumerated; compatibility cannot be inferred from version labels alone.
+
+### Missing performance telemetry should reduce ambition
+
+Adaptive scaling is allowed only when CPU, memory, and physical-disk headroom
+are all observable. Treating a failed performance counter as spare capacity
+would make the controller least safe on the systems where telemetry is least
+reliable.
+
