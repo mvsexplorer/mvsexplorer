@@ -65,3 +65,23 @@ Every failure was the same no-result lookup return-code issue: empty output was 
 Version 0.5.0 changes these nonzero contract paths to explicit process-level exits.
 
 The same run demonstrated that a full-suite console transcript is too large to rely on scrollback. Test scripts now create timestamped result bundles containing persistent console, summary, environment, TSV assertion, and failure-artifact files.
+
+
+## 2026-08-27 — 0.5.0 external Windows result bundle
+
+The user supplied the actual timestamped 0.5.0 result archive from Windows PowerShell 5.1 / Windows 10 build 19045.
+
+The bundle contains 272 assertions:
+
+```text
+128 structure PASS
+120 scalar PASS
+17 lookup PASS
+7 lookup FAIL
+```
+
+The seven failures are still exclusively the deliberate no-match return-code tests. Their expected/actual/stderr files are all empty; only expected `1` versus actual `0` differs.
+
+The 0.5.0 result retention design is therefore validated, while its return-code fix is not.
+
+Version 0.6.0 removes the indirect nonzero return carrier from `:RunPowerShellFromLabel` and returns the captured PowerShell process code directly. It also adds an explicit top-level nonzero `exit /b` before the normal `GoTo :EOF`.

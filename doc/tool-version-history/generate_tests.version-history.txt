@@ -1,5 +1,9 @@
 Tool Version History: dev\generate_tests.py
 
+0.3.0 - 2026-08-27
+  - Regenerated test tools with direct PowerShell child-process return
+    propagation and explicit top-level nonzero return.
+
 0.2.0 - 2026-08-27
   - Regenerated tests with timestamped result-bundle support.
   - Injected console/TSV/summary/run-info/failure-artifact persistence.

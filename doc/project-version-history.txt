@@ -1,5 +1,21 @@
 MVS Explorer Toolkit Project Version History
 
+0.6.0 - 2026-08-27
+  - Reviewed the attached 0.5.0 Windows timestamped result bundle.
+  - Confirmed 128 structure passes, 120 scalar passes, 17 lookup passes,
+    and the same 7 lookup no-match return-code failures.
+  - Confirmed all seven failure stdout/expected/stderr streams are empty;
+    only expected return code 1 versus actual 0 differs.
+  - Reworked :RunPowerShellFromLabel 1.2.0 to return the captured
+    powershell.exe exit code directly.
+  - Removed the _rps_rc re-entry return carrier from that bridge.
+  - Added an explicit top-level nonzero exit /b before normal GoTo :EOF.
+  - Kept the explicit PowerShell process-level no-match exit.
+  - Regenerated all public and test batch files.
+  - Added doc\test-run-analysis-0.5.0.md.
+  - Updated development directives, style addendum, PowerShell guide,
+    diary, observation journal, prompt record, and histories.
+
 0.5.0 - 2026-08-27
   - Analyzed the supplied Windows 0.4.0 run against mvs_2021-01-12-1901:
     265 passed, 7 failed, 0 skipped.

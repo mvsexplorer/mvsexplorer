@@ -363,3 +363,303 @@ The user's requested test-output change was:
 ```text
 These test should create test results files we can observed, all in one test\test-results-datestamp-timestamp folder
 ```
+
+## Prompt 8
+
+```text
+OK here are the results
+
+```
+
+```text
+C:\Users\user\Downloads\MVS-Explorer-Toolkit-0.5.0>test\test_all.bat ..\mvs_dumps_archive\mvs_2020-08-14
+Test results: C:\Users\user\Downloads\MVS-Explorer-Toolkit-0.5.0\test\test-results-20260827-111852
+Dump: C:\Users\user\Downloads\mvs_dumps_archive\mvs_2020-08-14
+Products parsed for expectations: 1961
+=== Structure tests ===
+[PASS] root public .bat count = 127
+[PASS] standalone print_mvs_dump_id.bat
+[PASS] standalone print_mvs_dump_id_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_id_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_id_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_id.bat
+[PASS] standalone read_mvs_dump_id_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_id_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_id_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_id_title.bat
+[PASS] standalone print_mvs_dump_id_title_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_id_title_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_id_title_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_id_title.bat
+[PASS] standalone read_mvs_dump_id_title_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_id_title_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_id_title_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_id_date.bat
+[PASS] standalone print_mvs_dump_id_date_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_id_date_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_id_date_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_id_date.bat
+[PASS] standalone read_mvs_dump_id_date_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_id_date_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_id_date_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_id_note.bat
+[PASS] standalone print_mvs_dump_id_note_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_id_note_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_id_note_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_id_note.bat
+[PASS] standalone read_mvs_dump_id_note_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_id_note_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_id_note_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_id_title_date.bat
+[PASS] standalone print_mvs_dump_id_title_date_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_id_title_date_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_id_title_date_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_id_title_date.bat
+[PASS] standalone read_mvs_dump_id_title_date_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_id_title_date_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_id_title_date_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_id_title_note.bat
+[PASS] standalone print_mvs_dump_id_title_note_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_id_title_note_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_id_title_note_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_id_title_note.bat
+[PASS] standalone read_mvs_dump_id_title_note_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_id_title_note_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_id_title_note_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_id_title_date_note.bat
+[PASS] standalone print_mvs_dump_id_title_date_note_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_id_title_date_note_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_id_title_date_note_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_id_title_date_note.bat
+[PASS] standalone read_mvs_dump_id_title_date_note_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_id_title_date_note_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_id_title_date_note_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_title.bat
+[PASS] standalone print_mvs_dump_title_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_title_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_title_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_title.bat
+[PASS] standalone read_mvs_dump_title_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_title_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_title_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_title_date.bat
+[PASS] standalone print_mvs_dump_title_date_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_title_date_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_title_date_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_title_date.bat
+[PASS] standalone read_mvs_dump_title_date_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_title_date_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_title_date_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_title_note.bat
+[PASS] standalone print_mvs_dump_title_note_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_title_note_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_title_note_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_title_note.bat
+[PASS] standalone read_mvs_dump_title_note_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_title_note_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_title_note_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_title_date_note.bat
+[PASS] standalone print_mvs_dump_title_date_note_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_title_date_note_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_title_date_note_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_title_date_note.bat
+[PASS] standalone read_mvs_dump_title_date_note_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_title_date_note_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_title_date_note_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_date.bat
+[PASS] standalone print_mvs_dump_date_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_date_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_date_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_date.bat
+[PASS] standalone read_mvs_dump_date_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_date_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_date_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_note.bat
+[PASS] standalone print_mvs_dump_note_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_note_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_note_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_note.bat
+[PASS] standalone read_mvs_dump_note_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_note_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_note_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_date_note.bat
+[PASS] standalone print_mvs_dump_date_note_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_date_note_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_date_note_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_date_note.bat
+[PASS] standalone read_mvs_dump_date_note_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_date_note_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_date_note_sorted_by_date.bat
+[PASS] standalone print_mvs_dump_id_date_note.bat
+[PASS] standalone print_mvs_dump_id_date_note_sorted_by_id.bat
+[PASS] standalone print_mvs_dump_id_date_note_sorted_by_title.bat
+[PASS] standalone print_mvs_dump_id_date_note_sorted_by_date.bat
+[PASS] standalone read_mvs_dump_id_date_note.bat
+[PASS] standalone read_mvs_dump_id_date_note_sorted_by_id.bat
+[PASS] standalone read_mvs_dump_id_date_note_sorted_by_title.bat
+[PASS] standalone read_mvs_dump_id_date_note_sorted_by_date.bat
+[PASS] standalone lookup_mvs_title_from_id.bat
+[PASS] standalone lookup_mvs_title_from_date.bat
+[PASS] standalone lookup_mvs_note_from_id.bat
+[PASS] standalone lookup_mvs_note_from_title.bat
+[PASS] standalone lookup_mvs_note_from_date.bat
+[PASS] standalone lookup_mvs_date_from_id.bat
+[PASS] standalone lookup_mvs_date_from_title.bat
+=== Scalar tool tests ===
+[PASS] print_mvs_dump_id
+[PASS] print_mvs_dump_id_sorted_by_id
+[PASS] print_mvs_dump_id_sorted_by_title
+[PASS] print_mvs_dump_id_sorted_by_date
+[PASS] read_mvs_dump_id
+[PASS] read_mvs_dump_id_sorted_by_id
+[PASS] read_mvs_dump_id_sorted_by_title
+[PASS] read_mvs_dump_id_sorted_by_date
+[PASS] print_mvs_dump_id_title
+[PASS] print_mvs_dump_id_title_sorted_by_id
+[PASS] print_mvs_dump_id_title_sorted_by_title
+[PASS] print_mvs_dump_id_title_sorted_by_date
+[PASS] read_mvs_dump_id_title
+[PASS] read_mvs_dump_id_title_sorted_by_id
+[PASS] read_mvs_dump_id_title_sorted_by_title
+[PASS] read_mvs_dump_id_title_sorted_by_date
+[PASS] print_mvs_dump_id_date
+[PASS] print_mvs_dump_id_date_sorted_by_id
+[PASS] print_mvs_dump_id_date_sorted_by_title
+[PASS] print_mvs_dump_id_date_sorted_by_date
+[PASS] read_mvs_dump_id_date
+[PASS] read_mvs_dump_id_date_sorted_by_id
+[PASS] read_mvs_dump_id_date_sorted_by_title
+[PASS] read_mvs_dump_id_date_sorted_by_date
+[PASS] print_mvs_dump_id_note
+[PASS] print_mvs_dump_id_note_sorted_by_id
+[PASS] print_mvs_dump_id_note_sorted_by_title
+[PASS] print_mvs_dump_id_note_sorted_by_date
+[PASS] read_mvs_dump_id_note
+[PASS] read_mvs_dump_id_note_sorted_by_id
+[PASS] read_mvs_dump_id_note_sorted_by_title
+[PASS] read_mvs_dump_id_note_sorted_by_date
+[PASS] print_mvs_dump_id_title_date
+[PASS] print_mvs_dump_id_title_date_sorted_by_id
+[PASS] print_mvs_dump_id_title_date_sorted_by_title
+[PASS] print_mvs_dump_id_title_date_sorted_by_date
+[PASS] read_mvs_dump_id_title_date
+[PASS] read_mvs_dump_id_title_date_sorted_by_id
+[PASS] read_mvs_dump_id_title_date_sorted_by_title
+[PASS] read_mvs_dump_id_title_date_sorted_by_date
+[PASS] print_mvs_dump_id_title_note
+[PASS] print_mvs_dump_id_title_note_sorted_by_id
+[PASS] print_mvs_dump_id_title_note_sorted_by_title
+[PASS] print_mvs_dump_id_title_note_sorted_by_date
+[PASS] read_mvs_dump_id_title_note
+[PASS] read_mvs_dump_id_title_note_sorted_by_id
+[PASS] read_mvs_dump_id_title_note_sorted_by_title
+[PASS] read_mvs_dump_id_title_note_sorted_by_date
+[PASS] print_mvs_dump_id_title_date_note
+[PASS] print_mvs_dump_id_title_date_note_sorted_by_id
+[PASS] print_mvs_dump_id_title_date_note_sorted_by_title
+[PASS] print_mvs_dump_id_title_date_note_sorted_by_date
+[PASS] read_mvs_dump_id_title_date_note
+[PASS] read_mvs_dump_id_title_date_note_sorted_by_id
+[PASS] read_mvs_dump_id_title_date_note_sorted_by_title
+[PASS] read_mvs_dump_id_title_date_note_sorted_by_date
+[PASS] print_mvs_dump_title
+[PASS] print_mvs_dump_title_sorted_by_id
+[PASS] print_mvs_dump_title_sorted_by_title
+[PASS] print_mvs_dump_title_sorted_by_date
+[PASS] read_mvs_dump_title
+[PASS] read_mvs_dump_title_sorted_by_id
+[PASS] read_mvs_dump_title_sorted_by_title
+[PASS] read_mvs_dump_title_sorted_by_date
+[PASS] print_mvs_dump_title_date
+[PASS] print_mvs_dump_title_date_sorted_by_id
+[PASS] print_mvs_dump_title_date_sorted_by_title
+[PASS] print_mvs_dump_title_date_sorted_by_date
+[PASS] read_mvs_dump_title_date
+[PASS] read_mvs_dump_title_date_sorted_by_id
+[PASS] read_mvs_dump_title_date_sorted_by_title
+[PASS] read_mvs_dump_title_date_sorted_by_date
+[PASS] print_mvs_dump_title_note
+[PASS] print_mvs_dump_title_note_sorted_by_id
+[PASS] print_mvs_dump_title_note_sorted_by_title
+[PASS] print_mvs_dump_title_note_sorted_by_date
+[PASS] read_mvs_dump_title_note
+[PASS] read_mvs_dump_title_note_sorted_by_id
+[PASS] read_mvs_dump_title_note_sorted_by_title
+[PASS] read_mvs_dump_title_note_sorted_by_date
+[PASS] print_mvs_dump_title_date_note
+[PASS] print_mvs_dump_title_date_note_sorted_by_id
+[PASS] print_mvs_dump_title_date_note_sorted_by_title
+[PASS] print_mvs_dump_title_date_note_sorted_by_date
+[PASS] read_mvs_dump_title_date_note
+[PASS] read_mvs_dump_title_date_note_sorted_by_id
+[PASS] read_mvs_dump_title_date_note_sorted_by_title
+[PASS] read_mvs_dump_title_date_note_sorted_by_date
+[PASS] print_mvs_dump_date
+[PASS] print_mvs_dump_date_sorted_by_id
+[PASS] print_mvs_dump_date_sorted_by_title
+[PASS] print_mvs_dump_date_sorted_by_date
+[PASS] read_mvs_dump_date
+[PASS] read_mvs_dump_date_sorted_by_id
+[PASS] read_mvs_dump_date_sorted_by_title
+[PASS] read_mvs_dump_date_sorted_by_date
+[PASS] print_mvs_dump_note
+[PASS] print_mvs_dump_note_sorted_by_id
+[PASS] print_mvs_dump_note_sorted_by_title
+[PASS] print_mvs_dump_note_sorted_by_date
+[PASS] read_mvs_dump_note
+[PASS] read_mvs_dump_note_sorted_by_id
+[PASS] read_mvs_dump_note_sorted_by_title
+[PASS] read_mvs_dump_note_sorted_by_date
+[PASS] print_mvs_dump_date_note
+[PASS] print_mvs_dump_date_note_sorted_by_id
+[PASS] print_mvs_dump_date_note_sorted_by_title
+[PASS] print_mvs_dump_date_note_sorted_by_date
+[PASS] read_mvs_dump_date_note
+[PASS] read_mvs_dump_date_note_sorted_by_id
+[PASS] read_mvs_dump_date_note_sorted_by_title
+[PASS] read_mvs_dump_date_note_sorted_by_date
+[PASS] print_mvs_dump_id_date_note
+[PASS] print_mvs_dump_id_date_note_sorted_by_id
+[PASS] print_mvs_dump_id_date_note_sorted_by_title
+[PASS] print_mvs_dump_id_date_note_sorted_by_date
+[PASS] read_mvs_dump_id_date_note
+[PASS] read_mvs_dump_id_date_note_sorted_by_id
+[PASS] read_mvs_dump_id_date_note_sorted_by_title
+[PASS] read_mvs_dump_id_date_note_sorted_by_date
+=== Lookup tool tests ===
+[PASS] lookup_mvs_title_from_id [exact: 1]
+[PASS] lookup_mvs_title_from_id [wildcard-all: *]
+[FAIL] lookup_mvs_title_from_id [no-match: __MVS_TEST_NO_MATCH_9E3779B97F4A7C15__] - rc expected 1, got 0
+[PASS] lookup_mvs_title_from_date [exact: 2004-06-01T16:55:00]
+[PASS] lookup_mvs_title_from_date [wildcard-all: *]
+[FAIL] lookup_mvs_title_from_date [no-match: __MVS_TEST_NO_MATCH_9E3779B97F4A7C15__] - rc expected 1, got 0
+[PASS] lookup_mvs_note_from_id [exact: 18]
+[PASS] lookup_mvs_note_from_id [wildcard-all: *]
+[FAIL] lookup_mvs_note_from_id [no-match: __MVS_TEST_NO_MATCH_9E3779B97F4A7C15__] - rc expected 1, got 0
+[PASS] lookup_mvs_note_from_title [exact: Groove 2007]
+[PASS] lookup_mvs_note_from_title [wildcard-all: *]
+[FAIL] lookup_mvs_note_from_title [no-match: __MVS_TEST_NO_MATCH_9E3779B97F4A7C15__] - rc expected 1, got 0
+[PASS] lookup_mvs_note_from_date [exact: 2007-07-03T20:26:24]
+[PASS] lookup_mvs_note_from_date [wildcard-all: *]
+[FAIL] lookup_mvs_note_from_date [no-match: __MVS_TEST_NO_MATCH_9E3779B97F4A7C15__] - rc expected 1, got 0
+[PASS] lookup_mvs_date_from_id [exact: 1]
+[PASS] lookup_mvs_date_from_id [wildcard-all: *]
+[FAIL] lookup_mvs_date_from_id [no-match: __MVS_TEST_NO_MATCH_9E3779B97F4A7C15__] - rc expected 1, got 0
+[PASS] lookup_mvs_date_from_title [exact: Access 2.0]
+[PASS] lookup_mvs_date_from_title [wildcard-all: *]
+[FAIL] lookup_mvs_date_from_title [no-match: __MVS_TEST_NO_MATCH_9E3779B97F4A7C15__] - rc expected 1, got 0
+[PASS] lookup_mvs_title_from_id [prefix-wildcard: 1*]
+[PASS] lookup_mvs_title_from_id [suffix-wildcard: *0]
+[PASS] lookup_mvs_title_from_id [contains-wildcard: *1*]
+
+SUMMARY: passed=265 failed=7 skipped=0
+Results: C:\Users\user\Downloads\MVS-Explorer-Toolkit-0.5.0\test\test-results-20260827-111852
+
+C:\Users\user\Downloads\MVS-Explorer-Toolkit-0.5.0>
+```
+
+```text
+see attached results file
+```
+
+Attached result archive: `test-results-20260827-111852.zip`.

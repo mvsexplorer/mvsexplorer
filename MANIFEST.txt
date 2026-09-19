@@ -1,9 +1,10 @@
-MVS Explorer Toolkit 0.5.0
+MVS Explorer Toolkit 0.6.0
 Public standalone batch tools: 127
 Standalone automated test batch files: 4
 Tool/development histories: 134
 Full suite: test\test_all.bat dump-folder
 Test results: test\test-results-YYYYMMDD-HHMMSS\
+Return bridge: RunPowerShellFromLabel 1.2.0
 
 Files:
 README.md
@@ -31,6 +32,7 @@ doc/powershell-style-guide.md
 doc/project-version-history.txt
 doc/style-guide-addendum.md
 doc/test-run-analysis-0.4.0.md
+doc/test-run-analysis-0.5.0.md
 doc/tool-catalog.tsv
 doc/tool-version-history/generate_tests.version-history.txt
 doc/tool-version-history/generate_tools.version-history.txt

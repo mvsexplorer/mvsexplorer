@@ -1,5 +1,9 @@
 Tool Version History: dev\generate_tools.py
 
+0.4.0 - 2026-08-27
+  - Regenerated public tools with direct PowerShell child-process return
+    propagation and explicit top-level nonzero return.
+
 0.3.0 - 2026-08-27
   - Regenerated public tools for project 0.5.0.
   - Injected explicit nonzero PowerShell process-exit behavior.

@@ -5,6 +5,11 @@ Purpose
   Output: headerless TSV output
   Ordering: source order from mvs_ids.txt
 
+0.6.0 - 2026-08-27
+  - Regenerated for project 0.6.0.
+  - Uses RunPowerShellFromLabel 1.2.0 direct child-process return.
+  - Explicitly returns nonzero app.rc at the top-level batch boundary.
+
 0.5.0 - 2026-08-27
   - Regenerated for project 0.5.0.
   - Documented fatal error return paths now terminate at PowerShell process

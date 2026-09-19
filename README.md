@@ -1,4 +1,4 @@
-# MVS Explorer Toolkit 0.5.0
+# MVS Explorer Toolkit 0.6.0
 
 MVS Explorer Toolkit is a growing collection of console tools for exploring MVS dump snapshots, intended to culminate in the graphical **MVS Explorer** application.
 
@@ -189,3 +189,26 @@ failures\
 When a behavioral comparison fails, `failures\` contains the complete expected stdout, actual stdout, stderr, and metadata for that case. Console messages may abbreviate long differences, but these failure files do not.
 
 Version 0.5.0 also fixes the lookup no-match return-code defect found by the first external Windows run: a lookup that finds no non-empty associated result now returns code `1` while keeping stdout/stderr empty.
+
+
+## 0.6.0 return-code propagation hardening
+
+The attached 0.5.0 Windows result bundle confirmed that output and matching were still correct, but all seven no-match lookup cases continued to reach the caller as return code `0`.
+
+Version 0.6.0 hardens both batch return boundaries:
+
+1. `:RunPowerShellFromLabel` now returns the captured `powershell.exe` process exit code directly with `exit /b`.
+2. The top-level `:end` path explicitly exits on any nonzero application code before the normal `GoTo :EOF`.
+
+The explicit PowerShell process-level no-match exit remains in place as well. This removes the previous indirect nonzero return-carrier path and makes the intended chain:
+
+```text
+lookup no result
+    -> powershell.exe exit 1
+    -> :RunPowerShellFromLabel exit /b 1
+    -> app.rc = 1
+    -> top-level exit /b 1
+    -> calling cmd.exe sees 1
+```
+
+The existing automated lookup no-match cases remain the acceptance test for this behavior.

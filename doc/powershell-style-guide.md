@@ -1,6 +1,6 @@
 # MVS Explorer Toolkit — Embedded PowerShell Style Guide
 
-**Guide version:** 0.4.0  
+**Guide version:** 0.5.0  
 **Context:** Companion to Batch File Style Guide v1.8.0 and the MVS Explorer Toolkit addendum.
 
 ## 1. Role
@@ -155,3 +155,20 @@ Maintain separate files for:
 - complete behavioral failure artifacts.
 
 Failure artifact streams are lossless; only the console comparison preview is abbreviated.
+
+
+## 17. End-to-end return-code testing
+
+A PowerShell block setting a local/nonzero exit is not sufficient evidence that the calling batch receives that code.
+
+For every documented nonzero PowerShell-backed contract, test all boundaries:
+
+```text
+embedded block
+-> powershell.exe process
+-> batch bridge function
+-> top-level batch
+-> caller cmd.exe
+```
+
+The lookup no-match test is the current canonical regression test.

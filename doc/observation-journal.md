@@ -75,3 +75,18 @@ A long run should leave a self-contained timestamped bundle. This makes failures
 ### Failure artifacts should remain lossless
 
 The console may abbreviate a large expected/actual mismatch, but stored expected/actual/stderr files should preserve the complete streams.
+
+
+### A correct inner exit does not prove the external batch exit contract
+
+The 0.5.0 lookup block explicitly requested process exit `1`, yet the calling test process still observed `0`.
+
+The practical lesson is to simplify and verify every return boundary, not merely the innermost one.
+
+### The timestamped result bundle is now validated by real use
+
+The attached 0.5.0 archive was sufficient to isolate the problem without relying on console scrollback: environment, assertion table, full failure metadata, expected output, actual output, and stderr were all preserved.
+
+### The return path should be simpler than the cleanup path when no cleanup exists
+
+`RunPowerShellFromLabel` needs no cleanup after `powershell.exe` returns. Directly returning the captured code is clearer and removes one re-entry/parse transition.

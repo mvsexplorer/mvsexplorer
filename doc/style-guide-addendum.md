@@ -1,6 +1,6 @@
 # MVS Explorer Toolkit — Batch Style Guide Addendum
 
-**Addendum version:** 0.4.0  
+**Addendum version:** 0.5.0  
 **Applies with:** Batch File Style Guide v1.8.0
 
 This addendum supplements the supplied guide with project-specific conventions.
@@ -128,3 +128,33 @@ When a documented nonzero code must reach `cmd.exe` without adding unwanted stde
 ```
 
 This is a focused exception used for public contract exits such as lookup no-match (`1`) and documented fatal validation codes.
+
+
+## 16. Direct external-process return propagation
+
+For MVS Explorer Toolkit's embedded PowerShell runner, the direct return path is now preferred:
+
+```bat
+powershell.exe ...
+set "rps_rc=%errorlevel%"
+exit /b %rps_rc%
+```
+
+The `set` and `exit /b` remain on separate physical lines so `%rps_rc%` is expanded after capture.
+
+This is a project-specific clarification based on Windows test evidence. It replaces routing nonzero child-process exit codes through the function's `_fn_rc` re-entry carrier when no cleanup is required.
+
+## 17. Top-level nonzero return
+
+The ordinary scaffold still ends through `GoTo :EOF` for success.
+
+When `app.rc` is nonzero, the top-level `:end` path explicitly returns it before that normal success exit:
+
+```bat
+:end
+endlocal & call :SetErrorLevel %app.rc%
+if not "%errorlevel%"=="0" exit /b %errorlevel%
+GoTo :EOF
+```
+
+This makes the externally observed process/batch contract explicit.

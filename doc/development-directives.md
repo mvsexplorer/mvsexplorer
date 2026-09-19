@@ -109,3 +109,13 @@ These directives are distilled from the user's project prompts.
 64. Preserve the final totals in `summary.txt`.
 65. For each behavioral comparison failure, preserve complete expected stdout, actual stdout, stderr, and failure metadata.
 66. Keep all files belonging to one test invocation inside that single result directory.
+
+
+## Return-code propagation
+
+67. Public return codes must be verified end-to-end from the embedded language through the standalone `.bat` process to the calling `cmd.exe`.
+68. `:RunPowerShellFromLabel` returns the captured `powershell.exe` exit code directly.
+69. Avoid an indirect re-entry/pending-carrier path when a direct `exit /b captured-code` is clearer and empirically more reliable.
+70. At top-level `:end`, explicitly `exit /b` on a nonzero application return code before the normal `GoTo :EOF`.
+71. Lookup no-match remains a normal non-error-output condition: no stdout, no stderr, return code `1`.
+72. The automated no-match lookup tests are mandatory acceptance tests for return-code propagation.

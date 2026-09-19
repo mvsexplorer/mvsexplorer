@@ -19,6 +19,7 @@ call :RunPowerShellFromLabel
 set "app.rc=%errorlevel%"
 :end
 endlocal & call :SetErrorLevel %app.rc%
+if not "%errorlevel%"=="0" exit /b %errorlevel%
 GoTo :EOF
 
 @@BATCH_COMMON@@
