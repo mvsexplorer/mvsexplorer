@@ -394,3 +394,23 @@ content state.
 Per-check timing finds expensive predicates after a model is built. Batch wall
 time captures parsing/index construction and pathological snapshots. Both are
 needed to understand where fresh-run time went.
+
+### Acceptance assertions must use the persisted schema, not display filenames
+
+`runs.tsv` intentionally stores extensionless tool keys. An acceptance check
+that supplied a `.bat` filename produced a false-negative and a misleading
+legacy-note error message. Tests that validate persisted rows should use the
+schema's canonical key format.
+
+### PowerShell automatic-variable names are unsafe formal parameter names
+
+Using `$Args` as a helper parameter obscured the intended array on Windows
+PowerShell 5.1. Internal helper parameters should avoid automatic variable
+names such as `$args` even when case differs.
+
+### Representative query profiling must understand every historical source form
+
+The fast worker and archive evidence parser already understood legacy
+`<h3>Title [ID: ...]</h3>` notes, but the archive sweep's representative-value
+profiler only recognized `<h1>`. Profiling and execution parsers need the same
+historical heading vocabulary or valid checks can be planned as no-result.

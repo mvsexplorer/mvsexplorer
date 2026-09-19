@@ -1,5 +1,13 @@
 test_all_dumps.bat
 
+0.4.2 - 2026-08-30
+  - Legacy h3+ID note headings participate in representative note profiling.
+  - Current h1 note profiling remains unchanged.
+
+0.4.1 - 2026-08-30
+  - Parenthesized archive summary/run-info metadata concatenations for Windows PowerShell 5.1.
+  - Preserved executor identity and logical plan behavior.
+
 0.4.0 - 2026-08-30
   - Indexed/parallel fast-combined executor with source-stable batch commit.
   - Content-addressed snapshot cache and non-destructive exclusions/report integration.

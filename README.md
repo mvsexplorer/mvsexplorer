@@ -1,4 +1,43 @@
-# MVS Explorer Toolkit 0.14.1
+# MVS Explorer Toolkit 0.14.2
+
+## 0.14.2 Windows acceptance-harness maintenance
+
+Version 0.14.2 is a narrow maintenance release over 0.14.1. All 443 public
+root tools remain byte-for-byte unchanged.
+
+Native Windows 10 / Windows PowerShell 5.1 validation of 0.14.1 proved the
+0.14.1 archive metadata serialization repair: the three-snapshot fast sweep
+completed all 1,306 logical checks with `FAIL=0`, and both `summary.txt` and
+`run-info.txt` contained `Executor: fast-combined` on one physical line.
+
+That run exposed two later harness defects which 0.14.2 fixes:
+
+- `test_fast_archive_sweep.bat` queried `runs.tsv` with a `.bat` suffix even
+  though the `tool` column intentionally stores extensionless tool keys. The
+  assertion now uses the real schema and also verifies the legacy-h3
+  title-filtered note-record path.
+- `test_everything.bat` named its helper argument array `$Args`, colliding with
+  PowerShell's automatic `$args` variable and dropping the representative
+  snapshot argument before invoking `test_all.bat`. The helper now uses
+  `$ToolArgs`.
+
+The archive sweep's representative-note profile now recognizes both historical
+`<h3>Title [ID: ...]</h3>` and current `<h1>Title</h1>` headings, stripping the
+legacy ID suffix before title matching. This prevents avoidable `NO_RESULT`
+statuses for title-filtered note checks on older dumps.
+
+Run the acceptance gates in this order:
+
+```bat
+test\test_fast_archive_sweep.bat
+test\test_everything.bat ..\mvs_dumps_archive
+```
+
+Only after both pass, run the fresh real-archive acceptance:
+
+```bat
+test\test_everything.bat ..\mvs_dumps_archive --full-archive --workers 8
+```
 
 
 ## 0.14.1 PowerShell 5.1 archive-metadata serialization fix

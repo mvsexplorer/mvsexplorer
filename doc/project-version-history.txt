@@ -1,5 +1,15 @@
 MVS Explorer Toolkit Project Version History
 
+0.14.2 - 2026-08-30
+  - Maintenance release driven by native Windows 10 / Windows PowerShell 5.1 acceptance results from 0.14.1.
+  - Kept all 443 public root tools byte-for-byte identical to 0.14.1.
+  - Recorded that 0.14.1 proved the metadata serialization fix and completed 1306/1306 fast logical checks with FAIL=0.
+  - Fixed test_fast_archive_sweep.bat to query the extensionless runs.tsv tool key instead of a .bat filename.
+  - Added a concrete legacy-h3 title-filtered note-record assertion.
+  - Extended archive snapshot profiling to recognize h3+ID and h1 note headings and strip the legacy [ID: ...] suffix.
+  - Fixed test_everything.bat Run helper's collision with PowerShell's automatic $args variable by renaming the parameter to $ToolArgs.
+  - Added static guards for the runs.tsv tool-key contract, legacy note profiling, and the test_everything argument handoff.
+
 0.14.1 - 2026-08-30
   - Maintenance release for archive sweep metadata serialization on Windows PowerShell 5.1.
   - Kept all 443 public root tools byte-for-byte identical to 0.14.0 / supplied 0.13.3 baseline.

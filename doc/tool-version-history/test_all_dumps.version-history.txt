@@ -1,5 +1,14 @@
 test_all_dumps.bat Version History
 
+0.4.2 - 2026-08-30
+  - Snapshot profiling now recognizes both h1 and historical h3 note headings.
+  - Legacy [ID: ...] suffixes are removed before note-title linkage/search selection.
+  - Preserves the existing public-tool plan and executor interfaces.
+
+0.4.1 - 2026-08-30
+  - Parenthesized archive summary/run-info metadata concatenations for Windows PowerShell 5.1.
+  - Preserved executor identity and logical plan behavior.
+
 0.4.0 - 2026-08-30
   - Added indexed snapshot execution and bounded --workers parallelism.
   - Added source-inventory freeze/recheck before logical batch commit.

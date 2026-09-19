@@ -1,5 +1,9 @@
 test_fast_archive_sweep.bat
 
+0.4.2 - 2026-08-30
+  - Uses the extensionless runs.tsv tool key in status assertions.
+  - Adds explicit legacy-h3 filtered note-query acceptance.
+
 0.4.0 - 2026-08-30
   - Added concrete evolution/note/retention acceptance checks and clean batch subroutine layout.
   - Requires 4 product states, 4 variant states, 5 note versions/bodies/raw variants, and Keep note observed in 3 snapshots.

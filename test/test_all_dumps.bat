@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone archive sweep harness embeds PowerShell.
 setlocal DisableDelayedExpansion
-set "app.version=0.4.1"
+set "app.version=0.4.2"
 set "app.name=test_all_dumps"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -343,8 +343,11 @@ function Get-SnapshotProfile {
     $noteKeys = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
     if (Test-Path -LiteralPath $notesPath -PathType Leaf) {
         $rawNotes = [IO.File]::ReadAllText($notesPath)
-        foreach ($match in [regex]::Matches($rawNotes, '(?is)<h1\b[^>]*>(?<title>.*?)</h1>')) {
+        foreach ($match in [regex]::Matches($rawNotes, '(?is)<h[13]\b[^>]*>(?<title>.*?)</h[13]>')) {
             $noteTitle = Convert-HeadingToText $match.Groups['title'].Value
+            if ($noteTitle -match '^(?<title>.*?)\s*\[ID:\s*[^\]]+?\s*\]\s*$') {
+                $noteTitle = Convert-HeadingToText $Matches.title
+            }
             if ([string]::IsNullOrWhiteSpace($noteTitle)) { continue }
             if ([string]::IsNullOrEmpty($profile.note_title)) { $profile.note_title = $noteTitle }
             [void]$noteKeys.Add((Normalize-TitleKey $noteTitle))

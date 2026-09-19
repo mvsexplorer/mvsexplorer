@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validation for archive sweep, quality, reporting, and performance helpers.
 
-Version: 0.5.0
+Version: 0.5.1
 """
 from pathlib import Path
 import sys
@@ -96,10 +96,13 @@ def main():
         ':_MVSTestPerformance_start','performance-outliers.tsv','performance-by-tool.tsv',
         'elapsed_ms','Threshold milliseconds'
     ))
-    check_batch(ROOT/"test"/"test_everything.bat",(
+    everything=check_batch(ROOT/"test"/"test_everything.bat",(
         ':_MVSTestEverything_start','--full-archive','--strict-performance','--archive-results',
-        'test_all.bat','test_fast_archive_sweep.bat','check_archive_sweep_quality.bat','--no-cache'
+        'test_all.bat','test_fast_archive_sweep.bat','check_archive_sweep_quality.bat','--no-cache',
+        'param([string]$Tool,[object[]]$ToolArgs)','& $Tool @ToolArgs'
     ))
+    if 'param([string]$Tool,[object[]]$Args)' in everything or '& $Tool @Args' in everything:
+        fail("test_everything Run helper collides with PowerShell automatic $args variable")
     check_batch(ROOT/"test"/"analyze_archive_sweep_performance.bat",(
         ':_MVSPerformance_start','performance-by-tool.tsv','fast-batches.tsv'
     ))
@@ -126,7 +129,8 @@ def main():
         '"note_bodies_all_ever" "5"',
         '"note_raw_variants_all_ever" "5"',
         '"Keep Product" "Keep note" "3"',
-        '"read_mvs_dump_note_records.bat" "PASS"',
+        '"read_mvs_dump_note_records" "PASS"',
+        '"read_mvs_dump_note_records_from_title" "PASS"',
         ':AssertTsvMetric',
     ):
         if token not in fast_test:
@@ -135,6 +139,10 @@ def main():
     # PowerShell 5.1 must serialize summary/run-info metadata as one field per line.
     # Unparenthesized array-entry concatenation can split labels from values.
     sweep_lib=(ROOT/"dev"/"library"/"archive-sweep.inc.ps1").read_text(encoding="utf-8")
+    if "(?is)<h[13]\\b[^>]*>(?<title>.*?)</h[13]>" not in sweep_lib:
+        fail("archive snapshot profile does not recognize both legacy h3 and current h1 note headings")
+    if "$noteTitle = Convert-HeadingToText $Matches.title" not in sweep_lib:
+        fail("archive snapshot profile does not strip legacy note [ID: ...] heading suffix")
     if sweep_lib.count("('Executor: ' + $Executor),") < 2:
         fail("archive sweep metadata writers must parenthesize Executor concatenation in summary and run-info")
     for bad in (

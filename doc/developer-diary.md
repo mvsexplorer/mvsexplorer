@@ -393,3 +393,25 @@ A comprehensive tester now joins functional regression, synthetic fast
 acceptance, archive integrity/quality analysis, and public/logical/batch timing.
 The intended development loop is measured optimize -> regenerate -> rerun ->
 verify no functional regression.
+
+## 2026-08-30 — 0.14.1 native acceptance exposed two harness defects
+
+A native Windows 10 / Windows PowerShell 5.1 run of
+`test\test_fast_archive_sweep.bat` proved the 0.14.1 metadata serialization
+repair. The fast executor completed 1,306/1,306 logical checks with `FAIL=0`
+and both metadata files contained the intended executor line.
+
+The next assertion failed because the test queried the `runs.tsv` `tool`
+column using `read_mvs_dump_note_records.bat`, while the established plan/run
+schema stores the extensionless key `read_mvs_dump_note_records`. The failure
+message therefore blamed legacy h3 parsing even though the assertion itself
+could not locate the row.
+
+The same native session exposed an independent `test_everything.bat` defect:
+its `Run` helper used `$Args` as a formal parameter name. On Windows PowerShell
+5.1 this collided with the automatic `$args` variable and the representative
+snapshot argument was lost before `test_all.bat` was invoked.
+
+0.14.2 fixes both acceptance-harness defects and also brings the archive
+representative-note profiler in line with the existing historical-note model
+by recognizing h3+ID headings as well as h1 headings.

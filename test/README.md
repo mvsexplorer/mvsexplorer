@@ -162,6 +162,21 @@ them and print their exact locations together with summary/run-info/log
 contents.
 
 
+### 0.14.2 native acceptance maintenance
+
+The 0.14.1 native fast sweep proved the metadata fix and completed 1,306/1,306
+logical checks with `FAIL=0`. A later acceptance assertion used a `.bat`
+filename while `runs.tsv` stores extensionless tool keys; 0.14.2 corrects that
+assertion and adds a title-filtered legacy-h3 note check.
+
+`test_everything.bat` also now forwards child-tool arguments through a
+`$ToolArgs` parameter rather than PowerShell's automatic `$args` variable.
+Pass the archive root, not an individual snapshot:
+
+```bat
+test\test_everything.bat ..\mvs_dumps_archive
+```
+
 ### 0.14.1 metadata serialization maintenance
 
 Windows PowerShell 5.1 requires the archive sweep summary/run-info array

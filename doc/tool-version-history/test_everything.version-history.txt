@@ -1,5 +1,10 @@
 test_everything.bat Version History
 
+0.1.1 - 2026-08-30
+  - Renamed the Run helper argument-array parameter from $Args to $ToolArgs.
+  - Prevents collision with PowerShell's automatic $args variable.
+  - Restores forwarding of the representative snapshot path to test_all.bat.
+
 0.1.0 - 2026-08-30
   - Initial comprehensive functional/quality/performance test entry point.
   - Runs public regression/performance analysis, fast synthetic acceptance, and full archive plan validation.

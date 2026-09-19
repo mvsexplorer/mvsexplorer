@@ -1,5 +1,10 @@
 validate_archive_sweep.py Version History
 
+0.5.1 - 2026-08-30
+  - Requires extensionless fast runs.tsv tool-key assertions.
+  - Requires legacy h1/h3 note profiling and legacy ID-suffix stripping.
+  - Rejects test_everything Run helpers that collide with PowerShell's automatic $args variable.
+
 0.3.1 - 2026-08-30
   - Rejects unparenthesized archive summary/run-info concatenation that splits metadata fields under Windows PowerShell 5.1.
   - Requires fast acceptance assertions for executor metadata in both summary.txt and run-info.txt.

@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
-set "app.version=0.4.1"
+set "app.version=0.4.2"
 set "root=%~dp0"
 set "fixture=%root%test-mvs-dump-history"
 set "tag=%RANDOM%%RANDOM%"
@@ -128,9 +128,15 @@ if errorlevel 1 (
   call :ShowFailure "%fastout%"
   exit /b 1
 )
-call :AssertRunStatus "%fastout%\runs.tsv" "mvs_2020-01-01" "read_mvs_dump_note_records.bat" "PASS"
+call :AssertRunStatus "%fastout%\runs.tsv" "mvs_2020-01-01" "read_mvs_dump_note_records" "PASS"
 if errorlevel 1 (
   echo [FAIL] legacy h3 note parsing in fast snapshot worker
+  call :ShowFailure "%fastout%"
+  exit /b 1
+)
+call :AssertRunStatus "%fastout%\runs.tsv" "mvs_2020-01-01" "read_mvs_dump_note_records_from_title" "PASS"
+if errorlevel 1 (
+  echo [FAIL] legacy h3 note title profiling in archive sweep
   call :ShowFailure "%fastout%"
   exit /b 1
 )

@@ -1,7 +1,7 @@
 @echo off
 :setup
 setlocal DisableDelayedExpansion
-set "app.version=0.1.0"
+set "app.version=0.1.1"
 set "app.name=test_everything"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -112,11 +112,11 @@ $ExistingResults=''
 
 function Fail {param([int]$Code,[string]$Message)[Console]::Error.WriteLine('[FAIL] '+$Message);exit $Code}
 function Run {
-    param([string]$Tool,[object[]]$Args)
+    param([string]$Tool,[object[]]$ToolArgs)
     [Console]::Out.WriteLine('')
-    [Console]::Out.WriteLine('>>> '+[IO.Path]::GetFileName($Tool)+' '+(@($Args)-join' '))
+    [Console]::Out.WriteLine('>>> '+[IO.Path]::GetFileName($Tool)+' '+(@($ToolArgs)-join' '))
     $global:LASTEXITCODE=0
-    & $Tool @Args
+    & $Tool @ToolArgs
     $rc=if($null-eq$LASTEXITCODE){0}else{[int]$LASTEXITCODE}
     if($rc-ne0){Fail 1 ([IO.Path]::GetFileName($Tool)+' returned '+$rc)}
 }

@@ -1,5 +1,10 @@
 test_fast_archive_sweep.bat Version History
 
+0.4.2 - 2026-08-30
+  - Corrected runs.tsv status assertions to use extensionless tool keys.
+  - Added a legacy-h3 title-filtered note-record status assertion.
+  - Preserves strict metadata/evolution/quality/HTML acceptance checks.
+
 0.4.1 - 2026-08-30
   - Kept strict summary metadata assertions after fixing the producer formatting.
   - Added executor assertions against run-info.txt for both fast-combined and external-public modes.
