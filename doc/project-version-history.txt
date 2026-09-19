@@ -1,3 +1,12 @@
+0.19.3 - 2026-09-11
+- Fixes two false-negative structure assertions in project 0.19.2 by testing literal PowerShell source markers without accidental variable interpolation.
+- The timestamped root HTML and tools\ product-family regression behaviors are unchanged; both were already proven by native execution.
+- Full-pipeline failure handling now captures the failed test-results folder before propagating the gate failure and includes it in the failure log bundle.
+- Full-pipeline final summaries retain test totals on an early test-gate failure and explicitly report downstream archive logical checks as NOT RUN rather than printing empty counters.
+- Adds a regression guard for failed-test evidence capture and explicit downstream NOT RUN reporting.
+- Structure scope becomes 502 assertions; all mode becomes 1,115 assertions.
+- Archive/single/compare/database processing semantics and the 34,822-row known-archive plan are unchanged; existing managed database content remains reusable.
+
 0.19.2 - 2026-09-10
 - Fixes PowerShell GUI multi-database discovery: candidate arrays are returned flat, so multiple compact indexes reach the chooser as separate choices instead of one concatenated invalid path.
 - Fixes display_mvs_database_summary.bat quality parsing to retain the numeric warning/error counters, marks warnings advisory in the display, and uses persisted database-summary update time for latest-root selection/display.

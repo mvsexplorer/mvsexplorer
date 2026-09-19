@@ -1,3 +1,16 @@
+## 0.19.3 pipeline-gate hotfix
+
+`library\test-harness.inc.ps1` must compare expected embedded PowerShell source
+markers as literals; do not use double-quoted expected strings containing
+variables such as `$slot`, `$stamp`, `$Root`, or `$ToolName`.
+
+`library\all-pipeline.inc.ps1` captures a newly created test-results directory
+from the ALL TESTS phase in a `finally` block so a nonzero child return does not
+erase assertion evidence. Early gate failures report downstream archive work as
+explicitly NOT RUN.
+
+Archive-processing tools and plan semantics are unchanged.
+
 ## 0.19.2 native follow-up
 
 `generate_powershell_gui.py` 0.2.1 fixes multi-candidate discovery by returning
@@ -356,3 +369,11 @@ test\test_product_family_tools.bat
 Family classification is analytical. Development changes must not reinterpret
 `mvs_names.txt` IDs as product identities, infer SHA-1/SHA-256 pairings by
 filename, or turn embedded product-name references into ownership.
+
+## 0.19.3 test/pipeline hotfix
+
+`library\test-harness.inc.ps1` now uses literal-safe source markers for the
+timestamped HTML and moved-family-tool structure checks. `library\all-pipeline.inc.ps1`
+captures failed ALL TESTS result folders before the gate exception propagates
+and reports downstream archive work as NOT RUN when appropriate. Processing
+tools and archive-plan semantics are unchanged.

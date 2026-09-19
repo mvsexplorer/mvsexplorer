@@ -2,13 +2,13 @@
 :setup
 REM Standalone product-family feature regression.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.4"
+set "app.version=0.1.5"
 set "app.name=test_product_family_tools"
 set "app.rc=0"
 set "app.self=%~f0"
 set "mvspf_caller=%~nx0"
 set "mvspf_version=%app.version%"
-set "mvspf_project_version=0.19.2"
+set "mvspf_project_version=0.19.3"
 for %%I in ("%~dp0..") do set "mvspf_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSProductFamilyTest"

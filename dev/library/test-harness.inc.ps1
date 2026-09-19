@@ -10,7 +10,7 @@ $Caller = [string]$env:mvst_caller
 $Version = [string]$env:mvst_version
 $ProjectVersion = [string]$env:mvst_project_version
 $script:ExpectedAssertions = switch ($Mode) {
-    'structure' { 501 }
+    'structure' { 502 }
     'scalar' { 120 }
     'lookup' { 24 }
     'diagnostic' { 46 }
@@ -18,7 +18,7 @@ $script:ExpectedAssertions = switch ($Mode) {
     'single_dump' { 167 }
     'compare' { 39 }
     'history' { 65 }
-    'all' { 1114 }
+    'all' { 1115 }
     default { 0 }
 }
 
@@ -1146,7 +1146,7 @@ function Test-Structure {
         foreach ($marker in @('OVERALL HEALTH:','Completeness:','mvs_databases*','ForegroundColor','source-fingerprints.tsv')) {
             if (-not $summaryText.Contains($marker)) { [void]$maintenanceProblems.Add('summary missing ' + $marker) }
         }
-        if (-not $htmlComponentText.Contains("mvs-browser-'+$slot+'-'+$stamp+'.html")) { [void]$maintenanceProblems.Add('timestamped root HTML marker missing') }
+        if (-not $htmlComponentText.Contains('mvs-browser-''+$slot+''-''+$stamp+''.html')) { [void]$maintenanceProblems.Add('timestamped root HTML marker missing') }
     }
     if ($maintenanceProblems.Count -eq 0) {
         Write-Pass 'modular database maintenance uses content-safe reuse, centralized zipped logs, health summary and timestamped root HTML'
@@ -1187,8 +1187,8 @@ function Test-Structure {
     $familyRegression = Join-Path (Join-Path $Root 'test') 'test_product_family_tools.bat'
     if (Test-Path -LiteralPath $familyRegression -PathType Leaf) {
         $familyRegressionText = [IO.File]::ReadAllText($familyRegression,[Text.Encoding]::UTF8)
-        if ($familyRegressionText.Contains("Join-Path (Join-Path $Root 'tools') ($ToolName+'.bat')") -and
-            $familyRegressionText.Contains('mvspf_project_version=0.19.2')) {
+        if ($familyRegressionText.Contains('Join-Path (Join-Path $Root ''tools'') ($ToolName+''.bat'')') -and
+            $familyRegressionText.Contains(('mvspf_project_version='+$ProjectVersion))) {
             Write-Pass 'product-family regression executes moved query tools from tools\ with current project version'
         } else {
             Write-Fail 'product-family regression executes moved query tools from tools\ with current project version' 'stale root query path or project version'
@@ -1213,6 +1213,13 @@ function Test-Structure {
 
     if (Test-Path -LiteralPath $pipelinePath -PathType Leaf) {
         $pipelineText = [IO.File]::ReadAllText($pipelinePath,[Text.Encoding]::UTF8)
+        if ($pipelineText.Contains('Capture-TestResults') -and
+            $pipelineText.Contains('NOT RUN - gated by failed test phase') -and
+            $pipelineText.Contains('Test results: ')) {
+            Write-Pass 'pipeline failure summary preserves failed test evidence and marks downstream archive work not run'
+        } else {
+            Write-Fail 'pipeline failure summary preserves failed test evidence and marks downstream archive work not run' 'failed-test capture/not-run summary markers missing'
+        }
         if ($pipelineText.Contains('$entry=$zip.CreateEntry($entryName,[IO.Compression.CompressionLevel]::Optimal)') -and
             $pipelineText.Contains('$entry.LastWriteTime=$fixedZipTime') -and
             $pipelineText.Contains("'1980-01-01T00:00:00+00:00'") -and
@@ -1249,6 +1256,7 @@ function Test-Structure {
             Write-Fail 'pipeline defers log ZIP until active log writers are closed' 'log ZIP still occurs while active writers may be open'
         }
     } else {
+        Write-Fail 'pipeline failure summary preserves failed test evidence and marks downstream archive work not run' 'pipeline batch missing'
         Write-Fail 'pipeline ZIPs normalize entry timestamps for content-stable package hashes' 'pipeline batch missing'
         Write-Fail 'pipeline console colorizes semantic PASS FAIL WARN tokens without whole-line coloring' 'pipeline batch missing'
         Write-Fail 'pipeline defers log ZIP until active log writers are closed' 'pipeline batch missing'

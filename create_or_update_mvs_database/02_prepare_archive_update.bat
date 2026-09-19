@@ -2,7 +2,7 @@
 :setup
 REM Generated internal create/update component. It is standalone but orchestrated by create_or_update_mvs_database.bat.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.2"
+set "app.version=0.1.3"
 set "app.name=02_prepare_archive_update"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -15,7 +15,7 @@ set "mvsdbm_arg6=%~6"
 set "mvsdbm_arg7=%~7"
 set "mvsdbm_arg8=%~8"
 set "mvsdbm_version=%app.version%"
-set "mvsdbm_project_version=0.19.2"
+set "mvsdbm_project_version=0.19.3"
 :main
 set "RunPowerShellFromLabel.function=MVSDatabaseMaintenance"
 call :RunPowerShellFromLabel

@@ -193,3 +193,16 @@ inside `test_all.bat` and failed because `test_product_family_tools.bat` still
 resolved the 32 family query wrappers from the project root. The delivered
 utilities moved to `tools\` in 0.19.0. 0.19.2 corrects that test caller and
 updates its project metadata; archive/database semantics are unchanged.
+
+## 0.19.3 early-gate failure reporting
+
+If `test_everything.bat` returns nonzero, the pipeline now captures the newly
+created `test-results-*` directory before rethrowing the phase failure. The
+failure log package therefore retains assertion evidence, and the final console
+summary reports the test totals plus:
+
+```text
+Archive logical checks: NOT RUN - gated by failed test phase
+```
+
+This changes failure reporting only; the fail gate remains strict.

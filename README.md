@@ -1,4 +1,20 @@
-# MVS Explorer Toolkit 0.19.2
+# MVS Explorer Toolkit 0.19.3
+
+## 0.19.3 pipeline-gate test correction
+
+0.19.3 is a narrow correctness/test hotfix following native 0.19.2 acceptance.
+It fixes two false-negative structure assertions that accidentally interpolated
+PowerShell variables while checking literal source text: the timestamped root
+HTML marker and the moved product-family query-tool path. The underlying
+features were already functioning and are unchanged.
+
+The full pipeline now captures a newly-created test-results directory even when
+the ALL TESTS gate fails, copies that evidence into the failure log package, and
+prints explicit `NOT RUN - gated by failed test phase` text for downstream
+archive work instead of blank archive counters.
+
+Database, archive, family, compact, GUI, summary, and HTML semantics are
+unchanged. Existing managed database content remains reusable.
 
 ## 0.19.2 GUI discovery, summary accuracy, and no-op maintenance cleanup
 

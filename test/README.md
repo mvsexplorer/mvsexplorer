@@ -1,12 +1,11 @@
-# 0.19.2 current regression notes
+# 0.19.3 current regression notes
 
-The current generated public `all` matrix contains **1,114 assertions** and the
-structure subset contains **501 assertions**. The five new structure guards
-cover flat GUI database candidate shape, maintenance project/tool version
-separation, numeric database-summary quality parsing, the zero-pending archive
-no-op branch, and the product-family regression's `tools\` query location.
+The current generated public `all` matrix contains **1,115 assertions** and the
+structure subset contains **502 assertions**. In addition to the 0.19.2 guards,
+0.19.3 fixes literal-marker checks for timestamped HTML and moved family-query
+tools, and adds a pipeline early-gate evidence/NOT-RUN regression.
 
-`test\test_product_family_tools.bat` is now version 0.1.4 / project 0.19.2 and
+`test\test_product_family_tools.bat` is version 0.1.5 / project 0.19.3 and
 continues to contain 106 dedicated product-family/compact assertions. Its 32
 public query wrappers are resolved from `tools\`, matching the 0.19.x delivery
 layout.
@@ -418,3 +417,25 @@ representative real dump, so the established baseline becomes 1087 PASS /
 The 33 family tools are intentionally a separate archive-level class. They do
 not alter the legacy `test_all_dumps.bat` 79-snapshot plan, which remains
 34,822 logical checks.
+
+## Current project 0.19.3 matrix
+
+The current normal `test_all.bat` matrix is:
+
+```text
+Structure:       502
+Scalar:          120
+Lookup:           24
+Diagnostic:       46
+Relationship:    151
+Single-dump:     167
+Compare:          39
+History:          65
+Family wrapper:    1
+---------------------
+Total:          1115 assertions
+```
+
+On the established representative real dump, the three note-dependent exact
+lookup cases may remain SKIP, so the expected clean result is 1112 PASS /
+0 FAIL / 3 SKIP.

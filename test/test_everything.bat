@@ -1,7 +1,7 @@
 @echo off
 :setup
 setlocal DisableDelayedExpansion
-set "app.version=0.1.4"
+set "app.version=0.1.5"
 set "app.name=test_everything"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -15,7 +15,7 @@ set "mvste_arg7=%~7"
 set "mvste_script_root=%~dp0"
 set "mvste_caller=%~nx0"
 set "mvste_version=%app.version%"
-set "mvste_project_version=0.19.2"
+set "mvste_project_version=0.19.3"
 :main
 set "RunPowerShellFromLabel.function=MVSTestEverything"
 call :RunPowerShellFromLabel

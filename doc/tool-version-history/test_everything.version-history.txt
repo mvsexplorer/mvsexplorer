@@ -1,3 +1,6 @@
+0.1.5 / project 0.19.3 - 2026-09-11
+- Updates project metadata to 0.19.3; suite orchestration semantics are unchanged.
+
 0.1.4 / project 0.19.2 - 2026-09-10
 - Updates project metadata to 0.19.2.
 - Exercises the corrected product-family regression through test_all.bat.

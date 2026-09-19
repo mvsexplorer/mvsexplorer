@@ -1,3 +1,6 @@
+0.1.5 / project 0.19.3 - 2026-09-11
+- Updates project metadata only; the 106 semantic assertions and tools\ query-wrapper execution remain unchanged.
+
 0.1.4 / project 0.19.2 - 2026-09-10
 - Resolves all 32 product-family query wrappers from tools\ after the 0.19.0 utility relocation.
 - Updates current project metadata; the 106 semantic assertions are otherwise unchanged.

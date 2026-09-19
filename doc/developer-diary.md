@@ -840,3 +840,19 @@ It is invalidated by rebuild markers, validator/query-tool changes, or managed
 database metadata changes, and can always be bypassed with `--force-validate`.
 Source dump reuse continues to require the existing SHA-256 content
 fingerprints; timestamps remain non-evidence.
+
+## 2026-09-11 - 0.19.3 pipeline-gate false-negative correction
+
+Native 0.19.2 use proved the managed updater no-op path and summary corrections,
+but the full production pipeline stopped in the test gate with two structure
+failures. Both were harness defects: double-quoted expected source fragments
+interpolated `$slot`/`$stamp` and `$Root`/`$ToolName` before `.Contains()`.
+The delivered HTML stage still created the expected timestamped root browser,
+and the final product-family regression passed all 106 semantic assertions from
+`tools\`.
+
+0.19.3 changes those assertions to literal-safe comparisons. It also captures
+the test-results directory in a `finally` block around the ALL TESTS child
+phase, copies it into the pipeline log package, and reports downstream archive
+work as explicitly NOT RUN when the test gate fails. No archive/database
+processing semantics are changed.

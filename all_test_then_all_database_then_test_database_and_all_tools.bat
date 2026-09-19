@@ -2,11 +2,11 @@
 :setup
 REM One-command full test -> database build -> database validation -> all family query tools -> ZIP/hardlink pipeline.
 setlocal DisableDelayedExpansion
-set "app.version=1.0.3"
+set "app.version=1.0.4"
 set "app.name=all_test_then_all_database_then_test_database_and_all_tools"
 set "app.rc=0"
 set "app.self=%~f0"
-set "mvspipe_project_version=0.19.2"
+set "mvspipe_project_version=0.19.3"
 set "mvspipe_project_root=%~dp0"
 set "mvspipe_caller=%~nx0"
 set "mvspipe_arg1=%~1"
@@ -292,6 +292,16 @@ function Get-NewestNewDirectory {
     if($rows.Count-eq0){return $null}
     return $rows[0].FullName
 }
+function Capture-TestResults {
+    param([string]$TestParent,[string[]]$Before)
+    $found=Get-NewestNewDirectory $TestParent 'test-results-*' $Before
+    if([string]::IsNullOrWhiteSpace($found)){return ''}
+    $script:TestResults=$found
+    if(-not[string]::IsNullOrWhiteSpace($script:LogsRoot)-and(Test-Path -LiteralPath $found -PathType Container)){
+        Copy-DirectoryTree $found (Join-Path $script:LogsRoot 'test-results')
+    }
+    return $found
+}
 function New-ZipFromDirectory {
     param([string]$Directory,[string]$ZipPath)
     Add-Type -AssemblyName System.IO.Compression -ErrorAction SilentlyContinue
@@ -467,8 +477,22 @@ function Print-FinalSummary {
         Write-Console ('Resume structure results: '+$script:ResumeStructureResults)
     }
     if(-not[string]::IsNullOrWhiteSpace($script:ArchiveDatabase)){
-        $am=Read-KeyValueSummary (Join-Path $script:ArchiveDatabase 'summary.txt')
-        Write-Console ('Archive logical checks: completed='+$am['Completed invocations']+'/'+$am['Planned invocations']+' PASS='+$am['PASS']+' NO_RESULT='+$am['NO_RESULT']+' SOURCE_MISSING='+$am['SOURCE_MISSING']+' FAIL='+$am['FAIL'])
+        $archiveSummaryPath=Join-Path $script:ArchiveDatabase 'summary.txt'
+        if(Test-Path -LiteralPath $archiveSummaryPath -PathType Leaf){
+            $am=Read-KeyValueSummary $archiveSummaryPath
+            Write-Console ('Archive logical checks: completed='+$am['Completed invocations']+'/'+$am['Planned invocations']+' PASS='+$am['PASS']+' NO_RESULT='+$am['NO_RESULT']+' SOURCE_MISSING='+$am['SOURCE_MISSING']+' FAIL='+$am['FAIL'])
+        } else {
+            $testFailed=$false
+            if(-not[string]::IsNullOrWhiteSpace($script:TestResults)){
+                $tmForGate=Read-KeyValueSummary (Join-Path $script:TestResults 'summary.txt')
+                if($tmForGate.ContainsKey('Failed') -and ([int]$tmForGate['Failed'] -gt 0)){$testFailed=$true}
+            }
+            if($testFailed){
+                Write-Console 'Archive logical checks: NOT RUN - gated by failed test phase'
+            } else {
+                Write-Console 'Archive logical checks: NOT RUN - archive database summary unavailable'
+            }
+        }
     }
     if(-not[string]::IsNullOrWhiteSpace($script:DbValidationRoot)){
         $dm=Read-KeyValueSummary (Join-Path $script:DbValidationRoot 'summary.txt')
@@ -627,10 +651,12 @@ try{
         $beforeTests=@(Get-ChildItem -LiteralPath $testParent -Directory -Filter 'test-results-*' -ErrorAction SilentlyContinue|ForEach-Object{$_.FullName})
         $testArgs=@($ArchiveRoot,'--workers',[string]$Workers)
         if($StrictPerformance){$testArgs+=@('--strict-performance')}
-        Invoke-ChildPhase 'ALL TESTS' $testEverything $testArgs
-        $testResults=Get-NewestNewDirectory $testParent 'test-results-*' $beforeTests
+        try{
+            Invoke-ChildPhase 'ALL TESTS' $testEverything $testArgs
+        } finally {
+            $testResults=Capture-TestResults $testParent $beforeTests
+        }
         if([string]::IsNullOrWhiteSpace($testResults)){throw 'Could not locate test_all result folder after test gate.'}
-        $script:TestResults=$testResults
 
         Invoke-ChildPhase 'BUILD ARCHIVE ANALYSIS DATABASE (34,822 logical archive checks on current known archive)' $sweep @($ArchiveRoot,$ArchiveDatabase,'--workers',[string]$Workers,'--no-cache')
 

@@ -1,3 +1,7 @@
+1.0.9 / project 0.19.3 - 2026-09-11
+- Captures failed ALL TESTS result folders before propagating the gate failure.
+- Improves early-failure summary output with retained test totals and explicit downstream NOT RUN status.
+
 1.0.8 / project 0.19.2 - 2026-09-10
 - Regenerates the full-pipeline launcher with project 0.19.2 metadata.
 - Database-validation implementation remains semantically unchanged.

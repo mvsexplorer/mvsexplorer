@@ -350,3 +350,7 @@ These directives are distilled from the user's project prompts.
 242. Validation-cache metadata is only a performance invalidation mechanism; it must never replace content-addressed raw evidence hashes or weaken source-content fingerprinting used to decide whether dumps are already processed.
 243. Regression callers must follow the delivered utility layout. Product-family query regression tests must execute the 32 public query BATs from `tools\`, not from the project root.
 244. Maintenance/performance hotfixes must keep the established archive semantic plan unchanged unless an explicit new analytical requirement changes it; the known 79-snapshot plan remains 34,822 logical checks.
+245. Static source-code assertions must compare literal source text without allowing the assertion language to interpolate variables inside the expected marker.
+246. A fail-gated production pipeline must preserve the newest test-results evidence even when the test child exits nonzero; failure packaging must include that evidence when available.
+247. Downstream phases that were never executed because an earlier gate failed must be reported explicitly as NOT RUN, not as empty counters that resemble malformed results.
+248. Narrow test/reporting hotfixes must not invalidate archive-processing reuse when processing semantics are unchanged; preserve the established 34,822-row plan and processing bytes where possible.

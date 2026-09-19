@@ -58,7 +58,7 @@ does not print the 79 per-snapshot planning lines. A subsequent production
 archive build prints its own planning pass once because that plan is persisted
 with the generated database.
 
-The current 0.19.2 public regression has 1,114 assertions. The established
+The current 0.19.3 public regression has 1,115 assertions. The established
 baseline includes three data-dependent note exact-match skips on the
 2019-03-19 fixture.
 
@@ -205,3 +205,12 @@ through its normal `test_all.bat` stage.
 The archive sweep deliberately excludes the 34 family tools from per-snapshot
 planning; their semantics require one archive-level index. The established
 legacy plan remains 34,822 logical checks on the known 79-snapshot archive.
+
+## Project 0.19.3 structure regression correction
+
+Structure scope is 502 assertions and all mode is 1,115 assertions. The two
+0.19.2 false negatives for timestamped root HTML and moved product-family query
+tools now compare literal source markers without PowerShell variable
+interpolation. A new structure assertion verifies that early pipeline test-gate
+failures preserve test-result evidence and explicitly report downstream archive
+work as NOT RUN.
