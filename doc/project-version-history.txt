@@ -1,5 +1,14 @@
 MVS Explorer Toolkit Project Version History
 
+0.14.4 - 2026-08-30
+  - Archive-builder performance/profiling maintenance release.
+  - Kept all 443 public root tools byte-for-byte identical to 0.14.3.
+  - Recorded clean native 0.14.3 gates: 1053 pass / 0 fail / 3 skip and fast archive acceptance 3 pass / 0 fail.
+  - Recorded direct 0.14.3 archive-builder benchmark at 13,975,326 ms, 8.20% faster than the 0.14.2 internal baseline of 15,223,912 ms.
+  - Verified 2,323/2,324 generated archive files byte-for-byte identical to the accepted 0.14.2 output; only the elapsed-time summary differed.
+  - Reduced archive-worker allocation/normalization overhead while preserving value/state keys and output order.
+  - Added evolution\fast-archive-timings.tsv for per-source and per-phase snapshot profiling.
+
 0.14.3 - 2026-08-30
   - Performance-maintenance release driven by the completed native 0.14.2 79-snapshot acceptance run.
   - Kept all 443 public root tools byte-for-byte identical to 0.14.2.

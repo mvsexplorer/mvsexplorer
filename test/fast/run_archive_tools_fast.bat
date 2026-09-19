@@ -1,7 +1,7 @@
 @echo off
 :setup
 setlocal DisableDelayedExpansion
-set "app.version=0.3.0"
+set "app.version=0.4.0"
 set "app.name=run_archive_tools_fast"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -260,7 +260,8 @@ function Get-Key {
 
 function New-ValueSet {
     return [pscustomobject]@{
-        rows=(New-Object System.Collections.ArrayList)
+        keys=(New-Object 'System.Collections.Generic.List[string]')
+        values=(New-Object 'System.Collections.Generic.List[string]')
         seen=(New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal))
     }
 }
@@ -271,8 +272,10 @@ function New-SourceModel {
     return [pscustomobject]@{
         sets=$sets
         state_set=(New-ValueSet)
-        state_ids=@{}
-        title_ids=@{}
+        state_primary_id=(New-Object 'System.Collections.Generic.Dictionary[string,string]' ([StringComparer]::Ordinal))
+        state_extra_ids=(New-Object 'System.Collections.Generic.Dictionary[string,object]' ([StringComparer]::Ordinal))
+        title_primary_id=(New-Object 'System.Collections.Generic.Dictionary[string,string]' ([StringComparer]::Ordinal))
+        title_extra_ids=(New-Object 'System.Collections.Generic.Dictionary[string,object]' ([StringComparer]::Ordinal))
         section_count=0L
         zero_file_sections=0L
         duplicate_state_occurrences=0L
@@ -288,46 +291,86 @@ function Add-ModelValue {
     if([string]::IsNullOrWhiteSpace($display)){return}
     $key=Get-Key $display $Kind
     $set=$Model.sets[$Kind]
-    if($set.seen.Add($key)){[void]$set.rows.Add([pscustomobject]@{key=$key;value=$display})}
+    if($set.seen.Add($key)){
+        $set.keys.Add($key)
+        $set.values.Add($display)
+    }
 }
 
-
 function Add-SectionState {
-    param([object]$Model,[string]$Title,[string]$Id,[System.Collections.ArrayList]$Files)
+    param(
+        [object]$Model,
+        [string]$Title,
+        [string]$Id,
+        [int]$FileCount,
+        [string]$FirstFile,
+        [object]$Files
+    )
     if($null -eq $Model -or [string]::IsNullOrWhiteSpace($Title)){return}
-    $displayTitle=Normalize-Title $Title
-    if($Files.Count -eq 0){
+    $displayTitle=$Title
+    if($FileCount -eq 0){
         $stateFiles=''
-    } elseif($Files.Count -eq 1) {
-        $stateFiles=[string]$Files[0]
+    } elseif($FileCount -eq 1) {
+        $stateFiles=$FirstFile
     } else {
-        [string[]]$parts=$Files.ToArray([string])
+        [string[]]$parts=$Files.ToArray()
         [Array]::Sort($parts,[StringComparer]::OrdinalIgnoreCase)
         $stateFiles=$parts -join [char]0x1e
     }
     $stateKey=$displayTitle.ToLowerInvariant()+[char]0x1f+$stateFiles
     $Model.section_count=[int64]$Model.section_count+1
-    if($Files.Count -eq 0){$Model.zero_file_sections=[int64]$Model.zero_file_sections+1}
+    if($FileCount -eq 0){$Model.zero_file_sections=[int64]$Model.zero_file_sections+1}
     if($Id -match '^\d+$'){$Model.numeric_id_occurrences=[int64]$Model.numeric_id_occurrences+1}
+
     if($Model.state_set.seen.Add($stateKey)){
-        [void]$Model.state_set.rows.Add([pscustomobject]@{key=$stateKey;value=$displayTitle})
+        $Model.state_set.keys.Add($stateKey)
+        $Model.state_set.values.Add($displayTitle)
     } else {
         $Model.duplicate_state_occurrences=[int64]$Model.duplicate_state_occurrences+1
     }
-    if(-not $Model.state_ids.ContainsKey($stateKey)){
-        $Model.state_ids[$stateKey]=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+
+    if(-not $Model.state_primary_id.ContainsKey($stateKey)){
+        $Model.state_primary_id.Add($stateKey,[string]$Id)
+    } else {
+        $primary=[string]$Model.state_primary_id[$stateKey]
+        if(-not [string]::Equals($primary,[string]$Id,[StringComparison]::OrdinalIgnoreCase)){
+            if(-not $Model.state_extra_ids.ContainsKey($stateKey)){
+                $Model.state_extra_ids.Add($stateKey,(New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)))
+            }
+            [void]$Model.state_extra_ids[$stateKey].Add([string]$Id)
+        }
     }
-    [void]$Model.state_ids[$stateKey].Add([string]$Id)
+
     $titleKey=$displayTitle.ToLowerInvariant()
-    if(-not $Model.title_ids.ContainsKey($titleKey)){
-        $Model.title_ids[$titleKey]=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    if(-not $Model.title_primary_id.ContainsKey($titleKey)){
+        $Model.title_primary_id.Add($titleKey,[string]$Id)
+    } else {
+        $primary=[string]$Model.title_primary_id[$titleKey]
+        if(-not [string]::Equals($primary,[string]$Id,[StringComparison]::OrdinalIgnoreCase)){
+            if(-not $Model.title_extra_ids.ContainsKey($titleKey)){
+                $Model.title_extra_ids.Add($titleKey,(New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)))
+            }
+            [void]$Model.title_extra_ids[$titleKey].Add([string]$Id)
+        }
     }
-    [void]$Model.title_ids[$titleKey].Add([string]$Id)
+
     $exactKey=$stateKey+[char]0x1f+([string]$Id).ToLowerInvariant()
     if(-not $Model.exact_section_seen.Add($exactKey)){$Model.exact_duplicate_occurrences=[int64]$Model.exact_duplicate_occurrences+1}
 }
 
+function Get-TitleIds {
+    param([object]$Model,[string]$TitleKey)
+    if($null -eq $Model -or -not $Model.title_primary_id.ContainsKey($TitleKey)){return @()}
+    $ids=New-Object System.Collections.ArrayList
+    [void]$ids.Add([string]$Model.title_primary_id[$TitleKey])
+    if($Model.title_extra_ids.ContainsKey($TitleKey)){
+        foreach($id in $Model.title_extra_ids[$TitleKey]){[void]$ids.Add([string]$id)}
+    }
+    return @($ids | Sort-Object)
+}
+
 $sha256Hasher=[Security.Cryptography.SHA256]::Create()
+$rawHtmlSeen=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
 
 function Get-Sha256String {
     param([AllowNull()][AllowEmptyString()][string]$Text)
@@ -371,12 +414,18 @@ function Read-SourceModel {
     if($Name -eq 'mvs_ids.txt'){
         $reader=New-Object System.IO.StreamReader -ArgumentList @($Path,[System.Text.Encoding]::UTF8,$true,65536)
         try{
+            $idSet=$model.sets.id
+            $titleSet=$model.sets.title
             while($true){
                 $line=$reader.ReadLine();if($null-eq$line){break}
                 $m=$RxIds.Match([string]$line)
                 if($m.Success){
-                    Add-ModelValue $model 'id' $m.Groups['id'].Value 'numeric'
-                    Add-ModelValue $model 'title' $m.Groups['title'].Value ''
+                    $id=Normalize-Id $m.Groups['id'].Value 'numeric'
+                    $idKey=$id.ToLowerInvariant()
+                    if($idSet.seen.Add($idKey)){$idSet.keys.Add($idKey);$idSet.values.Add($id)}
+                    $title=Normalize-Title $m.Groups['title'].Value
+                    $titleKey=$title.ToLowerInvariant()
+                    if($titleSet.seen.Add($titleKey)){$titleSet.keys.Add($titleKey);$titleSet.values.Add($title)}
                 }
             }
         } finally {$reader.Dispose()}
@@ -386,13 +435,21 @@ function Read-SourceModel {
     if($Name -eq 'mvs_dates.txt'){
         $reader=New-Object System.IO.StreamReader -ArgumentList @($Path,[System.Text.Encoding]::UTF8,$true,65536)
         try{
+            $idSet=$model.sets.id
+            $titleSet=$model.sets.title
+            $dateSet=$model.sets.date
             while($true){
                 $line=$reader.ReadLine();if($null-eq$line){break}
                 $m=$RxDates.Match([string]$line)
                 if($m.Success){
-                    Add-ModelValue $model 'id' $m.Groups['id'].Value 'numeric'
-                    Add-ModelValue $model 'title' $m.Groups['title'].Value ''
-                    Add-ModelValue $model 'date' $m.Groups['date'].Value ''
+                    $id=Normalize-Id $m.Groups['id'].Value 'numeric'
+                    $idKey=$id.ToLowerInvariant()
+                    if($idSet.seen.Add($idKey)){$idSet.keys.Add($idKey);$idSet.values.Add($id)}
+                    $title=Normalize-Title $m.Groups['title'].Value
+                    $titleKey=$title.ToLowerInvariant()
+                    if($titleSet.seen.Add($titleKey)){$titleSet.keys.Add($titleKey);$titleSet.values.Add($title)}
+                    $date=$m.Groups['date'].Value.Trim()
+                    if($dateSet.seen.Add($date)){$dateSet.keys.Add($date);$dateSet.values.Add($date)}
                 }
             }
         } finally {$reader.Dispose()}
@@ -402,14 +459,19 @@ function Read-SourceModel {
     if($Name -eq 'mvs.sha1' -or $Name -eq 'mvs.sha256'){
         $rx=if($Name -eq 'mvs.sha1'){$RxSha1}else{$RxSha256}
         $kind=if($Name -eq 'mvs.sha1'){'sha1'}else{'sha256'}
+        $hashSet=$model.sets[$kind]
+        $filenameSet=$model.sets.filename
         $reader=New-Object System.IO.StreamReader -ArgumentList @($Path,[System.Text.Encoding]::UTF8,$true,65536)
         try{
             while($true){
                 $line=$reader.ReadLine();if($null-eq$line){break}
                 $m=$rx.Match([string]$line)
                 if($m.Success){
-                    Add-ModelValue $model $kind $m.Groups['hash'].Value ''
-                    Add-ModelValue $model 'filename' $m.Groups['filename'].Value ''
+                    $hash=$m.Groups['hash'].Value.ToLowerInvariant()
+                    if($hashSet.seen.Add($hash)){$hashSet.keys.Add($hash);$hashSet.values.Add($hash)}
+                    $filename=$m.Groups['filename'].Value.Trim()
+                    $filenameKey=$filename.ToLowerInvariant()
+                    if($filenameSet.seen.Add($filenameKey)){$filenameSet.keys.Add($filenameKey);$filenameSet.values.Add($filename)}
                 }
             }
         } finally {$reader.Dispose()}
@@ -422,7 +484,14 @@ function Read-SourceModel {
         $idMode=if($Name -eq 'mvs_names.txt'){'text'}else{'numeric'}
         $currentTitle=''
         $currentId=''
-        $currentFiles=New-Object System.Collections.ArrayList
+        $currentFileCount=0
+        $firstFile=''
+        $currentFiles=$null
+        $idSet=$model.sets.id
+        $titleSet=$model.sets.title
+        $filenameSet=$model.sets.filename
+        $sha1Set=$model.sets.sha1
+        $sha256Set=$model.sets.sha256
         $reader=New-Object System.IO.StreamReader -ArgumentList @($Path,[System.Text.Encoding]::UTF8,$true,65536)
         try{
             while($true){
@@ -430,21 +499,32 @@ function Read-SourceModel {
                 if($null -eq $line){break}
                 $hm=$headerRx.Match([string]$line)
                 if($hm.Success){
-                    if($inside){Add-SectionState $model $currentTitle $currentId $currentFiles}
+                    if($inside){Add-SectionState $model $currentTitle $currentId $currentFileCount $firstFile $currentFiles}
                     $inside=$true
-                    $currentTitle=$hm.Groups['title'].Value
+                    $currentTitle=Normalize-Title $hm.Groups['title'].Value
                     $currentId=Normalize-Id $hm.Groups['id'].Value $idMode
-                    $currentFiles=New-Object System.Collections.ArrayList
-                    Add-ModelValue $model 'id' $hm.Groups['id'].Value $idMode
-                    Add-ModelValue $model 'title' $hm.Groups['title'].Value ''
+                    $currentFileCount=0
+                    $firstFile=''
+                    $currentFiles=$null
+
+                    if(-not [string]::IsNullOrWhiteSpace($currentId)){
+                        $idKey=$currentId.ToLowerInvariant()
+                        if($idSet.seen.Add($idKey)){$idSet.keys.Add($idKey);$idSet.values.Add($currentId)}
+                    }
+                    if(-not [string]::IsNullOrWhiteSpace($currentTitle)){
+                        $titleKey=$currentTitle.ToLowerInvariant()
+                        if($titleSet.seen.Add($titleKey)){$titleSet.keys.Add($titleKey);$titleSet.values.Add($currentTitle)}
+                    }
                     continue
                 }
                 if([string]::IsNullOrWhiteSpace([string]$line)){
-                    if($inside){Add-SectionState $model $currentTitle $currentId $currentFiles}
+                    if($inside){Add-SectionState $model $currentTitle $currentId $currentFileCount $firstFile $currentFiles}
                     $inside=$false
                     $currentTitle=''
                     $currentId=''
-                    $currentFiles=New-Object System.Collections.ArrayList
+                    $currentFileCount=0
+                    $firstFile=''
+                    $currentFiles=$null
                     continue
                 }
                 if(-not $inside){continue}
@@ -452,20 +532,34 @@ function Read-SourceModel {
                 if($fm.Success){
                     $hash=$fm.Groups['hash'].Value.ToLowerInvariant()
                     $filename=$fm.Groups['filename'].Value.Trim()
-                    [void]$currentFiles.Add($hash+'|'+$filename.ToLowerInvariant())
-                    Add-ModelValue $model 'filename' $filename ''
-                    if($hash.Length -eq 40){Add-ModelValue $model 'sha1' $hash ''}
-                    elseif($hash.Length -eq 64){Add-ModelValue $model 'sha256' $hash ''}
+                    $stateFile=$hash+'|'+$filename.ToLowerInvariant()
+                    if($currentFileCount -eq 0){
+                        $firstFile=$stateFile
+                    } elseif($currentFileCount -eq 1) {
+                        $currentFiles=New-Object 'System.Collections.Generic.List[string]'
+                        $currentFiles.Add($firstFile)
+                        $currentFiles.Add($stateFile)
+                    } else {
+                        $currentFiles.Add($stateFile)
+                    }
+                    $currentFileCount++
+
+                    $filenameKey=$filename.ToLowerInvariant()
+                    if($filenameSet.seen.Add($filenameKey)){$filenameSet.keys.Add($filenameKey);$filenameSet.values.Add($filename)}
+                    if($hash.Length -eq 40){
+                        if($sha1Set.seen.Add($hash)){$sha1Set.keys.Add($hash);$sha1Set.values.Add($hash)}
+                    } elseif($hash.Length -eq 64) {
+                        if($sha256Set.seen.Add($hash)){$sha256Set.keys.Add($hash);$sha256Set.values.Add($hash)}
+                    }
                 }
             }
-            if($inside){Add-SectionState $model $currentTitle $currentId $currentFiles}
+            if($inside){Add-SectionState $model $currentTitle $currentId $currentFileCount $firstFile $currentFiles}
         } finally {$reader.Dispose()}
         return $model
     }
 
     throw ('Unsupported source file: '+$Name)
 }
-
 
 function Read-NoteSnapshot {
     param([string]$Path,[string]$SnapshotName,[string]$RawRoot,[System.IO.StreamWriter]$ObservationWriter,[object]$ProductModel,[object]$VariantModel)
@@ -487,8 +581,10 @@ function Read-NoteSnapshot {
         $noteText=Convert-NoteHtmlToText $rawBody
         $bodySha=Get-Sha256String $noteText
         $rawSha=Get-Sha256String $rawBody
-        $rawPath=Join-Path $RawRoot ($rawSha+'.html')
-        if(-not(Test-Path -LiteralPath $rawPath -PathType Leaf)){[IO.File]::WriteAllText($rawPath,$rawBody,$utf8)}
+        if($rawHtmlSeen.Add($rawSha)){
+            $rawPath=Join-Path $RawRoot ($rawSha+'.html')
+            [IO.File]::WriteAllText($rawPath,$rawBody,$utf8)
+        }
         $row=[pscustomobject]@{
             occurrence=$occurrence;title=$title;source_id=$sourceId;body_sha256=$bodySha;raw_html_sha256=$rawSha;note_text=$noteText
         }
@@ -497,11 +593,11 @@ function Read-NoteSnapshot {
             $productIds=''
             $variantSourceIds=''
             $titleKey=$title.ToLowerInvariant()
-            if($null -ne $ProductModel -and $ProductModel.title_ids.ContainsKey($titleKey)){
-                $productIds=(@($ProductModel.title_ids[$titleKey]) | Sort-Object) -join ','
+            if($null -ne $ProductModel -and $ProductModel.title_primary_id.ContainsKey($titleKey)){
+                $productIds=(@(Get-TitleIds $ProductModel $titleKey)) -join ','
             }
-            if($null -ne $VariantModel -and $VariantModel.title_ids.ContainsKey($titleKey)){
-                $variantSourceIds=(@($VariantModel.title_ids[$titleKey]) | Sort-Object) -join ','
+            if($null -ne $VariantModel -and $VariantModel.title_primary_id.ContainsKey($titleKey)){
+                $variantSourceIds=(@(Get-TitleIds $VariantModel $titleKey)) -join ','
             }
             Write-TsvLine $ObservationWriter @($SnapshotName,[string]$occurrence,$title,$sourceId,$productIds,$variantSourceIds,$bodySha,$rawSha,$noteText)
         }
@@ -517,16 +613,27 @@ function Get-StateIdTransition {
     $retained=0L
     $same=0L
     $changed=0L
-    foreach($row in @($CurrentModel.state_set.rows)){
-        $key=[string]$row.key
+    $currKeys=$CurrentModel.state_set.keys
+    for($si=0;$si-lt$currKeys.Count;$si++){
+        $key=[string]$currKeys[$si]
         if(-not $PreviousModel.state_set.seen.Contains($key)){continue}
         $retained++
         $hasSame=$false
-        $prevIds=$PreviousModel.state_ids[$key]
-        $currIds=$CurrentModel.state_ids[$key]
-        if($null -ne $prevIds -and $null -ne $currIds){
-            foreach($id in $currIds){
-                if($prevIds.Contains([string]$id)){$hasSame=$true;break}
+        $prevPrimary=[string]$PreviousModel.state_primary_id[$key]
+        $currPrimary=[string]$CurrentModel.state_primary_id[$key]
+        if([string]::Equals($prevPrimary,$currPrimary,[StringComparison]::OrdinalIgnoreCase)){
+            $hasSame=$true
+        } elseif($PreviousModel.state_extra_ids.ContainsKey($key) -and $PreviousModel.state_extra_ids[$key].Contains($currPrimary)){
+            $hasSame=$true
+        } elseif($CurrentModel.state_extra_ids.ContainsKey($key) -and $CurrentModel.state_extra_ids[$key].Contains($prevPrimary)){
+            $hasSame=$true
+        } elseif($PreviousModel.state_extra_ids.ContainsKey($key) -and $CurrentModel.state_extra_ids.ContainsKey($key)){
+            $prevExtra=$PreviousModel.state_extra_ids[$key]
+            $currExtra=$CurrentModel.state_extra_ids[$key]
+            if($currExtra.Count -le $prevExtra.Count){
+                foreach($id in $currExtra){if($prevExtra.Contains([string]$id)){$hasSame=$true;break}}
+            } else {
+                foreach($id in $prevExtra){if($currExtra.Contains([string]$id)){$hasSame=$true;break}}
             }
         }
         if($hasSame){$same++}else{$changed++}
@@ -537,19 +644,21 @@ function Get-StateIdTransition {
 function New-UnionState {
     return [pscustomobject]@{
         map=(New-Object 'System.Collections.Generic.Dictionary[string,object]' ([StringComparer]::Ordinal))
-        order=(New-Object System.Collections.ArrayList)
+        order=(New-Object 'System.Collections.Generic.List[string]')
     }
 }
 
 function Update-Union {
     param([object]$State,[object]$Set,[string]$SnapshotName)
     $newCount=0L
-    foreach($row in @($Set.rows)){
-        $key=[string]$row.key
+    $keys=$Set.keys
+    $values=$Set.values
+    for($ui=0;$ui-lt$keys.Count;$ui++){
+        $key=[string]$keys[$ui]
         if(-not $State.map.ContainsKey($key)){
-            $record=[object[]]@($SnapshotName,$SnapshotName,1,[string]$row.value)
+            $record=[object[]]@($SnapshotName,$SnapshotName,1,[string]$values[$ui])
             $State.map.Add($key,$record)
-            [void]$State.order.Add($key)
+            $State.order.Add($key)
             $newCount++
         } else {
             $record=[object[]]$State.map[$key]
@@ -636,6 +745,7 @@ $qualityWriter=New-Utf8Writer (Join-Path $evolutionRoot 'per-dump-quality.tsv') 
 $transitionWriter=New-Utf8Writer (Join-Path $evolutionRoot 'variant-id-transitions.tsv') "from_dump`tto_dump`tretained_variant_states`tsame_source_id`tchanged_source_id`tchanged_id_pct`tfrom_unique_ids`tto_unique_ids`tfrom_numeric_id_pct`tto_numeric_id_pct"
 $noteObservationWriter=New-Utf8Writer (Join-Path $noteRoot 'note-observations.tsv') "dump`toccurrence`ttitle`tsource_id`tproduct_ids`tvariant_source_ids`tbody_sha256`traw_html_sha256`tnote_text"
 $suggestWriter=New-Utf8Writer (Join-Path $evolutionRoot 'suggested-exclusions.tsv') "snapshot`tscope`trecommendation`treason`tmetric`tvalue"
+$timingWriter=New-Utf8Writer (Join-Path $evolutionRoot 'fast-archive-timings.tsv') "index`tdump`tmvs_txt_parse_ms`tmvs_ids_parse_ms`tmvs_names_parse_ms`tmvs_dates_parse_ms`tmvs_sha1_parse_ms`tmvs_sha256_parse_ms`tdomain_union_ms`tdomain_diff_ms`tstate_union_ms`tnote_ms`ttransition_ms`tflush_ms`ttotal_ms"
 
 $productStateUnion=New-UnionState
 $variantStateUnion=New-UnionState
@@ -660,6 +770,12 @@ try{
         $snapSw=[Diagnostics.Stopwatch]::StartNew()
         $newByDomain=@{}
         foreach($domain in $Domains){$newByDomain[$domain.name]=0L}
+        $parseMs=@{'mvs.txt'=0L;'mvs_ids.txt'=0L;'mvs_names.txt'=0L;'mvs_dates.txt'=0L;'mvs.sha1'=0L;'mvs.sha256'=0L}
+        $domainUnionMs=0L
+        $domainDiffMs=0L
+        $stateUnionMs=0L
+        $noteMs=0L
+        $transitionMs=0L
 
         foreach($source in $SourceFiles){
             $path=Get-SnapshotSourcePath $snapshot $source
@@ -667,15 +783,23 @@ try{
             Write-TsvLine $allCoverage @([string]$snapshot.name,$source,$(if($present){'1'}else{'0'}))
 
             $model=$null
-            if($present){$model=Read-SourceModel $path $source}
+            if($present){
+                $phaseSw=[Diagnostics.Stopwatch]::StartNew()
+                $model=Read-SourceModel $path $source
+                $phaseSw.Stop()
+                $parseMs[$source]=[int64]$phaseSw.ElapsedMilliseconds
+            }
             $current[$source]=$model
 
             if($null -ne $model){
+                $phaseSw=[Diagnostics.Stopwatch]::StartNew()
                 foreach($domain in @($SourceDomains[$source])){
                     $newCount=[int64](Update-Union $unions[$domain.name] $model.sets[$domain.property] ([string]$snapshot.name))
                     $newByDomain[$domain.name]=$newCount
                     $cumulativeDomain[$domain.name]=[int64]$cumulativeDomain[$domain.name]+$newCount
                 }
+                $phaseSw.Stop()
+                $domainUnionMs+=[int64]$phaseSw.ElapsedMilliseconds
             }
 
             if($i -gt 0){
@@ -685,22 +809,29 @@ try{
                 Write-TsvLine $historyCoverage @([string]$Snapshots[$i-1].name,[string]$snapshot.name,$source,$status)
 
                 if($prevPresent -and $present){
+                    $phaseSw=[Diagnostics.Stopwatch]::StartNew()
                     foreach($domain in @($SourceDomains[$source])){
                         $prevSet=$prevModel.sets[$domain.property]
                         $currSet=$model.sets[$domain.property]
-                        foreach($row in @($prevSet.rows)){
-                            if(-not $currSet.seen.Contains([string]$row.key)){
-                                Write-TsvLine $removedWriters[$domain.name] @([string]$Snapshots[$i-1].name,[string]$snapshot.name,[string]$row.value)
+                        $prevKeys=$prevSet.keys
+                        for($di=0;$di-lt$prevKeys.Count;$di++){
+                            $diffKey=[string]$prevKeys[$di]
+                            if(-not $currSet.seen.Contains($diffKey)){
+                                Write-TsvLine $removedWriters[$domain.name] @([string]$Snapshots[$i-1].name,[string]$snapshot.name,[string]$prevSet.values[$di])
                                 $removedCount++
                             }
                         }
-                        foreach($row in @($currSet.rows)){
-                            if(-not $prevSet.seen.Contains([string]$row.key)){
-                                Write-TsvLine $addedWriters[$domain.name] @([string]$Snapshots[$i-1].name,[string]$snapshot.name,[string]$row.value)
+                        $currKeys=$currSet.keys
+                        for($di=0;$di-lt$currKeys.Count;$di++){
+                            $diffKey=[string]$currKeys[$di]
+                            if(-not $prevSet.seen.Contains($diffKey)){
+                                Write-TsvLine $addedWriters[$domain.name] @([string]$Snapshots[$i-1].name,[string]$snapshot.name,[string]$currSet.values[$di])
                                 $addedCount++
                             }
                         }
                     }
+                    $phaseSw.Stop()
+                    $domainDiffMs+=[int64]$phaseSw.ElapsedMilliseconds
                 }
             }
         }
@@ -716,9 +847,13 @@ try{
         $variantModel=$current['mvs_names.txt']
         $newProductStates=0L
         $newVariantStates=0L
+        $phaseSw=[Diagnostics.Stopwatch]::StartNew()
         if($null -ne $productModel){$newProductStates=[int64](Update-Union $productStateUnion $productModel.state_set ([string]$snapshot.name))}
         if($null -ne $variantModel){$newVariantStates=[int64](Update-Union $variantStateUnion $variantModel.state_set ([string]$snapshot.name))}
+        $phaseSw.Stop()
+        $stateUnionMs=[int64]$phaseSw.ElapsedMilliseconds
 
+        $phaseSw=[Diagnostics.Stopwatch]::StartNew()
         $notePath=Get-SnapshotSourcePath $snapshot 'mvs_notes.html'
         $noteRecords=@()
         if($null -ne $notePath){$noteRecords=@(Read-NoteSnapshot $notePath ([string]$snapshot.name) $rawNoteRoot $noteObservationWriter $productModel $variantModel)}
@@ -776,6 +911,8 @@ try{
                 $rawRecord.observed=[int64]$rawRecord.observed+1
             }
         }
+        $phaseSw.Stop()
+        $noteMs=[int64]$phaseSw.ElapsedMilliseconds
 
         $productSections=if($null-ne$productModel){[int64]$productModel.section_count}else{0L}
         $productZero=if($null-ne$productModel){[int64]$productModel.zero_file_sections}else{0L}
@@ -787,7 +924,7 @@ try{
         $variantZero=if($null-ne$variantModel){[int64]$variantModel.zero_file_sections}else{0L}
         $variantDup=if($null-ne$variantModel){[int64]$variantModel.duplicate_state_occurrences}else{0L}
         $variantExactDup=if($null-ne$variantModel){[int64]$variantModel.exact_duplicate_occurrences}else{0L}
-        $variantUniqueIds=if($null-ne$variantModel){[int64]$variantModel.sets.id.rows.Count}else{0L}
+        $variantUniqueIds=if($null-ne$variantModel){[int64]$variantModel.sets.id.keys.Count}else{0L}
         $variantNumeric=if($null-ne$variantModel){[int64]$variantModel.numeric_id_occurrences}else{0L}
         $variantDupPct=if($variantSections-gt0){[math]::Round(100.0*$variantDup/$variantSections,2)}else{0.0}
         $variantNumericPct=if($variantSections-gt0){[math]::Round(100.0*$variantNumeric/$variantSections,2)}else{0.0}
@@ -803,6 +940,7 @@ try{
         }
 
         if($i-gt0){
+            $phaseSw=[Diagnostics.Stopwatch]::StartNew()
             $prevVariant=$previous['mvs_names.txt']
             if($null-ne$prevVariant -and $null-ne$variantModel){
                 $transition=Get-StateIdTransition $prevVariant $variantModel
@@ -812,7 +950,7 @@ try{
                 Write-TsvLine $transitionWriter @(
                     [string]$Snapshots[$i-1].name,[string]$snapshot.name,[string]$transition.retained,
                     [string]$transition.same_id,[string]$transition.changed_id,[string]$changedPct,
-                    [string]$prevVariant.sets.id.rows.Count,[string]$variantUniqueIds,[string]$prevNumericPct,[string]$variantNumericPct
+                    [string]$prevVariant.sets.id.keys.Count,[string]$variantUniqueIds,[string]$prevNumericPct,[string]$variantNumericPct
                 )
                 if([math]::Abs($variantNumericPct-$prevNumericPct)-ge50.0){[void]$flags.Add('VARIANT_ID_REGIME_SHIFT')}
                 if($prevSections-gt0 -and $variantSections-lt(0.70*$prevSections)){
@@ -824,6 +962,8 @@ try{
                     [void]$flags.Add('VARIANT_REID_EVENT')
                 }
             }
+            $phaseSw.Stop()
+            $transitionMs=[int64]$phaseSw.ElapsedMilliseconds
         }
 
         Write-TsvLine $qualityWriter @(
@@ -845,7 +985,7 @@ try{
         )
 
         $previous=$current
-        $snapSw.Stop()
+        $flushSw=[Diagnostics.Stopwatch]::StartNew()
         foreach($writer in $addedWriters.Values){$writer.Flush()}
         foreach($writer in $removedWriters.Values){$writer.Flush()}
         $historyCoverage.Flush()
@@ -856,6 +996,16 @@ try{
         $transitionWriter.Flush()
         $noteObservationWriter.Flush()
         $suggestWriter.Flush()
+        $flushSw.Stop()
+        $snapSw.Stop()
+        Write-TsvLine $timingWriter @(
+            [string]($i+1),[string]$snapshot.name,
+            [string]$parseMs['mvs.txt'],[string]$parseMs['mvs_ids.txt'],[string]$parseMs['mvs_names.txt'],
+            [string]$parseMs['mvs_dates.txt'],[string]$parseMs['mvs.sha1'],[string]$parseMs['mvs.sha256'],
+            [string]$domainUnionMs,[string]$domainDiffMs,[string]$stateUnionMs,[string]$noteMs,[string]$transitionMs,
+            [string]$flushSw.ElapsedMilliseconds,[string]$snapSw.ElapsedMilliseconds
+        )
+        $timingWriter.Flush()
         Write-Line ('Fast archive snapshot '+($i+1)+'/'+$Snapshots.Count+': '+$snapshot.name+' ('+[math]::Round($snapSw.Elapsed.TotalSeconds,1)+' s)')
     }
 
@@ -869,10 +1019,11 @@ try{
     $transitionWriter.Dispose()
     $noteObservationWriter.Dispose()
     $suggestWriter.Dispose()
+    $timingWriter.Dispose()
 
     $productStateWriter=New-Utf8Writer (Join-Path $evolutionRoot 'product-states-all-ever.tsv') "first_seen_dump`tlast_seen_dump`tobserved_snapshots`tstate_sha256`ttitle"
     try{
-        foreach($key in @($productStateUnion.order)){
+        foreach($key in $productStateUnion.order){
             $record=[object[]]$productStateUnion.map[[string]$key]
             Write-TsvLine $productStateWriter @([string]$record[0],[string]$record[1],[string]$record[2],(Get-Sha256String ([string]$key)),[string]$record[3])
         }
@@ -880,7 +1031,7 @@ try{
 
     $variantStateWriter=New-Utf8Writer (Join-Path $evolutionRoot 'variant-states-all-ever.tsv') "first_seen_dump`tlast_seen_dump`tobserved_snapshots`tstate_sha256`tvariant_title"
     try{
-        foreach($key in @($variantStateUnion.order)){
+        foreach($key in $variantStateUnion.order){
             $record=[object[]]$variantStateUnion.map[[string]$key]
             Write-TsvLine $variantStateWriter @([string]$record[0],[string]$record[1],[string]$record[2],(Get-Sha256String ([string]$key)),[string]$record[3])
         }
@@ -888,7 +1039,7 @@ try{
 
     $noteVersionWriter=New-Utf8Writer (Join-Path $noteRoot 'note-versions.tsv') "first_seen_dump`tlast_seen_dump`tobserved_snapshots`ttitle`tbody_sha256`traw_html_sha256`tnote_text"
     try{
-        foreach($key in @($noteVersionOrder)){
+        foreach($key in $noteVersionOrder){
             $record=$noteVersionMap[[string]$key]
             Write-TsvLine $noteVersionWriter @($record.first_seen,$record.last_seen,[string]$record.observed,$record.title,$record.body_sha256,$record.raw_html_sha256,$record.note_text)
         }
@@ -896,7 +1047,7 @@ try{
 
     $noteBodyWriter=New-Utf8Writer (Join-Path $noteRoot 'note-bodies.tsv') "first_seen_dump`tlast_seen_dump`tobserved_snapshots`tbody_sha256`tnote_text"
     try{
-        foreach($key in @($noteBodyOrder)){
+        foreach($key in $noteBodyOrder){
             $record=$noteBodyMap[[string]$key]
             Write-TsvLine $noteBodyWriter @($record.first_seen,$record.last_seen,[string]$record.observed,$record.body_sha256,$record.note_text)
         }
@@ -904,7 +1055,7 @@ try{
 
     $noteRawWriter=New-Utf8Writer (Join-Path $noteRoot 'note-raw-variants.tsv') "first_seen_dump`tlast_seen_dump`tobserved_snapshots`ttitle`tbody_sha256`traw_html_sha256"
     try{
-        foreach($key in @($noteRawOrder)){
+        foreach($key in $noteRawOrder){
             $record=$noteRawMap[[string]$key]
             Write-TsvLine $noteRawWriter @($record.first_seen,$record.last_seen,[string]$record.observed,$record.title,$record.body_sha256,$record.raw_html_sha256)
         }
@@ -923,24 +1074,24 @@ try{
     }
     foreach($domain in $Domains){
         $state=$unions[$domain.name]
-        foreach($key in @($state.order)){
+        foreach($key in $state.order){
             $record=[object[]]$state.map[[string]$key]
             Add-Retention $retention ([string]$domain.name) ([string]$record[0]) ([string]$record[1])
         }
     }
-    foreach($key in @($productStateUnion.order)){
+    foreach($key in $productStateUnion.order){
         $record=[object[]]$productStateUnion.map[[string]$key]
         Add-Retention $retention 'product_state' ([string]$record[0]) ([string]$record[1])
     }
-    foreach($key in @($variantStateUnion.order)){
+    foreach($key in $variantStateUnion.order){
         $record=[object[]]$variantStateUnion.map[[string]$key]
         Add-Retention $retention 'variant_state' ([string]$record[0]) ([string]$record[1])
     }
-    foreach($key in @($noteVersionOrder)){
+    foreach($key in $noteVersionOrder){
         $record=$noteVersionMap[[string]$key]
         Add-Retention $retention 'note_version' ([string]$record.first_seen) ([string]$record.last_seen)
     }
-    foreach($key in @($noteBodyOrder)){
+    foreach($key in $noteBodyOrder){
         $record=$noteBodyMap[[string]$key]
         Add-Retention $retention 'note_body' ([string]$record.first_seen) ([string]$record.last_seen)
     }
@@ -982,7 +1133,7 @@ try{
         $writer=New-Utf8Writer (Join-Path $allRoot ($domain.name+'.tsv')) "first_seen_dump`tlast_seen_dump`tobserved_snapshots`tvalue"
         try{
             $state=$unions[$domain.name]
-            foreach($key in @($state.order)){
+            foreach($key in $state.order){
                 $record=[object[]]$state.map[[string]$key]
                 Write-TsvLine $writer @([string]$record[0],[string]$record[1],[string]$record[2],[string]$record[3])
                 $unionRows++
@@ -1015,7 +1166,7 @@ try{
     foreach($writer in $removedWriters.Values){try{$writer.Dispose()}catch{}}
     try{$historyCoverage.Dispose()}catch{}
     try{$allCoverage.Dispose()}catch{}
-    foreach($writer in @($domainAddWriter,$contributionWriter,$qualityWriter,$transitionWriter,$noteObservationWriter,$suggestWriter)){try{$writer.Dispose()}catch{}}
+    foreach($writer in @($domainAddWriter,$contributionWriter,$qualityWriter,$transitionWriter,$noteObservationWriter,$suggestWriter,$timingWriter)){try{$writer.Dispose()}catch{}}
     try{$sha256Hasher.Dispose()}catch{}
     Fail 5 $_.Exception.Message
 }

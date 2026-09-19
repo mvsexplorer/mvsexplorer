@@ -82,7 +82,7 @@ def main():
         'per-dump-quality.tsv','variant-id-transitions.tsv','note-versions.tsv',
         'note-observations.tsv','variant_source_ids','note-raw-variants.tsv','per-dump-retention.tsv',
         'suggested-exclusions.tsv','raw-html','noteVersionsSeenThisSnapshot','noteBodiesSeenThisSnapshot',
-        'noteRawSeenThisSnapshot','$Files.Count -eq 1','BitConverter','New-Object \'string[]\' $Fields.Count'
+        'noteRawSeenThisSnapshot','$FileCount -eq 1','state_primary_id','fast-archive-timings.tsv','BitConverter','New-Object \'string[]\' $Fields.Count'
     ))
     check_batch(ROOT/"test"/"build_archive_html_report.bat",(
         ':_MVSArchiveReport_start','Archive Summary','What This Dump Added','Re-ID / ID Regimes',

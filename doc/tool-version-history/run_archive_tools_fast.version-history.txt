@@ -1,5 +1,14 @@
 run_archive_tools_fast.bat Version History
 
+0.4.0 - 2026-08-30
+  - Replaced per-value PSCustomObject rows with typed key/value lists.
+  - Normalizes section title/ID once and lazily allocates multi-file state lists.
+  - Uses primary-plus-extra ID tracking to avoid one HashSet per section state/title.
+  - Uses an in-memory raw-note SHA-256 seen set instead of repeated filesystem probes.
+  - Avoids @() copies when finalizing large union/order ledgers.
+  - Added evolution\fast-archive-timings.tsv with per-source/per-phase timings.
+  - Driven by the 0.14.3 benchmark of 13,975,326 ms (8.20% faster than 0.14.2).
+
 0.3.0 - 2026-08-30
   - Optimized section-state construction for zero/one-file sections without changing state keys.
   - Reused one SHA-256 hasher and replaced per-byte PowerShell hex formatting with BitConverter.

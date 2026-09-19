@@ -162,6 +162,25 @@ them and print their exact locations together with summary/run-info/log
 contents.
 
 
+### 0.14.4 archive-builder benchmark cycle
+
+The native 0.14.3 archive-builder benchmark completed in 13,975,326 ms
+(3 h 52 m 55.326 s), an 8.20% reduction from the 0.14.2 internal baseline.
+Its generated archive files were byte-equivalent to the accepted 0.14.2
+outputs except for the elapsed-time summary line.
+
+0.14.4 reduces per-section/per-value PowerShell allocation and adds
+`evolution\fast-archive-timings.tsv`. Before another complete archive sweep,
+run the direct benchmark:
+
+```bat
+test\fast\run_archive_tools_fast.bat ..\mvs_dumps_archive test\archive-builder-benchmark-0144
+type test\archive-builder-benchmark-0144\fast-archive-summary.txt
+```
+
+Return both `fast-archive-summary.txt` and `evolution\fast-archive-timings.tsv`
+when comparing performance.
+
 ### 0.14.3 full-archive performance follow-up
 
 The first clean 0.14.2 native full-archive run completed all 34,822 logical

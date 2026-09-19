@@ -452,3 +452,19 @@ performance run: 572,143 added records, 474,501 removed records, 648,293
 all-ever source-local records, 12,103 product states, 100,139 variant states,
 3,974 note versions, 820 note bodies, and 6,210 title/body/raw note variants.
 
+## 2026-08-30 - 0.14.4 archive-builder allocation pass
+
+The direct 0.14.3 native benchmark finished at 13,975,326 ms, 8.20% below the
+0.14.2 internal baseline, while producing byte-identical archive evidence
+except for the elapsed-time summary. The per-snapshot curve still climbed from
+tens of seconds in early dumps to roughly 4-5 minutes in the later dumps.
+
+Inspection showed several high-frequency PowerShell allocation paths:
+`PSCustomObject` creation for every unique source-local value, a fresh file
+`ArrayList` for every product/variant section, a fresh ID `HashSet` for every
+state/title, duplicate title normalization during section finalization, and a
+filesystem `Test-Path` for every note raw-HTML observation. 0.14.4 removes
+those costs without changing value/state keys or ordering and adds a detailed
+phase timing ledger so the next optimization is based on measured parse/union/
+diff/note/transition/finalization cost.
+

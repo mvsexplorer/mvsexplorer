@@ -1,4 +1,66 @@
-# MVS Explorer Toolkit 0.14.3
+# MVS Explorer Toolkit 0.14.4
+
+## 0.14.4 archive-builder allocation reduction and phase profiling
+
+Version 0.14.4 is driven by the native Windows PowerShell 5.1 benchmark of
+0.14.3. All 443 public root tools remain byte-for-byte unchanged.
+
+The direct 0.14.3 archive-builder benchmark completed the same 79-snapshot
+historical model in 13,975,326 ms (3 h 52 m 55.326 s), compared with
+15,223,912 ms for 0.14.2. That is an 8.20% improvement. The generated archive
+output was byte-for-byte identical to the 0.14.2 accepted archive output in
+2,323 of 2,324 files; the only differing file was `fast-archive-summary.txt`
+because its elapsed-time line changed.
+
+The remaining profile is dominated by work repeated once per product/variant
+section and once per source-local set value. 0.14.4 therefore keeps the same
+archive evidence model and output ordering while reducing PowerShell object and
+collection churn:
+
+- source-local value sets use parallel typed key/value lists instead of one
+  `PSCustomObject` per unique value;
+- product/variant titles and IDs are normalized once at section-header parse
+  time instead of being normalized again during section-state finalization;
+- zero/one-file sections no longer allocate an `ArrayList`; a file list is
+  allocated only when a section actually has multiple files;
+- state/title ID tracking stores one primary ID directly and allocates a
+  case-insensitive extra-ID set only when a state/title genuinely has multiple
+  distinct source IDs;
+- raw note HTML uses an in-memory SHA-256 seen set instead of performing a
+  filesystem existence test for every note observation;
+- large final union/order lists are enumerated directly rather than copied
+  through `@(...)`.
+
+0.14.4 also writes:
+
+```text
+archive-output\evolution\fast-archive-timings.tsv
+```
+
+The timing ledger records, for every snapshot, parse time for each source plus
+domain-union, adjacent-diff, state-union, note, re-ID transition, flush, and
+total time. This makes the next optimization cycle evidence-driven even if the
+total runtime remains substantial.
+
+Validate first with:
+
+```bat
+test\test_fast_archive_sweep.bat
+test\test_everything.bat ..\mvs_dumps_archive
+```
+
+Then benchmark only the archive engine before launching another full sweep:
+
+```bat
+test\fast\run_archive_tools_fast.bat ..\mvs_dumps_archive test\archive-builder-benchmark-0144
+type test\archive-builder-benchmark-0144\fast-archive-summary.txt
+```
+
+The accepted historical counts remain 572,143 added records, 474,501 removed
+records, 648,293 all-ever source-local records, 12,103 product states, 100,139
+variant states, 3,974 note versions, 820 note bodies, and 6,210 raw note
+variants.
+
 
 ## 0.14.3 measured archive-builder performance maintenance
 

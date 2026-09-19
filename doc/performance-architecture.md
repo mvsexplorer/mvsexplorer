@@ -234,3 +234,20 @@ The next fresh 79-snapshot run must compare the archive row in
 `fast-batches.tsv` against 15,224.942 seconds while reproducing the 0.14.2
 logical/evolution baselines exactly.
 
+## 0.14.4 archive-builder allocation profile
+
+The direct native 0.14.3 archive benchmark completed in 13,975,326 ms versus
+15,223,912 ms for 0.14.2, an 8.20% improvement with byte-equivalent archive
+outputs except for the elapsed-time summary.
+
+Per-snapshot times still rose with later/larger dumps, so 0.14.4 targets
+per-section and per-value allocation rather than changing chronology semantics.
+Source-local value rows are stored as parallel typed key/value lists, section
+titles/IDs are normalized once, multi-file state lists are lazy, and state/title
+ID sets are allocated only when multiple distinct IDs actually occur. Raw note
+HTML uses an in-memory content-hash seen set.
+
+`evolution\fast-archive-timings.tsv` records source parse and archive-maintenance
+phase timings per snapshot. Total builder time minus the sum of snapshot totals
+also exposes final all-ever/retention serialization cost.
+

@@ -271,3 +271,13 @@ For a truly fresh performance run:
 ```bat
 test\test_all_dumps.bat ..\mvs_dumps_archive --workers 8 --no-cache
 ```
+
+### 0.14.4 archive-engine phase timings
+
+Fast archive builder output now includes
+`archive-output\evolution\fast-archive-timings.tsv`. The file is diagnostic
+performance evidence only; it does not participate in the logical 34,822-row
+plan or alter historical evidence keys. It records per-snapshot parse time for
+each source plus domain-union, adjacent-diff, state-union, notes, variant-ID
+transition, flush, and total elapsed milliseconds.
+
