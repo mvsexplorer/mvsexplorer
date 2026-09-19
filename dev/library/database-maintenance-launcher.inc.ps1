@@ -1,0 +1,153 @@
+$ErrorActionPreference='Stop'
+$utf8=New-Object System.Text.UTF8Encoding($false)
+[Console]::OutputEncoding=$utf8
+$ProjectRoot=[IO.Path]::GetFullPath([string]$env:mvscu_project_root)
+$InvocationDir=[IO.Path]::GetFullPath([string]$env:mvscu_invocation_dir)
+$Version=[string]$env:mvscu_version
+$raw=@([string]$env:mvscu_arg1,[string]$env:mvscu_arg2,[string]$env:mvscu_arg3,[string]$env:mvscu_arg4)
+$Workers=8
+for($i=0;$i  -lt  $raw.Count;$i++){
+    $a=$raw[$i]
+    if([string]::IsNullOrWhiteSpace($a)){continue}
+    if($a  -in  @('--help','-h','-?','/h','/?')){
+        [Console]::Out.WriteLine('MVS Explorer Toolkit create/update database '+$Version)
+        [Console]::Out.WriteLine('Usage: create_or_update_mvs_database.bat [--workers N]')
+        [Console]::Out.WriteLine('Searches current and parent folders for every mvs_dumps_archive* directory.')
+        [Environment]::Exit(0)
+    }
+    if($a  -eq  '--workers'){
+        if($i+1  -ge  $raw.Count){throw '--workers requires a value.'}
+        $i++;if(   -not   [int]::TryParse($raw[$i],[ref]$Workers)   -or   $Workers -lt 1){throw 'Invalid --workers value.'}
+        continue
+    }
+    throw ('Unknown argument: '+$a)
+}
+$RunId=Get-Date -Format 'yyyyMMdd-HHmmss'
+$LogsRoot=Join-Path $ProjectRoot 'logs'
+if(   -not   (Test-Path -LiteralPath $LogsRoot -PathType Container)){[void](New-Item -ItemType Directory -Path $LogsRoot -Force)}
+$RunLogs=Join-Path $LogsRoot ('create-or-update-'+$RunId)
+[void](New-Item -ItemType Directory -Path $RunLogs -Force)
+$MasterPath=Join-Path $RunLogs 'console.log'
+$script:MasterWriter=New-Object IO.StreamWriter($MasterPath,$false,$utf8,65536)
+$script:MasterWriter.AutoFlush=$true
+$script:Failures=0
+$script:ArchiveResults=New-Object System.Collections.ArrayList
+
+function Write-Line{
+    param([AllowEmptyString()][string]$Text,[ConsoleColor]$Color=[ConsoleColor]::Gray)
+    $old=[Console]::ForegroundColor
+    try{if(   -not   [Console]::IsOutputRedirected){[Console]::ForegroundColor=$Color};[Console]::Out.WriteLine($Text)}
+    finally{if(   -not   [Console]::IsOutputRedirected){[Console]::ForegroundColor=$old}}
+    if($null  -ne  $script:MasterWriter){$script:MasterWriter.WriteLine($Text)}
+}
+function Safe-Name{param([string]$Text)return([regex]::Replace($Text,'[^A-Za-z0-9._-]+','_').Trim('_'))}
+function Invoke-Component{
+    param([string]$Path,[string[]]$Arguments,[string]$LogName)
+    if(   -not   (Test-Path -LiteralPath $Path -PathType Leaf)){Write-Line ('Missing component: '+$Path) Red;return 4}
+    $logPath=Join-Path $RunLogs $LogName
+    $writer=New-Object IO.StreamWriter($logPath,$false,$utf8,65536)
+    try{
+        & $Path @Arguments 2>&1 | ForEach-Object{
+            $line=[string]$_
+            [Console]::Out.WriteLine($line)
+            $writer.WriteLine($line)
+            if($null  -ne  $script:MasterWriter){$script:MasterWriter.WriteLine($line)}
+        }
+        $rc=$LASTEXITCODE
+    }catch{
+        $line='ERROR: '+[string]$_
+        [Console]::Error.WriteLine($line);$writer.WriteLine($line);if($null  -ne  $script:MasterWriter){$script:MasterWriter.WriteLine($line)}
+        $rc=1
+    }finally{$writer.Flush();$writer.Dispose()}
+    return [int]$rc
+}
+function Finish-LogsZip{
+    param([string]$Status)
+    $summary=@(
+        'MVS Explorer Toolkit create/update database',
+        ('Project version: '+$Version),
+        ('Run ID: '+$RunId),
+        ('Status: '+$Status),
+        ('Invocation directory: '+$InvocationDir),
+        ('Workers: '+$Workers),
+        ('Archives attempted: '+$script:ArchiveResults.Count),
+        ('Failures: '+$script:Failures)
+    )
+    foreach($r in $script:ArchiveResults){$summary+=($r.slot+"`t"+$r.status+"`t"+$r.path)}
+    [IO.File]::WriteAllText((Join-Path $RunLogs 'run-summary.txt'),(($summary-join"`r`n")+"`r`n"),$utf8)
+    if($null  -ne  $script:MasterWriter){$script:MasterWriter.Flush();$script:MasterWriter.Dispose();$script:MasterWriter=$null}
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $zipPath=$RunLogs+'.zip'
+    if(Test-Path -LiteralPath $zipPath){Remove-Item -LiteralPath $zipPath -Force}
+    [IO.Compression.ZipFile]::CreateFromDirectory($RunLogs,$zipPath,[IO.Compression.CompressionLevel]::Optimal,$false)
+    [Console]::Out.WriteLine('Run logs: '+$RunLogs)
+    [Console]::Out.WriteLine('Run logs ZIP: '+$zipPath)
+}
+try{
+    Write-Line ('MVS Explorer Toolkit create/update database '+$Version) Cyan
+    Write-Line ('Project root: '+$ProjectRoot)
+    Write-Line ('Invocation directory: '+$InvocationDir)
+    Write-Line ('Logs: '+$RunLogs)
+    Write-Line ('Workers: '+$Workers)
+    $components=Join-Path $ProjectRoot 'create_or_update_mvs_database'
+    $manifest=Join-Path $RunLogs 'archives.tsv'
+    $discover=Join-Path $components '01_discover_archives.bat'
+    $rc=Invoke-Component $discover @($ProjectRoot,$InvocationDir,$manifest) '01_discover_archives.log'
+    if($rc -ne 0){throw ('Archive discovery failed with rc='+$rc)}
+    $archives=@(Import-Csv -LiteralPath $manifest -Delimiter "`t")
+    if($archives.Count -eq 0){throw 'Archive discovery returned no archives.'}
+
+    $invParent=Split-Path -Parent $InvocationDir
+    $hasParent=$false
+    foreach($a in $archives){if([StringComparer]::OrdinalIgnoreCase.Equals((Split-Path -Parent ([string]$a.path)),$invParent)){$hasParent=$true;break}}
+    $workspace=if($hasParent){$invParent}else{$InvocationDir}
+    $DatabaseRoot=Join-Path $workspace 'mvs_databases'
+    if(   -not   (Test-Path -LiteralPath $DatabaseRoot -PathType Container)){[void](New-Item -ItemType Directory -Path $DatabaseRoot -Force)}
+    Write-Line ('Database root: '+$DatabaseRoot) Cyan
+
+    $sequence=@(
+        @('02_prepare_archive_update.bat','prepare'),
+        @('03_run_archive_update.bat','archive'),
+        @('04_rebuild_family_index.bat','family'),
+        @('05_rebuild_compact_index.bat','compact'),
+        @('06_validate_database.bat','validate'),
+        @('07_create_html_browser.bat','html')
+    )
+    foreach($archive in $archives){
+        $slot=[string]$archive.slot;$archivePath=[string]$archive.path
+        $slotRoot=Join-Path $DatabaseRoot $slot
+        if(   -not   (Test-Path -LiteralPath $slotRoot -PathType Container)){[void](New-Item -ItemType Directory -Path $slotRoot -Force)}
+        $slotLog=Join-Path $RunLogs $slot
+        if(   -not   (Test-Path -LiteralPath $slotLog -PathType Container)){[void](New-Item -ItemType Directory -Path $slotLog -Force)}
+        Write-Line '' 
+        Write-Line ('=== '+$slot+' ===') Cyan
+        Write-Line ('Source: '+$archivePath)
+        $status='PASS'
+        foreach($step in $sequence){
+            $path=Join-Path $components $step[0]
+            Write-Line ('Starting '+$step[1]+' ...') DarkCyan
+            $args=@($ProjectRoot,$archivePath,$DatabaseRoot,$slotRoot,$RunId,[string]$Workers,$RunLogs,'')
+            $rc=Invoke-Component $path $args ((Safe-Name $slot)+'_'+$step[0]+'.log')
+            if($rc -ne 0){
+                Write-Line (($step[1])+' FAILED for '+$slot+' rc='+$rc) Red
+                $status='FAIL';$script:Failures++;break
+            }else{Write-Line (($step[1])+' PASS for '+$slot) Green}
+        }
+        $statePath=Join-Path $components '08_write_database_summary.bat'
+        $stateArgs=@($ProjectRoot,$archivePath,$DatabaseRoot,$slotRoot,$RunId,[string]$Workers,$RunLogs,$status)
+        $stateRc=Invoke-Component $statePath $stateArgs ((Safe-Name $slot)+'_08_write_database_summary.bat.log')
+        if($stateRc -ne 0  -and  $status  -eq  'PASS'){$status='FAIL';$script:Failures++;Write-Line ('summary state FAILED for '+$slot+' rc='+$stateRc) Red}
+        [void]$script:ArchiveResults.Add([pscustomobject]@{slot=$slot;status=$status;path=$archivePath})
+    }
+    $overall=if($script:Failures -eq 0){'PASS'}else{'FAIL'}
+    Write-Line ''
+    Write-Line ('FINAL STATUS: '+$overall) $(if($overall  -eq  'PASS'){'Green'}else{'Red'})
+    Finish-LogsZip $overall
+    if($overall  -ne  'PASS'){[Environment]::Exit(1)}
+    [Environment]::Exit(0)
+}catch{
+    $script:Failures++
+    Write-Line ('FATAL: '+[string]$_) Red
+    try{Finish-LogsZip 'FAIL'}catch{[Console]::Error.WriteLine('Log ZIP failure: '+[string]$_)}
+    [Environment]::Exit(1)
+}

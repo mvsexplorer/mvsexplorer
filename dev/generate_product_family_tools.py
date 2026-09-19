@@ -8,6 +8,8 @@ import json
 
 ROOT = Path(__file__).resolve().parents[1]
 DEV = ROOT / "dev"
+TOOLS = ROOT / "tools"
+TOOLS.mkdir(parents=True, exist_ok=True)
 
 def read(path):
     return path.read_text(encoding="utf-8").replace("\r\n", "\n").rstrip()
@@ -30,7 +32,7 @@ def main():
         text = text.replace("@@" + key + "@@", value)
     if "@@" in text:
         raise ValueError("Unresolved product-family builder template marker")
-    write_bat(ROOT / (spec["builder"] + ".bat"), text)
+    write_bat(TOOLS / (spec["builder"] + ".bat"), text)
 
     compact_template = read(DEV / "templates/product-family-compact-builder.bat.tpl")
     compact_ps = read(DEV / "library/product-family-compact-builder.inc.ps1")
@@ -43,7 +45,7 @@ def main():
         text = text.replace("@@" + key + "@@", value)
     if "@@" in text:
         raise ValueError("Unresolved compact product-family builder template marker")
-    write_bat(ROOT / (spec["compact_builder"] + ".bat"), text)
+    write_bat(TOOLS / (spec["compact_builder"] + ".bat"), text)
 
     query_template = read(DEV / "templates/product-family-query.bat.tpl")
     query_ps = read(DEV / "library/product-family-query.inc.ps1")
@@ -62,7 +64,7 @@ def main():
                 text = text.replace("@@" + key + "@@", value)
             if "@@" in text:
                 raise ValueError("Unresolved product-family query template marker: " + name)
-            write_bat(ROOT / (name + ".bat"), text)
+            write_bat(TOOLS / (name + ".bat"), text)
 
 if __name__ == "__main__":
     main()

@@ -311,3 +311,24 @@ These directives are distilled from the user's project prompts.
 212. The GUI may use the compact database at runtime rather than embedding a browser payload; no network service or external API is required for browsing.
 213. Keep GUI applications outside the legacy per-snapshot/archive sweep plan because they consume archive-level databases rather than define new snapshot/compare semantics.
 
+## 0.19.0 application layout and incremental database maintenance
+
+214. When `mvs_explorer_gui.bat` is started without an explicit compact database, search the current directory and its parent for usable compact databases.
+215. If GUI discovery finds exactly one usable compact database, open it automatically; if it finds more than one, present a choice plus an explicit folder-browse choice; if it finds none, open the folder selector.
+216. Generate all public `build_mvs_*`, `compare_mvs_*`, `find_mvs_*`, `lookup_mvs_*`, `print_mvs_*`, and `read_mvs_*` BATs directly under `tools\`; do not retain duplicate root copies.
+217. Keep application/orchestration entry points at the project root. Moving utility tools to `tools\` must not change their stdout, stderr, return-code, standalone-delivery, or data-semantics contracts.
+218. Maintain root `create_or_update_mvs_database.bat` as the normal incremental database maintenance launcher.
+219. `create_or_update_mvs_database.bat` must search the invocation directory and its parent for every `mvs_dumps_archive*` directory and attempt every discovered archive rather than stopping after the first source archive.
+220. Keep each discovered archive isolated in its own deterministic slot under an `mvs_databases\` database root so similarly named or parallel archives do not overwrite each other.
+221. Implement create/update as distinct ordered component BATs under `create_or_update_mvs_database\`: discovery, preparation/reuse, archive analysis, full family index, compact family index, validation, HTML generation, and state/summary writing.
+222. Determine whether a snapshot is already processed from source content, not filesystem timestamps. Fingerprint the seven recognized MVS source files by SHA-256 bytes and explicitly represent missing files.
+223. Reuse a prior snapshot only when its source-content fingerprint is unchanged, the relevant archive-processing toolset is compatible, and every expected prior logical row exists with a valid terminal PASS, NO_RESULT, or SOURCE_MISSING status.
+224. If a snapshot is new, source-changed, incomplete, faulty, or incompatible with the current processing toolset, rerun the complete snapshot batch from scratch; do not preserve a partial or failed snapshot as current evidence.
+225. Treat update staging directories as disposable. Remove abandoned/incomplete staging areas on the next run and promote archive-analysis staging to the committed database only after the archive sweep and archive-quality validation succeed.
+226. Rebuild full-family and compact-family databases only when upstream source/tool state requires it, but validate every completed database set before recording a PASS state.
+227. Write create/update logs beneath project-root `logs\`, retain a master console transcript plus component logs for one run, close active writers before packaging, and ZIP the complete run-log directory on completion, including failure completion where possible.
+228. Generate maintenance HTML browsers into the project root with date-and-time-stamped filenames. The standalone HTML builder must also use a date/time-stamped project-root default when no explicit output path is supplied.
+229. Maintain root `display_mvs_database_summary.bat`. It must search current/parent directories for `mvs_databases*`, choose the latest database root, and print colored database health including structural presence, validation, archive-check completeness, quality status, and completeness relative to the current source `mvs_dumps_archive*`.
+230. Database summary completeness must detect source snapshots missing from the database and source snapshots whose content fingerprints changed after processing; modification dates alone are not evidence of staleness.
+231. The `tools\` relocation and maintenance applications are outside the legacy per-snapshot/adjacent-compare archive planning scope unless a later explicit directive changes that scope; the current known 79-snapshot plan therefore remains 34,822 logical checks.
+

@@ -1,5 +1,8 @@
 # Filename and Hash Relationship Query Tools
 
+> **0.19.0 layout:** Public utility BATs referenced in this document are delivered under `tools\`. Run them as `tools\<tool>.bat` from the project root, or change into `tools\` first. Their established arguments/output semantics are unchanged.
+
+
 ## Purpose
 
 Version 0.8.0 adds relationship queries that traverse:

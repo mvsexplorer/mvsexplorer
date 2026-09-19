@@ -1,4 +1,4 @@
-## 0.18.0 recommended production run
+## 0.19.0 recommended production run
 
 For a clean test + database rebuild + database integrity/query sweep + packaging
 run, use the root command:
@@ -12,7 +12,7 @@ logs. The ordinary `test_everything.bat` remains the test-only comprehensive
 gate.
 
 For a previously failed 0.16.0/0.16.1 pipeline where all three databases were
-already built, 0.18.0 can resume validation and packaging without rebuilding:
+already built, 0.19.0 can resume validation and packaging without rebuilding:
 
 ```bat
 all_test_then_all_database_then_test_database_and_all_tools.bat --resume-built archive-db family-db compact-db
@@ -20,6 +20,17 @@ all_test_then_all_database_then_test_database_and_all_tools.bat --resume-built a
 
 Add `--resume-test-results DIR` when the earlier `test-results-*` folder should
 also be copied into the new log bundle.
+
+
+
+## 0.19.0 structure/layout coverage
+
+The structure scope now expects 495 assertions. In addition to standalone
+delivery and prior semantic guards, it verifies the `tools\` relocation, the
+modular create/update workflow, database summary launcher, GUI database
+discovery contract, and timestamped HTML default. The 478 utility tools are
+still exercised through their generated regression scopes; moving them from
+the root does not change their behavioral expectations.
 
 # Comprehensive functional, quality, and performance testing
 
@@ -47,7 +58,7 @@ does not print the 79 per-snapshot planning lines. A subsequent production
 archive build prints its own planning pass once because that plan is persisted
 with the generated database.
 
-The current 0.18.0 public regression has 1,107 assertions. The established
+The current 0.19.0 public regression has 1,108 assertions. The established
 baseline includes three data-dependent note exact-match skips on the
 2019-03-19 fixture.
 

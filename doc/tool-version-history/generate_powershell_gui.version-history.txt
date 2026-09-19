@@ -1,0 +1,4 @@
+generate_powershell_gui.py
+
+0.2.0 / project 0.19.0 - 2026-09-07
+- Generates GUI 0.2.0 with current/parent compact-database discovery and chooser behavior.

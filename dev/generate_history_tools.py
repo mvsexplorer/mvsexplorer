@@ -8,6 +8,8 @@ import json
 
 ROOT = Path(__file__).resolve().parents[1]
 DEV = ROOT / "dev"
+TOOLS = ROOT / "tools"
+TOOLS.mkdir(parents=True, exist_ok=True)
 
 def read(path):
     return path.read_text(encoding="utf-8").replace("\r\n", "\n").rstrip()
@@ -54,7 +56,7 @@ def main():
             text = text.replace("@@" + key + "@@", value)
         if "@@" in text:
             raise ValueError("Unresolved history template marker: " + tool["name"])
-        write_bat(ROOT / (tool["name"] + ".bat"), text)
+        write_bat(TOOLS / (tool["name"] + ".bat"), text)
 
 if __name__ == "__main__":
     main()

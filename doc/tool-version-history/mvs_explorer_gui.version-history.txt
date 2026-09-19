@@ -1,5 +1,11 @@
 mvs_explorer_gui.bat
 
+0.2.0 / project 0.19.0 - 2026-09-07
+- No-argument startup searches current and parent folders for usable compact databases.
+- Exactly one candidate is opened automatically.
+- Multiple candidates are shown in a chooser with an explicit Browse option; no candidates fall back to the folder selector.
+- Existing hierarchy, evidence boundaries, paging, and self-contained BAT delivery are unchanged.
+
 0.1.0 - 2026-09-07
 - Initial standalone Windows PowerShell 5.1 / WinForms MVS Explorer.
 - Consumes an external compact product-family database or opens a folder picker.

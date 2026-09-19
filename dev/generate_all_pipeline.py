@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 DEV=ROOT/"dev"
-PROJECT_VERSION="0.18.0"
+PROJECT_VERSION="0.19.0"
 
 def read(path):
     return path.read_text(encoding="utf-8").replace("\r\n","\n").rstrip()

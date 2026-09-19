@@ -1,3 +1,7 @@
+Project 0.19.0 layout note - 2026-09-07
+- Delivery path moves from the project root to `tools\`.
+- Arguments, stdout/stderr, return codes, standalone runtime behavior, and evidence semantics are unchanged.
+
 Tool Version History: find_mvs_orphan_id_from_mvs_ids.txt_in_mvs_names.txt.bat
 
 Purpose

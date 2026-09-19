@@ -1,17 +1,19 @@
 # Self-contained MVS HTML browser
 
+> **0.19.0 layout:** Public utility BATs referenced in this document are delivered under `tools\`. Run them as `tools\<tool>.bat` from the project root, or change into `tools\` first. Their established arguments/output semantics are unchanged.
+
+
 ## Purpose
 
-`build_mvs_html_browser.bat` turns an existing compact product-family database
+`tools\build_mvs_html_browser.bat` turns an existing compact product-family database
 into one portable HTML file. The output can be opened directly from disk in a
 modern browser and does not load anything from the network.
 
 ```bat
-build_mvs_html_browser.bat compact-family-index [output.html]
+tools\build_mvs_html_browser.bat compact-family-index [output.html]
 ```
 
-When the output argument is omitted the builder writes `mvs-browser.html` in
-the current directory.
+When the output argument is omitted the builder writes a date/time-stamped `mvs-browser-YYYYMMDD-HHmmss.html` in the project root.
 
 ## Hierarchy
 

@@ -500,8 +500,8 @@ try{
     $testStructure=Join-Path (Join-Path $ProjectRoot 'test') 'test_structure.bat'
     $sweep=Join-Path (Join-Path $ProjectRoot 'test') 'test_all_dumps.bat'
     $quality=Join-Path (Join-Path $ProjectRoot 'test') 'check_archive_sweep_quality.bat'
-    $familyBuilder=Join-Path $ProjectRoot 'build_mvs_product_family_index.bat'
-    $compactBuilder=Join-Path $ProjectRoot 'build_mvs_product_family_compact_index.bat'
+    $familyBuilder=Join-Path (Join-Path $ProjectRoot 'tools') 'build_mvs_product_family_index.bat'
+    $compactBuilder=Join-Path (Join-Path $ProjectRoot 'tools') 'build_mvs_product_family_compact_index.bat'
     $dbValidator=Join-Path (Join-Path $ProjectRoot 'test') 'test_generated_databases.bat'
     foreach($tool in @($testEverything,$testStructure,$sweep,$quality,$familyBuilder,$compactBuilder,$dbValidator)){
         if(-not(Test-Path -LiteralPath $tool -PathType Leaf)){throw ('Required pipeline tool missing: '+$tool)}

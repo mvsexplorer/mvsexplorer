@@ -11,6 +11,8 @@ import json
 
 ROOT = Path(__file__).resolve().parents[1]
 DEV = ROOT / "dev"
+TOOLS = ROOT / "tools"
+TOOLS.mkdir(parents=True, exist_ok=True)
 LIB = DEV / "library"
 TPL = DEV / "templates"
 
@@ -39,7 +41,7 @@ def main():
     for suffix, fields in spec["projections"]:
         for prefix, mode in (("print", "human"), ("read", "machine")):
             base = f"{prefix}_mvs_dump_{suffix}"
-            write_bat(ROOT / f"{base}.bat", inject(scalar_tpl, {
+            write_bat(TOOLS / f"{base}.bat", inject(scalar_tpl, {
                 "TOOL_VERSION": "0.6.1",
                 "TOOL_NAME": base,
                 "MODE": mode,
@@ -50,7 +52,7 @@ def main():
             }))
             for sort_key in spec["sort_keys"]:
                 name = f"{base}_sorted_by_{sort_key}"
-                write_bat(ROOT / f"{name}.bat", inject(scalar_tpl, {
+                write_bat(TOOLS / f"{name}.bat", inject(scalar_tpl, {
                     "TOOL_VERSION": "0.4.1",
                     "TOOL_NAME": name,
                     "MODE": mode,
@@ -61,7 +63,7 @@ def main():
                 }))
 
     for name, source, target in spec["lookups"]:
-        write_bat(ROOT / f"{name}.bat", inject(lookup_tpl, {
+        write_bat(TOOLS / f"{name}.bat", inject(lookup_tpl, {
             "TOOL_VERSION": "0.4.1",
             "TOOL_NAME": name,
             "SOURCE": source,

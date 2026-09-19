@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validator for generated public batch files.
 
-Version: 0.9.5
+Version: 0.10.0
 """
 from pathlib import Path
 import collections
@@ -12,7 +12,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     issues = []
-    files = sorted(ROOT.glob("*.bat"))
+    root_files = sorted(ROOT.glob("*.bat"))
+    tool_files = sorted((ROOT / "tools").glob("*.bat"))
+    standalone_root_names = {
+        "mvs_explorer_gui.bat",
+        "all_test_then_all_database_then_test_database_and_all_tools.bat",
+    }
+    files = tool_files + [p for p in root_files if p.name in standalone_root_names]
     optimized = {"scalar":0,"lookup":0,"relationship":0,"single":0}
     family = {"builder":0,"compact_builder":0,"query":0}
     pipeline = 0
@@ -55,7 +61,7 @@ def main():
                 issues.append(f"{path.name}: product-family query missing index/wildcard markers")
         if ":_MVSHtmlBrowser_start" in text:
             browser += 1
-            for marker in ("product-classifications.tsv","product-file-hashes-all-ever.tsv","type=\"application/json\"","Files &amp; hashes","Unclassified / historical"):
+            for marker in ("product-classifications.tsv","product-file-hashes-all-ever.tsv","type=\"application/json\"","Files &amp; hashes","Unclassified / historical","yyyyMMdd-HHmmss"):
                 if marker not in text:
                     issues.append(f"{path.name}: HTML browser builder missing {marker}")
             if "http://" in text or "https://" in text or "<script src=" in text:
@@ -64,7 +70,7 @@ def main():
                 issues.append(f"{path.name}: HTML browser builder must use Windows PowerShell 5.1-safe array sorting")
         if ":_MVSExplorerGui_start" in text:
             gui += 1
-            for marker in ("System.Windows.Forms","FolderBrowserDialog","CheckedListBox","DataGridView","product-classifications.tsv","product-file-hashes-all-ever.tsv","(Unclassified / historical)","Files & hashes"):
+            for marker in ("System.Windows.Forms","FolderBrowserDialog","CheckedListBox","DataGridView","product-classifications.tsv","product-file-hashes-all-ever.tsv","(Unclassified / historical)","Files & hashes","Find-CompactIndexCandidates","Choose-CompactIndex","mvs_databases"):
                 if marker not in text:
                     issues.append(f"{path.name}: PowerShell GUI missing {marker}")
             if "[Array]::Sort[string]" in text or "[Array]::Sort($a,[StringComparer]::OrdinalIgnoreCase)" not in text:
@@ -144,8 +150,55 @@ def main():
             issues.append("database-validation DAG check must compare visited nodes with unique indegree keys, not raw family-node rows")
         if "return ($seen-eq$Nodes.Count)" in db_text:
             issues.append("database-validation DAG check incorrectly counts duplicate family-node role rows")
-    if len(files) != 480:
-        issues.append(f"root public .bat count expected 480, got {len(files)}")
+    expected_root_names = {
+        "mvs_explorer_gui.bat",
+        "all_test_then_all_database_then_test_database_and_all_tools.bat",
+        "create_or_update_mvs_database.bat",
+        "display_mvs_database_summary.bat",
+    }
+    actual_root_names = {p.name for p in root_files}
+    if len(tool_files) != 478:
+        issues.append(f"tools public .bat count expected 478, got {len(tool_files)}")
+    if actual_root_names != expected_root_names:
+        issues.append(f"root launcher set mismatch: expected {sorted(expected_root_names)}, got {sorted(actual_root_names)}")
+    component_dir = ROOT / "create_or_update_mvs_database"
+    component_files = sorted(component_dir.glob("*.bat"))
+    if len(component_files) != 8:
+        issues.append(f"create/update component count expected 8, got {len(component_files)}")
+    else:
+        for component in component_files:
+            raw = component.read_bytes()
+            text = raw.decode("utf-8", errors="replace")
+            if raw.startswith(b"\xef\xbb\xbf"):
+                issues.append(f"{component.relative_to(ROOT)}: UTF-8 BOM")
+            if b"\n" in raw.replace(b"\r\n", b""):
+                issues.append(f"{component.relative_to(ROOT)}: non-CRLF newline")
+            if ":_MVSDatabaseMaintenance_start" not in text:
+                issues.append(f"{component.relative_to(ROOT)}: missing embedded maintenance PowerShell")
+    maintenance = ROOT / "create_or_update_mvs_database.bat"
+    display = ROOT / "display_mvs_database_summary.bat"
+    if maintenance.exists():
+        mt = maintenance.read_text(encoding="utf-8")
+        for marker in ("mvs_dumps_archive*","create-or-update-","CreateFromDirectory","archives.tsv","08_write_database_summary.bat"):
+            if marker not in mt:
+                issues.append(f"create_or_update_mvs_database.bat missing {marker}")
+    else:
+        issues.append("missing create_or_update_mvs_database.bat")
+    prepare = component_dir / "02_prepare_archive_update.bat"
+    if prepare.exists():
+        pt = prepare.read_text(encoding="utf-8")
+        for marker in ("source-fingerprints.tsv","Already done:","Processing from scratch:","toolset-sha256.txt","pending_checks"):
+            if marker not in pt:
+                issues.append(f"{prepare.relative_to(ROOT)} missing {marker}")
+        if "LastWriteTime" in pt or "CreationTime" in pt:
+            issues.append(f"{prepare.relative_to(ROOT)}: source-reuse fingerprint must not depend on filesystem timestamps")
+    if display.exists():
+        dt = display.read_text(encoding="utf-8")
+        for marker in ("OVERALL HEALTH:","Completeness:","mvs_databases*","ForegroundColor","source-fingerprints.tsv"):
+            if marker not in dt:
+                issues.append(f"display_mvs_database_summary.bat missing {marker}")
+    else:
+        issues.append("missing display_mvs_database_summary.bat")
     if pipeline != 1:
         issues.append(f"pipeline tool count expected 1, got {pipeline}")
     if browser != 1:
@@ -160,12 +213,13 @@ def main():
     if issues:
         print("\n".join(issues), file=sys.stderr)
         return 1
-    print(f"PASS: {len(files)} public standalone batch files")
+    print(f"PASS: {len(tool_files)} public tools\\ batch files + {len(files)-len(tool_files)} standalone root applications")
     print(f"PASS: 377 optimized generated legacy public tools ({optimized})")
     print(f"PASS: 34 product-family public tools ({family})")
     print(f"PASS: {browser} self-contained HTML browser builder public tool")
     print(f"PASS: {gui} standalone PowerShell GUI public tool")
     print(f"PASS: {pipeline} full-pipeline orchestration public tool")
+    print("PASS: modular create/update database workflow (8 components) + colored database summary launcher")
     return 0
 
 if __name__ == "__main__":

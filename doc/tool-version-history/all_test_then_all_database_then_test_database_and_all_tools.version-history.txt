@@ -1,3 +1,7 @@
+Project 0.19.0 layout note - 2026-09-07
+- Root full-pipeline entry point is retained.
+- Utility tool resolution follows the 0.19.0 tools\ layout; production semantics are otherwise unchanged.
+
 1.0.3 - 2026-09-07
 - Database/log ZIP creation now normalizes entry timestamps to 1980-01-01 UTC so validation wall-clock dates cannot cause checksum drift.
 - File names/bytes and sorted entry order remain authoritative; raw evidence content hashes are unchanged.

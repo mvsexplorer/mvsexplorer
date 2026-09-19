@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Generate the standalone self-contained MVS HTML browser builder.
 
-Version: 0.1.1
+Version: 0.1.2
 """
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEV = ROOT / "dev"
-TOOL_VERSION = "0.1.1"
+TOOLS = ROOT / "tools"
+TOOLS.mkdir(parents=True, exist_ok=True)
+TOOL_VERSION = "0.1.2"
 
 def read(path):
     return path.read_text(encoding="utf-8").replace("\r\n", "\n").rstrip()
@@ -26,7 +28,7 @@ def main():
         text = text.replace("@@" + key + "@@", value)
     if "@@" in text:
         raise ValueError("Unresolved HTML browser builder template marker")
-    write_bat(ROOT / "build_mvs_html_browser.bat", text)
+    write_bat(TOOLS / "build_mvs_html_browser.bat", text)
 
 if __name__ == "__main__":
     main()

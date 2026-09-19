@@ -1,3 +1,6 @@
+0.19.0 - 2026-09-07
+- Understands the tools\ utility layout and root maintenance applications while preserving the 34,822-row legacy archive plan.
+
 0.7.3 - 2026-09-07
 - Requires deferred log-ZIP ordering after active pipeline writer disposal.
 - Preserves semantic-token coloring and the 34,822 real archive / 1,306 synthetic plan invariants.

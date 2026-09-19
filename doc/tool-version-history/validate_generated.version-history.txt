@@ -1,3 +1,7 @@
+0.19.0 - 2026-09-07
+- Validates 478 utility BATs under tools\ plus root GUI/pipeline/maintenance applications.
+- Validates the eight-component create/update workflow and standalone summary launcher.
+
 0.9.3 - 2026-09-06
   - Requires token-level pipeline colorization markers and explicit FileShare.ReadWrite on active pipeline log streams.
   - Preserves the 478-tool public-root invariant.

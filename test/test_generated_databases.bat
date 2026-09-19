@@ -309,7 +309,8 @@ $script:ConsoleWriter=New-Object IO.StreamWriter((Join-Path $OutputRoot 'console
 $script:ResultWriter=New-Object IO.StreamWriter((Join-Path $OutputRoot 'database-tests.tsv'),$false,$utf8,65536);$script:ResultWriter.NewLine="`r`n";$script:ResultWriter.AutoFlush=$true;$script:ResultWriter.WriteLine("index`tstatus`tcase`treason`telapsed_ms")
 $script:ToolPerfWriter=New-Object IO.StreamWriter((Join-Path $OutputRoot 'all-family-tools-performance.tsv'),$false,$utf8,65536);$script:ToolPerfWriter.NewLine="`r`n";$script:ToolPerfWriter.AutoFlush=$true;$script:ToolPerfWriter.WriteLine("tool`tpattern`tstatus`trc`telapsed_ms`toutput_lines`tstderr")
 
-$queryTools=@(Get-ChildItem -LiteralPath $ProjectRoot -File -Filter '*.bat'|Where-Object{$_.Name-match'^(?:print|read)_mvs_product_'}|Sort-Object Name)
+$ToolsRoot=Join-Path $ProjectRoot 'tools'
+$queryTools=@(Get-ChildItem -LiteralPath $ToolsRoot -File -Filter '*.bat'|Where-Object{$_.Name-match'^(?:print|read)_mvs_product_'}|Sort-Object Name)
 $script:Total=25+$queryTools.Count
 $validationStarted=Get-Date
 Write-Line ('MVS Explorer Toolkit database validation '+$ToolVersion)

@@ -1,0 +1,5 @@
+generate_database_maintenance.py
+
+0.1.0 / project 0.19.0 - 2026-09-07
+- Generates the eight create/update component BATs plus root maintenance and database-summary launchers.
+- Injects maintained PowerShell and common batch source into standalone delivered BATs.

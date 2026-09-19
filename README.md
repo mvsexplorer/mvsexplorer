@@ -1,6 +1,85 @@
-# MVS Explorer Toolkit 0.18.0
+# MVS Explorer Toolkit 0.19.0
 
 
+
+## 0.19.0 database maintenance workflow and root cleanup
+
+0.19.0 reorganizes the delivered command surface around applications/orchestration
+at the project root and utility tools under `tools\`.
+
+The project root now contains the main entry points:
+
+```text
+mvs_explorer_gui.bat
+create_or_update_mvs_database.bat
+display_mvs_database_summary.bat
+all_test_then_all_database_then_test_database_and_all_tools.bat
+```
+
+All 478 public utility BATs whose names begin with `build_mvs_`, `compare_mvs_`,
+`find_mvs_`, `lookup_mvs_`, `print_mvs_`, or `read_mvs_` are generated into
+`tools\`. The move is layout-only for their established behavior and does not
+add those archive-level/database consumers to the legacy sweep. The known
+79-snapshot archive plan remains 34,822 logical checks.
+
+`create_or_update_mvs_database.bat` is the normal incremental maintenance entry
+point. It searches the invocation directory and its parent for every
+`mvs_dumps_archive*` directory, gives each source archive an isolated slot under
+`mvs_databases\`, and processes every discovered archive. Its implementation is
+split into eight ordered standalone component BATs under
+`create_or_update_mvs_database\`:
+
+```text
+01_discover_archives.bat
+02_prepare_archive_update.bat
+03_run_archive_update.bat
+04_rebuild_family_index.bat
+05_rebuild_compact_index.bat
+06_validate_database.bat
+07_create_html_browser.bat
+08_write_database_summary.bat
+```
+
+Incremental reuse is content based. Each recognized dump is fingerprinted from
+the SHA-256 bytes of the seven known MVS source files (`mvs.txt`,
+`mvs_ids.txt`, `mvs_dates.txt`, `mvs_names.txt`, `mvs_notes.html`, `mvs.sha1`,
+and `mvs.sha256`), with missing sources represented explicitly. A dump is
+reported as `Already done` only when the source fingerprint is unchanged, the
+archive-processing toolset is compatible, and every expected prior logical row
+has a valid terminal status. New, changed, incomplete, or faulty snapshots are
+processed from scratch as complete snapshot batches. Incomplete staging
+directories are discarded on the next run; successful archive analysis is
+promoted only after archive quality validation succeeds.
+
+Full-family and compact-family databases are rebuilt only when their upstream
+data/tool state requires it. Every resulting database set is passed through the
+generated-database validator and all 32 family query smoke tests.
+
+All maintenance logs go under `logs\create-or-update-YYYYMMDD-HHmmss\`, with
+a master console transcript and per-component logs. After active log writers
+are closed, the complete run directory is ZIPped alongside it.
+
+Maintenance HTML browsers are generated into the project root with
+date/time-stamped names such as
+`mvs-browser-<archive-slot>-YYYYMMDD-HHmmss.html`. The standalone HTML builder
+under `tools\` also uses a timestamped project-root filename when no explicit
+output is supplied.
+
+`display_mvs_database_summary.bat` searches the current and parent directories
+for `mvs_databases*`, selects the most recently modified database root, and
+prints a colored PASS/WARN/FAIL health summary. It checks database component
+presence, validation state, archive plan/run completeness, quality counts, and
+completeness against the current source archive, including changed source
+fingerprints.
+
+With no explicit database argument, `mvs_explorer_gui.bat` now searches the
+current and parent directories for usable compact databases. One match is
+opened automatically; multiple matches are presented in a chooser with a
+Browse option; no match falls back to the folder picker.
+
+0.19.0 is a structural/incremental-maintenance candidate pending its first
+native Windows maintenance run. The generated structure suite expects 495
+assertions and all mode expects 1,108.
 
 ## 0.18.0 standalone PowerShell/WinForms MVS Explorer
 

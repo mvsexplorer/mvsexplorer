@@ -1,5 +1,8 @@
 # Archive change-history and all-ever tools
 
+> **0.19.0 layout:** Public utility BATs referenced in this document are delivered under `tools\`. Run them as `tools\<tool>.bat` from the project root, or change into `tools\` first. Their established arguments/output semantics are unchanged.
+
+
 Version 0.11.0 adds two archive-wide builders on top of the 0.10.0 source-local
 comparison model.
 

@@ -1,3 +1,7 @@
+0.11.12 / project 0.19.0 - 2026-09-07
+- Public utility resolution follows tools\.
+- All-mode expected assertions: 1,108.
+
 0.11.8 - 2026-09-07
 - Project 0.16.5 regression count is 1,102 assertions.
 - Adds two structure assertions covering large family-query streaming and deterministic ZIP metadata.

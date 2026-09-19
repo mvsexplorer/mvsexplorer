@@ -1217,27 +1217,34 @@ if($UseCache){
     if(-not(Test-Path -LiteralPath $CachePath -PathType Container)){[void](New-Item -ItemType Directory -Path $CachePath -Force)}
 } else {$CachePath=''}
 
-$publicFiles = @(Get-ChildItem -LiteralPath $ProjectRoot -File -Filter '*.bat' -ErrorAction Stop | Sort-Object Name)
-if ($publicFiles.Count -eq 0) { Fail 4 'No public root .bat tools found.' }
+$ToolsRoot = Join-Path $ProjectRoot 'tools'
+if (-not (Test-Path -LiteralPath $ToolsRoot -PathType Container)) { Fail 4 ('Missing public tools folder: ' + $ToolsRoot) }
+$publicFiles = @(Get-ChildItem -LiteralPath $ToolsRoot -File -Filter '*.bat' -ErrorAction Stop | Sort-Object Name)
+if ($publicFiles.Count -eq 0) { Fail 4 'No public tools\*.bat files found.' }
 
 $familyFiles = @($publicFiles | Where-Object {
     $_.Name -in @('build_mvs_product_family_index.bat','build_mvs_product_family_compact_index.bat') -or
     $_.Name -match '^(?:print|read)_mvs_product_'
 })
+$browserFileNames = @('build_mvs_html_browser.bat')
 $pipelineFileNames = @('all_test_then_all_database_then_test_database_and_all_tools.bat')
-$pipelineFiles = @($publicFiles | Where-Object { $_.Name -in $pipelineFileNames })
+$pipelineFiles = @()
+foreach ($pipelineFileName in $pipelineFileNames) {
+    $pipelineCandidate = Join-Path $ProjectRoot $pipelineFileName
+    if (Test-Path -LiteralPath $pipelineCandidate -PathType Leaf) { $pipelineFiles += Get-Item -LiteralPath $pipelineCandidate }
+}
 $singleFiles = @($publicFiles | Where-Object {
     $_.Name -notlike 'compare_mvs_dump_*.bat' -and
     $_.Name -notin @('build_mvs_dump_change_history.bat','build_mvs_dump_all_ever.bat') -and
     $_.Name -notin @('build_mvs_product_family_index.bat','build_mvs_product_family_compact_index.bat') -and
-    $_.Name -notin $pipelineFileNames -and
+    $_.Name -notin $browserFileNames -and
     $_.Name -notmatch '^(?:print|read)_mvs_product_'
 })
 $compareFiles = @($publicFiles | Where-Object { $_.Name -like 'compare_mvs_dump_*.bat' })
 $archiveFileNames = @('build_mvs_dump_change_history.bat','build_mvs_dump_all_ever.bat')
 $archiveFiles = New-Object System.Collections.ArrayList
 foreach ($archiveFileName in $archiveFileNames) {
-    $candidate = Join-Path $ProjectRoot $archiveFileName
+    $candidate = Join-Path $ToolsRoot $archiveFileName
     if (Test-Path -LiteralPath $candidate -PathType Leaf) { [void]$archiveFiles.Add((Get-Item -LiteralPath $candidate)) }
 }
 

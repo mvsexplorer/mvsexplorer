@@ -1,0 +1,6 @@
+display_mvs_database_summary.bat
+
+0.1.0 / project 0.19.0 - 2026-09-07
+- Initial colored database health/completeness display.
+- Selects the latest mvs_databases* root found in current/parent folders.
+- Checks committed components, validation, plan/run completeness, quality, source coverage, and source-content fingerprints.

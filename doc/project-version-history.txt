@@ -1,3 +1,16 @@
+0.19.0 - 2026-09-07
+- Reorganizes the delivery surface: all 478 build/compare/find/lookup/print/read utility BATs are generated under tools\; the root keeps GUI, full pipeline, create/update, and summary entry points.
+- Adds create_or_update_mvs_database.bat plus eight ordered component BATs for archive discovery, incremental preparation, archive analysis, full family, compact family, validation, HTML creation, and database-state writing.
+- Searches current and parent folders for every mvs_dumps_archive* source and processes all discovered archives into isolated slots under mvs_databases\.
+- Adds content-based snapshot reuse using SHA-256 fingerprints of all seven recognized source files plus an archive-processing toolset fingerprint. Unchanged complete snapshots are reported Already done; new, changed, incomplete, faulty, or incompatible snapshots rerun from scratch as whole snapshot batches.
+- Uses disposable staging and commit-after-quality-validation so interrupted/failing work is not promoted as current.
+- Adds project-root logs\create-or-update-YYYYMMDD-HHmmss run folders with master/per-component logs and a completion ZIP created only after active writers close.
+- Generates timestamped HTML browsers in the project root and makes the standalone HTML builder's omitted-output default timestamped as well.
+- Adds display_mvs_database_summary.bat with current/parent mvs_databases* discovery and colored health/completeness checks against the live source archive, including changed content fingerprints.
+- Enhances mvs_explorer_gui.bat no-argument discovery: auto-open one compact database, choose among multiple candidates with Browse available, or browse directly when none is found.
+- Structure becomes 495 assertions and all mode 1,108. Utility relocation and maintenance applications do not change the established 34,822-row legacy archive plan.
+- Static release candidate; native Windows create/update/summary/GUI discovery acceptance is pending.
+
 0.18.0 - 2026-09-07
 - Adds `mvs_explorer_gui.bat`, a standalone Windows PowerShell 5.1 / WinForms desktop MVS browser that consumes an external compact family database.
 - Mirrors the accepted HTML hierarchy: broad family -> product family -> release -> exact historical product title/variant, with filter-as-you-type and multi-selection.

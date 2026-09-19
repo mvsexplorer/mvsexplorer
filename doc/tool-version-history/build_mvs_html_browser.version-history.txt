@@ -1,3 +1,8 @@
+0.1.2 / project 0.19.0 - 2026-09-07
+- Delivery path moves to `tools\build_mvs_html_browser.bat`.
+- When output is omitted, writes a date/time-stamped `mvs-browser-YYYYMMDD-HHmmss.html` in the project root.
+- Explicit output paths and browser data/interaction semantics are unchanged.
+
 0.1.1 / project 0.17.1 - 2026-09-07
 - Fixes Windows PowerShell 5.1 parsing of ordinal string sorting.
 - Replaces `[Array]::Sort[string](...)` with the PS5.1-compatible non-generic overload.

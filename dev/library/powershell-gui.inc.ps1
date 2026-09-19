@@ -29,7 +29,8 @@ function Is-HelpToken {
 function Show-Usage {
     Write-Line ('MVS Explorer Toolkit PowerShell GUI '+$Version)
     Write-Line ('Usage: '+$Caller+' [compact-family-index]')
-    Write-Line 'With no argument, the application opens a folder picker for the compact family database.'
+    Write-Line 'With no argument, current and parent folders are searched for compact MVS databases.'
+    Write-Line 'One match is opened automatically; multiple matches are presented for selection; Browse remains available.'
 }
 function Resolve-IndexRoot {
     param([string]$Name)
@@ -49,6 +50,140 @@ function Resolve-IndexRoot {
     } catch {
         return $null
     }
+}
+
+function Find-CompactIndexCandidates {
+    $seen = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    $items = New-Object System.Collections.ArrayList
+    $roots = New-Object System.Collections.ArrayList
+    $current = (Get-Location).Path
+    [void]$roots.Add($current)
+    $parent = Split-Path -Parent $current
+    if ($parent -and -not [StringComparer]::OrdinalIgnoreCase.Equals($parent,$current)) { [void]$roots.Add($parent) }
+
+    function Add-IndexCandidate {
+        param([string]$Path)
+        $resolved = Resolve-IndexRoot $Path
+        if ($null -eq $resolved) { return }
+        if ($seen.Add($resolved)) {
+            $stamp = ''
+            try { $stamp = (Get-Item -LiteralPath $resolved).LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss') } catch {}
+            [void]$items.Add([pscustomobject]@{Path=$resolved;Stamp=$stamp})
+        }
+    }
+
+    foreach ($root in @($roots)) {
+        Add-IndexCandidate $root
+        $dirs = @(Get-ChildItem -LiteralPath $root -Directory -ErrorAction SilentlyContinue)
+        foreach ($dir in $dirs) {
+            if ($dir.Name -like 'mvs-family-index-compact-*') { Add-IndexCandidate $dir.FullName }
+            if ($dir.Name -like 'mvs_databases*') {
+                foreach ($slot in @(Get-ChildItem -LiteralPath $dir.FullName -Directory -ErrorAction SilentlyContinue)) {
+                    Add-IndexCandidate $slot.FullName
+                    foreach ($compactName in @('compact-index','compact-family-database','compact-database')) {
+                        Add-IndexCandidate (Join-Path $slot.FullName $compactName)
+                    }
+                    foreach ($child in @(Get-ChildItem -LiteralPath $slot.FullName -Directory -ErrorAction SilentlyContinue |
+                        Where-Object { $_.Name -like 'mvs-family-index-compact-*' })) {
+                        Add-IndexCandidate $child.FullName
+                    }
+                }
+            }
+        }
+    }
+    return ,@($items | Sort-Object @{Expression={$_.Stamp};Descending=$true}, @{Expression={$_.Path};Descending=$false})
+}
+function Pick-CompactIndexFolder {
+    param([AllowNull()][string]$InitialPath)
+    $picker = New-Object Windows.Forms.FolderBrowserDialog
+    $picker.Description = 'Select the MVS compact product-family database folder'
+    $picker.ShowNewFolderButton = $false
+    if (-not [string]::IsNullOrWhiteSpace($InitialPath) -and (Test-Path -LiteralPath $InitialPath -PathType Container)) {
+        $picker.SelectedPath = $InitialPath
+    }
+    $pickResult = $picker.ShowDialog()
+    $picked = [string]$picker.SelectedPath
+    $picker.Dispose()
+    if ($pickResult -ne [Windows.Forms.DialogResult]::OK) { return $null }
+    return Resolve-IndexRoot $picked
+}
+function Choose-CompactIndex {
+    param([object[]]$Candidates)
+    if ($Candidates.Count -eq 0) { return Pick-CompactIndexFolder $null }
+    if ($Candidates.Count -eq 1) {
+        Write-Line ('Auto-selected compact database: ' + [string]$Candidates[0].Path)
+        return [string]$Candidates[0].Path
+    }
+
+    $choice = New-Object Windows.Forms.Form
+    $choice.Text = 'Choose MVS database'
+    $choice.StartPosition = 'CenterScreen'
+    $choice.MinimizeBox = $false
+    $choice.MaximizeBox = $false
+    $choice.ClientSize = New-Object Drawing.Size(850,360)
+
+    $label = New-Object Windows.Forms.Label
+    $label.Text = 'More than one compact MVS database was found in the current/parent folders. Choose one, or browse elsewhere.'
+    $label.AutoSize = $false
+    $label.Location = New-Object Drawing.Point(12,12)
+    $label.Size = New-Object Drawing.Size(826,36)
+    $choice.Controls.Add($label)
+
+    $list = New-Object Windows.Forms.ListBox
+    $list.Location = New-Object Drawing.Point(12,52)
+    $list.Size = New-Object Drawing.Size(826,250)
+    $list.HorizontalScrollbar = $true
+    foreach ($candidate in $Candidates) {
+        [void]$list.Items.Add(('[{0}]  {1}' -f $candidate.Stamp,$candidate.Path))
+    }
+    if ($list.Items.Count -gt 0) { $list.SelectedIndex = 0 }
+    $choice.Controls.Add($list)
+
+    $open = New-Object Windows.Forms.Button
+    $open.Text = 'Open'
+    $open.Location = New-Object Drawing.Point(576,316)
+    $open.Size = New-Object Drawing.Size(82,30)
+    $open.DialogResult = [Windows.Forms.DialogResult]::OK
+    $choice.AcceptButton = $open
+    $choice.Controls.Add($open)
+
+    $browse = New-Object Windows.Forms.Button
+    $browse.Text = 'Browse...'
+    $browse.Location = New-Object Drawing.Point(664,316)
+    $browse.Size = New-Object Drawing.Size(82,30)
+    $choice.Controls.Add($browse)
+
+    $cancel = New-Object Windows.Forms.Button
+    $cancel.Text = 'Cancel'
+    $cancel.Location = New-Object Drawing.Point(752,316)
+    $cancel.Size = New-Object Drawing.Size(82,30)
+    $cancel.DialogResult = [Windows.Forms.DialogResult]::Cancel
+    $choice.CancelButton = $cancel
+    $choice.Controls.Add($cancel)
+
+    $script:ChosenBrowsePath = $null
+    $browse.Add_Click({
+        $initial = if ($list.SelectedIndex -ge 0) { [string]$Candidates[$list.SelectedIndex].Path } else { $null }
+        $picked = Pick-CompactIndexFolder $initial
+        if ($null -ne $picked) {
+            $script:ChosenBrowsePath = $picked
+            $choice.DialogResult = [Windows.Forms.DialogResult]::Yes
+            $choice.Close()
+        }
+    })
+    $list.Add_DoubleClick({
+        if ($list.SelectedIndex -ge 0) {
+            $choice.DialogResult = [Windows.Forms.DialogResult]::OK
+            $choice.Close()
+        }
+    })
+
+    $result = $choice.ShowDialog()
+    $selectedIndex = $list.SelectedIndex
+    $choice.Dispose()
+    if ($result -eq [Windows.Forms.DialogResult]::Yes) { return [string]$script:ChosenBrowsePath }
+    if ($result -ne [Windows.Forms.DialogResult]::OK -or $selectedIndex -lt 0) { return $null }
+    return [string]$Candidates[$selectedIndex].Path
 }
 function New-OrdinalObjectDictionary {
     return ,(New-Object 'System.Collections.Generic.Dictionary[string,object]' ([StringComparer]::Ordinal))
@@ -173,31 +308,15 @@ if (Is-HelpToken $IndexInput) {
     [Environment]::Exit(0)
 }
 
-$script:IndexRoot = Resolve-IndexRoot $IndexInput
-if ($null -eq $script:IndexRoot) {
-    $picker = New-Object Windows.Forms.FolderBrowserDialog
-    $picker.Description = 'Select the MVS compact product-family database folder'
-    $picker.ShowNewFolderButton = $false
-    if (-not [string]::IsNullOrWhiteSpace($IndexInput)) {
-        $picker.SelectedPath = $IndexInput
-    }
-    $pickResult = $picker.ShowDialog()
-    $picked = [string]$picker.SelectedPath
-    $picker.Dispose()
-    if ($pickResult -ne [Windows.Forms.DialogResult]::OK) {
-        [Environment]::Exit(0)
-    }
-    $script:IndexRoot = Resolve-IndexRoot $picked
+if (-not [string]::IsNullOrWhiteSpace($IndexInput)) {
+    $script:IndexRoot = Resolve-IndexRoot $IndexInput
     if ($null -eq $script:IndexRoot) {
-        [void][Windows.Forms.MessageBox]::Show(
-            'The selected folder is not a compact MVS product-family database.',
-            'MVS Explorer',
-            [Windows.Forms.MessageBoxButtons]::OK,
-            [Windows.Forms.MessageBoxIcon]::Error
-        )
-        [Environment]::Exit(3)
+        $script:IndexRoot = Pick-CompactIndexFolder $IndexInput
     }
+} else {
+    $script:IndexRoot = Choose-CompactIndex @(Find-CompactIndexCandidates)
 }
+if ($null -eq $script:IndexRoot) { [Environment]::Exit(0) }
 
 $script:LoadingForm = New-Object Windows.Forms.Form
 $script:LoadingForm.Text = 'MVS Explorer'

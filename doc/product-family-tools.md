@@ -1,5 +1,8 @@
 # Product-family hierarchy and query tools
 
+> **0.19.0 layout:** Public utility BATs referenced in this document are delivered under `tools\`. Run them as `tools\<tool>.bat` from the project root, or change into `tools\` first. Their established arguments/output semantics are unchanged.
+
+
 MVS Explorer Toolkit 0.15.x provides an analytical product-family layer above the
 concrete product titles preserved by the source archive.
 

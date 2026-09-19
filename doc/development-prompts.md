@@ -1696,3 +1696,46 @@ PowerShell application source must be self-contained inside one BAT file. The
 desktop browser should expose the same hierarchy and evidence views as the HTML
 browser rather than introducing a different interpretation.
 
+## Prompt 21 — database discovery, root cleanup, and incremental create/update
+
+```text
+mvs_explorer_gui.bat should look in current folder and parent folder database files and if there is more than one, present a choice plus a choice to open a folder selector, if there is only one, then use that one
+
+also all tools like build_mvs_
+compare_mvs_
+find_mvs_
+lookup_mvs
+print_mvs
+read_mvs
+
+should be moved to a subfolder
+
+create a
+create_or_update_mvs_database
+this script should search for mvs_dumps_archive*
+folders
+in the current and parent folder, and process them all
+it should look when dump have already been processed and mention them as already done and then continue what is not done
+also if a dump is faulty or did not complete, start it from scratch
+
+all logs for these operations should go in logs\
+and all the log of one create_or_update run should be zipped on completion
+
+the create html should go in project root and dated
+
+the create_or_update is made of multiple distinct component
+
+Make each of these components into a distinct file in
+create_or_update_mvs_database\
+and create_or_update_mvs_database.bat will be the launcher for each of those in turn
+in the root folder there should be a display_mvs_database_summary.bat
+which chooses the latest mvs_databases and display a colored summary/health of the database, including completeness relative to the source mvs_dumps_archive folder
+
+the created html files should be date & time stamped in their filenames
+```
+
+The implementation distills "already done" into a source-content rule rather
+than a timestamp rule: unchanged SHA-256 fingerprints plus compatible toolset
+and complete valid terminal plan/run rows are reusable. Faulty, incomplete,
+changed, or incompatible snapshots are rerun as whole snapshot batches.
+

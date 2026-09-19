@@ -10,6 +10,7 @@ set "mvshb_index_root=%~1"
 set "mvshb_output_file=%~2"
 set "mvshb_caller=%~nx0"
 set "mvshb_version=%app.version%"
+set "mvshb_project_root=%~dp0.."
 :main
 set "RunPowerShellFromLabel.function=MVSHtmlBrowser"
 call :RunPowerShellFromLabel

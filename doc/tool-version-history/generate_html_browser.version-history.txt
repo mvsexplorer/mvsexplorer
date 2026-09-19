@@ -1,0 +1,4 @@
+generate_html_browser.py
+
+0.1.2 / project 0.19.0 - 2026-09-07
+- Generates the HTML builder under tools\ with timestamped project-root default output.

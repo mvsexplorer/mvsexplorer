@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.11.11"
+set "app.version=0.11.12"
 set "app.name=test_lookup_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -10,7 +10,7 @@ set "mvst_mode=lookup"
 set "mvst_dump=%~1"
 set "mvst_caller=%~nx0"
 set "mvst_version=%app.version%"
-set "mvst_project_version=0.18.0"
+set "mvst_project_version=0.19.0"
 for %%I in ("%~dp0..") do set "mvst_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSTest"
@@ -100,12 +100,13 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 
 $Mode = [string]$env:mvst_mode
 $Root = [string]$env:mvst_root
+$ToolsRoot = Join-Path $Root 'tools'
 $DumpArgument = [string]$env:mvst_dump
 $Caller = [string]$env:mvst_caller
 $Version = [string]$env:mvst_version
 $ProjectVersion = [string]$env:mvst_project_version
 $script:ExpectedAssertions = switch ($Mode) {
-    'structure' { 494 }
+    'structure' { 495 }
     'scalar' { 120 }
     'lookup' { 24 }
     'diagnostic' { 46 }
@@ -113,7 +114,7 @@ $script:ExpectedAssertions = switch ($Mode) {
     'single_dump' { 167 }
     'compare' { 39 }
     'history' { 65 }
-    'all' { 1107 }
+    'all' { 1108 }
     default { 0 }
 }
 
@@ -1019,30 +1020,42 @@ function Get-ProductFamilyToolNames {
 function Test-Structure {
     $script:CurrentScope = 'structure'
     Write-Line '=== Structure tests ==='
-    $expected = New-Object System.Collections.ArrayList
+    $expectedTools = New-Object System.Collections.ArrayList
     foreach ($projection in Get-Projections) {
         foreach ($prefix in @('print','read')) {
             $base = $prefix + '_mvs_dump_' + $projection.name
-            [void]$expected.Add($base + '.bat')
-            foreach ($key in @('id','title','date')) { [void]$expected.Add($base + '_sorted_by_' + $key + '.bat') }
+            [void]$expectedTools.Add($base + '.bat')
+            foreach ($key in @('id','title','date')) { [void]$expectedTools.Add($base + '_sorted_by_' + $key + '.bat') }
         }
     }
-    foreach ($lookup in Get-Lookups) { [void]$expected.Add($lookup.name + '.bat') }
-    foreach ($diagnostic in Get-Diagnostics) { [void]$expected.Add($diagnostic + '.bat') }
-    foreach ($relationship in Get-Relationships) { [void]$expected.Add($relationship + '.bat') }
-    foreach ($single in Get-SingleDumpTools) { [void]$expected.Add($single.name + '.bat') }
-    foreach ($compare in Get-CompareTools) { [void]$expected.Add($compare.name + '.bat') }
-    foreach ($historyTool in @('build_mvs_dump_change_history','build_mvs_dump_all_ever')) { [void]$expected.Add($historyTool + '.bat') }
-    foreach ($familyTool in Get-ProductFamilyToolNames) { [void]$expected.Add($familyTool + '.bat') }
-    [void]$expected.Add('build_mvs_html_browser.bat')
-    [void]$expected.Add('mvs_explorer_gui.bat')
-    [void]$expected.Add('all_test_then_all_database_then_test_database_and_all_tools.bat')
+    foreach ($lookup in Get-Lookups) { [void]$expectedTools.Add($lookup.name + '.bat') }
+    foreach ($diagnostic in Get-Diagnostics) { [void]$expectedTools.Add($diagnostic + '.bat') }
+    foreach ($relationship in Get-Relationships) { [void]$expectedTools.Add($relationship + '.bat') }
+    foreach ($single in Get-SingleDumpTools) { [void]$expectedTools.Add($single.name + '.bat') }
+    foreach ($compare in Get-CompareTools) { [void]$expectedTools.Add($compare.name + '.bat') }
+    foreach ($historyTool in @('build_mvs_dump_change_history','build_mvs_dump_all_ever')) { [void]$expectedTools.Add($historyTool + '.bat') }
+    foreach ($familyTool in Get-ProductFamilyToolNames) { [void]$expectedTools.Add($familyTool + '.bat') }
+    [void]$expectedTools.Add('build_mvs_html_browser.bat')
+    $expectedRootStandalone = @(
+        'mvs_explorer_gui.bat',
+        'all_test_then_all_database_then_test_database_and_all_tools.bat'
+    )
+    $expected = @($expectedTools) + @($expectedRootStandalone)
 
-    $actual = @(Get-ChildItem -LiteralPath $Root -Filter '*.bat' -File | Select-Object -ExpandProperty Name)
-    if ($actual.Count -eq 480) { Write-Pass 'root public .bat count = 480' } else { Write-Fail 'root public .bat count' ('expected 480, got ' + $actual.Count) }
+    $actualTools = @(Get-ChildItem -LiteralPath $ToolsRoot -Filter '*.bat' -File -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
+    $actualRoot = @(Get-ChildItem -LiteralPath $Root -Filter '*.bat' -File | Select-Object -ExpandProperty Name)
+    $componentRoot = Join-Path $Root 'create_or_update_mvs_database'
+    $components = if (Test-Path -LiteralPath $componentRoot -PathType Container) {
+        @(Get-ChildItem -LiteralPath $componentRoot -Filter '*.bat' -File | Select-Object -ExpandProperty Name)
+    } else { @() }
+    if ($actualTools.Count -eq 478 -and $actualRoot.Count -eq 4 -and $components.Count -eq 8) {
+        Write-Pass 'public layout = tools\ 478 BATs, root 4 launchers, create/update 8 components'
+    } else {
+        Write-Fail 'public layout' ('expected tools=478 root=4 components=8; got tools=' + $actualTools.Count + ' root=' + $actualRoot.Count + ' components=' + $components.Count)
+    }
 
     foreach ($name in $expected) {
-        $path = Join-Path $Root $name
+        $path = if ($expectedRootStandalone -contains $name) { Join-Path $Root $name } else { Join-Path $ToolsRoot $name }
         if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { Write-Fail ('exists ' + $name) 'file missing'; continue }
         $bytes = [IO.File]::ReadAllBytes($path)
         $text = [Text.Encoding]::UTF8.GetString($bytes)
@@ -1128,7 +1141,7 @@ function Test-Structure {
         Write-Fail 'comprehensive suite uses concise archive plan preflight' 'test_everything.bat missing'
     }
 
-    $familyQueryPath = Join-Path $Root 'print_mvs_product_families_from_hash.bat'
+    $familyQueryPath = Join-Path $ToolsRoot 'print_mvs_product_families_from_hash.bat'
     if (Test-Path -LiteralPath $familyQueryPath -PathType Leaf) {
         $familyQueryText = [IO.File]::ReadAllText($familyQueryPath,[Text.Encoding]::UTF8)
         if ($familyQueryText.Contains('Read-TableRowsMatchingField') -and
@@ -1143,7 +1156,7 @@ function Test-Structure {
         Write-Fail 'product-family queries stream large fact tables with native exact-match prefilter' 'family query batch missing'
     }
 
-    $browserPath = Join-Path $Root 'build_mvs_html_browser.bat'
+    $browserPath = Join-Path $ToolsRoot 'build_mvs_html_browser.bat'
     if (Test-Path -LiteralPath $browserPath -PathType Leaf) {
         $browserText = [IO.File]::ReadAllText($browserPath,[Text.Encoding]::UTF8)
         if ($browserText.Contains(':_MVSHtmlBrowser_start') -and
@@ -1151,6 +1164,7 @@ function Test-Structure {
             $browserText.Contains('product-file-hashes-all-ever.tsv') -and
             $browserText.Contains('type="application/json"') -and
             $browserText.Contains('Files &amp; hashes') -and
+            $browserText.Contains("mvs-browser-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'.html") -and
             -not $browserText.Contains('<script src=') -and
             -not $browserText.Contains('https://') -and
             -not $browserText.Contains('http://')) {
@@ -1181,6 +1195,9 @@ function Test-Structure {
             $guiText.Contains('product-file-hashes-all-ever.tsv') -and
             $guiText.Contains('(Unclassified / historical)') -and
             $guiText.Contains('Files & hashes') -and
+            $guiText.Contains('Find-CompactIndexCandidates') -and
+            $guiText.Contains('Choose-CompactIndex') -and
+            $guiText.Contains('mvs_databases') -and
             $guiText.Contains('[Array]::Sort($a,[StringComparer]::OrdinalIgnoreCase)') -and
             -not $guiText.Contains('[Array]::Sort[string]') -and
             -not $guiText.Contains('dev\library')) {
@@ -1190,6 +1207,36 @@ function Test-Structure {
         }
     } else {
         Write-Fail 'PowerShell GUI is one standalone PS5.1 WinForms BAT using conservative external compact-database evidence' 'mvs_explorer_gui.bat missing'
+    }
+
+    $maintenanceLauncher = Join-Path $Root 'create_or_update_mvs_database.bat'
+    $summaryLauncher = Join-Path $Root 'display_mvs_database_summary.bat'
+    $prepareComponent = Join-Path (Join-Path $Root 'create_or_update_mvs_database') '02_prepare_archive_update.bat'
+    $htmlComponent = Join-Path (Join-Path $Root 'create_or_update_mvs_database') '07_create_html_browser.bat'
+    $maintenanceProblems = New-Object System.Collections.ArrayList
+    foreach ($requiredPath in @($maintenanceLauncher,$summaryLauncher,$prepareComponent,$htmlComponent)) {
+        if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) { [void]$maintenanceProblems.Add('missing ' + $requiredPath) }
+    }
+    if ($maintenanceProblems.Count -eq 0) {
+        $maintenanceText = [IO.File]::ReadAllText($maintenanceLauncher,[Text.Encoding]::UTF8)
+        $prepareText = [IO.File]::ReadAllText($prepareComponent,[Text.Encoding]::UTF8)
+        $summaryText = [IO.File]::ReadAllText($summaryLauncher,[Text.Encoding]::UTF8)
+        $htmlComponentText = [IO.File]::ReadAllText($htmlComponent,[Text.Encoding]::UTF8)
+        foreach ($marker in @('mvs_dumps_archive*','create-or-update-','CreateFromDirectory','archives.tsv','08_write_database_summary.bat')) {
+            if (-not $maintenanceText.Contains($marker)) { [void]$maintenanceProblems.Add('launcher missing ' + $marker) }
+        }
+        foreach ($marker in @('source-fingerprints.tsv','Already done:','Processing from scratch:','toolset-sha256.txt','pending_checks')) {
+            if (-not $prepareText.Contains($marker)) { [void]$maintenanceProblems.Add('prepare missing ' + $marker) }
+        }
+        foreach ($marker in @('OVERALL HEALTH:','Completeness:','mvs_databases*','ForegroundColor','source-fingerprints.tsv')) {
+            if (-not $summaryText.Contains($marker)) { [void]$maintenanceProblems.Add('summary missing ' + $marker) }
+        }
+        if (-not $htmlComponentText.Contains("mvs-browser-'+$slot+'-'+$stamp+'.html")) { [void]$maintenanceProblems.Add('timestamped root HTML marker missing') }
+    }
+    if ($maintenanceProblems.Count -eq 0) {
+        Write-Pass 'modular database maintenance uses content-safe reuse, centralized zipped logs, health summary and timestamped root HTML'
+    } else {
+        Write-Fail 'modular database maintenance contract' ($maintenanceProblems -join '; ')
     }
 
     if (Test-Path -LiteralPath $pipelinePath -PathType Leaf) {
@@ -1248,7 +1295,7 @@ function Test-Scalar {
             $base = $family.prefix + '_mvs_dump_' + $projection.name
             foreach ($sortKey in @('','id','title','date')) {
                 $name = if ($sortKey -eq '') { $base } else { $base + '_sorted_by_' + $sortKey }
-                $path = Join-Path $Root ($name + '.bat')
+                $path = Join-Path $ToolsRoot ($name + '.bat')
                 $ordered = Sort-TestProducts $Products $sortKey
                 $expected = Get-ScalarExpected $ordered $projection.fields $family.mode
                 $run = Invoke-PublicTool $path $script:DumpForTools $null $false
@@ -1261,7 +1308,7 @@ function Test-Scalar {
 function Test-OneLookupPattern {
     param([object[]]$Products, [object]$Lookup, [string]$Pattern, [string]$CaseName)
     $expected = Get-LookupExpected $Products $Lookup.source $Lookup.target $Pattern
-    $path = Join-Path $Root ($Lookup.name + '.bat')
+    $path = Join-Path $ToolsRoot ($Lookup.name + '.bat')
     $run = Invoke-PublicTool $path $script:DumpForTools $Pattern $true
     Compare-Run ($Lookup.name + ' [' + $CaseName + ': ' + $Pattern + ']') $run $expected.rc $expected.stdout
 }
@@ -1318,7 +1365,7 @@ function Test-Diagnostics {
     Write-Pass 'diagnostic synthetic dump present'
 
     foreach ($name in Get-Diagnostics) {
-        $toolPath = Join-Path $Root ($name + '.bat')
+        $toolPath = Join-Path $ToolsRoot ($name + '.bat')
         $expectedPath = Join-Path $expectedRoot ($name + '.expected.txt')
         if (-not (Test-Path -LiteralPath $expectedPath -PathType Leaf)) {
             Write-Fail $name ('missing expected output: ' + $expectedPath)
@@ -1355,7 +1402,7 @@ function Test-RelationshipCase {
         [string]$CaseName,
         [string]$SearchValue
     )
-    $toolPath = Join-Path $Root ($ToolName + '.bat')
+    $toolPath = Join-Path $ToolsRoot ($ToolName + '.bat')
     $expectedPath = Join-Path $ExpectedRoot ($ToolName + '__' + $CaseName + '.expected.txt')
     if (-not (Test-Path -LiteralPath $expectedPath -PathType Leaf)) {
         Write-Fail ($ToolName + ' [' + $CaseName + ']') ('missing expected output: ' + $expectedPath)
@@ -1413,13 +1460,13 @@ function Test-Relationships {
     }
 
     foreach ($name in @('print_mvs_dump_filenames_from_filename','read_mvs_dump_filenames_from_filename')) {
-        $toolPath = Join-Path $Root ($name + '.bat')
+        $toolPath = Join-Path $ToolsRoot ($name + '.bat')
         $run = Invoke-PublicTool $toolPath $fixture '__MVS_REL_NO_SUCH_FILENAME__' $true
         Compare-Run ($name + ' [no-result]') $run 1 ''
     }
 
     foreach ($name in @('print_mvs_dump_filenames_from_hash','read_mvs_dump_filenames_from_hash')) {
-        $toolPath = Join-Path $Root ($name + '.bat')
+        $toolPath = Join-Path $ToolsRoot ($name + '.bat')
         $run = Invoke-PublicTool $toolPath $fixture '0000000000000000000000000000000000000000' $true
         Compare-Run ($name + ' [no-result]') $run 1 ''
     }
@@ -1444,7 +1491,7 @@ function Get-SingleDumpSearchValue {
 
 function Test-SingleDumpNoResult {
     param([string]$Name, [string]$Fixture, [string]$SearchValue)
-    $toolPath = Join-Path $Root ($Name + '.bat')
+    $toolPath = Join-Path $ToolsRoot ($Name + '.bat')
     $run = Invoke-PublicTool $toolPath $Fixture $SearchValue $true
     Compare-Run ($Name + ' [no-result]') $run 1 ''
 }
@@ -1491,7 +1538,7 @@ function Test-SingleDumpTools {
         $expected = Normalize-CapturedText (Get-Content -LiteralPath $expectedPath -Raw -Encoding UTF8)
         $search = Get-SingleDumpSearchValue $tool $values
         $hasSearch = -not [string]::IsNullOrEmpty([string]$tool.search_source)
-        $run = Invoke-PublicTool (Join-Path $Root ($name + '.bat')) $fixture $search $hasSearch
+        $run = Invoke-PublicTool (Join-Path $ToolsRoot ($name + '.bat')) $fixture $search $hasSearch
         Compare-Run $name $run 0 $expected
     }
 
@@ -1545,13 +1592,13 @@ function Test-CompareTools {
             continue
         }
         $expected = Normalize-CapturedText (Get-Content -LiteralPath $expectedPath -Raw -Encoding UTF8)
-        $run = Invoke-ComparePublicTool (Join-Path $Root ($name + '.bat')) $before $after
+        $run = Invoke-ComparePublicTool (Join-Path $ToolsRoot ($name + '.bat')) $before $after
         Compare-Run $name $run 0 $expected
     }
 
     foreach ($tool in Get-CompareTools) {
         $name = [string]$tool.name
-        $run = Invoke-ComparePublicTool (Join-Path $Root ($name + '.bat')) $before $before
+        $run = Invoke-ComparePublicTool (Join-Path $ToolsRoot ($name + '.bat')) $before $before
         Compare-Run ($name + ' [no-change]') $run 0 ''
     }
 }
@@ -1605,7 +1652,7 @@ function Test-HistoryTools {
     $outputRoot = Join-Path $script:ResultsFolder 'history-generated'
     if (Test-Path -LiteralPath $outputRoot) { Remove-Item -LiteralPath $outputRoot -Recurse -Force }
 
-    $historyRun = Invoke-ComparePublicTool (Join-Path $Root 'build_mvs_dump_change_history.bat') $fixture $outputRoot
+    $historyRun = Invoke-ComparePublicTool (Join-Path $ToolsRoot 'build_mvs_dump_change_history.bat') $fixture $outputRoot
     Test-HistoryBuilderRun 'build_mvs_dump_change_history' $historyRun
 
     $historyExpected = Join-Path $expectedRoot 'history'
@@ -1620,7 +1667,7 @@ function Test-HistoryTools {
         }
     }
 
-    $allEverRun = Invoke-ComparePublicTool (Join-Path $Root 'build_mvs_dump_all_ever.bat') $fixture $outputRoot
+    $allEverRun = Invoke-ComparePublicTool (Join-Path $ToolsRoot 'build_mvs_dump_all_ever.bat') $fixture $outputRoot
     Test-HistoryBuilderRun 'build_mvs_dump_all_ever' $allEverRun
 
     $everExpected = Join-Path $expectedRoot 'all-ever'

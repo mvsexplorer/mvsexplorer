@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone HTML browser builder embeds PowerShell.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.1"
+set "app.version=0.1.2"
 set "app.name=build_mvs_html_browser"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -10,6 +10,7 @@ set "mvshb_index_root=%~1"
 set "mvshb_output_file=%~2"
 set "mvshb_caller=%~nx0"
 set "mvshb_version=%app.version%"
+set "mvshb_project_root=%~dp0.."
 :main
 set "RunPowerShellFromLabel.function=MVSHtmlBrowser"
 call :RunPowerShellFromLabel
@@ -100,6 +101,7 @@ $IndexInput = [string]$env:mvshb_index_root
 $OutputInput = [string]$env:mvshb_output_file
 $Caller = [string]$env:mvshb_caller
 $Version = [string]$env:mvshb_version
+$ProjectRootInput = [string]$env:mvshb_project_root
 $US = [char]31
 $Tab = [char]9
 $started = [Diagnostics.Stopwatch]::StartNew()
@@ -112,7 +114,7 @@ function Show-Usage {
     Write-Line ('MVS Explorer Toolkit self-contained HTML browser builder '+$Version)
     Write-Line ('Usage: '+$Caller+' compact-family-index [output.html]')
     Write-Line 'Builds one offline HTML file with cascading family/product/release/title filters.'
-    Write-Line 'If output.html is omitted, mvs-browser.html is written in the current directory.'
+    Write-Line 'If output.html is omitted, a date/time-stamped mvs-browser-YYYYMMDD-HHmmss.html is written in the project root.'
 }
 function Resolve-IndexRoot {
     param([string]$Name)
@@ -205,7 +207,11 @@ if(Is-HelpToken $IndexInput){Show-Usage;[Environment]::Exit(0)}
 if([string]::IsNullOrWhiteSpace($IndexInput)){Show-Usage;Fail 2 'Compact family index is required.'}
 $IndexRoot=Resolve-IndexRoot $IndexInput
 if($null-eq$IndexRoot){Fail 3 ('Not a compact MVS family index: '+$IndexInput)}
-if([string]::IsNullOrWhiteSpace($OutputInput)){$OutputInput=Join-Path (Get-Location).Path 'mvs-browser.html'}
+if([string]::IsNullOrWhiteSpace($OutputInput)){
+    $projectOut=$ProjectRootInput
+    try{$projectOut=(Resolve-Path -LiteralPath $ProjectRootInput).Path}catch{$projectOut=(Get-Location).Path}
+    $OutputInput=Join-Path $projectOut ('mvs-browser-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'.html')
+}
 try{$OutputPath=[IO.Path]::GetFullPath($OutputInput)}catch{Fail 2 ('Invalid output path: '+$OutputInput)}
 if([IO.Path]::GetExtension($OutputPath)-ine'.html'){Fail 2 'Output file must use the .html extension.'}
 $parent=[IO.Path]::GetDirectoryName($OutputPath)

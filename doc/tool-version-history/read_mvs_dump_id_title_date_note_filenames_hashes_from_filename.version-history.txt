@@ -1,3 +1,7 @@
+Project 0.19.0 layout note - 2026-09-07
+- Delivery path moves from the project root to `tools\`.
+- Arguments, stdout/stderr, return codes, standalone runtime behavior, and evidence semantics are unchanged.
+
 Tool Version History: read_mvs_dump_id_title_date_note_filenames_hashes_from_filename.bat
 
 Purpose

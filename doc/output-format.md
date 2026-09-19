@@ -1,5 +1,8 @@
 # Output Format
 
+> **0.19.0 layout:** Public utility BATs referenced in this document are delivered under `tools\`. Run them as `tools\<tool>.bat` from the project root, or change into `tools\` first. Their established arguments/output semantics are unchanged.
+
+
 ## Source-order scalar tools
 
 Unsuffixed scalar tools preserve product order from `mvs_ids.txt`.

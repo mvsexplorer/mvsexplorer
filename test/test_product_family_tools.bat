@@ -178,7 +178,7 @@ $Fixture = Join-Path (Join-Path $Root 'test') 'test-mvs-product-family'
 if (Test-Path -LiteralPath $Fixture -PathType Container) { Pass 'product-family synthetic archive present' } else { FailCase 'product-family synthetic archive present' ('missing: '+$Fixture) }
 
 $OutputRoot = Join-Path $env:TEMP ('mvs-product-family-test-'+[guid]::NewGuid().ToString('N'))
-$Builder = Join-Path $Root 'build_mvs_product_family_index.bat'
+$Builder = Join-Path (Join-Path $Root 'tools') 'build_mvs_product_family_index.bat'
 $Overrides = Join-Path $Fixture 'family-overrides.tsv'
 $buildRun = Invoke-Batch $Builder @($Fixture,$OutputRoot,$Overrides)
 if ($buildRun.rc -eq 0 -and [string]::IsNullOrWhiteSpace($buildRun.stderr)) {
@@ -270,7 +270,7 @@ try {
 
 
 $CompactRoot = Join-Path $env:TEMP ('mvs-product-family-compact-test-'+[guid]::NewGuid().ToString('N'))
-$CompactBuilder = Join-Path $Root 'build_mvs_product_family_compact_index.bat'
+$CompactBuilder = Join-Path (Join-Path $Root 'tools') 'build_mvs_product_family_compact_index.bat'
 $compactRun = Invoke-Batch $CompactBuilder @($OutputRoot,$CompactRoot)
 if ($compactRun.rc -eq 0 -and [string]::IsNullOrWhiteSpace($compactRun.stderr)) {
     Pass 'build_mvs_product_family_compact_index'

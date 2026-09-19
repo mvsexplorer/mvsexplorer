@@ -1,3 +1,7 @@
+Project 0.19.0 layout note - 2026-09-07
+- Delivery path moves from the project root to `tools\`.
+- Arguments, stdout/stderr, return codes, standalone runtime behavior, and evidence semantics are unchanged.
+
 0.1.1 - 2026-09-07
 - Performance-only query-engine update for large product-family indexes.
 - Exact fact lookups use native literal candidate scanning plus field verification; wildcard/escaped patterns stream once without eager whole-table Import-Csv.

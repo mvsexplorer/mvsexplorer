@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validation for archive sweep, quality, reporting, and performance helpers.
 
-Version: 0.7.4
+Version: 0.8.0
 """
 from pathlib import Path
 import sys
@@ -184,26 +184,27 @@ def main():
         delivered_text=delivered.read_text(encoding="utf-8")
         check_unique_labels(delivered,delivered_text)
 
-    # Public surface includes a separate archive-level product-family class.
-    public=sorted(ROOT.glob("*.bat"))
+    # Public tool surface lives under tools\; root contains application/orchestration launchers only.
+    public=sorted((ROOT/"tools").glob("*.bat"))
+    root_public=sorted(ROOT.glob("*.bat"))
     compare=[p for p in public if p.name.startswith("compare_mvs_dump_")]
     archive_names={"build_mvs_dump_change_history.bat","build_mvs_dump_all_ever.bat"}
     archive=[p for p in public if p.name in archive_names]
     family=[p for p in public if p.name in {"build_mvs_product_family_index.bat","build_mvs_product_family_compact_index.bat"} or
             p.name.startswith("print_mvs_product_") or p.name.startswith("read_mvs_product_")]
-    pipeline=[p for p in public if p.name=="all_test_then_all_database_then_test_database_and_all_tools.bat"]
     browser=[p for p in public if p.name=="build_mvs_html_browser.bat"]
-    gui=[p for p in public if p.name=="mvs_explorer_gui.bat"]
-    single=[p for p in public if p not in compare and p not in archive and p not in family and p not in pipeline and p not in browser and p not in gui]
-    if (len(public),len(single),len(compare),len(archive),len(family),len(browser),len(gui),len(pipeline)) != (480,422,19,2,34,1,1,1):
-        fail("unexpected public scope counts: public=%d single=%d compare=%d archive=%d family=%d browser=%d gui=%d pipeline=%d" %
-             (len(public),len(single),len(compare),len(archive),len(family),len(browser),len(gui),len(pipeline)))
+    gui=[p for p in root_public if p.name=="mvs_explorer_gui.bat"]
+    pipeline=[p for p in root_public if p.name=="all_test_then_all_database_then_test_database_and_all_tools.bat"]
+    single=[p for p in public if p not in compare and p not in archive and p not in family and p not in browser]
+    if (len(public),len(single),len(compare),len(archive),len(family),len(browser),len(gui),len(pipeline),len(root_public)) != (478,422,19,2,34,1,1,1,4):
+        fail("unexpected public scope counts: tools=%d single=%d compare=%d archive=%d family=%d browser=%d gui=%d pipeline=%d root=%d" %
+             (len(public),len(single),len(compare),len(archive),len(family),len(browser),len(gui),len(pipeline),len(root_public)))
     planned=len(single)*79+len(compare)*78+len(archive)
     synthetic=len(single)*3+len(compare)*2+len(archive)
     if planned != 34822: fail("79-snapshot plan count mismatch: %d"%planned)
     if synthetic != 1306: fail("3-snapshot fast-test plan mismatch: %d"%synthetic)
 
-    family_builder=check_batch(ROOT/"build_mvs_product_family_index.bat",(
+    family_builder=check_batch(ROOT/"tools"/"build_mvs_product_family_index.bat",(
         ":_MVSProductFamily_start","product-family-memberships.tsv","family-parent-relationships.tsv",
         "product-ids.tsv","product-dates.tsv","product-files.tsv","product-hashes.tsv",
         "product-notes.tsv","unclassified-products.tsv","overrides-applied.tsv","mvs_dmp",
@@ -211,7 +212,7 @@ def main():
         "Get-ReleaseToken","Microsoft Office Online Server","(?:last\\s+)?updated",
         "\\bversion\\s+"
     ))
-    compact_builder=check_batch(ROOT/"build_mvs_product_family_compact_index.bat",(
+    compact_builder=check_batch(ROOT/"tools"/"build_mvs_product_family_compact_index.bat",(
         ":_MVSProductFamilyCompact_start","snapshot-sets.tsv","product-file-hashes-all-ever.tsv",
         "file-hashes-all-ever.tsv","filename-hash-conflicts.tsv","product-file-hash-conflicts.tsv",
         "hash-filename-aliases.tsv","CROSS_PRODUCT_FILENAME_REUSE","PRODUCT_HASH_DISAGREEMENT"
@@ -257,7 +258,7 @@ def main():
         "explicit non-year version beats update timestamp"
     ))
     test_all_text=(ROOT/"test"/"test_all.bat").read_text(encoding="utf-8")
-    if ("root public .bat count = 480" not in test_all_text or
+    if ("public layout = tools\\ 478 BATs, root 4 launchers, create/update 8 components" not in test_all_text or
         "product-family regression 106 assertions" not in test_all_text or
         "SUMMARY: passed=106 failed=0" not in test_all_text or
         ("SUMMARY: passed=96 failed=0" in test_all_text or "SUMMARY: passed=92 failed=0" in test_all_text)):
@@ -269,10 +270,10 @@ def main():
         fail("archive-exclusions.tsv header mismatch")
 
     # Test harness must capture per-invocation elapsed time.
-    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","remaining=","Project: MVS Explorer Toolkit","mvst_project_version=0.18.0"))
+    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","remaining=","Project: MVS Explorer Toolkit","mvst_project_version=0.19.0"))
     if "expected_rc`tactual_rc`telapsed_ms" not in test_all:
         fail("test result TSV does not include elapsed_ms")
-    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","remaining=","Project version:","0.18.0"))
+    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","remaining=","Project version:","0.19.0"))
 
     maintained=(
         "dev/generate_archive_sweep.py","dev/generate_performance_tools.py","dev/generate_report_tools.py",
@@ -293,7 +294,7 @@ def main():
         if not (ROOT/rel).is_file(): fail("missing maintained file: "+rel)
 
     print("PASS: archive sweep/quality/performance static validation")
-    print("public tools: 480 (single=422 compare=19 archive=2 family=34 browser=1 gui=1 pipeline=1)")
+    print("public tools: tools\\=478 (single=422 compare=19 archive=2 family=34 browser=1) + root apps=4 (gui=1 pipeline=1 maintenance=2)")
     print("fast executor: indexed + source-stable + bounded parallel workers + content cache")
     print("analysis: per-dump contributions, quality, re-ID, notes, exclusions, interactive HTML")
     print("supplied archive plan: 34,822 logical checks for 79 snapshots")

@@ -1,5 +1,8 @@
 # Archive-wide public-tool sweep
 
+> **0.19.0 layout:** Public utility BATs referenced in this document are delivered under `tools\`. Run them as `tools\<tool>.bat` from the project root, or change into `tools\` first. Their established arguments/output semantics are unchanged.
+
+
 Version 0.12.0 adds `test\test_all_dumps.bat`, a standalone Windows integration
 harness for executing the complete public-tool surface against an MVS dump
 archive.

@@ -1,0 +1,7 @@
+create_or_update_mvs_database.bat
+
+0.1.0 / project 0.19.0 - 2026-09-07
+- Initial multi-archive incremental database maintenance launcher.
+- Discovers every mvs_dumps_archive* in current/parent folders.
+- Runs eight ordered component BATs per archive and continues to later archives after an archive-specific failure.
+- Retains master/per-component logs and ZIPs the run after closing the master writer.

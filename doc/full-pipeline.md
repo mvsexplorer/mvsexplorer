@@ -22,7 +22,7 @@ failures.
 
 ## Resume already-built databases
 
-0.18.0 retains the recovery path introduced in 0.16.1 for a late-stage validator/packaging failure after
+0.19.0 retains the recovery path introduced in 0.16.1 for a late-stage validator/packaging failure after
 the three reusable databases were already generated:
 
 ```bat
@@ -158,3 +158,27 @@ built compact product-family database. Like the HTML browser builder, it is not
 automatically invoked by the fail-gated production pipeline. This keeps desktop
 UI iteration separate from archive/database production while the GUI has its
 native acceptance cycle.
+
+## 0.19.0 incremental maintenance entry point
+
+The original all-test/full-rebuild pipeline above remains available at the
+project root for clean-room acceptance and packaging. 0.19.0 adds a separate
+normal maintenance entry point:
+
+```bat
+create_or_update_mvs_database.bat
+```
+
+It searches the invocation directory and its parent for every
+`mvs_dumps_archive*` folder, updates isolated slots under `mvs_databases\`,
+reuses only content-identical complete snapshots, rebuilds dependent family
+indexes when needed, validates the resulting databases, and creates timestamped
+HTML browsers in the project root.
+
+Utility tools used by either pipeline now live under `tools\`. This is a
+delivery-layout change and does not expand the legacy archive plan.
+
+One create/update invocation retains its master and per-component logs under
+`logs\create-or-update-YYYYMMDD-HHmmss\` and creates a sibling ZIP only after
+the active log writer is closed. See `database-maintenance.md`.
+

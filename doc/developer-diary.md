@@ -752,3 +752,49 @@ The fixture now repeats one exact product-safe file/hash fact across two
 snapshots. This is deliberately a test-only correction: all public tools remain
 unchanged, and the real compact index audit confirms exact snapshot-set
 reconciliation, conflict/alias derivation, and raw-note hash integrity.
+
+## 2026-09-07 — 0.19.0 application layout and incremental database maintenance
+
+The next requested direction is operational rather than another analytical
+relationship layer. The root should behave like an application directory:
+utility BATs belong under `tools\`, while GUI/database-maintenance/status
+entry points remain easy to find.
+
+The incremental updater therefore uses source bytes as the only safe
+"already done" identity. For every snapshot, the seven recognized MVS source
+files are SHA-256 fingerprinted; a missing file is part of the fingerprint
+rather than silently ignored. Reuse additionally requires the same
+archive-processing toolset and a complete prior plan/run ledger containing only
+valid terminal statuses. Any changed, incomplete, or failed snapshot is rerun
+as a whole snapshot batch.
+
+The updater creates a fresh staging archive-analysis directory, seeds only
+proven reusable logical rows, and resumes the existing combined fast sweep for
+the remaining plan. Archive-quality validation runs before staging is swapped
+into the committed slot. An interrupted staging directory is therefore never a
+future source of "already done" evidence and is deleted by the next preparation
+stage.
+
+Multiple `mvs_dumps_archive*` roots found in the invocation directory and its
+parent receive isolated slots under one `mvs_databases\` root. The launcher
+continues to later archives after an archive-specific failure and records a
+per-archive status. Full-family/compact indexes are rebuilt only when upstream
+data/tool state requires it, but the final database validator still runs before
+PASS is recorded.
+
+The workflow is deliberately decomposed into eight BAT components. This makes
+each phase directly inspectable/loggable without turning the root into another
+large tool list. All run logs are grouped under `logs\` and ZIPped after the
+master writer closes, preserving the packaging ordering learned from the
+0.16.2–0.16.4 log-sharing failures.
+
+HTML outputs are timestamped in the project root. The desktop GUI now performs
+the same current/parent discovery expected of the operational tools: exactly
+one compact database is automatic, several require a chooser with Browse, and
+zero candidates fall back to the folder picker.
+
+During the release pass, three missing closing parentheses in newly maintained
+PowerShell were caught by a static delimiter audit before packaging. After
+correction, regeneration changed exactly the three affected generated BATs; a
+complete subsequent generator pass is required to remain byte-idempotent.
+

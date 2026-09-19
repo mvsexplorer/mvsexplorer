@@ -1,3 +1,57 @@
+## 0.19.0 layout and database-maintenance generation
+
+0.19.0 makes `tools\` the generated output directory for the 478 utility BATs
+whose public names begin with `build_mvs_`, `compare_mvs_`, `find_mvs_`,
+`lookup_mvs_`, `print_mvs_`, or `read_mvs_`. Generators must write directly to
+that directory; release assembly must not move generated files afterward.
+Archive/test callers resolve those tools from `tools\` while preserving the
+existing 422 single / 19 compare / 2 archive sweep scope.
+
+`generate_database_maintenance.py` maintains the new incremental database
+workflow from these sources:
+
+```text
+library\database-maintenance-common.inc.ps1
+library\database-maintenance-discover.inc.ps1
+library\database-maintenance-prepare.inc.ps1
+library\database-maintenance-run-archive.inc.ps1
+library\database-maintenance-family.inc.ps1
+library\database-maintenance-compact.inc.ps1
+library\database-maintenance-validate.inc.ps1
+library\database-maintenance-html.inc.ps1
+library\database-maintenance-state.inc.ps1
+library\database-maintenance-launcher.inc.ps1
+library\database-summary-display.inc.ps1
+templates\database-maintenance-component.bat.tpl
+templates\database-maintenance-launcher.bat.tpl
+templates\database-summary-display.bat.tpl
+```
+
+The generator emits eight ordered component BATs under
+`create_or_update_mvs_database\`, plus root
+`create_or_update_mvs_database.bat` and `display_mvs_database_summary.bat`.
+Components are orchestration artifacts and may call the delivered `tools\` and
+`test\` surfaces, but they must not depend on `dev\` at runtime.
+
+Incremental reuse is keyed by source-content fingerprints and an
+archive-processing toolset fingerprint. Never substitute filesystem dates for
+source-content identity. Reuse requires a complete compatible prior plan/run
+ledger with terminal PASS/NO_RESULT/SOURCE_MISSING rows. A changed or
+incomplete snapshot must be rerun as a complete snapshot batch. Staging
+directories are disposable and only validated archive results are promoted.
+
+`generate_powershell_gui.py` also maintains the no-argument compact-database
+discovery behavior: search current and parent directories, auto-open exactly
+one usable compact index, present a chooser plus Browse for multiple matches,
+and use the folder picker when none is found.
+
+`generate_html_browser.py` supplies the project-root timestamped default HTML
+name. Database-maintenance stage 07 gives multi-archive output an additional
+archive-slot component.
+
+0.19.0 structure expects 495 assertions and all mode 1,108. The current known
+legacy archive plan remains 34,822 logical checks.
+
 ## 0.18.0 standalone PowerShell GUI maintenance
 
 `generate_powershell_gui.py` maintains `mvs_explorer_gui.bat` from
@@ -95,7 +149,7 @@ generate_tools.py
 validate_generated.py
 ```
 
-`generate_tools.py` injects common source into each public root `.bat`.
+`generate_tools.py` injects common source into each generated public utility `.bat` under `tools\`.
 
 The required release invariant is:
 

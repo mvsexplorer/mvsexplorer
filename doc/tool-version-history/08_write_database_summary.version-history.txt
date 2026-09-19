@@ -1,0 +1,5 @@
+08_write_database_summary.bat
+
+0.1.0 / project 0.19.0 - 2026-09-07
+- Initial component 8/8 of the modular create_or_update_mvs_database workflow.
+- Delivered as a distinct BAT under create_or_update_mvs_database\.
