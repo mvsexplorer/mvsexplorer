@@ -131,7 +131,7 @@ These directives are distilled from the user's project prompts.
 78. Orphan scans are directional set-membership checks: each source occurrence is reported when its normalized property value is absent from the target.
 79. Orphan section findings preserve full section context for ID/title and owner ID/title plus matched line for filename.
 80. Do not interpret every literal duplicate/orphan as corruption; document source-model cases where repetition or differing title domains are expected.
-81. In `mvs_names.txt`, repeated product IDs are normally expected because one product can have many variant sections.
+81. Treat IDs in `mvs_names.txt` as source-level IDs; do not assume they are product IDs or product foreign keys.
 82. `mvs_names.txt` heading titles are variant/display titles and are not generally the same title domain as product titles.
 83. `mvs_notes.html` normally has no ID field; an ID diagnostic there recognizes only explicit literal `[ID: N]` markers if present.
 84. SHA-1/SHA-256 orphan diagnostics in this phase compare filenames only.
@@ -181,8 +181,16 @@ These directives are distilled from the user's project prompts.
 120. Provide unparsed-line reporting for every line-oriented source used by the toolkit.
 121. Hash-integrity diagnostics report duplicate hashes, hash->multiple-filename, filename->multiple-hash, and cross-source filename/hash mismatches.
 122. Whole-dump summary/statistics must remain key/value oriented and machine-readable.
-123. Summary metrics distinguish expected variant ID repetition from product duplicate-ID diagnostics.
+123. Summary metrics keep `mvs_names.txt` IDs separate from product IDs and report any numeric overlap only as literal overlap, not ownership.
 124. All new query selectors are exact; wildcard semantics remain confined to the explicit lookup family.
 125. The single-dump synthetic fixture must force every new public tool through a positive output/finding path.
 126. Every new public single-dump tool gets an exact expected stdout regression file produced by an independent Python reference implementation.
 127. Add no-result return-code regression for each new query operation family.
+
+128. Real-dump validation on `mvs_2019-10-16` proves that `mvs_names.txt` IDs are not product IDs: the variant-source ID domain extends far beyond the product-ID range.
+129. A product-to-variant association must be derived from source-supported file/hash edges and preserve ambiguity; never join `mvs_names.txt` to products by numeric ID alone.
+130. PowerShell 5.1 embedded blocks must avoid parser-sensitive comma-separated cast/function expressions inside array subexpressions; prefer the established ArrayList emitter pattern.
+
+131. Preserve `mvs_names.txt` IDs as trimmed source text; do not cast them to integers.
+132. Variant `..._from_id` queries compare source IDs case-insensitively as text; product `..._from_id` queries remain numeric.
+133. Synthetic variant fixtures must use IDs outside the product-ID domain, including an alphanumeric ID and a hyphenated ID.

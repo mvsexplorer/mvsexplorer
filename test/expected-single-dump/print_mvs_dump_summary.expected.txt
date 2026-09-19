@@ -27,10 +27,11 @@ variants.sections: 4
 variants.rows: 7
 variants.unique_titles: 4
 variants.unique_filenames: 4
-variants.product_ids_with_variants: 3
-variants.product_ids_without_variants: 0
-variants.max_sections_per_product_id: 2
-variants.repeated_product_id_groups: 1
+variants.unique_ids: 4
+variants.ids_matching_product_ids: 0
+variants.ids_not_in_product_ids: 4
+variants.max_sections_per_id: 1
+variants.repeated_id_groups: 0
 notes.records: 4
 notes.unique_titles: 3
 notes.product_ids_with_notes: 3
@@ -52,7 +53,7 @@ integrity.duplicate_product_titles: 0
 integrity.duplicate_product_filenames: 1
 integrity.orphan_ids_ids_to_dates: 0
 integrity.orphan_ids_ids_to_mvs: 0
-integrity.orphan_ids_ids_to_names: 0
+cross_domain.product_ids_not_in_mvs_names_ids: 3
 integrity.orphan_filenames_mvs_to_names: 2
 integrity.orphan_filenames_names_to_mvs: 2
 integrity.orphan_filenames_mvs_to_sha1: 2

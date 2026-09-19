@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.6.0"
+set "app.version=0.6.1"
 set "app.name=test_scalar_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -1124,6 +1124,7 @@ function Get-SingleDumpSearchValue {
     if ([string]::IsNullOrEmpty([string]$Tool.search_source)) { return $null }
 
     if ($Tool.operation -eq 'variant_query') {
+        if ($Tool.search_source -eq 'id') { return [string]$Values.variant_id }
         if ($Tool.search_source -eq 'filename') { return [string]$Values.variant_filename }
         if ($Tool.search_source -eq 'hash') { return [string]$Values.variant_hash }
     }
@@ -1162,7 +1163,7 @@ function Test-SingleDumpTools {
     }
 
     $values = Read-TestValueFile $valuePath
-    foreach ($required in @('id','title','filename','hash','variant_filename','variant_hash','note_title')) {
+    foreach ($required in @('id','title','filename','hash','variant_id','variant_filename','variant_hash','note_title')) {
         if (-not $values.ContainsKey($required) -or [string]::IsNullOrWhiteSpace([string]$values[$required])) {
             Write-Fail 'single-dump test values' ('missing key: ' + $required)
             return

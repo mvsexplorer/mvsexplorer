@@ -2,6 +2,7 @@ id=10
 title=Alpha Product
 filename=alpha.iso
 hash=3333333333333333333333333333333333333333
+variant_id=pAlpha10x64len
 variant_filename=variant-alpha.iso
 variant_hash=6666666666666666666666666666666666666666
 note_title=Alpha Product

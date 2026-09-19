@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone single-dump tool embeds PowerShell.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.0"
+set "app.version=0.1.1"
 set "app.name=find_mvs_unparsed_lines_in_mvs.sha1"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -342,15 +342,32 @@ function Read-SectionFile {
         $lineNumber = $index + 1
         $line = [string]$lines[$index]
 
-        if ($line -match '^---\s*(?<title>.*?)\s*\[ID:\s*(?<id>\d+)\]\s*---\s*$') {
+        $headerMatched = $false
+        $headerId = ''
+        $headerTitle = ''
+        if ($Name -eq 'mvs_names.txt') {
+            if ($line -match '^---\s*(?<title>.*?)\s*\[ID:\s*(?<id>[^\]]+?)\s*\]\s*---\s*$') {
+                $headerMatched = $true
+                $headerId = $Matches.id.Trim()
+                $headerTitle = $Matches.title
+            }
+        } else {
+            if ($line -match '^---\s*(?<title>.*?)\s*\[ID:\s*(?<id>\d+)\]\s*---\s*$') {
+                $headerMatched = $true
+                $headerId = [string][int]$Matches.id
+                $headerTitle = $Matches.title
+            }
+        }
+
+        if ($headerMatched) {
             Complete-Section $section $sections
             $occurrence++
             $rawLines = New-ArrayList
             [void]$rawLines.Add([pscustomobject]@{ offset=0; line=$lineNumber; raw=$line })
             $section = [pscustomobject]@{
                 occurrence=$occurrence
-                id=[string][int]$Matches.id
-                title=Normalize-Title $Matches.title
+                id=$headerId
+                title=Normalize-Title $headerTitle
                 start_line=$lineNumber
                 raw_lines=$rawLines
                 file_count=0
@@ -708,7 +725,7 @@ function Get-VariantRows {
     foreach ($row in $Model.variants) {
         $match = $false
         if ($SourceName -eq 'id') {
-            try { $match = ([int64]$row.id -eq [int64]$Needle) } catch { $match = $false }
+            $match = Matches-Exact $row.id $Needle
         } elseif ($SourceName -eq 'filename') {
             $match = Matches-Exact $row.filename $Needle
         } elseif ($SourceName -eq 'hash') {
@@ -767,14 +784,14 @@ function Emit-ProductSections {
             $count++
         } else {
             foreach ($raw in $section.raw_lines) {
-                Write-Line ((@(
-                    [string]$section.occurrence,
-                    [string]$section.id,
-                    Normalize-Scalar ([string]$section.title),
-                    [string]$raw.offset,
-                    [string]$raw.line,
-                    Normalize-Scalar ([string]$raw.raw)
-                )) -join [char]9)
+                $sectionValues = New-ArrayList
+                [void]$sectionValues.Add([string]$section.occurrence)
+                [void]$sectionValues.Add([string]$section.id)
+                [void]$sectionValues.Add((Normalize-Scalar ([string]$section.title)))
+                [void]$sectionValues.Add([string]$raw.offset)
+                [void]$sectionValues.Add([string]$raw.line)
+                [void]$sectionValues.Add((Normalize-Scalar ([string]$raw.raw)))
+                Write-Line (($sectionValues | ForEach-Object { [string]$_ }) -join [char]9)
                 $count++
             }
         }
@@ -939,14 +956,14 @@ function Get-SummaryRows {
     Add-Metric 'variants.unique_titles' ([string](@($Model.variant_sections | Select-Object -ExpandProperty title -Unique).Count))
     Add-Metric 'variants.unique_filenames' ([string](@($Model.variants | Where-Object {$_.filename} | Select-Object -ExpandProperty filename -Unique).Count))
     $variantIds = @($Model.variant_sections | Select-Object -ExpandProperty id -Unique)
-    Add-Metric 'variants.product_ids_with_variants' ([string]$variantIds.Count)
-    $withoutVariants = @($productIds | Where-Object { $variantIds -notcontains $_ })
-    Add-Metric 'variants.product_ids_without_variants' ([string]$withoutVariants.Count)
+    Add-Metric 'variants.unique_ids' ([string]$variantIds.Count)
+    Add-Metric 'variants.ids_matching_product_ids' ([string](@($variantIds | Where-Object { $productIds -contains $_ }).Count))
+    Add-Metric 'variants.ids_not_in_product_ids' ([string](@($variantIds | Where-Object { $productIds -notcontains $_ }).Count))
     $variantGroupsById = @($Model.variant_sections | Group-Object id)
     $maxVariantsPerId = 0
     foreach ($group in $variantGroupsById) { if ($group.Count -gt $maxVariantsPerId) { $maxVariantsPerId = $group.Count } }
-    Add-Metric 'variants.max_sections_per_product_id' ([string]$maxVariantsPerId)
-    Add-Metric 'variants.repeated_product_id_groups' ([string](@($variantGroupsById | Where-Object {$_.Count -gt 1}).Count))
+    Add-Metric 'variants.max_sections_per_id' ([string]$maxVariantsPerId)
+    Add-Metric 'variants.repeated_id_groups' ([string](@($variantGroupsById | Where-Object {$_.Count -gt 1}).Count))
 
     Add-Metric 'notes.records' ([string]$Model.notes.Count)
     Add-Metric 'notes.unique_titles' ([string](@($Model.notes | Select-Object -ExpandProperty title -Unique).Count))
@@ -979,7 +996,7 @@ function Get-SummaryRows {
     $idsFromNames = @($Model.variant_sections | Select-Object -ExpandProperty id -Unique)
     Add-Metric 'integrity.orphan_ids_ids_to_dates' ([string](@($idsFromIds | Where-Object {$idsFromDates -notcontains $_}).Count))
     Add-Metric 'integrity.orphan_ids_ids_to_mvs' ([string](@($idsFromIds | Where-Object {$idsFromMvs -notcontains $_}).Count))
-    Add-Metric 'integrity.orphan_ids_ids_to_names' ([string](@($idsFromIds | Where-Object {$idsFromNames -notcontains $_}).Count))
+    Add-Metric 'cross_domain.product_ids_not_in_mvs_names_ids' ([string](@($idsFromIds | Where-Object {$idsFromNames -notcontains $_}).Count))
 
     $mvsFilenames = @($Model.product_files | Select-Object -ExpandProperty filename -Unique)
     $nameFilenames = @($Model.variants | Where-Object {$_.filename} | Select-Object -ExpandProperty filename -Unique)

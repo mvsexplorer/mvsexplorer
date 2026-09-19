@@ -1,6 +1,6 @@
 # MVS Explorer Toolkit — Batch Style Guide Addendum
 
-**Addendum version:** 0.8.0  
+**Addendum version:** 0.8.1  
 **Applies with:** Batch File Style Guide v1.8.0
 
 This addendum supplements the supplied guide with project-specific conventions.
@@ -314,3 +314,16 @@ key<TAB>value
 
 Keys are stable machine-facing identifiers; presentation labels are not
 localized.
+
+
+## 30. Windows PowerShell parser compatibility
+
+Embedded PowerShell must target the Windows PowerShell 5.1 parser used by the
+supported `powershell.exe` path.
+
+When building multi-field machine-output rows, prefer the established
+ArrayList-plus-join emitter over parser-sensitive comma-separated cast/function
+array literals.
+
+Static generation checks should encode any concrete parser regression exposed
+by an external Windows test run.

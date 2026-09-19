@@ -1,4 +1,4 @@
-# MVS Explorer Toolkit 0.9.0
+# MVS Explorer Toolkit 0.9.1
 
 MVS Explorer Toolkit is a growing collection of console tools for exploring MVS dump snapshots, intended to culminate in the graphical **MVS Explorer** application.
 
@@ -352,9 +352,9 @@ Total:         610
 ```
 
 
-## 0.9.0 single-dump completeness milestone
+## 0.9.x single-dump completeness milestone
 
-Version 0.9.0 adds **154 standalone tools** covering the remaining
+Version 0.9.x adds **154 standalone tools** covering the remaining
 single-dump information/presentation layer. The project now has **422 public
 standalone `.bat` tools**.
 
@@ -421,5 +421,59 @@ and the new subset runner is:
 test\test_single_dump_tools.bat
 ```
 
-The 0.9.0 full suite expects **931 assertions** before any data-dependent skips
+The 0.9.1 full suite expects **931 assertions** before any data-dependent skips
 from the supplied real dump.
+
+
+## 0.9.1 parser bugfix
+
+The first real Windows 0.9.0 executions exposed a Windows PowerShell 5.1 parser
+error in the shared single-dump runtime. One raw-section TSV expression used a
+comma-separated cast/function form that prevented the entire injected
+single-dump script block from compiling.
+
+0.9.1 rewrites that emitter with the established ArrayList pattern already
+used successfully by the earlier relationship tools.
+
+The attached result analysis established that the completed 0.9.0 run had:
+
+```text
+765 passed
+166 failed
+0 skipped
+931 total
+```
+
+All 166 failures contained the same ScriptBlock.Create parser error.
+
+The real `mvs_2019-10-16` dump also disproved an earlier semantic assumption:
+IDs in `mvs_names.txt` are not guaranteed product IDs. Variant tools continue to expose
+the source ID as `ID`, but documentation and summary metrics now label that
+domain correctly and do not imply product ownership.
+
+
+### Real-dump reference output
+
+The independent reference parser was run against the archived
+`mvs_2019-10-16` dump. Its corrected summary is checked into:
+
+```text
+doc\reference-output-mvs_2019-10-16-summary.txt
+doc\reference-output-mvs_2019-10-16-summary.tsv
+```
+
+Important corrected values include:
+
+```text
+products.mvs.sections: 1791
+variants.sections: 38136
+variants.unique_ids: 38136
+variants.ids_matching_product_ids: 203
+variants.ids_not_in_product_ids: 37933
+integrity.unparsed.mvs_names.txt: 0
+integrity.unparsed.total: 0
+```
+
+These files are reference outputs from the independent Python parser. The
+actual standalone Windows batch runtime still requires the external 0.9.1
+Windows test run.

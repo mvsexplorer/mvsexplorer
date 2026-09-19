@@ -74,7 +74,7 @@ generate_expected_single_dump_outputs.py
 ```
 
 `generate_single_dump_tools.py` injects the complete implementation into all
-154 public 0.9.0 single-dump tools.
+154 public 0.9.x single-dump tools.
 
 `generate_expected_single_dump_outputs.py` is an independent Python reference
 parser and never invokes the public batch files.

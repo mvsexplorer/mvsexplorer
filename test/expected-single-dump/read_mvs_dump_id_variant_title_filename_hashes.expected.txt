@@ -1,7 +1,7 @@
-10	Alpha Variant One	variant-alpha.iso	6666666666666666666666666666666666666666
-10	Alpha Variant One	variant-alpha.iso	7777777777777777777777777777777777777777
-10	Alpha Variant One	variant-alpha-copy.iso	6666666666666666666666666666666666666666
-10	Alpha Variant One	variant-alpha.iso	dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
-10	Alpha Variant Empty		
-20	Beta Variant	shared.iso	4444444444444444444444444444444444444444
-30	Gamma Variant	gamma.iso	5555555555555555555555555555555555555555
+pAlpha10x64len	Alpha Variant One	variant-alpha.iso	6666666666666666666666666666666666666666
+pAlpha10x64len	Alpha Variant One	variant-alpha.iso	7777777777777777777777777777777777777777
+pAlpha10x64len	Alpha Variant One	variant-alpha-copy.iso	6666666666666666666666666666666666666666
+pAlpha10x64len	Alpha Variant One	variant-alpha.iso	dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+v-empty-10	Alpha Variant Empty		
+F77120Ax64Lcn	Beta Variant	shared.iso	4444444444444444444444444444444444444444
+vGamma30	Gamma Variant	gamma.iso	5555555555555555555555555555555555555555

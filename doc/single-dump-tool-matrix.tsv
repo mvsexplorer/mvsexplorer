@@ -1,155 +1,155 @@
 tool	operation	mode	search_source	fields	algorithm_filter	source_file	diagnostic_kind	version
-print_mvs_dump_filenames_from_id.bat	detail_query	human	id	filename				0.1.0
-read_mvs_dump_filenames_from_id.bat	detail_query	machine	id	filename				0.1.0
-print_mvs_dump_hashes_from_id.bat	detail_query	human	id	hash				0.1.0
-read_mvs_dump_hashes_from_id.bat	detail_query	machine	id	hash				0.1.0
-print_mvs_dump_filename_hashes_from_id.bat	detail_query	human	id	filename,hash				0.1.0
-read_mvs_dump_filename_hashes_from_id.bat	detail_query	machine	id	filename,hash				0.1.0
-print_mvs_dump_filename_hash_algorithm_source_from_id.bat	detail_query	human	id	filename,hash,algorithm,source				0.1.0
-read_mvs_dump_filename_hash_algorithm_source_from_id.bat	detail_query	machine	id	filename,hash,algorithm,source				0.1.0
-print_mvs_dump_id_title_filenames_from_id.bat	detail_query	human	id	id,title,filename				0.1.0
-read_mvs_dump_id_title_filenames_from_id.bat	detail_query	machine	id	id,title,filename				0.1.0
-print_mvs_dump_id_title_filenames_hashes_from_id.bat	detail_query	human	id	id,title,filename,hash				0.1.0
-read_mvs_dump_id_title_filenames_hashes_from_id.bat	detail_query	machine	id	id,title,filename,hash				0.1.0
-print_mvs_dump_title_filenames_hashes_from_id.bat	detail_query	human	id	title,filename,hash				0.1.0
-read_mvs_dump_title_filenames_hashes_from_id.bat	detail_query	machine	id	title,filename,hash				0.1.0
-print_mvs_dump_id_title_date_note_filenames_hashes_from_id.bat	detail_query	human	id	id,title,date,note,filename,hash				0.1.0
-read_mvs_dump_id_title_date_note_filenames_hashes_from_id.bat	detail_query	machine	id	id,title,date,note,filename,hash				0.1.0
-print_mvs_dump_filenames_from_title.bat	detail_query	human	title	filename				0.1.0
-read_mvs_dump_filenames_from_title.bat	detail_query	machine	title	filename				0.1.0
-print_mvs_dump_hashes_from_title.bat	detail_query	human	title	hash				0.1.0
-read_mvs_dump_hashes_from_title.bat	detail_query	machine	title	hash				0.1.0
-print_mvs_dump_filename_hashes_from_title.bat	detail_query	human	title	filename,hash				0.1.0
-read_mvs_dump_filename_hashes_from_title.bat	detail_query	machine	title	filename,hash				0.1.0
-print_mvs_dump_filename_hash_algorithm_source_from_title.bat	detail_query	human	title	filename,hash,algorithm,source				0.1.0
-read_mvs_dump_filename_hash_algorithm_source_from_title.bat	detail_query	machine	title	filename,hash,algorithm,source				0.1.0
-print_mvs_dump_id_title_filenames_from_title.bat	detail_query	human	title	id,title,filename				0.1.0
-read_mvs_dump_id_title_filenames_from_title.bat	detail_query	machine	title	id,title,filename				0.1.0
-print_mvs_dump_id_title_filenames_hashes_from_title.bat	detail_query	human	title	id,title,filename,hash				0.1.0
-read_mvs_dump_id_title_filenames_hashes_from_title.bat	detail_query	machine	title	id,title,filename,hash				0.1.0
-print_mvs_dump_title_filenames_hashes_from_title.bat	detail_query	human	title	title,filename,hash				0.1.0
-read_mvs_dump_title_filenames_hashes_from_title.bat	detail_query	machine	title	title,filename,hash				0.1.0
-print_mvs_dump_id_title_date_note_filenames_hashes_from_title.bat	detail_query	human	title	id,title,date,note,filename,hash				0.1.0
-read_mvs_dump_id_title_date_note_filenames_hashes_from_title.bat	detail_query	machine	title	id,title,date,note,filename,hash				0.1.0
-print_mvs_dump_hashes_from_filename.bat	detail_query	human	filename	hash				0.1.0
-read_mvs_dump_hashes_from_filename.bat	detail_query	machine	filename	hash				0.1.0
-print_mvs_dump_filename_hashes_from_filename.bat	detail_query	human	filename	filename,hash				0.1.0
-read_mvs_dump_filename_hashes_from_filename.bat	detail_query	machine	filename	filename,hash				0.1.0
-print_mvs_dump_filename_hash_algorithm_source_from_filename.bat	detail_query	human	filename	filename,hash,algorithm,source				0.1.0
-read_mvs_dump_filename_hash_algorithm_source_from_filename.bat	detail_query	machine	filename	filename,hash,algorithm,source				0.1.0
-print_mvs_dump_id_title_filenames_hashes_from_filename.bat	detail_query	human	filename	id,title,filename,hash				0.1.0
-read_mvs_dump_id_title_filenames_hashes_from_filename.bat	detail_query	machine	filename	id,title,filename,hash				0.1.0
-print_mvs_dump_title_filenames_hashes_from_filename.bat	detail_query	human	filename	title,filename,hash				0.1.0
-read_mvs_dump_title_filenames_hashes_from_filename.bat	detail_query	machine	filename	title,filename,hash				0.1.0
-print_mvs_dump_id_title_date_note_filenames_hashes_from_filename.bat	detail_query	human	filename	id,title,date,note,filename,hash				0.1.0
-read_mvs_dump_id_title_date_note_filenames_hashes_from_filename.bat	detail_query	machine	filename	id,title,date,note,filename,hash				0.1.0
-print_mvs_dump_sha1_from_filename.bat	detail_query	human	filename	hash	SHA1			0.1.0
-read_mvs_dump_sha1_from_filename.bat	detail_query	machine	filename	hash	SHA1			0.1.0
-print_mvs_dump_sha256_from_filename.bat	detail_query	human	filename	hash	SHA256			0.1.0
-read_mvs_dump_sha256_from_filename.bat	detail_query	machine	filename	hash	SHA256			0.1.0
-print_mvs_dump_filename_hashes_from_hash.bat	detail_query	human	hash	filename,hash				0.1.0
-read_mvs_dump_filename_hashes_from_hash.bat	detail_query	machine	hash	filename,hash				0.1.0
-print_mvs_dump_filename_hash_algorithm_source_from_hash.bat	detail_query	human	hash	filename,hash,algorithm,source				0.1.0
-read_mvs_dump_filename_hash_algorithm_source_from_hash.bat	detail_query	machine	hash	filename,hash,algorithm,source				0.1.0
-print_mvs_dump_id_title_filenames_hashes_from_hash.bat	detail_query	human	hash	id,title,filename,hash				0.1.0
-read_mvs_dump_id_title_filenames_hashes_from_hash.bat	detail_query	machine	hash	id,title,filename,hash				0.1.0
-print_mvs_dump_title_filenames_hashes_from_hash.bat	detail_query	human	hash	title,filename,hash				0.1.0
-read_mvs_dump_title_filenames_hashes_from_hash.bat	detail_query	machine	hash	title,filename,hash				0.1.0
-print_mvs_dump_id_title_date_note_filenames_hashes_from_hash.bat	detail_query	human	hash	id,title,date,note,filename,hash				0.1.0
-read_mvs_dump_id_title_date_note_filenames_hashes_from_hash.bat	detail_query	machine	hash	id,title,date,note,filename,hash				0.1.0
-print_mvs_dump_variants.bat	variant_query	human		occurrence,id,variant_title,filename,hash,algorithm				0.1.0
-read_mvs_dump_variants.bat	variant_query	machine		occurrence,id,variant_title,filename,hash,algorithm				0.1.0
-print_mvs_dump_variant_titles.bat	variant_query	human		variant_title				0.1.0
-read_mvs_dump_variant_titles.bat	variant_query	machine		variant_title				0.1.0
-print_mvs_dump_variant_filenames.bat	variant_query	human		filename				0.1.0
-read_mvs_dump_variant_filenames.bat	variant_query	machine		filename				0.1.0
-print_mvs_dump_variant_hashes.bat	variant_query	human		hash				0.1.0
-read_mvs_dump_variant_hashes.bat	variant_query	machine		hash				0.1.0
-print_mvs_dump_id_variant_titles.bat	variant_query	human		id,variant_title				0.1.0
-read_mvs_dump_id_variant_titles.bat	variant_query	machine		id,variant_title				0.1.0
-print_mvs_dump_id_variant_filenames.bat	variant_query	human		id,filename				0.1.0
-read_mvs_dump_id_variant_filenames.bat	variant_query	machine		id,filename				0.1.0
-print_mvs_dump_id_variant_hashes.bat	variant_query	human		id,hash				0.1.0
-read_mvs_dump_id_variant_hashes.bat	variant_query	machine		id,hash				0.1.0
-print_mvs_dump_id_variant_title_filename_hashes.bat	variant_query	human		id,variant_title,filename,hash				0.1.0
-read_mvs_dump_id_variant_title_filename_hashes.bat	variant_query	machine		id,variant_title,filename,hash				0.1.0
-print_mvs_dump_variants_from_id.bat	variant_query	human	id	occurrence,id,variant_title,filename,hash,algorithm				0.1.0
-read_mvs_dump_variants_from_id.bat	variant_query	machine	id	occurrence,id,variant_title,filename,hash,algorithm				0.1.0
-print_mvs_dump_variant_titles_from_id.bat	variant_query	human	id	variant_title				0.1.0
-read_mvs_dump_variant_titles_from_id.bat	variant_query	machine	id	variant_title				0.1.0
-print_mvs_dump_variant_filenames_from_id.bat	variant_query	human	id	filename				0.1.0
-read_mvs_dump_variant_filenames_from_id.bat	variant_query	machine	id	filename				0.1.0
-print_mvs_dump_variant_hashes_from_id.bat	variant_query	human	id	hash				0.1.0
-read_mvs_dump_variant_hashes_from_id.bat	variant_query	machine	id	hash				0.1.0
-print_mvs_dump_id_variant_title_filename_hashes_from_id.bat	variant_query	human	id	id,variant_title,filename,hash				0.1.0
-read_mvs_dump_id_variant_title_filename_hashes_from_id.bat	variant_query	machine	id	id,variant_title,filename,hash				0.1.0
-print_mvs_dump_variants_from_filename.bat	variant_query	human	filename	occurrence,id,variant_title,filename,hash,algorithm				0.1.0
-read_mvs_dump_variants_from_filename.bat	variant_query	machine	filename	occurrence,id,variant_title,filename,hash,algorithm				0.1.0
-print_mvs_dump_id_variant_title_filename_hashes_from_filename.bat	variant_query	human	filename	id,variant_title,filename,hash				0.1.0
-read_mvs_dump_id_variant_title_filename_hashes_from_filename.bat	variant_query	machine	filename	id,variant_title,filename,hash				0.1.0
-print_mvs_dump_variants_from_hash.bat	variant_query	human	hash	occurrence,id,variant_title,filename,hash,algorithm				0.1.0
-read_mvs_dump_variants_from_hash.bat	variant_query	machine	hash	occurrence,id,variant_title,filename,hash,algorithm				0.1.0
-print_mvs_dump_id_variant_title_filename_hashes_from_hash.bat	variant_query	human	hash	id,variant_title,filename,hash				0.1.0
-read_mvs_dump_id_variant_title_filename_hashes_from_hash.bat	variant_query	machine	hash	id,variant_title,filename,hash				0.1.0
-print_mvs_dump_hash_records.bat	hash_query	human		source,line,id,title,variant_title,filename,hash,algorithm				0.1.0
-read_mvs_dump_hash_records.bat	hash_query	machine		source,line,id,title,variant_title,filename,hash,algorithm				0.1.0
-print_mvs_dump_hash_records_from_filename.bat	hash_query	human	filename	source,line,id,title,variant_title,filename,hash,algorithm				0.1.0
-read_mvs_dump_hash_records_from_filename.bat	hash_query	machine	filename	source,line,id,title,variant_title,filename,hash,algorithm				0.1.0
-print_mvs_dump_hash_records_from_hash.bat	hash_query	human	hash	source,line,id,title,variant_title,filename,hash,algorithm				0.1.0
-read_mvs_dump_hash_records_from_hash.bat	hash_query	machine	hash	source,line,id,title,variant_title,filename,hash,algorithm				0.1.0
-print_mvs_dump_sha1.bat	hash_query	human		hash	SHA1			0.1.0
-read_mvs_dump_sha1.bat	hash_query	machine		hash	SHA1			0.1.0
-print_mvs_dump_sha256.bat	hash_query	human		hash	SHA256			0.1.0
-read_mvs_dump_sha256.bat	hash_query	machine		hash	SHA256			0.1.0
-print_mvs_dump_sha1_filename.bat	hash_query	human		hash,filename	SHA1			0.1.0
-read_mvs_dump_sha1_filename.bat	hash_query	machine		hash,filename	SHA1			0.1.0
-print_mvs_dump_sha256_filename.bat	hash_query	human		hash,filename	SHA256			0.1.0
-read_mvs_dump_sha256_filename.bat	hash_query	machine		hash,filename	SHA256			0.1.0
-print_mvs_dump_filename_sha1.bat	hash_query	human		filename,hash	SHA1			0.1.0
-read_mvs_dump_filename_sha1.bat	hash_query	machine		filename,hash	SHA1			0.1.0
-print_mvs_dump_filename_sha256.bat	hash_query	human		filename,hash	SHA256			0.1.0
-read_mvs_dump_filename_sha256.bat	hash_query	machine		filename,hash	SHA256			0.1.0
-print_mvs_dump_filename_hash_algorithm_source.bat	hash_query	human		filename,hash,algorithm,source				0.1.0
-read_mvs_dump_filename_hash_algorithm_source.bat	hash_query	machine		filename,hash,algorithm,source				0.1.0
-print_mvs_dump_product_files.bat	product_file_query	human		id,title,date,note,filename,hash,algorithm				0.1.0
-read_mvs_dump_product_files.bat	product_file_query	machine		id,title,date,note,filename,hash,algorithm				0.1.0
-print_mvs_dump_product_files_from_id.bat	product_file_query	human	id	id,title,date,note,filename,hash,algorithm				0.1.0
-read_mvs_dump_product_files_from_id.bat	product_file_query	machine	id	id,title,date,note,filename,hash,algorithm				0.1.0
-print_mvs_dump_product_files_from_title.bat	product_file_query	human	title	id,title,date,note,filename,hash,algorithm				0.1.0
-read_mvs_dump_product_files_from_title.bat	product_file_query	machine	title	id,title,date,note,filename,hash,algorithm				0.1.0
-print_mvs_dump_product_sections.bat	product_section_query	human		section_occurrence,id,title,line_offset,line,raw				0.1.0
-read_mvs_dump_product_sections.bat	product_section_query	machine		section_occurrence,id,title,line_offset,line,raw				0.1.0
-print_mvs_dump_product_sections_from_id.bat	product_section_query	human	id	section_occurrence,id,title,line_offset,line,raw				0.1.0
-read_mvs_dump_product_sections_from_id.bat	product_section_query	machine	id	section_occurrence,id,title,line_offset,line,raw				0.1.0
-print_mvs_dump_product_sections_from_title.bat	product_section_query	human	title	section_occurrence,id,title,line_offset,line,raw				0.1.0
-read_mvs_dump_product_sections_from_title.bat	product_section_query	machine	title	section_occurrence,id,title,line_offset,line,raw				0.1.0
-print_mvs_dump_note_records.bat	note_query	human		occurrence,title,note				0.1.0
-read_mvs_dump_note_records.bat	note_query	machine		occurrence,title,note				0.1.0
-print_mvs_dump_note_records_from_title.bat	note_query	human	title	occurrence,title,note				0.1.0
-read_mvs_dump_note_records_from_title.bat	note_query	machine	title	occurrence,title,note				0.1.0
-find_mvs_unparsed_lines_in_mvs.txt.bat	unparsed_query	human		line,raw		mvs.txt		0.1.0
-read_mvs_unparsed_lines_in_mvs.txt.bat	unparsed_query	machine		line,raw		mvs.txt		0.1.0
-find_mvs_unparsed_lines_in_mvs_names.txt.bat	unparsed_query	human		line,raw		mvs_names.txt		0.1.0
-read_mvs_unparsed_lines_in_mvs_names.txt.bat	unparsed_query	machine		line,raw		mvs_names.txt		0.1.0
-find_mvs_unparsed_lines_in_mvs.sha1.bat	unparsed_query	human		line,raw		mvs.sha1		0.1.0
-read_mvs_unparsed_lines_in_mvs.sha1.bat	unparsed_query	machine		line,raw		mvs.sha1		0.1.0
-find_mvs_unparsed_lines_in_mvs.sha256.bat	unparsed_query	human		line,raw		mvs.sha256		0.1.0
-read_mvs_unparsed_lines_in_mvs.sha256.bat	unparsed_query	machine		line,raw		mvs.sha256		0.1.0
-find_mvs_unparsed_lines_in_mvs_ids.txt.bat	unparsed_query	human		line,raw		mvs_ids.txt		0.1.0
-read_mvs_unparsed_lines_in_mvs_ids.txt.bat	unparsed_query	machine		line,raw		mvs_ids.txt		0.1.0
-find_mvs_unparsed_lines_in_mvs_dates.txt.bat	unparsed_query	human		line,raw		mvs_dates.txt		0.1.0
-read_mvs_unparsed_lines_in_mvs_dates.txt.bat	unparsed_query	machine		line,raw		mvs_dates.txt		0.1.0
-find_mvs_duplicate_sha1_in_mvs.sha1.bat	hash_diagnostic	human			SHA1	mvs.sha1	duplicate_hash	0.1.0
-find_mvs_duplicate_sha256_in_mvs.sha256.bat	hash_diagnostic	human			SHA256	mvs.sha256	duplicate_hash	0.1.0
-find_mvs_duplicate_hash_in_mvs.txt.bat	hash_diagnostic	human				mvs.txt	duplicate_hash	0.1.0
-find_mvs_duplicate_hash_in_mvs_names.txt.bat	hash_diagnostic	human				mvs_names.txt	duplicate_hash	0.1.0
-find_mvs_hash_with_multiple_filenames_in_mvs.sha1.bat	hash_diagnostic	human			SHA1	mvs.sha1	hash_multiple_filenames	0.1.0
-find_mvs_hash_with_multiple_filenames_in_mvs.sha256.bat	hash_diagnostic	human			SHA256	mvs.sha256	hash_multiple_filenames	0.1.0
-find_mvs_filename_with_multiple_hashes_in_mvs.txt.bat	hash_diagnostic	human				mvs.txt	filename_multiple_hashes	0.1.0
-find_mvs_filename_with_multiple_hashes_in_mvs_names.txt.bat	hash_diagnostic	human				mvs_names.txt	filename_multiple_hashes	0.1.0
-find_mvs_hash_mismatch_for_filename_between_mvs.txt_and_mvs.sha1.bat	hash_diagnostic	human			SHA1	mvs.txt|mvs.sha1	hash_mismatch	0.1.0
-find_mvs_hash_mismatch_for_filename_between_mvs.txt_and_mvs.sha256.bat	hash_diagnostic	human			SHA256	mvs.txt|mvs.sha256	hash_mismatch	0.1.0
-print_mvs_dump_summary.bat	summary_query	human						0.1.0
-read_mvs_dump_summary.bat	summary_query	machine						0.1.0
-print_mvs_dump_statistics.bat	summary_query	human						0.1.0
-read_mvs_dump_statistics.bat	summary_query	machine						0.1.0
+print_mvs_dump_filenames_from_id.bat	detail_query	human	id	filename				0.1.1
+read_mvs_dump_filenames_from_id.bat	detail_query	machine	id	filename				0.1.1
+print_mvs_dump_hashes_from_id.bat	detail_query	human	id	hash				0.1.1
+read_mvs_dump_hashes_from_id.bat	detail_query	machine	id	hash				0.1.1
+print_mvs_dump_filename_hashes_from_id.bat	detail_query	human	id	filename,hash				0.1.1
+read_mvs_dump_filename_hashes_from_id.bat	detail_query	machine	id	filename,hash				0.1.1
+print_mvs_dump_filename_hash_algorithm_source_from_id.bat	detail_query	human	id	filename,hash,algorithm,source				0.1.1
+read_mvs_dump_filename_hash_algorithm_source_from_id.bat	detail_query	machine	id	filename,hash,algorithm,source				0.1.1
+print_mvs_dump_id_title_filenames_from_id.bat	detail_query	human	id	id,title,filename				0.1.1
+read_mvs_dump_id_title_filenames_from_id.bat	detail_query	machine	id	id,title,filename				0.1.1
+print_mvs_dump_id_title_filenames_hashes_from_id.bat	detail_query	human	id	id,title,filename,hash				0.1.1
+read_mvs_dump_id_title_filenames_hashes_from_id.bat	detail_query	machine	id	id,title,filename,hash				0.1.1
+print_mvs_dump_title_filenames_hashes_from_id.bat	detail_query	human	id	title,filename,hash				0.1.1
+read_mvs_dump_title_filenames_hashes_from_id.bat	detail_query	machine	id	title,filename,hash				0.1.1
+print_mvs_dump_id_title_date_note_filenames_hashes_from_id.bat	detail_query	human	id	id,title,date,note,filename,hash				0.1.1
+read_mvs_dump_id_title_date_note_filenames_hashes_from_id.bat	detail_query	machine	id	id,title,date,note,filename,hash				0.1.1
+print_mvs_dump_filenames_from_title.bat	detail_query	human	title	filename				0.1.1
+read_mvs_dump_filenames_from_title.bat	detail_query	machine	title	filename				0.1.1
+print_mvs_dump_hashes_from_title.bat	detail_query	human	title	hash				0.1.1
+read_mvs_dump_hashes_from_title.bat	detail_query	machine	title	hash				0.1.1
+print_mvs_dump_filename_hashes_from_title.bat	detail_query	human	title	filename,hash				0.1.1
+read_mvs_dump_filename_hashes_from_title.bat	detail_query	machine	title	filename,hash				0.1.1
+print_mvs_dump_filename_hash_algorithm_source_from_title.bat	detail_query	human	title	filename,hash,algorithm,source				0.1.1
+read_mvs_dump_filename_hash_algorithm_source_from_title.bat	detail_query	machine	title	filename,hash,algorithm,source				0.1.1
+print_mvs_dump_id_title_filenames_from_title.bat	detail_query	human	title	id,title,filename				0.1.1
+read_mvs_dump_id_title_filenames_from_title.bat	detail_query	machine	title	id,title,filename				0.1.1
+print_mvs_dump_id_title_filenames_hashes_from_title.bat	detail_query	human	title	id,title,filename,hash				0.1.1
+read_mvs_dump_id_title_filenames_hashes_from_title.bat	detail_query	machine	title	id,title,filename,hash				0.1.1
+print_mvs_dump_title_filenames_hashes_from_title.bat	detail_query	human	title	title,filename,hash				0.1.1
+read_mvs_dump_title_filenames_hashes_from_title.bat	detail_query	machine	title	title,filename,hash				0.1.1
+print_mvs_dump_id_title_date_note_filenames_hashes_from_title.bat	detail_query	human	title	id,title,date,note,filename,hash				0.1.1
+read_mvs_dump_id_title_date_note_filenames_hashes_from_title.bat	detail_query	machine	title	id,title,date,note,filename,hash				0.1.1
+print_mvs_dump_hashes_from_filename.bat	detail_query	human	filename	hash				0.1.1
+read_mvs_dump_hashes_from_filename.bat	detail_query	machine	filename	hash				0.1.1
+print_mvs_dump_filename_hashes_from_filename.bat	detail_query	human	filename	filename,hash				0.1.1
+read_mvs_dump_filename_hashes_from_filename.bat	detail_query	machine	filename	filename,hash				0.1.1
+print_mvs_dump_filename_hash_algorithm_source_from_filename.bat	detail_query	human	filename	filename,hash,algorithm,source				0.1.1
+read_mvs_dump_filename_hash_algorithm_source_from_filename.bat	detail_query	machine	filename	filename,hash,algorithm,source				0.1.1
+print_mvs_dump_id_title_filenames_hashes_from_filename.bat	detail_query	human	filename	id,title,filename,hash				0.1.1
+read_mvs_dump_id_title_filenames_hashes_from_filename.bat	detail_query	machine	filename	id,title,filename,hash				0.1.1
+print_mvs_dump_title_filenames_hashes_from_filename.bat	detail_query	human	filename	title,filename,hash				0.1.1
+read_mvs_dump_title_filenames_hashes_from_filename.bat	detail_query	machine	filename	title,filename,hash				0.1.1
+print_mvs_dump_id_title_date_note_filenames_hashes_from_filename.bat	detail_query	human	filename	id,title,date,note,filename,hash				0.1.1
+read_mvs_dump_id_title_date_note_filenames_hashes_from_filename.bat	detail_query	machine	filename	id,title,date,note,filename,hash				0.1.1
+print_mvs_dump_sha1_from_filename.bat	detail_query	human	filename	hash	SHA1			0.1.1
+read_mvs_dump_sha1_from_filename.bat	detail_query	machine	filename	hash	SHA1			0.1.1
+print_mvs_dump_sha256_from_filename.bat	detail_query	human	filename	hash	SHA256			0.1.1
+read_mvs_dump_sha256_from_filename.bat	detail_query	machine	filename	hash	SHA256			0.1.1
+print_mvs_dump_filename_hashes_from_hash.bat	detail_query	human	hash	filename,hash				0.1.1
+read_mvs_dump_filename_hashes_from_hash.bat	detail_query	machine	hash	filename,hash				0.1.1
+print_mvs_dump_filename_hash_algorithm_source_from_hash.bat	detail_query	human	hash	filename,hash,algorithm,source				0.1.1
+read_mvs_dump_filename_hash_algorithm_source_from_hash.bat	detail_query	machine	hash	filename,hash,algorithm,source				0.1.1
+print_mvs_dump_id_title_filenames_hashes_from_hash.bat	detail_query	human	hash	id,title,filename,hash				0.1.1
+read_mvs_dump_id_title_filenames_hashes_from_hash.bat	detail_query	machine	hash	id,title,filename,hash				0.1.1
+print_mvs_dump_title_filenames_hashes_from_hash.bat	detail_query	human	hash	title,filename,hash				0.1.1
+read_mvs_dump_title_filenames_hashes_from_hash.bat	detail_query	machine	hash	title,filename,hash				0.1.1
+print_mvs_dump_id_title_date_note_filenames_hashes_from_hash.bat	detail_query	human	hash	id,title,date,note,filename,hash				0.1.1
+read_mvs_dump_id_title_date_note_filenames_hashes_from_hash.bat	detail_query	machine	hash	id,title,date,note,filename,hash				0.1.1
+print_mvs_dump_variants.bat	variant_query	human		occurrence,id,variant_title,filename,hash,algorithm				0.1.1
+read_mvs_dump_variants.bat	variant_query	machine		occurrence,id,variant_title,filename,hash,algorithm				0.1.1
+print_mvs_dump_variant_titles.bat	variant_query	human		variant_title				0.1.1
+read_mvs_dump_variant_titles.bat	variant_query	machine		variant_title				0.1.1
+print_mvs_dump_variant_filenames.bat	variant_query	human		filename				0.1.1
+read_mvs_dump_variant_filenames.bat	variant_query	machine		filename				0.1.1
+print_mvs_dump_variant_hashes.bat	variant_query	human		hash				0.1.1
+read_mvs_dump_variant_hashes.bat	variant_query	machine		hash				0.1.1
+print_mvs_dump_id_variant_titles.bat	variant_query	human		id,variant_title				0.1.1
+read_mvs_dump_id_variant_titles.bat	variant_query	machine		id,variant_title				0.1.1
+print_mvs_dump_id_variant_filenames.bat	variant_query	human		id,filename				0.1.1
+read_mvs_dump_id_variant_filenames.bat	variant_query	machine		id,filename				0.1.1
+print_mvs_dump_id_variant_hashes.bat	variant_query	human		id,hash				0.1.1
+read_mvs_dump_id_variant_hashes.bat	variant_query	machine		id,hash				0.1.1
+print_mvs_dump_id_variant_title_filename_hashes.bat	variant_query	human		id,variant_title,filename,hash				0.1.1
+read_mvs_dump_id_variant_title_filename_hashes.bat	variant_query	machine		id,variant_title,filename,hash				0.1.1
+print_mvs_dump_variants_from_id.bat	variant_query	human	id	occurrence,id,variant_title,filename,hash,algorithm				0.1.1
+read_mvs_dump_variants_from_id.bat	variant_query	machine	id	occurrence,id,variant_title,filename,hash,algorithm				0.1.1
+print_mvs_dump_variant_titles_from_id.bat	variant_query	human	id	variant_title				0.1.1
+read_mvs_dump_variant_titles_from_id.bat	variant_query	machine	id	variant_title				0.1.1
+print_mvs_dump_variant_filenames_from_id.bat	variant_query	human	id	filename				0.1.1
+read_mvs_dump_variant_filenames_from_id.bat	variant_query	machine	id	filename				0.1.1
+print_mvs_dump_variant_hashes_from_id.bat	variant_query	human	id	hash				0.1.1
+read_mvs_dump_variant_hashes_from_id.bat	variant_query	machine	id	hash				0.1.1
+print_mvs_dump_id_variant_title_filename_hashes_from_id.bat	variant_query	human	id	id,variant_title,filename,hash				0.1.1
+read_mvs_dump_id_variant_title_filename_hashes_from_id.bat	variant_query	machine	id	id,variant_title,filename,hash				0.1.1
+print_mvs_dump_variants_from_filename.bat	variant_query	human	filename	occurrence,id,variant_title,filename,hash,algorithm				0.1.1
+read_mvs_dump_variants_from_filename.bat	variant_query	machine	filename	occurrence,id,variant_title,filename,hash,algorithm				0.1.1
+print_mvs_dump_id_variant_title_filename_hashes_from_filename.bat	variant_query	human	filename	id,variant_title,filename,hash				0.1.1
+read_mvs_dump_id_variant_title_filename_hashes_from_filename.bat	variant_query	machine	filename	id,variant_title,filename,hash				0.1.1
+print_mvs_dump_variants_from_hash.bat	variant_query	human	hash	occurrence,id,variant_title,filename,hash,algorithm				0.1.1
+read_mvs_dump_variants_from_hash.bat	variant_query	machine	hash	occurrence,id,variant_title,filename,hash,algorithm				0.1.1
+print_mvs_dump_id_variant_title_filename_hashes_from_hash.bat	variant_query	human	hash	id,variant_title,filename,hash				0.1.1
+read_mvs_dump_id_variant_title_filename_hashes_from_hash.bat	variant_query	machine	hash	id,variant_title,filename,hash				0.1.1
+print_mvs_dump_hash_records.bat	hash_query	human		source,line,id,title,variant_title,filename,hash,algorithm				0.1.1
+read_mvs_dump_hash_records.bat	hash_query	machine		source,line,id,title,variant_title,filename,hash,algorithm				0.1.1
+print_mvs_dump_hash_records_from_filename.bat	hash_query	human	filename	source,line,id,title,variant_title,filename,hash,algorithm				0.1.1
+read_mvs_dump_hash_records_from_filename.bat	hash_query	machine	filename	source,line,id,title,variant_title,filename,hash,algorithm				0.1.1
+print_mvs_dump_hash_records_from_hash.bat	hash_query	human	hash	source,line,id,title,variant_title,filename,hash,algorithm				0.1.1
+read_mvs_dump_hash_records_from_hash.bat	hash_query	machine	hash	source,line,id,title,variant_title,filename,hash,algorithm				0.1.1
+print_mvs_dump_sha1.bat	hash_query	human		hash	SHA1			0.1.1
+read_mvs_dump_sha1.bat	hash_query	machine		hash	SHA1			0.1.1
+print_mvs_dump_sha256.bat	hash_query	human		hash	SHA256			0.1.1
+read_mvs_dump_sha256.bat	hash_query	machine		hash	SHA256			0.1.1
+print_mvs_dump_sha1_filename.bat	hash_query	human		hash,filename	SHA1			0.1.1
+read_mvs_dump_sha1_filename.bat	hash_query	machine		hash,filename	SHA1			0.1.1
+print_mvs_dump_sha256_filename.bat	hash_query	human		hash,filename	SHA256			0.1.1
+read_mvs_dump_sha256_filename.bat	hash_query	machine		hash,filename	SHA256			0.1.1
+print_mvs_dump_filename_sha1.bat	hash_query	human		filename,hash	SHA1			0.1.1
+read_mvs_dump_filename_sha1.bat	hash_query	machine		filename,hash	SHA1			0.1.1
+print_mvs_dump_filename_sha256.bat	hash_query	human		filename,hash	SHA256			0.1.1
+read_mvs_dump_filename_sha256.bat	hash_query	machine		filename,hash	SHA256			0.1.1
+print_mvs_dump_filename_hash_algorithm_source.bat	hash_query	human		filename,hash,algorithm,source				0.1.1
+read_mvs_dump_filename_hash_algorithm_source.bat	hash_query	machine		filename,hash,algorithm,source				0.1.1
+print_mvs_dump_product_files.bat	product_file_query	human		id,title,date,note,filename,hash,algorithm				0.1.1
+read_mvs_dump_product_files.bat	product_file_query	machine		id,title,date,note,filename,hash,algorithm				0.1.1
+print_mvs_dump_product_files_from_id.bat	product_file_query	human	id	id,title,date,note,filename,hash,algorithm				0.1.1
+read_mvs_dump_product_files_from_id.bat	product_file_query	machine	id	id,title,date,note,filename,hash,algorithm				0.1.1
+print_mvs_dump_product_files_from_title.bat	product_file_query	human	title	id,title,date,note,filename,hash,algorithm				0.1.1
+read_mvs_dump_product_files_from_title.bat	product_file_query	machine	title	id,title,date,note,filename,hash,algorithm				0.1.1
+print_mvs_dump_product_sections.bat	product_section_query	human		section_occurrence,id,title,line_offset,line,raw				0.1.1
+read_mvs_dump_product_sections.bat	product_section_query	machine		section_occurrence,id,title,line_offset,line,raw				0.1.1
+print_mvs_dump_product_sections_from_id.bat	product_section_query	human	id	section_occurrence,id,title,line_offset,line,raw				0.1.1
+read_mvs_dump_product_sections_from_id.bat	product_section_query	machine	id	section_occurrence,id,title,line_offset,line,raw				0.1.1
+print_mvs_dump_product_sections_from_title.bat	product_section_query	human	title	section_occurrence,id,title,line_offset,line,raw				0.1.1
+read_mvs_dump_product_sections_from_title.bat	product_section_query	machine	title	section_occurrence,id,title,line_offset,line,raw				0.1.1
+print_mvs_dump_note_records.bat	note_query	human		occurrence,title,note				0.1.1
+read_mvs_dump_note_records.bat	note_query	machine		occurrence,title,note				0.1.1
+print_mvs_dump_note_records_from_title.bat	note_query	human	title	occurrence,title,note				0.1.1
+read_mvs_dump_note_records_from_title.bat	note_query	machine	title	occurrence,title,note				0.1.1
+find_mvs_unparsed_lines_in_mvs.txt.bat	unparsed_query	human		line,raw		mvs.txt		0.1.1
+read_mvs_unparsed_lines_in_mvs.txt.bat	unparsed_query	machine		line,raw		mvs.txt		0.1.1
+find_mvs_unparsed_lines_in_mvs_names.txt.bat	unparsed_query	human		line,raw		mvs_names.txt		0.1.1
+read_mvs_unparsed_lines_in_mvs_names.txt.bat	unparsed_query	machine		line,raw		mvs_names.txt		0.1.1
+find_mvs_unparsed_lines_in_mvs.sha1.bat	unparsed_query	human		line,raw		mvs.sha1		0.1.1
+read_mvs_unparsed_lines_in_mvs.sha1.bat	unparsed_query	machine		line,raw		mvs.sha1		0.1.1
+find_mvs_unparsed_lines_in_mvs.sha256.bat	unparsed_query	human		line,raw		mvs.sha256		0.1.1
+read_mvs_unparsed_lines_in_mvs.sha256.bat	unparsed_query	machine		line,raw		mvs.sha256		0.1.1
+find_mvs_unparsed_lines_in_mvs_ids.txt.bat	unparsed_query	human		line,raw		mvs_ids.txt		0.1.1
+read_mvs_unparsed_lines_in_mvs_ids.txt.bat	unparsed_query	machine		line,raw		mvs_ids.txt		0.1.1
+find_mvs_unparsed_lines_in_mvs_dates.txt.bat	unparsed_query	human		line,raw		mvs_dates.txt		0.1.1
+read_mvs_unparsed_lines_in_mvs_dates.txt.bat	unparsed_query	machine		line,raw		mvs_dates.txt		0.1.1
+find_mvs_duplicate_sha1_in_mvs.sha1.bat	hash_diagnostic	human			SHA1	mvs.sha1	duplicate_hash	0.1.1
+find_mvs_duplicate_sha256_in_mvs.sha256.bat	hash_diagnostic	human			SHA256	mvs.sha256	duplicate_hash	0.1.1
+find_mvs_duplicate_hash_in_mvs.txt.bat	hash_diagnostic	human				mvs.txt	duplicate_hash	0.1.1
+find_mvs_duplicate_hash_in_mvs_names.txt.bat	hash_diagnostic	human				mvs_names.txt	duplicate_hash	0.1.1
+find_mvs_hash_with_multiple_filenames_in_mvs.sha1.bat	hash_diagnostic	human			SHA1	mvs.sha1	hash_multiple_filenames	0.1.1
+find_mvs_hash_with_multiple_filenames_in_mvs.sha256.bat	hash_diagnostic	human			SHA256	mvs.sha256	hash_multiple_filenames	0.1.1
+find_mvs_filename_with_multiple_hashes_in_mvs.txt.bat	hash_diagnostic	human				mvs.txt	filename_multiple_hashes	0.1.1
+find_mvs_filename_with_multiple_hashes_in_mvs_names.txt.bat	hash_diagnostic	human				mvs_names.txt	filename_multiple_hashes	0.1.1
+find_mvs_hash_mismatch_for_filename_between_mvs.txt_and_mvs.sha1.bat	hash_diagnostic	human			SHA1	mvs.txt|mvs.sha1	hash_mismatch	0.1.1
+find_mvs_hash_mismatch_for_filename_between_mvs.txt_and_mvs.sha256.bat	hash_diagnostic	human			SHA256	mvs.txt|mvs.sha256	hash_mismatch	0.1.1
+print_mvs_dump_summary.bat	summary_query	human						0.1.1
+read_mvs_dump_summary.bat	summary_query	machine						0.1.1
+print_mvs_dump_statistics.bat	summary_query	human						0.1.1
+read_mvs_dump_statistics.bat	summary_query	machine						0.1.1

@@ -4,6 +4,11 @@ Purpose
   Test mode: lookup
   Standalone: yes; contains complete injected test harness
 
+0.6.1 - 2026-08-27
+  - Regenerated with source-text variant ID fixture handling.
+  - Single-dump variant ID tests now use an alphanumeric ID distinct from
+    product IDs.
+
 0.6.0 - 2026-08-27
   - Regenerated with single-dump completeness result scope.
   - Structure expectations updated for 422 public standalone tools.

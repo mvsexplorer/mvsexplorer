@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate fixed expected stdout for single-dump completeness tests.
 
-Version: 0.1.0
+Version: 0.1.1
 
 This is an independent Python reference implementation. It reads the
 synthetic fixture and the declarative tool specification; it never invokes
@@ -125,13 +125,19 @@ def parse_section_file(model, name):
 
     for index, raw in enumerate(lines):
         line_no = index + 1
-        match = re.match(r"^---\s*(.*?)\s*\[ID:\s*(\d+)\]\s*---\s*$", raw)
+        if name == "mvs_names.txt":
+            match = re.match(r"^---\s*(.*?)\s*\[ID:\s*([^\]]+?)\s*\]\s*---\s*$", raw)
+        else:
+            match = re.match(r"^---\s*(.*?)\s*\[ID:\s*(\d+)\]\s*---\s*$", raw)
         if match:
             complete()
             occurrence += 1
+            source_id = match.group(2).strip()
+            if name != "mvs_names.txt":
+                source_id = str(int(source_id))
             section = {
                 "occurrence": occurrence,
-                "id": str(int(match.group(2))),
+                "id": source_id,
                 "title": norm_title(match.group(1)),
                 "start_line": line_no,
                 "raw_lines": [{"offset": 0, "line": line_no, "raw": raw}],
@@ -410,10 +416,7 @@ def variant_rows(model, source, needle):
     rows = []
     for row in model["variants"]:
         if source == "id":
-            try:
-                matched = int(row["id"]) == int(needle)
-            except ValueError:
-                matched = False
+            matched = exact(row["id"], needle)
         elif source == "filename":
             matched = exact(row["filename"], needle)
         else:
@@ -631,13 +634,14 @@ def summary_rows(model):
     add("variants.unique_titles", len(list(dict.fromkeys(row["title"] for row in model["variant_sections"]))))
     add("variants.unique_filenames", len(list(dict.fromkeys(row["filename"] for row in model["variants"] if row["filename"]))))
     variant_ids = list(dict.fromkeys(row["id"] for row in model["variant_sections"]))
-    add("variants.product_ids_with_variants", len(variant_ids))
-    add("variants.product_ids_without_variants", sum(pid not in variant_ids for pid in product_ids))
+    add("variants.unique_ids", len(variant_ids))
+    add("variants.ids_matching_product_ids", sum(value in product_ids for value in variant_ids))
+    add("variants.ids_not_in_product_ids", sum(value not in product_ids for value in variant_ids))
     variant_groups_by_id = defaultdict(int)
     for row in model["variant_sections"]:
         variant_groups_by_id[row["id"]] += 1
-    add("variants.max_sections_per_product_id", max(variant_groups_by_id.values(), default=0))
-    add("variants.repeated_product_id_groups", sum(count > 1 for count in variant_groups_by_id.values()))
+    add("variants.max_sections_per_id", max(variant_groups_by_id.values(), default=0))
+    add("variants.repeated_id_groups", sum(count > 1 for count in variant_groups_by_id.values()))
 
     add("notes.records", len(model["notes"]))
     add("notes.unique_titles", len(list(dict.fromkeys(row["title"] for row in model["notes"]))))
@@ -683,7 +687,7 @@ def summary_rows(model):
     ids_from_names = list(dict.fromkeys(row["id"] for row in model["variant_sections"]))
     add("integrity.orphan_ids_ids_to_dates", sum(value not in ids_from_dates for value in ids_from_ids))
     add("integrity.orphan_ids_ids_to_mvs", sum(value not in ids_from_mvs for value in ids_from_ids))
-    add("integrity.orphan_ids_ids_to_names", sum(value not in ids_from_names for value in ids_from_ids))
+    add("cross_domain.product_ids_not_in_mvs_names_ids", sum(value not in ids_from_names for value in ids_from_ids))
 
     mvs_filenames = list(dict.fromkeys(row["filename"] for row in model["product_files"]))
     name_filenames = list(dict.fromkeys(row["filename"] for row in model["variants"] if row["filename"]))
@@ -717,6 +721,8 @@ def search_value(tool, values):
     if not source:
         return ""
     if tool["operation"] == "variant_query":
+        if source == "id":
+            return values["variant_id"]
         if source == "filename":
             return values["variant_filename"]
         if source == "hash":

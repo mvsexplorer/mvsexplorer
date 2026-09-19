@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validator for generated public batch files.
 
-Version: 0.4.0
+Version: 0.4.1
 """
 from pathlib import Path
 import collections
@@ -27,6 +27,18 @@ def main():
             issues.append(f"{path.name}: missing embedded PowerShell block")
         if "dev\\library" in text or "generate_tools.py" in text:
             issues.append(f"{path.name}: development dependency leaked into runtime")
+        if ":_MVSSingleDump_start" in text:
+            bad_section_array = (
+                "[string]$section.occurrence," in text
+                and "[string]$section.id," in text
+                and "Normalize-Scalar ([string]$section.title)," in text
+            )
+            if bad_section_array:
+                issues.append(f"{path.name}: parser-sensitive single-dump section array form")
+            if "if ($Name -eq 'mvs_names.txt')" not in text or r"(?<id>[^\]]+?)" not in text:
+                issues.append(f"{path.name}: missing textual mvs_names ID parser")
+            if "$match = Matches-Exact $row.id $Needle" not in text:
+                issues.append(f"{path.name}: missing textual variant ID matcher")
         labels = []
         for line in text.splitlines():
             if re.match(r"^:[A-Za-z_]", line):

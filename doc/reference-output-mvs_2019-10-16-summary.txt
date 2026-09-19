@@ -1,0 +1,78 @@
+MVS Explorer Toolkit 0.9.1 independent reference output
+Target dump: mvs_2019-10-16
+
+This file was produced by the independent Python reference parser, not by
+executing the Windows .bat tool in this non-Windows build environment.
+
+Expected content of:
+  print_mvs_dump_summary.bat <dump-folder>
+
+source.present.mvs_ids.txt: 1
+source.present.mvs_dates.txt: 1
+source.present.mvs.txt: 1
+source.present.mvs_names.txt: 1
+source.present.mvs_notes.html: 1
+source.present.mvs.sha1: 1
+source.present.mvs.sha256: 1
+products.mvs_ids.rows: 1791
+products.mvs_dates.rows: 1791
+products.mvs.sections: 1791
+products.mvs.unique_ids: 1791
+products.mvs.unique_titles: 1762
+product_files.rows: 39113
+product_files.unique_filenames: 38136
+product_files.unique_hashes: 37876
+product_files.sha1_rows: 39113
+product_files.sha256_rows: 0
+product_files.product_ids_with_files: 1791
+product_files.product_ids_without_files: 0
+product_files.max_rows_per_product_id: 318
+product_files.reused_filename_groups: 752
+products.id_min: 1
+products.id_max: 6658
+products.date_min: 1998-04-22T20:11:00
+products.date_max: 2019-10-16T07:00:00
+variants.sections: 38136
+variants.rows: 38136
+variants.unique_titles: 37777
+variants.unique_filenames: 38136
+variants.unique_ids: 38136
+variants.ids_matching_product_ids: 203
+variants.ids_not_in_product_ids: 37933
+variants.max_sections_per_id: 1
+variants.repeated_id_groups: 0
+notes.records: 0
+notes.unique_titles: 0
+notes.product_ids_with_notes: 0
+notes.product_ids_without_notes: 1791
+notes.duplicate_title_groups: 0
+sha1.rows: 38136
+sha1.unique_hashes: 37851
+sha1.unique_filenames: 38136
+sha256.rows: 2032
+sha256.unique_hashes: 2031
+sha256.unique_filenames: 2032
+hash_records.rows: 117417
+hash_records.unique_hashes: 39907
+hash_records.unique_filenames: 38136
+hash_records.unique_sha1: 37876
+hash_records.unique_sha256: 2031
+integrity.duplicate_product_ids: 0
+integrity.duplicate_product_titles: 24
+integrity.duplicate_product_filenames: 752
+integrity.orphan_ids_ids_to_dates: 0
+integrity.orphan_ids_ids_to_mvs: 0
+cross_domain.product_ids_not_in_mvs_names_ids: 1588
+integrity.orphan_filenames_mvs_to_names: 0
+integrity.orphan_filenames_names_to_mvs: 0
+integrity.orphan_filenames_mvs_to_sha1: 0
+integrity.orphan_filenames_names_to_sha1: 0
+integrity.orphan_filenames_mvs_to_sha256: 36104
+integrity.orphan_filenames_names_to_sha256: 36104
+integrity.unparsed.mvs.txt: 0
+integrity.unparsed.mvs_names.txt: 0
+integrity.unparsed.mvs.sha1: 0
+integrity.unparsed.mvs.sha256: 0
+integrity.unparsed.mvs_ids.txt: 0
+integrity.unparsed.mvs_dates.txt: 0
+integrity.unparsed.total: 0

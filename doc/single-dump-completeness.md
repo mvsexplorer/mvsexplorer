@@ -2,7 +2,7 @@
 
 ## Scope
 
-The 0.9.0 milestone makes each source-level entity inside one extracted dump
+The 0.9.1 single-dump layer makes each source-level entity inside one extracted dump
 queryable before cross-dump comparison begins.
 
 ### Product
@@ -40,7 +40,7 @@ Fields:
 
 ```text
 Occurrence
-Product ID
+mvs_names source ID
 Variant/display title
 Filename
 Hash
@@ -48,6 +48,13 @@ Algorithm
 ```
 
 Empty variant sections remain visible in full variant enumeration.
+
+The `ID` in this variant family means the ID printed by `mvs_names.txt`.
+It is **not automatically** treated as a product ID or product foreign key.
+Some dump generations show near/complete overlap with product IDs; others do
+not. Product ownership must therefore be derived or validated from
+source-supported relationships and may be ambiguous when a file/hash pair is
+reused.
 
 ### Hash provenance record
 
@@ -65,7 +72,7 @@ Fields:
 ```text
 Source
 Physical line
-Product ID (when source supplies it)
+Source ID (when the source supplies one)
 Product title (mvs.txt)
 Variant title (mvs_names.txt)
 Filename
@@ -124,8 +131,12 @@ directional orphan filename counts, and unparsed-line counts.
 
 ## Search semantics
 
-ID/title/filename/hash selectors in this new family are exact and
-case-insensitive where textual. ID comparison is numeric.
+ID/title/filename/hash selectors in this new family are exact.
+
+Product IDs from `mvs.txt` are compared numerically. Variant IDs from
+`mvs_names.txt` are preserved as source text and compared case-insensitively,
+because real dumps contain both numeric and alphanumeric/hyphenated IDs.
+Titles, filenames, and hashes compare case-insensitively.
 
 No wildcard syntax is introduced into this family.
 

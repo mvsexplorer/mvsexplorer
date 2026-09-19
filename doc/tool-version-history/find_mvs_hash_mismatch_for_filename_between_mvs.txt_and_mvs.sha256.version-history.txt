@@ -8,5 +8,10 @@ Purpose
   Source file: mvs.txt|mvs.sha256
   Standalone: yes; complete injected batch/PowerShell runtime
 
+0.1.1 - 2026-08-27
+  - Rebuilt with parser-safe Windows PowerShell 5.1 section-row emission.
+  - Variant-source ID documentation/summary semantics corrected; ID remains
+    the literal source ID for variant query tools.
+
 0.1.0 - 2026-08-27
   - Initial version for the 0.9.0 single-dump completeness milestone.

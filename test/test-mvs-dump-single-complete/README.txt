@@ -20,5 +20,8 @@ Primary test values:
   Title: Alpha Product
   Filename: alpha.iso
   Hash: 3333333333333333333333333333333333333333
+  Variant ID: pAlpha10x64len
   Variant filename: variant-alpha.iso
   Variant hash: 6666666666666666666666666666666666666666
+
+Variant IDs are deliberately separate from product IDs and include both alphanumeric and hyphenated forms.

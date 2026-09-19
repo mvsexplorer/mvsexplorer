@@ -1,5 +1,5 @@
-10	variant-alpha.iso
-10	variant-alpha-copy.iso
-10	
-20	shared.iso
-30	gamma.iso
+pAlpha10x64len	variant-alpha.iso
+pAlpha10x64len	variant-alpha-copy.iso
+v-empty-10	
+F77120Ax64Lcn	shared.iso
+vGamma30	gamma.iso

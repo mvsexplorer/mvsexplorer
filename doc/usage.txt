@@ -198,3 +198,9 @@ SUMMARY / STATISTICS
 
 SINGLE-DUMP COMPLETENESS TEST
   test\test_single_dump_tools.bat
+
+
+VARIANT ID NOTE
+  The ID printed by mvs_names.txt is a source-level ID, not a product ID.
+  It may be numeric, alphanumeric, or hyphenated.
+  Variant ..._from_id tools compare it case-insensitively as text.

@@ -79,9 +79,14 @@ These sources use product-level IDs/titles.
 mvs_names.txt
 ```
 
-Its ID references the owning product, so repeated IDs are normally expected.
-Its heading/title is a variant/display title and is not generally equal to the
-product title.
+Its ID is a source-level `mvs_names.txt` ID and must **not** be assumed to
+be the owning product ID. The ID domain changes across dump generations:
+some snapshots contain IDs far outside the product-ID range and
+alphanumeric/hyphenated IDs, while later snapshots can have a numeric domain
+that substantially or completely overlaps product IDs. Preserve the ID as
+source text and treat any product-ID overlap as observed data rather than a
+schema guarantee. Its heading/title is a variant/display title and is not
+generally equal to the product title.
 
 ### Notes source
 
@@ -146,7 +151,7 @@ edge independently.
 for this family because its headings are variant/display titles.
 
 
-## Complete single-dump entity model (0.9.0)
+## Complete single-dump entity model (0.9.1)
 
 ```text
 Dump
@@ -163,7 +168,7 @@ Dump
 │  └─ Algorithm
 ├─ VariantOccurrence
 │  ├─ Source occurrence
-│  ├─ Product ID
+│  ├─ mvs_names source ID
 │  ├─ Variant/display title
 │  ├─ Filename
 │  ├─ Hash
@@ -185,8 +190,9 @@ Dump
    └─ Raw text
 ```
 
-Variant occurrence is intentionally distinct from product identity because
-`mvs_names.txt` can repeat the same ID/title pair.
+Variant occurrence is intentionally distinct from product identity.
+`mvs_names.txt` IDs are source-level IDs, not established product foreign
+keys, and the same ID/title pair can repeat in some dumps.
 
 Hash provenance is intentionally distinct from a derived filename relationship
 because the same filename can have multiple observed digests and sources.

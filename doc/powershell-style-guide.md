@@ -1,6 +1,6 @@
 # MVS Explorer Toolkit — Embedded PowerShell Style Guide
 
-**Guide version:** 0.8.0  
+**Guide version:** 0.8.1  
 **Context:** Companion to Batch File Style Guide v1.8.0 and the MVS Explorer Toolkit addendum.
 
 ## 1. Role
@@ -292,3 +292,54 @@ first-class entity tools, not from re-parsing ad hoc with conflicting rules.
 
 Optional files such as `mvs.sha256` contribute zero/presence metrics when
 missing rather than making a whole-dump summary fail.
+
+
+## 30. Parser-safe array construction
+
+For embedded Windows PowerShell 5.1 code, avoid comma-separated array
+expressions that mix unparenthesized casts, property access, and command-style
+function invocation, for example:
+
+```text
+@(
+    [string]$object.id,
+    Normalize-Scalar ([string]$object.title),
+    ...
+)
+```
+
+The 0.9.0 Windows test run proved that this form can fail during
+`[ScriptBlock]::Create()` before any tool logic runs.
+
+Prefer the already proven pattern:
+
+```text
+$values = New-ArrayList
+[void]$values.Add([string]$object.id)
+[void]$values.Add((Normalize-Scalar ([string]$object.title)))
+Write-Line (($values | ForEach-Object { [string]$_ }) -join [char]9)
+```
+
+A static release validator must reject the known unsafe single-dump section
+emitter form.
+
+
+## 31. Source-specific ID parsing
+
+Do not share the numeric product-ID header regex with `mvs_names.txt`.
+
+Use numeric ID parsing for:
+
+```text
+mvs_ids.txt
+mvs_dates.txt
+mvs.txt
+```
+
+Preserve the trimmed text between `[ID:` and `]` for:
+
+```text
+mvs_names.txt
+```
+
+Variant-source ID matching is case-insensitive textual equality.

@@ -4,12 +4,12 @@ mvs.txt	4	10	Alpha Product		alpha-copy.iso	1111111111111111111111111111111111111
 mvs.txt	5	10	Alpha Product		alpha.iso	aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa	SHA256
 mvs.txt	9	20	Beta Product		shared.iso	4444444444444444444444444444444444444444	SHA1
 mvs.txt	12	30	Gamma Product		gamma.iso	5555555555555555555555555555555555555555	SHA1
-mvs_names.txt	2	10		Alpha Variant One	variant-alpha.iso	6666666666666666666666666666666666666666	SHA1
-mvs_names.txt	3	10		Alpha Variant One	variant-alpha.iso	7777777777777777777777777777777777777777	SHA1
-mvs_names.txt	4	10		Alpha Variant One	variant-alpha-copy.iso	6666666666666666666666666666666666666666	SHA1
-mvs_names.txt	5	10		Alpha Variant One	variant-alpha.iso	dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd	SHA256
-mvs_names.txt	11	20		Beta Variant	shared.iso	4444444444444444444444444444444444444444	SHA1
-mvs_names.txt	14	30		Gamma Variant	gamma.iso	5555555555555555555555555555555555555555	SHA1
+mvs_names.txt	2	pAlpha10x64len		Alpha Variant One	variant-alpha.iso	6666666666666666666666666666666666666666	SHA1
+mvs_names.txt	3	pAlpha10x64len		Alpha Variant One	variant-alpha.iso	7777777777777777777777777777777777777777	SHA1
+mvs_names.txt	4	pAlpha10x64len		Alpha Variant One	variant-alpha-copy.iso	6666666666666666666666666666666666666666	SHA1
+mvs_names.txt	5	pAlpha10x64len		Alpha Variant One	variant-alpha.iso	dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd	SHA256
+mvs_names.txt	11	F77120Ax64Lcn		Beta Variant	shared.iso	4444444444444444444444444444444444444444	SHA1
+mvs_names.txt	14	vGamma30		Gamma Variant	gamma.iso	5555555555555555555555555555555555555555	SHA1
 mvs.sha1	1				alpha.iso	3333333333333333333333333333333333333333	SHA1
 mvs.sha1	2				manifest-one.iso	8888888888888888888888888888888888888888	SHA1
 mvs.sha1	3				manifest-two.iso	8888888888888888888888888888888888888888	SHA1

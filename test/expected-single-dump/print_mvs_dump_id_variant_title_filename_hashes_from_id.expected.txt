@@ -1,5 +1,4 @@
-ID: 10 | Variant: Alpha Variant One | Filename: variant-alpha.iso | Hash: 6666666666666666666666666666666666666666
-ID: 10 | Variant: Alpha Variant One | Filename: variant-alpha.iso | Hash: 7777777777777777777777777777777777777777
-ID: 10 | Variant: Alpha Variant One | Filename: variant-alpha-copy.iso | Hash: 6666666666666666666666666666666666666666
-ID: 10 | Variant: Alpha Variant One | Filename: variant-alpha.iso | Hash: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
-ID: 10 | Variant: Alpha Variant Empty | Filename: (none) | Hash: (none)
+ID: pAlpha10x64len | Variant: Alpha Variant One | Filename: variant-alpha.iso | Hash: 6666666666666666666666666666666666666666
+ID: pAlpha10x64len | Variant: Alpha Variant One | Filename: variant-alpha.iso | Hash: 7777777777777777777777777777777777777777
+ID: pAlpha10x64len | Variant: Alpha Variant One | Filename: variant-alpha-copy.iso | Hash: 6666666666666666666666666666666666666666
+ID: pAlpha10x64len | Variant: Alpha Variant One | Filename: variant-alpha.iso | Hash: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd

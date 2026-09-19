@@ -3,36 +3,36 @@ dev\generate_diagnostic_fixture.py	development	generator	diagnostic-fixture				0
 dev\generate_diagnostic_tools.py	development	generator	diagnostics				0.1.0
 dev\generate_expected_diagnostic_outputs.py	development	generator	diagnostic-expected				0.1.0
 dev\generate_expected_relationship_outputs.py	development	generator	relationship-expected				0.1.0
-dev\generate_expected_single_dump_outputs.py	development	generator	single-dump-expected				0.1.0
+dev\generate_expected_single_dump_outputs.py	development	generator	single-dump-expected				0.1.1
 dev\generate_relationship_fixture.py	development	generator	relationship-fixture				0.1.0
 dev\generate_relationship_tools.py	development	generator	relationship-tools				0.1.0
-dev\generate_single_dump_fixture.py	development	generator	single-dump-fixture				0.1.0
+dev\generate_single_dump_fixture.py	development	generator	single-dump-fixture				0.2.0
 dev\generate_single_dump_tools.py	development	generator	single-dump-tools				0.1.0
-dev\generate_tests.py	development	generator	tests				0.6.0
+dev\generate_tests.py	development	generator	tests				0.6.1
 find_mvs_duplicate_date_in_mvs_date.txt.bat	diagnostic	human	date	source-order	mvs_dates.txt		0.1.0
 find_mvs_duplicate_date_in_mvs_dates.txt.bat	diagnostic	human	date	source-order	mvs_dates.txt		0.1.0
 find_mvs_duplicate_filename_in_mvs.txt.bat	diagnostic	human	filename	source-order	mvs.txt		0.1.0
 find_mvs_duplicate_filename_in_mvs_names.txt.bat	diagnostic	human	filename	source-order	mvs_names.txt		0.1.0
-find_mvs_duplicate_hash_in_mvs.txt.bat	single-dump	human		source-order		mvs.txt	0.1.0
-find_mvs_duplicate_hash_in_mvs_names.txt.bat	single-dump	human		source-order		mvs_names.txt	0.1.0
+find_mvs_duplicate_hash_in_mvs.txt.bat	single-dump	human		source-order		mvs.txt	0.1.1
+find_mvs_duplicate_hash_in_mvs_names.txt.bat	single-dump	human		source-order		mvs_names.txt	0.1.1
 find_mvs_duplicate_id_in_mvs.txt.bat	diagnostic	human	id	source-order	mvs.txt		0.1.0
 find_mvs_duplicate_id_in_mvs_dates.txt.bat	diagnostic	human	id	source-order	mvs_dates.txt		0.1.0
 find_mvs_duplicate_id_in_mvs_ids.txt.bat	diagnostic	human	id	source-order	mvs_ids.txt		0.1.0
 find_mvs_duplicate_id_in_mvs_names.txt.bat	diagnostic	human	id	source-order	mvs_names.txt		0.1.0
 find_mvs_duplicate_id_in_mvs_notes.html.bat	diagnostic	human	id	source-order	mvs_notes.html		0.1.0
-find_mvs_duplicate_sha1_in_mvs.sha1.bat	single-dump	human		source-order		mvs.sha1	0.1.0
-find_mvs_duplicate_sha256_in_mvs.sha256.bat	single-dump	human		source-order		mvs.sha256	0.1.0
+find_mvs_duplicate_sha1_in_mvs.sha1.bat	single-dump	human		source-order		mvs.sha1	0.1.1
+find_mvs_duplicate_sha256_in_mvs.sha256.bat	single-dump	human		source-order		mvs.sha256	0.1.1
 find_mvs_duplicate_title_in_mvs.txt.bat	diagnostic	human	title	source-order	mvs.txt		0.1.0
 find_mvs_duplicate_title_in_mvs_dates.txt.bat	diagnostic	human	title	source-order	mvs_dates.txt		0.1.0
 find_mvs_duplicate_title_in_mvs_ids.txt.bat	diagnostic	human	title	source-order	mvs_ids.txt		0.1.0
 find_mvs_duplicate_title_in_mvs_names.txt.bat	diagnostic	human	title	source-order	mvs_names.txt		0.1.0
 find_mvs_duplicate_title_in_mvs_notes.html.bat	diagnostic	human	title	source-order	mvs_notes.html		0.1.0
-find_mvs_filename_with_multiple_hashes_in_mvs.txt.bat	single-dump	human		source-order		mvs.txt	0.1.0
-find_mvs_filename_with_multiple_hashes_in_mvs_names.txt.bat	single-dump	human		source-order		mvs_names.txt	0.1.0
-find_mvs_hash_mismatch_for_filename_between_mvs.txt_and_mvs.sha1.bat	single-dump	human		source-order		mvs.txt|mvs.sha1	0.1.0
-find_mvs_hash_mismatch_for_filename_between_mvs.txt_and_mvs.sha256.bat	single-dump	human		source-order		mvs.txt|mvs.sha256	0.1.0
-find_mvs_hash_with_multiple_filenames_in_mvs.sha1.bat	single-dump	human		source-order		mvs.sha1	0.1.0
-find_mvs_hash_with_multiple_filenames_in_mvs.sha256.bat	single-dump	human		source-order		mvs.sha256	0.1.0
+find_mvs_filename_with_multiple_hashes_in_mvs.txt.bat	single-dump	human		source-order		mvs.txt	0.1.1
+find_mvs_filename_with_multiple_hashes_in_mvs_names.txt.bat	single-dump	human		source-order		mvs_names.txt	0.1.1
+find_mvs_hash_mismatch_for_filename_between_mvs.txt_and_mvs.sha1.bat	single-dump	human		source-order		mvs.txt|mvs.sha1	0.1.1
+find_mvs_hash_mismatch_for_filename_between_mvs.txt_and_mvs.sha256.bat	single-dump	human		source-order		mvs.txt|mvs.sha256	0.1.1
+find_mvs_hash_with_multiple_filenames_in_mvs.sha1.bat	single-dump	human		source-order		mvs.sha1	0.1.1
+find_mvs_hash_with_multiple_filenames_in_mvs.sha256.bat	single-dump	human		source-order		mvs.sha256	0.1.1
 find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha1.bat	diagnostic	human	filename	source-order	mvs.txt	mvs.sha1	0.1.0
 find_mvs_orphan_filenames_from_mvs.txt_in_mvs.sha256.bat	diagnostic	human	filename	source-order	mvs.txt	mvs.sha256	0.1.0
 find_mvs_orphan_filenames_from_mvs.txt_in_mvs_names.txt.bat	diagnostic	human	filename	source-order	mvs.txt	mvs_names.txt	0.1.0
@@ -64,12 +64,12 @@ find_mvs_orphan_titles_from_mvs_dates.txt_in_mvs_names.txt.bat	diagnostic	human	
 find_mvs_orphan_titles_from_mvs_names.txt_in_mvs.txt.bat	diagnostic	human	title	source-order	mvs_names.txt	mvs.txt	0.1.0
 find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_dates.txt.bat	diagnostic	human	title	source-order	mvs_names.txt	mvs_dates.txt	0.1.0
 find_mvs_orphan_titles_from_mvs_names.txt_in_mvs_ids.txt.bat	diagnostic	human	title	source-order	mvs_names.txt	mvs_ids.txt	0.1.0
-find_mvs_unparsed_lines_in_mvs.sha1.bat	single-dump	human	line,raw	source-order		mvs.sha1	0.1.0
-find_mvs_unparsed_lines_in_mvs.sha256.bat	single-dump	human	line,raw	source-order		mvs.sha256	0.1.0
-find_mvs_unparsed_lines_in_mvs.txt.bat	single-dump	human	line,raw	source-order		mvs.txt	0.1.0
-find_mvs_unparsed_lines_in_mvs_dates.txt.bat	single-dump	human	line,raw	source-order		mvs_dates.txt	0.1.0
-find_mvs_unparsed_lines_in_mvs_ids.txt.bat	single-dump	human	line,raw	source-order		mvs_ids.txt	0.1.0
-find_mvs_unparsed_lines_in_mvs_names.txt.bat	single-dump	human	line,raw	source-order		mvs_names.txt	0.1.0
+find_mvs_unparsed_lines_in_mvs.sha1.bat	single-dump	human	line,raw	source-order		mvs.sha1	0.1.1
+find_mvs_unparsed_lines_in_mvs.sha256.bat	single-dump	human	line,raw	source-order		mvs.sha256	0.1.1
+find_mvs_unparsed_lines_in_mvs.txt.bat	single-dump	human	line,raw	source-order		mvs.txt	0.1.1
+find_mvs_unparsed_lines_in_mvs_dates.txt.bat	single-dump	human	line,raw	source-order		mvs_dates.txt	0.1.1
+find_mvs_unparsed_lines_in_mvs_ids.txt.bat	single-dump	human	line,raw	source-order		mvs_ids.txt	0.1.1
+find_mvs_unparsed_lines_in_mvs_names.txt.bat	single-dump	human	line,raw	source-order		mvs_names.txt	0.1.1
 lookup_mvs_date_from_id.bat	lookup	raw-lines	date	by-search-field:id	id	date	0.4.0
 lookup_mvs_date_from_title.bat	lookup	raw-lines	date	by-search-field:title	title	date	0.4.0
 lookup_mvs_note_from_date.bat	lookup	raw-lines	note	by-search-field:date	date	note	0.4.0
@@ -91,27 +91,27 @@ print_mvs_dump_date_note_sorted_by_title.bat	print	human	date,note	title			0.4.0
 print_mvs_dump_date_sorted_by_date.bat	print	human	date	date			0.4.0
 print_mvs_dump_date_sorted_by_id.bat	print	human	date	id			0.4.0
 print_mvs_dump_date_sorted_by_title.bat	print	human	date	title			0.4.0
-print_mvs_dump_filename_hash_algorithm_source.bat	single-dump	human	filename,hash,algorithm,source	source-order			0.1.0
-print_mvs_dump_filename_hash_algorithm_source_from_filename.bat	single-dump	human	filename,hash,algorithm,source	source-order	filename		0.1.0
-print_mvs_dump_filename_hash_algorithm_source_from_hash.bat	single-dump	human	filename,hash,algorithm,source	source-order	hash		0.1.0
-print_mvs_dump_filename_hash_algorithm_source_from_id.bat	single-dump	human	filename,hash,algorithm,source	source-order	id		0.1.0
-print_mvs_dump_filename_hash_algorithm_source_from_title.bat	single-dump	human	filename,hash,algorithm,source	source-order	title		0.1.0
-print_mvs_dump_filename_hashes_from_filename.bat	single-dump	human	filename,hash	source-order	filename		0.1.0
-print_mvs_dump_filename_hashes_from_hash.bat	single-dump	human	filename,hash	source-order	hash		0.1.0
-print_mvs_dump_filename_hashes_from_id.bat	single-dump	human	filename,hash	source-order	id		0.1.0
-print_mvs_dump_filename_hashes_from_title.bat	single-dump	human	filename,hash	source-order	title		0.1.0
-print_mvs_dump_filename_sha1.bat	single-dump	human	filename,hash	source-order			0.1.0
-print_mvs_dump_filename_sha256.bat	single-dump	human	filename,hash	source-order			0.1.0
+print_mvs_dump_filename_hash_algorithm_source.bat	single-dump	human	filename,hash,algorithm,source	source-order			0.1.1
+print_mvs_dump_filename_hash_algorithm_source_from_filename.bat	single-dump	human	filename,hash,algorithm,source	source-order	filename		0.1.1
+print_mvs_dump_filename_hash_algorithm_source_from_hash.bat	single-dump	human	filename,hash,algorithm,source	source-order	hash		0.1.1
+print_mvs_dump_filename_hash_algorithm_source_from_id.bat	single-dump	human	filename,hash,algorithm,source	source-order	id		0.1.1
+print_mvs_dump_filename_hash_algorithm_source_from_title.bat	single-dump	human	filename,hash,algorithm,source	source-order	title		0.1.1
+print_mvs_dump_filename_hashes_from_filename.bat	single-dump	human	filename,hash	source-order	filename		0.1.1
+print_mvs_dump_filename_hashes_from_hash.bat	single-dump	human	filename,hash	source-order	hash		0.1.1
+print_mvs_dump_filename_hashes_from_id.bat	single-dump	human	filename,hash	source-order	id		0.1.1
+print_mvs_dump_filename_hashes_from_title.bat	single-dump	human	filename,hash	source-order	title		0.1.1
+print_mvs_dump_filename_sha1.bat	single-dump	human	filename,hash	source-order			0.1.1
+print_mvs_dump_filename_sha256.bat	single-dump	human	filename,hash	source-order			0.1.1
 print_mvs_dump_filenames_from_filename.bat	relationship	human	filename	source-order	filename		0.1.0
 print_mvs_dump_filenames_from_hash.bat	relationship	human	filename	source-order	hash		0.1.0
-print_mvs_dump_filenames_from_id.bat	single-dump	human	filename	source-order	id		0.1.0
-print_mvs_dump_filenames_from_title.bat	single-dump	human	filename	source-order	title		0.1.0
-print_mvs_dump_hash_records.bat	single-dump	human	source,line,id,title,variant_title,filename,hash,algorithm	source-order			0.1.0
-print_mvs_dump_hash_records_from_filename.bat	single-dump	human	source,line,id,title,variant_title,filename,hash,algorithm	source-order	filename		0.1.0
-print_mvs_dump_hash_records_from_hash.bat	single-dump	human	source,line,id,title,variant_title,filename,hash,algorithm	source-order	hash		0.1.0
-print_mvs_dump_hashes_from_filename.bat	single-dump	human	hash	source-order	filename		0.1.0
-print_mvs_dump_hashes_from_id.bat	single-dump	human	hash	source-order	id		0.1.0
-print_mvs_dump_hashes_from_title.bat	single-dump	human	hash	source-order	title		0.1.0
+print_mvs_dump_filenames_from_id.bat	single-dump	human	filename	source-order	id		0.1.1
+print_mvs_dump_filenames_from_title.bat	single-dump	human	filename	source-order	title		0.1.1
+print_mvs_dump_hash_records.bat	single-dump	human	source,line,id,title,variant_title,filename,hash,algorithm	source-order			0.1.1
+print_mvs_dump_hash_records_from_filename.bat	single-dump	human	source,line,id,title,variant_title,filename,hash,algorithm	source-order	filename		0.1.1
+print_mvs_dump_hash_records_from_hash.bat	single-dump	human	source,line,id,title,variant_title,filename,hash,algorithm	source-order	hash		0.1.1
+print_mvs_dump_hashes_from_filename.bat	single-dump	human	hash	source-order	filename		0.1.1
+print_mvs_dump_hashes_from_id.bat	single-dump	human	hash	source-order	id		0.1.1
+print_mvs_dump_hashes_from_title.bat	single-dump	human	hash	source-order	title		0.1.1
 print_mvs_dump_id.bat	print	human	id	source-order			0.6.0
 print_mvs_dump_id_date.bat	print	human	id,date	source-order			0.6.0
 print_mvs_dump_id_date_filenames_from_filename.bat	relationship	human	id,date,filename	source-order	filename		0.1.0
@@ -143,10 +143,10 @@ print_mvs_dump_id_title_date_from_hash.bat	relationship	human	id,title,date	sour
 print_mvs_dump_id_title_date_note.bat	print	human	id,title,date,note	source-order			0.6.0
 print_mvs_dump_id_title_date_note_filenames_from_filename.bat	relationship	human	id,title,date,note,filename	source-order	filename		0.1.0
 print_mvs_dump_id_title_date_note_filenames_from_hash.bat	relationship	human	id,title,date,note,filename	source-order	hash		0.1.0
-print_mvs_dump_id_title_date_note_filenames_hashes_from_filename.bat	single-dump	human	id,title,date,note,filename,hash	source-order	filename		0.1.0
-print_mvs_dump_id_title_date_note_filenames_hashes_from_hash.bat	single-dump	human	id,title,date,note,filename,hash	source-order	hash		0.1.0
-print_mvs_dump_id_title_date_note_filenames_hashes_from_id.bat	single-dump	human	id,title,date,note,filename,hash	source-order	id		0.1.0
-print_mvs_dump_id_title_date_note_filenames_hashes_from_title.bat	single-dump	human	id,title,date,note,filename,hash	source-order	title		0.1.0
+print_mvs_dump_id_title_date_note_filenames_hashes_from_filename.bat	single-dump	human	id,title,date,note,filename,hash	source-order	filename		0.1.1
+print_mvs_dump_id_title_date_note_filenames_hashes_from_hash.bat	single-dump	human	id,title,date,note,filename,hash	source-order	hash		0.1.1
+print_mvs_dump_id_title_date_note_filenames_hashes_from_id.bat	single-dump	human	id,title,date,note,filename,hash	source-order	id		0.1.1
+print_mvs_dump_id_title_date_note_filenames_hashes_from_title.bat	single-dump	human	id,title,date,note,filename,hash	source-order	title		0.1.1
 print_mvs_dump_id_title_date_note_from_filename.bat	relationship	human	id,title,date,note	source-order	filename		0.1.0
 print_mvs_dump_id_title_date_note_from_hash.bat	relationship	human	id,title,date,note	source-order	hash		0.1.0
 print_mvs_dump_id_title_date_note_sorted_by_date.bat	print	human	id,title,date,note	date			0.4.0
@@ -157,12 +157,12 @@ print_mvs_dump_id_title_date_sorted_by_id.bat	print	human	id,title,date	id			0.4
 print_mvs_dump_id_title_date_sorted_by_title.bat	print	human	id,title,date	title			0.4.0
 print_mvs_dump_id_title_filenames_from_filename.bat	relationship	human	id,title,filename	source-order	filename		0.1.0
 print_mvs_dump_id_title_filenames_from_hash.bat	relationship	human	id,title,filename	source-order	hash		0.1.0
-print_mvs_dump_id_title_filenames_from_id.bat	single-dump	human	id,title,filename	source-order	id		0.1.0
-print_mvs_dump_id_title_filenames_from_title.bat	single-dump	human	id,title,filename	source-order	title		0.1.0
-print_mvs_dump_id_title_filenames_hashes_from_filename.bat	single-dump	human	id,title,filename,hash	source-order	filename		0.1.0
-print_mvs_dump_id_title_filenames_hashes_from_hash.bat	single-dump	human	id,title,filename,hash	source-order	hash		0.1.0
-print_mvs_dump_id_title_filenames_hashes_from_id.bat	single-dump	human	id,title,filename,hash	source-order	id		0.1.0
-print_mvs_dump_id_title_filenames_hashes_from_title.bat	single-dump	human	id,title,filename,hash	source-order	title		0.1.0
+print_mvs_dump_id_title_filenames_from_id.bat	single-dump	human	id,title,filename	source-order	id		0.1.1
+print_mvs_dump_id_title_filenames_from_title.bat	single-dump	human	id,title,filename	source-order	title		0.1.1
+print_mvs_dump_id_title_filenames_hashes_from_filename.bat	single-dump	human	id,title,filename,hash	source-order	filename		0.1.1
+print_mvs_dump_id_title_filenames_hashes_from_hash.bat	single-dump	human	id,title,filename,hash	source-order	hash		0.1.1
+print_mvs_dump_id_title_filenames_hashes_from_id.bat	single-dump	human	id,title,filename,hash	source-order	id		0.1.1
+print_mvs_dump_id_title_filenames_hashes_from_title.bat	single-dump	human	id,title,filename,hash	source-order	title		0.1.1
 print_mvs_dump_id_title_from_filename.bat	relationship	human	id,title	source-order	filename		0.1.0
 print_mvs_dump_id_title_from_hash.bat	relationship	human	id,title	source-order	hash		0.1.0
 print_mvs_dump_id_title_note.bat	print	human	id,title,note	source-order			0.6.0
@@ -176,35 +176,35 @@ print_mvs_dump_id_title_note_sorted_by_title.bat	print	human	id,title,note	title
 print_mvs_dump_id_title_sorted_by_date.bat	print	human	id,title	date			0.4.0
 print_mvs_dump_id_title_sorted_by_id.bat	print	human	id,title	id			0.4.0
 print_mvs_dump_id_title_sorted_by_title.bat	print	human	id,title	title			0.4.0
-print_mvs_dump_id_variant_filenames.bat	single-dump	human	id,filename	source-order			0.1.0
-print_mvs_dump_id_variant_hashes.bat	single-dump	human	id,hash	source-order			0.1.0
-print_mvs_dump_id_variant_title_filename_hashes.bat	single-dump	human	id,variant_title,filename,hash	source-order			0.1.0
-print_mvs_dump_id_variant_title_filename_hashes_from_filename.bat	single-dump	human	id,variant_title,filename,hash	source-order	filename		0.1.0
-print_mvs_dump_id_variant_title_filename_hashes_from_hash.bat	single-dump	human	id,variant_title,filename,hash	source-order	hash		0.1.0
-print_mvs_dump_id_variant_title_filename_hashes_from_id.bat	single-dump	human	id,variant_title,filename,hash	source-order	id		0.1.0
-print_mvs_dump_id_variant_titles.bat	single-dump	human	id,variant_title	source-order			0.1.0
+print_mvs_dump_id_variant_filenames.bat	single-dump	human	id,filename	source-order			0.1.1
+print_mvs_dump_id_variant_hashes.bat	single-dump	human	id,hash	source-order			0.1.1
+print_mvs_dump_id_variant_title_filename_hashes.bat	single-dump	human	id,variant_title,filename,hash	source-order			0.1.1
+print_mvs_dump_id_variant_title_filename_hashes_from_filename.bat	single-dump	human	id,variant_title,filename,hash	source-order	filename		0.1.1
+print_mvs_dump_id_variant_title_filename_hashes_from_hash.bat	single-dump	human	id,variant_title,filename,hash	source-order	hash		0.1.1
+print_mvs_dump_id_variant_title_filename_hashes_from_id.bat	single-dump	human	id,variant_title,filename,hash	source-order	id		0.1.1
+print_mvs_dump_id_variant_titles.bat	single-dump	human	id,variant_title	source-order			0.1.1
 print_mvs_dump_note.bat	print	human	note	source-order			0.6.0
 print_mvs_dump_note_from_filename.bat	relationship	human	note	source-order	filename		0.1.0
 print_mvs_dump_note_from_hash.bat	relationship	human	note	source-order	hash		0.1.0
-print_mvs_dump_note_records.bat	single-dump	human	occurrence,title,note	source-order			0.1.0
-print_mvs_dump_note_records_from_title.bat	single-dump	human	occurrence,title,note	source-order	title		0.1.0
+print_mvs_dump_note_records.bat	single-dump	human	occurrence,title,note	source-order			0.1.1
+print_mvs_dump_note_records_from_title.bat	single-dump	human	occurrence,title,note	source-order	title		0.1.1
 print_mvs_dump_note_sorted_by_date.bat	print	human	note	date			0.4.0
 print_mvs_dump_note_sorted_by_id.bat	print	human	note	id			0.4.0
 print_mvs_dump_note_sorted_by_title.bat	print	human	note	title			0.4.0
-print_mvs_dump_product_files.bat	single-dump	human	id,title,date,note,filename,hash,algorithm	source-order			0.1.0
-print_mvs_dump_product_files_from_id.bat	single-dump	human	id,title,date,note,filename,hash,algorithm	source-order	id		0.1.0
-print_mvs_dump_product_files_from_title.bat	single-dump	human	id,title,date,note,filename,hash,algorithm	source-order	title		0.1.0
-print_mvs_dump_product_sections.bat	single-dump	human	section_occurrence,id,title,line_offset,line,raw	source-order			0.1.0
-print_mvs_dump_product_sections_from_id.bat	single-dump	human	section_occurrence,id,title,line_offset,line,raw	source-order	id		0.1.0
-print_mvs_dump_product_sections_from_title.bat	single-dump	human	section_occurrence,id,title,line_offset,line,raw	source-order	title		0.1.0
-print_mvs_dump_sha1.bat	single-dump	human	hash	source-order			0.1.0
-print_mvs_dump_sha1_filename.bat	single-dump	human	hash,filename	source-order			0.1.0
-print_mvs_dump_sha1_from_filename.bat	single-dump	human	hash	source-order	filename		0.1.0
-print_mvs_dump_sha256.bat	single-dump	human	hash	source-order			0.1.0
-print_mvs_dump_sha256_filename.bat	single-dump	human	hash,filename	source-order			0.1.0
-print_mvs_dump_sha256_from_filename.bat	single-dump	human	hash	source-order	filename		0.1.0
-print_mvs_dump_statistics.bat	single-dump	human		source-order			0.1.0
-print_mvs_dump_summary.bat	single-dump	human		source-order			0.1.0
+print_mvs_dump_product_files.bat	single-dump	human	id,title,date,note,filename,hash,algorithm	source-order			0.1.1
+print_mvs_dump_product_files_from_id.bat	single-dump	human	id,title,date,note,filename,hash,algorithm	source-order	id		0.1.1
+print_mvs_dump_product_files_from_title.bat	single-dump	human	id,title,date,note,filename,hash,algorithm	source-order	title		0.1.1
+print_mvs_dump_product_sections.bat	single-dump	human	section_occurrence,id,title,line_offset,line,raw	source-order			0.1.1
+print_mvs_dump_product_sections_from_id.bat	single-dump	human	section_occurrence,id,title,line_offset,line,raw	source-order	id		0.1.1
+print_mvs_dump_product_sections_from_title.bat	single-dump	human	section_occurrence,id,title,line_offset,line,raw	source-order	title		0.1.1
+print_mvs_dump_sha1.bat	single-dump	human	hash	source-order			0.1.1
+print_mvs_dump_sha1_filename.bat	single-dump	human	hash,filename	source-order			0.1.1
+print_mvs_dump_sha1_from_filename.bat	single-dump	human	hash	source-order	filename		0.1.1
+print_mvs_dump_sha256.bat	single-dump	human	hash	source-order			0.1.1
+print_mvs_dump_sha256_filename.bat	single-dump	human	hash,filename	source-order			0.1.1
+print_mvs_dump_sha256_from_filename.bat	single-dump	human	hash	source-order	filename		0.1.1
+print_mvs_dump_statistics.bat	single-dump	human		source-order			0.1.1
+print_mvs_dump_summary.bat	single-dump	human		source-order			0.1.1
 print_mvs_dump_title.bat	print	human	title	source-order			0.6.0
 print_mvs_dump_title_date.bat	print	human	title,date	source-order			0.6.0
 print_mvs_dump_title_date_filenames_from_filename.bat	relationship	human	title,date,filename	source-order	filename		0.1.0
@@ -224,10 +224,10 @@ print_mvs_dump_title_date_sorted_by_id.bat	print	human	title,date	id			0.4.0
 print_mvs_dump_title_date_sorted_by_title.bat	print	human	title,date	title			0.4.0
 print_mvs_dump_title_filenames_from_filename.bat	relationship	human	title,filename	source-order	filename		0.1.0
 print_mvs_dump_title_filenames_from_hash.bat	relationship	human	title,filename	source-order	hash		0.1.0
-print_mvs_dump_title_filenames_hashes_from_filename.bat	single-dump	human	title,filename,hash	source-order	filename		0.1.0
-print_mvs_dump_title_filenames_hashes_from_hash.bat	single-dump	human	title,filename,hash	source-order	hash		0.1.0
-print_mvs_dump_title_filenames_hashes_from_id.bat	single-dump	human	title,filename,hash	source-order	id		0.1.0
-print_mvs_dump_title_filenames_hashes_from_title.bat	single-dump	human	title,filename,hash	source-order	title		0.1.0
+print_mvs_dump_title_filenames_hashes_from_filename.bat	single-dump	human	title,filename,hash	source-order	filename		0.1.1
+print_mvs_dump_title_filenames_hashes_from_hash.bat	single-dump	human	title,filename,hash	source-order	hash		0.1.1
+print_mvs_dump_title_filenames_hashes_from_id.bat	single-dump	human	title,filename,hash	source-order	id		0.1.1
+print_mvs_dump_title_filenames_hashes_from_title.bat	single-dump	human	title,filename,hash	source-order	title		0.1.1
 print_mvs_dump_title_from_filename.bat	relationship	human	title	source-order	filename		0.1.0
 print_mvs_dump_title_from_hash.bat	relationship	human	title	source-order	hash		0.1.0
 print_mvs_dump_title_note.bat	print	human	title,note	source-order			0.6.0
@@ -241,16 +241,16 @@ print_mvs_dump_title_note_sorted_by_title.bat	print	human	title,note	title			0.4
 print_mvs_dump_title_sorted_by_date.bat	print	human	title	date			0.4.0
 print_mvs_dump_title_sorted_by_id.bat	print	human	title	id			0.4.0
 print_mvs_dump_title_sorted_by_title.bat	print	human	title	title			0.4.0
-print_mvs_dump_variant_filenames.bat	single-dump	human	filename	source-order			0.1.0
-print_mvs_dump_variant_filenames_from_id.bat	single-dump	human	filename	source-order	id		0.1.0
-print_mvs_dump_variant_hashes.bat	single-dump	human	hash	source-order			0.1.0
-print_mvs_dump_variant_hashes_from_id.bat	single-dump	human	hash	source-order	id		0.1.0
-print_mvs_dump_variant_titles.bat	single-dump	human	variant_title	source-order			0.1.0
-print_mvs_dump_variant_titles_from_id.bat	single-dump	human	variant_title	source-order	id		0.1.0
-print_mvs_dump_variants.bat	single-dump	human	occurrence,id,variant_title,filename,hash,algorithm	source-order			0.1.0
-print_mvs_dump_variants_from_filename.bat	single-dump	human	occurrence,id,variant_title,filename,hash,algorithm	source-order	filename		0.1.0
-print_mvs_dump_variants_from_hash.bat	single-dump	human	occurrence,id,variant_title,filename,hash,algorithm	source-order	hash		0.1.0
-print_mvs_dump_variants_from_id.bat	single-dump	human	occurrence,id,variant_title,filename,hash,algorithm	source-order	id		0.1.0
+print_mvs_dump_variant_filenames.bat	single-dump	human	filename	source-order			0.1.1
+print_mvs_dump_variant_filenames_from_id.bat	single-dump	human	filename	source-order	id		0.1.1
+print_mvs_dump_variant_hashes.bat	single-dump	human	hash	source-order			0.1.1
+print_mvs_dump_variant_hashes_from_id.bat	single-dump	human	hash	source-order	id		0.1.1
+print_mvs_dump_variant_titles.bat	single-dump	human	variant_title	source-order			0.1.1
+print_mvs_dump_variant_titles_from_id.bat	single-dump	human	variant_title	source-order	id		0.1.1
+print_mvs_dump_variants.bat	single-dump	human	occurrence,id,variant_title,filename,hash,algorithm	source-order			0.1.1
+print_mvs_dump_variants_from_filename.bat	single-dump	human	occurrence,id,variant_title,filename,hash,algorithm	source-order	filename		0.1.1
+print_mvs_dump_variants_from_hash.bat	single-dump	human	occurrence,id,variant_title,filename,hash,algorithm	source-order	hash		0.1.1
+print_mvs_dump_variants_from_id.bat	single-dump	human	occurrence,id,variant_title,filename,hash,algorithm	source-order	id		0.1.1
 read_mvs_dump_date.bat	read	machine	date	source-order			0.6.0
 read_mvs_dump_date_from_filename.bat	relationship	machine	date	source-order	filename		0.1.0
 read_mvs_dump_date_from_hash.bat	relationship	machine	date	source-order	hash		0.1.0
@@ -265,27 +265,27 @@ read_mvs_dump_date_note_sorted_by_title.bat	read	machine	date,note	title			0.4.0
 read_mvs_dump_date_sorted_by_date.bat	read	machine	date	date			0.4.0
 read_mvs_dump_date_sorted_by_id.bat	read	machine	date	id			0.4.0
 read_mvs_dump_date_sorted_by_title.bat	read	machine	date	title			0.4.0
-read_mvs_dump_filename_hash_algorithm_source.bat	single-dump	machine	filename,hash,algorithm,source	source-order			0.1.0
-read_mvs_dump_filename_hash_algorithm_source_from_filename.bat	single-dump	machine	filename,hash,algorithm,source	source-order	filename		0.1.0
-read_mvs_dump_filename_hash_algorithm_source_from_hash.bat	single-dump	machine	filename,hash,algorithm,source	source-order	hash		0.1.0
-read_mvs_dump_filename_hash_algorithm_source_from_id.bat	single-dump	machine	filename,hash,algorithm,source	source-order	id		0.1.0
-read_mvs_dump_filename_hash_algorithm_source_from_title.bat	single-dump	machine	filename,hash,algorithm,source	source-order	title		0.1.0
-read_mvs_dump_filename_hashes_from_filename.bat	single-dump	machine	filename,hash	source-order	filename		0.1.0
-read_mvs_dump_filename_hashes_from_hash.bat	single-dump	machine	filename,hash	source-order	hash		0.1.0
-read_mvs_dump_filename_hashes_from_id.bat	single-dump	machine	filename,hash	source-order	id		0.1.0
-read_mvs_dump_filename_hashes_from_title.bat	single-dump	machine	filename,hash	source-order	title		0.1.0
-read_mvs_dump_filename_sha1.bat	single-dump	machine	filename,hash	source-order			0.1.0
-read_mvs_dump_filename_sha256.bat	single-dump	machine	filename,hash	source-order			0.1.0
+read_mvs_dump_filename_hash_algorithm_source.bat	single-dump	machine	filename,hash,algorithm,source	source-order			0.1.1
+read_mvs_dump_filename_hash_algorithm_source_from_filename.bat	single-dump	machine	filename,hash,algorithm,source	source-order	filename		0.1.1
+read_mvs_dump_filename_hash_algorithm_source_from_hash.bat	single-dump	machine	filename,hash,algorithm,source	source-order	hash		0.1.1
+read_mvs_dump_filename_hash_algorithm_source_from_id.bat	single-dump	machine	filename,hash,algorithm,source	source-order	id		0.1.1
+read_mvs_dump_filename_hash_algorithm_source_from_title.bat	single-dump	machine	filename,hash,algorithm,source	source-order	title		0.1.1
+read_mvs_dump_filename_hashes_from_filename.bat	single-dump	machine	filename,hash	source-order	filename		0.1.1
+read_mvs_dump_filename_hashes_from_hash.bat	single-dump	machine	filename,hash	source-order	hash		0.1.1
+read_mvs_dump_filename_hashes_from_id.bat	single-dump	machine	filename,hash	source-order	id		0.1.1
+read_mvs_dump_filename_hashes_from_title.bat	single-dump	machine	filename,hash	source-order	title		0.1.1
+read_mvs_dump_filename_sha1.bat	single-dump	machine	filename,hash	source-order			0.1.1
+read_mvs_dump_filename_sha256.bat	single-dump	machine	filename,hash	source-order			0.1.1
 read_mvs_dump_filenames_from_filename.bat	relationship	machine	filename	source-order	filename		0.1.0
 read_mvs_dump_filenames_from_hash.bat	relationship	machine	filename	source-order	hash		0.1.0
-read_mvs_dump_filenames_from_id.bat	single-dump	machine	filename	source-order	id		0.1.0
-read_mvs_dump_filenames_from_title.bat	single-dump	machine	filename	source-order	title		0.1.0
-read_mvs_dump_hash_records.bat	single-dump	machine	source,line,id,title,variant_title,filename,hash,algorithm	source-order			0.1.0
-read_mvs_dump_hash_records_from_filename.bat	single-dump	machine	source,line,id,title,variant_title,filename,hash,algorithm	source-order	filename		0.1.0
-read_mvs_dump_hash_records_from_hash.bat	single-dump	machine	source,line,id,title,variant_title,filename,hash,algorithm	source-order	hash		0.1.0
-read_mvs_dump_hashes_from_filename.bat	single-dump	machine	hash	source-order	filename		0.1.0
-read_mvs_dump_hashes_from_id.bat	single-dump	machine	hash	source-order	id		0.1.0
-read_mvs_dump_hashes_from_title.bat	single-dump	machine	hash	source-order	title		0.1.0
+read_mvs_dump_filenames_from_id.bat	single-dump	machine	filename	source-order	id		0.1.1
+read_mvs_dump_filenames_from_title.bat	single-dump	machine	filename	source-order	title		0.1.1
+read_mvs_dump_hash_records.bat	single-dump	machine	source,line,id,title,variant_title,filename,hash,algorithm	source-order			0.1.1
+read_mvs_dump_hash_records_from_filename.bat	single-dump	machine	source,line,id,title,variant_title,filename,hash,algorithm	source-order	filename		0.1.1
+read_mvs_dump_hash_records_from_hash.bat	single-dump	machine	source,line,id,title,variant_title,filename,hash,algorithm	source-order	hash		0.1.1
+read_mvs_dump_hashes_from_filename.bat	single-dump	machine	hash	source-order	filename		0.1.1
+read_mvs_dump_hashes_from_id.bat	single-dump	machine	hash	source-order	id		0.1.1
+read_mvs_dump_hashes_from_title.bat	single-dump	machine	hash	source-order	title		0.1.1
 read_mvs_dump_id.bat	read	machine	id	source-order			0.6.0
 read_mvs_dump_id_date.bat	read	machine	id,date	source-order			0.6.0
 read_mvs_dump_id_date_filenames_from_filename.bat	relationship	machine	id,date,filename	source-order	filename		0.1.0
@@ -317,10 +317,10 @@ read_mvs_dump_id_title_date_from_hash.bat	relationship	machine	id,title,date	sou
 read_mvs_dump_id_title_date_note.bat	read	machine	id,title,date,note	source-order			0.6.0
 read_mvs_dump_id_title_date_note_filenames_from_filename.bat	relationship	machine	id,title,date,note,filename	source-order	filename		0.1.0
 read_mvs_dump_id_title_date_note_filenames_from_hash.bat	relationship	machine	id,title,date,note,filename	source-order	hash		0.1.0
-read_mvs_dump_id_title_date_note_filenames_hashes_from_filename.bat	single-dump	machine	id,title,date,note,filename,hash	source-order	filename		0.1.0
-read_mvs_dump_id_title_date_note_filenames_hashes_from_hash.bat	single-dump	machine	id,title,date,note,filename,hash	source-order	hash		0.1.0
-read_mvs_dump_id_title_date_note_filenames_hashes_from_id.bat	single-dump	machine	id,title,date,note,filename,hash	source-order	id		0.1.0
-read_mvs_dump_id_title_date_note_filenames_hashes_from_title.bat	single-dump	machine	id,title,date,note,filename,hash	source-order	title		0.1.0
+read_mvs_dump_id_title_date_note_filenames_hashes_from_filename.bat	single-dump	machine	id,title,date,note,filename,hash	source-order	filename		0.1.1
+read_mvs_dump_id_title_date_note_filenames_hashes_from_hash.bat	single-dump	machine	id,title,date,note,filename,hash	source-order	hash		0.1.1
+read_mvs_dump_id_title_date_note_filenames_hashes_from_id.bat	single-dump	machine	id,title,date,note,filename,hash	source-order	id		0.1.1
+read_mvs_dump_id_title_date_note_filenames_hashes_from_title.bat	single-dump	machine	id,title,date,note,filename,hash	source-order	title		0.1.1
 read_mvs_dump_id_title_date_note_from_filename.bat	relationship	machine	id,title,date,note	source-order	filename		0.1.0
 read_mvs_dump_id_title_date_note_from_hash.bat	relationship	machine	id,title,date,note	source-order	hash		0.1.0
 read_mvs_dump_id_title_date_note_sorted_by_date.bat	read	machine	id,title,date,note	date			0.4.0
@@ -331,12 +331,12 @@ read_mvs_dump_id_title_date_sorted_by_id.bat	read	machine	id,title,date	id			0.4
 read_mvs_dump_id_title_date_sorted_by_title.bat	read	machine	id,title,date	title			0.4.0
 read_mvs_dump_id_title_filenames_from_filename.bat	relationship	machine	id,title,filename	source-order	filename		0.1.0
 read_mvs_dump_id_title_filenames_from_hash.bat	relationship	machine	id,title,filename	source-order	hash		0.1.0
-read_mvs_dump_id_title_filenames_from_id.bat	single-dump	machine	id,title,filename	source-order	id		0.1.0
-read_mvs_dump_id_title_filenames_from_title.bat	single-dump	machine	id,title,filename	source-order	title		0.1.0
-read_mvs_dump_id_title_filenames_hashes_from_filename.bat	single-dump	machine	id,title,filename,hash	source-order	filename		0.1.0
-read_mvs_dump_id_title_filenames_hashes_from_hash.bat	single-dump	machine	id,title,filename,hash	source-order	hash		0.1.0
-read_mvs_dump_id_title_filenames_hashes_from_id.bat	single-dump	machine	id,title,filename,hash	source-order	id		0.1.0
-read_mvs_dump_id_title_filenames_hashes_from_title.bat	single-dump	machine	id,title,filename,hash	source-order	title		0.1.0
+read_mvs_dump_id_title_filenames_from_id.bat	single-dump	machine	id,title,filename	source-order	id		0.1.1
+read_mvs_dump_id_title_filenames_from_title.bat	single-dump	machine	id,title,filename	source-order	title		0.1.1
+read_mvs_dump_id_title_filenames_hashes_from_filename.bat	single-dump	machine	id,title,filename,hash	source-order	filename		0.1.1
+read_mvs_dump_id_title_filenames_hashes_from_hash.bat	single-dump	machine	id,title,filename,hash	source-order	hash		0.1.1
+read_mvs_dump_id_title_filenames_hashes_from_id.bat	single-dump	machine	id,title,filename,hash	source-order	id		0.1.1
+read_mvs_dump_id_title_filenames_hashes_from_title.bat	single-dump	machine	id,title,filename,hash	source-order	title		0.1.1
 read_mvs_dump_id_title_from_filename.bat	relationship	machine	id,title	source-order	filename		0.1.0
 read_mvs_dump_id_title_from_hash.bat	relationship	machine	id,title	source-order	hash		0.1.0
 read_mvs_dump_id_title_note.bat	read	machine	id,title,note	source-order			0.6.0
@@ -350,35 +350,35 @@ read_mvs_dump_id_title_note_sorted_by_title.bat	read	machine	id,title,note	title
 read_mvs_dump_id_title_sorted_by_date.bat	read	machine	id,title	date			0.4.0
 read_mvs_dump_id_title_sorted_by_id.bat	read	machine	id,title	id			0.4.0
 read_mvs_dump_id_title_sorted_by_title.bat	read	machine	id,title	title			0.4.0
-read_mvs_dump_id_variant_filenames.bat	single-dump	machine	id,filename	source-order			0.1.0
-read_mvs_dump_id_variant_hashes.bat	single-dump	machine	id,hash	source-order			0.1.0
-read_mvs_dump_id_variant_title_filename_hashes.bat	single-dump	machine	id,variant_title,filename,hash	source-order			0.1.0
-read_mvs_dump_id_variant_title_filename_hashes_from_filename.bat	single-dump	machine	id,variant_title,filename,hash	source-order	filename		0.1.0
-read_mvs_dump_id_variant_title_filename_hashes_from_hash.bat	single-dump	machine	id,variant_title,filename,hash	source-order	hash		0.1.0
-read_mvs_dump_id_variant_title_filename_hashes_from_id.bat	single-dump	machine	id,variant_title,filename,hash	source-order	id		0.1.0
-read_mvs_dump_id_variant_titles.bat	single-dump	machine	id,variant_title	source-order			0.1.0
+read_mvs_dump_id_variant_filenames.bat	single-dump	machine	id,filename	source-order			0.1.1
+read_mvs_dump_id_variant_hashes.bat	single-dump	machine	id,hash	source-order			0.1.1
+read_mvs_dump_id_variant_title_filename_hashes.bat	single-dump	machine	id,variant_title,filename,hash	source-order			0.1.1
+read_mvs_dump_id_variant_title_filename_hashes_from_filename.bat	single-dump	machine	id,variant_title,filename,hash	source-order	filename		0.1.1
+read_mvs_dump_id_variant_title_filename_hashes_from_hash.bat	single-dump	machine	id,variant_title,filename,hash	source-order	hash		0.1.1
+read_mvs_dump_id_variant_title_filename_hashes_from_id.bat	single-dump	machine	id,variant_title,filename,hash	source-order	id		0.1.1
+read_mvs_dump_id_variant_titles.bat	single-dump	machine	id,variant_title	source-order			0.1.1
 read_mvs_dump_note.bat	read	machine	note	source-order			0.6.0
 read_mvs_dump_note_from_filename.bat	relationship	machine	note	source-order	filename		0.1.0
 read_mvs_dump_note_from_hash.bat	relationship	machine	note	source-order	hash		0.1.0
-read_mvs_dump_note_records.bat	single-dump	machine	occurrence,title,note	source-order			0.1.0
-read_mvs_dump_note_records_from_title.bat	single-dump	machine	occurrence,title,note	source-order	title		0.1.0
+read_mvs_dump_note_records.bat	single-dump	machine	occurrence,title,note	source-order			0.1.1
+read_mvs_dump_note_records_from_title.bat	single-dump	machine	occurrence,title,note	source-order	title		0.1.1
 read_mvs_dump_note_sorted_by_date.bat	read	machine	note	date			0.4.0
 read_mvs_dump_note_sorted_by_id.bat	read	machine	note	id			0.4.0
 read_mvs_dump_note_sorted_by_title.bat	read	machine	note	title			0.4.0
-read_mvs_dump_product_files.bat	single-dump	machine	id,title,date,note,filename,hash,algorithm	source-order			0.1.0
-read_mvs_dump_product_files_from_id.bat	single-dump	machine	id,title,date,note,filename,hash,algorithm	source-order	id		0.1.0
-read_mvs_dump_product_files_from_title.bat	single-dump	machine	id,title,date,note,filename,hash,algorithm	source-order	title		0.1.0
-read_mvs_dump_product_sections.bat	single-dump	machine	section_occurrence,id,title,line_offset,line,raw	source-order			0.1.0
-read_mvs_dump_product_sections_from_id.bat	single-dump	machine	section_occurrence,id,title,line_offset,line,raw	source-order	id		0.1.0
-read_mvs_dump_product_sections_from_title.bat	single-dump	machine	section_occurrence,id,title,line_offset,line,raw	source-order	title		0.1.0
-read_mvs_dump_sha1.bat	single-dump	machine	hash	source-order			0.1.0
-read_mvs_dump_sha1_filename.bat	single-dump	machine	hash,filename	source-order			0.1.0
-read_mvs_dump_sha1_from_filename.bat	single-dump	machine	hash	source-order	filename		0.1.0
-read_mvs_dump_sha256.bat	single-dump	machine	hash	source-order			0.1.0
-read_mvs_dump_sha256_filename.bat	single-dump	machine	hash,filename	source-order			0.1.0
-read_mvs_dump_sha256_from_filename.bat	single-dump	machine	hash	source-order	filename		0.1.0
-read_mvs_dump_statistics.bat	single-dump	machine		source-order			0.1.0
-read_mvs_dump_summary.bat	single-dump	machine		source-order			0.1.0
+read_mvs_dump_product_files.bat	single-dump	machine	id,title,date,note,filename,hash,algorithm	source-order			0.1.1
+read_mvs_dump_product_files_from_id.bat	single-dump	machine	id,title,date,note,filename,hash,algorithm	source-order	id		0.1.1
+read_mvs_dump_product_files_from_title.bat	single-dump	machine	id,title,date,note,filename,hash,algorithm	source-order	title		0.1.1
+read_mvs_dump_product_sections.bat	single-dump	machine	section_occurrence,id,title,line_offset,line,raw	source-order			0.1.1
+read_mvs_dump_product_sections_from_id.bat	single-dump	machine	section_occurrence,id,title,line_offset,line,raw	source-order	id		0.1.1
+read_mvs_dump_product_sections_from_title.bat	single-dump	machine	section_occurrence,id,title,line_offset,line,raw	source-order	title		0.1.1
+read_mvs_dump_sha1.bat	single-dump	machine	hash	source-order			0.1.1
+read_mvs_dump_sha1_filename.bat	single-dump	machine	hash,filename	source-order			0.1.1
+read_mvs_dump_sha1_from_filename.bat	single-dump	machine	hash	source-order	filename		0.1.1
+read_mvs_dump_sha256.bat	single-dump	machine	hash	source-order			0.1.1
+read_mvs_dump_sha256_filename.bat	single-dump	machine	hash,filename	source-order			0.1.1
+read_mvs_dump_sha256_from_filename.bat	single-dump	machine	hash	source-order	filename		0.1.1
+read_mvs_dump_statistics.bat	single-dump	machine		source-order			0.1.1
+read_mvs_dump_summary.bat	single-dump	machine		source-order			0.1.1
 read_mvs_dump_title.bat	read	machine	title	source-order			0.6.0
 read_mvs_dump_title_date.bat	read	machine	title,date	source-order			0.6.0
 read_mvs_dump_title_date_filenames_from_filename.bat	relationship	machine	title,date,filename	source-order	filename		0.1.0
@@ -398,10 +398,10 @@ read_mvs_dump_title_date_sorted_by_id.bat	read	machine	title,date	id			0.4.0
 read_mvs_dump_title_date_sorted_by_title.bat	read	machine	title,date	title			0.4.0
 read_mvs_dump_title_filenames_from_filename.bat	relationship	machine	title,filename	source-order	filename		0.1.0
 read_mvs_dump_title_filenames_from_hash.bat	relationship	machine	title,filename	source-order	hash		0.1.0
-read_mvs_dump_title_filenames_hashes_from_filename.bat	single-dump	machine	title,filename,hash	source-order	filename		0.1.0
-read_mvs_dump_title_filenames_hashes_from_hash.bat	single-dump	machine	title,filename,hash	source-order	hash		0.1.0
-read_mvs_dump_title_filenames_hashes_from_id.bat	single-dump	machine	title,filename,hash	source-order	id		0.1.0
-read_mvs_dump_title_filenames_hashes_from_title.bat	single-dump	machine	title,filename,hash	source-order	title		0.1.0
+read_mvs_dump_title_filenames_hashes_from_filename.bat	single-dump	machine	title,filename,hash	source-order	filename		0.1.1
+read_mvs_dump_title_filenames_hashes_from_hash.bat	single-dump	machine	title,filename,hash	source-order	hash		0.1.1
+read_mvs_dump_title_filenames_hashes_from_id.bat	single-dump	machine	title,filename,hash	source-order	id		0.1.1
+read_mvs_dump_title_filenames_hashes_from_title.bat	single-dump	machine	title,filename,hash	source-order	title		0.1.1
 read_mvs_dump_title_from_filename.bat	relationship	machine	title	source-order	filename		0.1.0
 read_mvs_dump_title_from_hash.bat	relationship	machine	title	source-order	hash		0.1.0
 read_mvs_dump_title_note.bat	read	machine	title,note	source-order			0.6.0
@@ -415,26 +415,26 @@ read_mvs_dump_title_note_sorted_by_title.bat	read	machine	title,note	title			0.4
 read_mvs_dump_title_sorted_by_date.bat	read	machine	title	date			0.4.0
 read_mvs_dump_title_sorted_by_id.bat	read	machine	title	id			0.4.0
 read_mvs_dump_title_sorted_by_title.bat	read	machine	title	title			0.4.0
-read_mvs_dump_variant_filenames.bat	single-dump	machine	filename	source-order			0.1.0
-read_mvs_dump_variant_filenames_from_id.bat	single-dump	machine	filename	source-order	id		0.1.0
-read_mvs_dump_variant_hashes.bat	single-dump	machine	hash	source-order			0.1.0
-read_mvs_dump_variant_hashes_from_id.bat	single-dump	machine	hash	source-order	id		0.1.0
-read_mvs_dump_variant_titles.bat	single-dump	machine	variant_title	source-order			0.1.0
-read_mvs_dump_variant_titles_from_id.bat	single-dump	machine	variant_title	source-order	id		0.1.0
-read_mvs_dump_variants.bat	single-dump	machine	occurrence,id,variant_title,filename,hash,algorithm	source-order			0.1.0
-read_mvs_dump_variants_from_filename.bat	single-dump	machine	occurrence,id,variant_title,filename,hash,algorithm	source-order	filename		0.1.0
-read_mvs_dump_variants_from_hash.bat	single-dump	machine	occurrence,id,variant_title,filename,hash,algorithm	source-order	hash		0.1.0
-read_mvs_dump_variants_from_id.bat	single-dump	machine	occurrence,id,variant_title,filename,hash,algorithm	source-order	id		0.1.0
-read_mvs_unparsed_lines_in_mvs.sha1.bat	single-dump	machine	line,raw	source-order		mvs.sha1	0.1.0
-read_mvs_unparsed_lines_in_mvs.sha256.bat	single-dump	machine	line,raw	source-order		mvs.sha256	0.1.0
-read_mvs_unparsed_lines_in_mvs.txt.bat	single-dump	machine	line,raw	source-order		mvs.txt	0.1.0
-read_mvs_unparsed_lines_in_mvs_dates.txt.bat	single-dump	machine	line,raw	source-order		mvs_dates.txt	0.1.0
-read_mvs_unparsed_lines_in_mvs_ids.txt.bat	single-dump	machine	line,raw	source-order		mvs_ids.txt	0.1.0
-read_mvs_unparsed_lines_in_mvs_names.txt.bat	single-dump	machine	line,raw	source-order		mvs_names.txt	0.1.0
-test\test_all.bat	test	console	all				0.6.0
-test\test_diagnostic_tools.bat	test	console	diagnostic				0.6.0
-test\test_lookup_tools.bat	test	console	lookup				0.6.0
-test\test_relationship_tools.bat	test	console	relationship				0.6.0
-test\test_scalar_tools.bat	test	console	scalar				0.6.0
-test\test_single_dump_tools.bat	test	console	single-dump				0.6.0
-test\test_structure.bat	test	console	structure				0.6.0
+read_mvs_dump_variant_filenames.bat	single-dump	machine	filename	source-order			0.1.1
+read_mvs_dump_variant_filenames_from_id.bat	single-dump	machine	filename	source-order	id		0.1.1
+read_mvs_dump_variant_hashes.bat	single-dump	machine	hash	source-order			0.1.1
+read_mvs_dump_variant_hashes_from_id.bat	single-dump	machine	hash	source-order	id		0.1.1
+read_mvs_dump_variant_titles.bat	single-dump	machine	variant_title	source-order			0.1.1
+read_mvs_dump_variant_titles_from_id.bat	single-dump	machine	variant_title	source-order	id		0.1.1
+read_mvs_dump_variants.bat	single-dump	machine	occurrence,id,variant_title,filename,hash,algorithm	source-order			0.1.1
+read_mvs_dump_variants_from_filename.bat	single-dump	machine	occurrence,id,variant_title,filename,hash,algorithm	source-order	filename		0.1.1
+read_mvs_dump_variants_from_hash.bat	single-dump	machine	occurrence,id,variant_title,filename,hash,algorithm	source-order	hash		0.1.1
+read_mvs_dump_variants_from_id.bat	single-dump	machine	occurrence,id,variant_title,filename,hash,algorithm	source-order	id		0.1.1
+read_mvs_unparsed_lines_in_mvs.sha1.bat	single-dump	machine	line,raw	source-order		mvs.sha1	0.1.1
+read_mvs_unparsed_lines_in_mvs.sha256.bat	single-dump	machine	line,raw	source-order		mvs.sha256	0.1.1
+read_mvs_unparsed_lines_in_mvs.txt.bat	single-dump	machine	line,raw	source-order		mvs.txt	0.1.1
+read_mvs_unparsed_lines_in_mvs_dates.txt.bat	single-dump	machine	line,raw	source-order		mvs_dates.txt	0.1.1
+read_mvs_unparsed_lines_in_mvs_ids.txt.bat	single-dump	machine	line,raw	source-order		mvs_ids.txt	0.1.1
+read_mvs_unparsed_lines_in_mvs_names.txt.bat	single-dump	machine	line,raw	source-order		mvs_names.txt	0.1.1
+test\test_all.bat	test	console	all				0.6.1
+test\test_diagnostic_tools.bat	test	console	diagnostic				0.6.1
+test\test_lookup_tools.bat	test	console	lookup				0.6.1
+test\test_relationship_tools.bat	test	console	relationship				0.6.1
+test\test_scalar_tools.bat	test	console	scalar				0.6.1
+test\test_single_dump_tools.bat	test	console	single-dump				0.6.1
+test\test_structure.bat	test	console	structure				0.6.1

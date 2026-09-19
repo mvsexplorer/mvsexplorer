@@ -94,9 +94,10 @@ The attached 0.5.0 archive was sufficient to isolate the problem without relying
 
 ### Repetition is not the same thing as invalid duplication
 
-`mvs_names.txt` associates many variant sections with one product ID. A
-duplicate-ID finder over that file will therefore intentionally report normal
-one-to-many structure.
+`mvs_names.txt` has its own numeric ID domain. Those IDs must not be
+interpreted as product IDs merely because some numeric values overlap. A
+duplicate-ID finder over that file is therefore a literal source-ID repetition
+check, not a product one-to-many check.
 
 Diagnostic naming should describe the mechanical question without overclaiming
 that every result is an integrity defect.
@@ -167,9 +168,10 @@ SHA-1, SHA-256, and mvs.txt-only test hashes to distinct source paths.
 
 ### A complete single-dump model needs occurrence and provenance identities
 
-Product IDs identify products, but variant records require section occurrence,
-and hash records require source/physical-line provenance. Flattening these
-identities would lose real duplicate/reuse information before comparison.
+Product IDs identify products. Variant records require their own source ID
+plus section occurrence, and hash records require source/physical-line
+provenance. Flattening these identities—or treating the variant-source ID as a
+product foreign key—would lose or invent relationships before comparison.
 
 ### Forward traversal must gather all observed hashes for a product filename
 
@@ -188,3 +190,39 @@ file rows versus raw product sections.
 Cross-dump comparison should not silently compare only successfully parsed
 records. Per-source unparsed-line reports and summary counts make parse loss
 observable first.
+
+### Real-dump execution exposed a source-ID domain error before comparison
+
+On `mvs_2019-10-16`, the independent parser sees 1,791 product IDs with a
+maximum of 6,658, while `mvs_names.txt` has 37,594 distinct source IDs extending
+to 86,083. Only 203 numeric values overlap. This disproves the earlier
+assumption that the `mvs_names.txt` ID is an owning product ID.
+
+Exact filename+hash pairs from that dump can be matched back to `mvs.txt`, but
+some pairs are reused by multiple products. Product-to-variant ownership must
+therefore be represented as a derived, potentially ambiguous relationship.
+
+
+### Source-specific ID syntax matters
+
+The same textual marker `[ID: ...]` does not imply the same value type in every
+source. Across the archive, product sources use numeric IDs, while
+`mvs_names.txt` has hundreds of thousands of alphanumeric source IDs.
+
+A generic numeric header parser can therefore convert valid source records into
+false "unparsed" diagnostics. Parser rules should follow the source schema, not
+the visual label alone.
+
+
+### The mvs_names ID domain changes across generations
+
+`mvs_2019-10-16` has 38,136 distinct `mvs_names.txt` IDs for 38,136 sections,
+including 542 nonnumeric IDs; only 203 numeric values overlap its 1,791 product
+IDs.
+
+By contrast, `mvs_2020-09-23` has 46,868 sections but only 1,965 distinct
+`mvs_names.txt` IDs, and all 1,965 are present in the product-ID set.
+
+Therefore neither universal claim is safe: the field is not always a product
+ID, but it can become product-like in later dump generations. Preserve the
+source value and measure/derive relationships per dump.

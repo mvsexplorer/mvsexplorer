@@ -1,4 +1,9 @@
 Tool Version History: dev\generate_expected_single_dump_outputs.py
 
+0.1.1 - 2026-08-27
+  - Parses mvs_names.txt IDs as source text.
+  - Variant ID lookup is case-insensitive textual equality.
+  - Summary variant metrics use source-ID semantics.
+
 0.1.0 - 2026-08-27
   - Initial independent Python reference oracle for 154 expected outputs.

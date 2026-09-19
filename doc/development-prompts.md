@@ -1501,3 +1501,24 @@ and add all the tests for this as well
 Ok create all suggestion and all versions implied by them
 ```
 
+## Prompt 14
+
+```text
+Ok I want running the output on this particular dump, but there were errors
+
+[Two complete/partial Windows 0.9.0 test console transcripts were supplied:
+ mvs_2019-10-16 and mvs_2020-09-23.]
+
+So I ran it on another random dump
+
+and it gave these results
+
+[Second console transcript.]
+
+and I attach both sets of results
+```
+
+The exact persisted test artifacts are analyzed in
+`doc\test-run-analysis-0.9.0.md`; the uploaded archive contains the full
+console logs and per-failure stderr files.
+

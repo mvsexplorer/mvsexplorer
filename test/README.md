@@ -63,7 +63,7 @@ test\test-mvs-dump-single-complete\
 test\expected-single-dump\
 ```
 
-The 0.9.0 full-suite assertion matrix is:
+The 0.9.1 full-suite assertion matrix is:
 
 ```text
 Structure:      423
@@ -79,3 +79,5 @@ Total:          931 assertions
 The single-dump scope is 154 exact positive tool comparisons, 12 no-result
 return-code checks covering each query operation family, and one fixture
 presence assertion.
+
+0.9.1 regenerates all standalone test entry points at test version 0.6.1; the assertion matrix remains 931.

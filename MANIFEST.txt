@@ -1,11 +1,12 @@
-MVS Explorer Toolkit 0.9.0
+MVS Explorer Toolkit 0.9.1
 Public standalone batch tools: 422
-  tested 0.8.0 baseline tools: 268
-  new single-dump completeness tools: 154
-Standalone automated test batch files: 7
+  unchanged pre-0.9.0 Windows-tested tools: 268
+  regenerated single-dump tools: 154 (tool version 0.1.1)
+Standalone automated test batch files: 7 (test version 0.6.1)
 Single-dump synthetic fixture: test\test-mvs-dump-single-complete\
 Fixed single-dump expected outputs: 154
 Expected full-suite assertions: 931
+Independent real-dump reference summaries: 2
 Tool/development version-history files: 441
 
 Files:
@@ -65,6 +66,10 @@ doc/observation-journal.md
 doc/output-format.md
 doc/powershell-style-guide.md
 doc/project-version-history.txt
+doc/reference-output-mvs_2019-10-16-summary.tsv
+doc/reference-output-mvs_2019-10-16-summary.txt
+doc/reference-output-mvs_2020-09-23-summary.tsv
+doc/reference-output-mvs_2020-09-23-summary.txt
 doc/relationship-test-fixture.md
 doc/relationship-tool-matrix.tsv
 doc/relationship-tools.md
@@ -76,6 +81,7 @@ doc/test-run-analysis-0.5.0.md
 doc/test-run-analysis-0.6.0.md
 doc/test-run-analysis-0.7.0.md
 doc/test-run-analysis-0.8.0.md
+doc/test-run-analysis-0.9.0.md
 doc/tool-catalog.tsv
 doc/tool-version-history/find_mvs_duplicate_date_in_mvs_date.txt.version-history.txt
 doc/tool-version-history/find_mvs_duplicate_date_in_mvs_dates.txt.version-history.txt

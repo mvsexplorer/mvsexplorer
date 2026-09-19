@@ -1,4 +1,8 @@
 Tool Version History: dev\generate_single_dump_fixture.py
 
+0.2.0 - 2026-08-27
+  - Variant fixture IDs moved to a separate alphanumeric/hyphenated source
+    domain to catch numeric product-ID assumptions.
+
 0.1.0 - 2026-08-27
   - Initial generator for the comprehensive synthetic single-dump fixture.

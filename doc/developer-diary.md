@@ -200,3 +200,39 @@ A synthetic fixture intentionally contains duplicate/conflicting hashes,
 multiple hash sources, an empty variant section, repeated note headings, and
 one malformed line in each supported line-oriented source. All 154 public
 tools have fixed positive expected stdout generated independently.
+
+
+## 2026-08-27 — 0.9.0 Windows parser failure and 0.9.1 repair
+
+Two external Windows runs made the defect deterministic. The complete run
+recorded 765 passes and 166 failures. Every failure had the same
+`ScriptBlock.Create` parser exception at the raw product-section array
+expression.
+
+The failure was introduced once in the shared single-dump PowerShell library
+and injected into all 154 new tools. The repair was therefore made once in the
+library and regenerated, not hand-edited in public scripts.
+
+The corrected emitter deliberately copies the ArrayList construction style
+already exercised successfully by the relationship runtime on the same Windows
+PowerShell 5.1 host.
+
+The real 2019 dump also forced a model correction: `mvs_names.txt` IDs occupy a
+different numeric domain from product IDs. Documentation and summary metrics
+were corrected before treating 0.9.x single-dump output as comparison-ready.
+
+
+## 2026-08-27 — Numeric-only variant parser corrected
+
+Once the common PowerShell syntax failure was isolated, the independent
+reference parser was run against `mvs_2019-10-16`. It initially reported 1,084
+unparsed `mvs_names.txt` lines. Inspection showed they were 542 valid
+alphanumeric-ID section headers plus 542 associated hash/file rows.
+
+An archive-wide header audit found 492,904 nonnumeric `mvs_names.txt` IDs across
+29 snapshots. Product sources remain numeric across the archive, so the parser
+was split by source: product IDs remain numeric; `mvs_names.txt` IDs are
+preserved as trimmed text.
+
+The synthetic fixture now deliberately uses a separate alphanumeric/hyphenated
+variant-source ID domain.

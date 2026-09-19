@@ -1,5 +1,10 @@
 Tool Version History: test\test_single_dump_tools.bat
 
+0.6.1 - 2026-08-27
+  - Regenerated with source-text variant ID fixture handling.
+  - Single-dump variant ID tests now use an alphanumeric ID distinct from
+    product IDs.
+
 0.6.0 - 2026-08-27
   - Initial single-dump completeness test entry point.
   - Executes 154 exact positive tool comparisons.
