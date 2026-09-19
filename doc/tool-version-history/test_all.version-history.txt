@@ -4,10 +4,14 @@ Purpose
   Test mode: all
   Standalone: yes; contains complete injected test harness
 
+0.11.1 - 2026-09-01
+  - Requires the 96-assertion product-family regression summary.
+  - Corrects documentation of the full matrix to 1,090 assertions (1,087 PASS / 0 FAIL / 3 SKIP on the established representative dump).
+
 0.11.0 - 2026-09-01
   - Regenerated for the 476-tool public structure surface.
   - Adds one aggregate product-family regression assertion backed by the 92-case dedicated family suite.
-  - Expected full-suite matrix is 1087 assertions (typically 1084 PASS / 0 FAIL / 3 SKIP on the established representative dump).
+  - Native acceptance established the actual full-suite matrix as 1090 assertions (typically 1087 PASS / 0 FAIL / 3 SKIP); the initial 0.15.0 documentation understated the history scope by three assertions.
 
 0.7.0 - 2026-08-27
   - Regenerated with two-dump comparison scope support.

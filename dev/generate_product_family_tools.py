@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate standalone product-family index/query tools.
 
-Version: 0.1.0
+Version: 0.1.1
 """
 from pathlib import Path
 import json
@@ -23,7 +23,7 @@ def main():
     builder_ps = read(DEV / "library/product-family-builder.inc.ps1")
     text = builder_template
     for key, value in {
-        "TOOL_VERSION": spec["version"],
+        "TOOL_VERSION": spec.get("builder_version", spec["version"]),
         "BATCH_COMMON": batch_common,
         "PRODUCT_FAMILY_BUILDER_POWERSHELL": builder_ps,
     }.items():

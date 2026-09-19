@@ -1,5 +1,8 @@
 dev\generate_product_family_tools.py
 
+0.1.1 - 2026-09-01
+  - Supports a builder-specific generated version so the corrected 0.1.1 builder can ship without gratuitously changing the 32 unchanged 0.1.0 query wrappers.
+
 0.1.0 - 2026-09-01
   - Initial generator for the 33 standalone product-family public tools.
   - Injects builder/query PowerShell so delivered public tools have no dev runtime dependency.

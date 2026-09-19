@@ -1,4 +1,35 @@
-# MVS Explorer Toolkit 0.15.0
+# MVS Explorer Toolkit 0.15.1
+
+
+## 0.15.1 release-token inference maintenance
+
+Version 0.15.1 is a correctness maintenance release for the analytical
+product-family release layer. Native 0.15.0 acceptance proved the family
+ownership graph and all 33 family tools, but audit of the generated real index
+showed that the release parser could mistake a later update/reference year for
+the product's own release. Examples included `Office Online Server (Updated
+November 2018)`, `.NET Framework 4.6 ... Visual Studio 2013`, and Windows titles
+whose `Updated ... 2020` metadata followed an earlier Windows/version token.
+
+The builder now derives releases from structural evidence in source order:
+leading curated versions such as Windows 10/11 and Office 95/365 are preferred;
+otherwise the left-most year or dotted semantic version is used; explicit
+Windows-style `version 1809` tokens are recognized; and `Updated`/`Last updated`
+tails cannot contribute release evidence. Office Online Server's dated archive
+labels are treated as update stamps and do not create artificial Office
+2016/2017/2018 release families.
+
+This changes only analytical release-token derivation in
+`build_mvs_product_family_index.bat`. Family ownership, confidence, source
+product facts, raw-note preservation, and all legacy archive semantics remain
+unchanged. The 32 family query wrappers are unchanged.
+
+The dedicated family regression now performs 96 assertions, including guards
+for update timestamps, referenced years, dotted semantic versions and explicit
+non-calendar version tokens. Native 0.15.0 testing also established the correct
+full regression matrix as 1,090 assertions: on the representative dump the
+expected baseline is 1,087 PASS, 0 FAIL and the same 3 data-dependent note
+SKIPs.
 
 ## 0.15.0 product-family hierarchy and bidirectional queries
 

@@ -496,3 +496,24 @@ high confidence, 314 enter the review tier, and 514 remain unclassified. The
 synthetic family regression was expanded from 88 to 92 assertions with explicit
 SQL Server, Windows Server, Visual Studio Agents, and Office Online alias cases.
 
+## 2026-09-01 — 0.15.1 real-index release-token audit
+
+Native 0.15.0 acceptance passed the 92-case family suite and the complete public
+regression. The generated 79-snapshot family index then exposed a semantic
+release-layer problem that the synthetic fixture had not covered: `Get-ReleaseToken`
+searched any calendar year before dotted versions and did not distinguish
+update metadata. That could turn `.NET Framework 4.6 ... Visual Studio 2013`
+into `.NET 2013`, or create `Microsoft Windows 2020` from a Windows 10 title
+whose trailing metadata said `Updated Jan 2020`.
+
+The maintenance fix leaves ownership and source-backed observations untouched.
+Release inference now considers source order, curated leading versions,
+explicit `version` tokens, and an update-metadata boundary. Office Online Server
+calendar labels are explicitly treated as update stamps. The synthetic family
+suite grows from 92 to 96 assertions so those real-index failure shapes are
+permanent regression cases.
+
+The native 0.15.0 run also exposed a documentation-only matrix error: the
+history scope contains 65 assertions, not 62. The actual full matrix is 1,090
+assertions, matching the observed 1,087 PASS plus 3 data-dependent SKIPs.
+

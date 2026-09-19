@@ -2,7 +2,7 @@
 :setup
 REM Standalone product-family feature regression.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.0"
+set "app.version=0.1.1"
 set "app.name=test_product_family_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -220,8 +220,21 @@ try {
     $agentsAlias = @($classifications | Where-Object { $_.product_title -eq 'Agents for Visual Studio 2012 (English)' })
     Assert-Semantic 'Visual Studio agent alias keeps broad and product family' ($agentsAlias.Count -eq 1 -and $agentsAlias[0].broad_family -eq 'Microsoft Visual Studio' -and $agentsAlias[0].product_family -eq 'Microsoft Visual Studio Agents' -and $agentsAlias[0].broad_release_family -eq 'Microsoft Visual Studio 2012') 'unexpected Visual Studio agent classification'
 
-    $officeOnlineAlias = @($classifications | Where-Object { $_.product_title -eq 'Office Online Server 2019 (English)' })
-    Assert-Semantic 'Office Online alias keeps Office release rollup' ($officeOnlineAlias.Count -eq 1 -and $officeOnlineAlias[0].broad_family -eq 'Microsoft Office' -and $officeOnlineAlias[0].product_family -eq 'Microsoft Office Online Server' -and $officeOnlineAlias[0].broad_release_family -eq 'Microsoft Office 2019') 'unexpected Office Online classification'
+    $officeOnlineAlias = @($classifications | Where-Object { $_.product_title -eq 'Office Online Server (Updated November 2018) (x64) - DVD (English)' })
+    $officeOnlineExplicit = @($classifications | Where-Object { $_.product_title -eq 'Office Online Server 2019 (x64) - DVD (English)' })
+    Assert-Semantic 'Office Online update stamp is not a release' ($officeOnlineAlias.Count -eq 1 -and $officeOnlineAlias[0].broad_family -eq 'Microsoft Office' -and $officeOnlineAlias[0].product_family -eq 'Microsoft Office Online Server' -and [string]::IsNullOrEmpty($officeOnlineAlias[0].release) -and [string]::IsNullOrEmpty($officeOnlineAlias[0].specific_release_family) -and [string]::IsNullOrEmpty($officeOnlineAlias[0].broad_release_family) -and $officeOnlineExplicit.Count -eq 1 -and $officeOnlineExplicit[0].release -eq '2019' -and $officeOnlineExplicit[0].specific_release_family -eq 'Microsoft Office Online Server 2019' -and $officeOnlineExplicit[0].broad_release_family -eq 'Microsoft Office 2019') 'Office Online update/explicit release distinction failed'
+
+    $windowsUpdated = @($classifications | Where-Object { $_.product_title -eq 'Windows 10 (business editions), version 1809 (Updated Jan 2020) (x64) - DVD (English)' })
+    Assert-Semantic 'Windows leading release beats update year' ($windowsUpdated.Count -eq 1 -and $windowsUpdated[0].broad_family -eq 'Microsoft Windows' -and $windowsUpdated[0].release -eq '10' -and $windowsUpdated[0].broad_release_family -eq 'Microsoft Windows 10') 'Windows update year leaked into release hierarchy'
+
+    $dotnetVersion = @($classifications | Where-Object { $_.product_title -eq '.NET Framework 4.6 ClickOnce Bootstrapper for Visual Studio 2013 (x86 and x64) - (Multiple Languages)' })
+    Assert-Semantic '.NET semantic version beats referenced year' ($dotnetVersion.Count -eq 1 -and $dotnetVersion[0].broad_family -eq 'Microsoft .NET' -and $dotnetVersion[0].release -eq '4.6' -and $dotnetVersion[0].broad_release_family -eq 'Microsoft .NET 4.6') '.NET referenced year incorrectly became release'
+
+    $rUpdated = @($classifications | Where-Object { $_.product_title -eq 'Microsoft R Client 3.3.2 (Updated Dec 2016) (x64) - (English)' })
+    Assert-Semantic 'semantic version beats update timestamp' ($rUpdated.Count -eq 1 -and $rUpdated[0].status -eq 'review' -and $rUpdated[0].release -eq '3.3.2' -and $rUpdated[0].broad_release_family -eq 'Microsoft R 3.3.2') 'update timestamp incorrectly became generic release'
+
+    $serverVersion = @($classifications | Where-Object { $_.product_title -eq 'Windows Server, version 1809 (updated March 2019) (x64) - DVD (English)' })
+    Assert-Semantic 'explicit non-year version beats update timestamp' ($serverVersion.Count -eq 1 -and $serverVersion[0].product_family -eq 'Microsoft Windows Server' -and $serverVersion[0].release -eq '1809' -and $serverVersion[0].specific_release_family -eq 'Microsoft Windows Server 1809' -and [string]::IsNullOrEmpty($serverVersion[0].broad_release_family)) 'Windows Server version/update distinction failed'
 
     Assert-Semantic 'embedded Office reference is not ownership' (@($unclassified | Where-Object { $_.product_title -eq 'Contoso Security for Microsoft Office Communications Server 2007' }).Count -eq 1) 'embedded Office reference was classified'
     Assert-Semantic 'FabriKam embedded Office reference is not ownership' (@($unclassified | Where-Object { $_.product_title -like 'FabriKam 3.1:*' }).Count -eq 1) 'FabriKam reference was classified'
@@ -242,7 +255,7 @@ try {
     }
     Assert-Semantic 'raw note HTML references are content-addressed' $rawOkay 'raw HTML reference/hash mismatch'
 } catch {
-    for ($i=0; $i -lt 12; $i++) { FailCase ('semantic assertion '+($i+1)) $_.Exception.Message }
+    for ($i=0; $i -lt 16; $i++) { FailCase ('semantic assertion '+($i+1)) $_.Exception.Message }
 }
 
 $queries = @(
@@ -276,8 +289,8 @@ foreach ($q in $queries) {
 }
 
 Write-Line ('SUMMARY: passed='+$script:Passed+' failed='+$script:Failed)
-if ($script:Passed + $script:Failed -ne 92) {
-    FailCase 'assertion accounting' ('expected 92 assertions, got '+($script:Passed+$script:Failed))
+if ($script:Passed + $script:Failed -ne 96) {
+    FailCase 'assertion accounting' ('expected 96 assertions, got '+($script:Passed+$script:Failed))
 }
 if ($script:Failed -gt 0) {
     Write-Line ('Artifacts retained at: '+$OutputRoot)

@@ -143,9 +143,69 @@ function Get-SnapshotSourcePath {
 }
 
 function Get-ReleaseToken {
-    param([string]$Title)
-    if ($Title -match '(?i)(?<!\d)((?:19|20)\d{2})(?!\d)') { return [string]$Matches[1] }
-    if ($Title -match '(?i)(?<![\d.])(\d+\.\d+(?:\.\d+)?)(?![\d.])') { return [string]$Matches[1] }
+    param(
+        [string]$Title,
+        [string]$Prefix='',
+        [string]$ProductFamily=''
+    )
+    if ([string]::IsNullOrWhiteSpace($Title)) { return '' }
+
+    $candidate = $Title
+    if (-not [string]::IsNullOrWhiteSpace($Prefix) -and
+        $candidate.StartsWith($Prefix,[StringComparison]::OrdinalIgnoreCase)) {
+        $candidate = $candidate.Substring($Prefix.Length)
+    }
+
+    # Never let a later maintenance/update timestamp become the product release.
+    $update = [regex]::Match($candidate,'(?i)\b(?:last\s+)?updated\b')
+    if ($update.Success) { $candidate = $candidate.Substring(0,$update.Index) }
+
+    # Historical Office Online Server source titles also use bare parenthesized
+    # month/year labels such as "(May 2016)" and "(November 2018)" for update
+    # levels. Remove that date suffix when no explicit "Updated" word is present,
+    # while leaving a future explicit title such as "Office Online Server 2019"
+    # available as genuine release evidence.
+    if (-not [string]::IsNullOrWhiteSpace($ProductFamily) -and
+        $ProductFamily.Equals('Microsoft Office Online Server',[StringComparison]::OrdinalIgnoreCase)) {
+        $officeOnlineDate = [regex]::Match(
+            $candidate,
+            '(?i)\(\s*(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+(?:19|20)\d{2}\s*\)'
+        )
+        if ($officeOnlineDate.Success) { $candidate = $candidate.Substring(0,$officeOnlineDate.Index) }
+    }
+
+    # A small integer immediately following a curated prefix is structural
+    # release evidence (Windows 10/11, Office 95/365, etc.). Do not treat later
+    # service-pack/update integers this way.
+    if (-not [string]::IsNullOrWhiteSpace($Prefix)) {
+        $leading = [regex]::Match($candidate,'^\s*(?<release>\d{1,3})(?![\d.])')
+        if ($leading.Success) { return [string]$leading.Groups['release'].Value }
+    }
+
+    # Choose the left-most ordinary release token. This intentionally fixes
+    # cases such as ".NET Framework 4.6 ... Visual Studio 2013", where 4.6 is
+    # the product version and 2013 is only a referenced dependency/tool year.
+    $standard = [regex]::Match(
+        $candidate,
+        '(?i)(?<![\d.])(?<release>(?:(?:19|20)\d{2})|\d+\.\d+(?:\.\d+)?)(?![\d.])'
+    )
+
+    # Some Windows/Server generations are four-digit "version" tokens such as
+    # 1511/1607/1703/1809. They are not calendar years, so accept them only
+    # when the source title explicitly labels them as a version.
+    $explicit = [regex]::Match(
+        $candidate,
+        '(?i)\bversion\s+(?<release>(?:1[5-9]\d{2}|2\d{3}|(?:20|21|22)H[12]))\b'
+    )
+
+    if ($standard.Success -and $explicit.Success) {
+        if ($standard.Groups['release'].Index -le $explicit.Groups['release'].Index) {
+            return [string]$standard.Groups['release'].Value
+        }
+        return [string]$explicit.Groups['release'].Value
+    }
+    if ($standard.Success) { return [string]$standard.Groups['release'].Value }
+    if ($explicit.Success) { return [string]$explicit.Groups['release'].Value }
     return ''
 }
 
@@ -381,7 +441,7 @@ function Classify-TitleAutomatic {
     if ($title -match '(?i)^(?:Microsoft\s+)?Office Communications Server\b') {
         $broad = 'Microsoft Office'
         $family = 'Microsoft Office Communications Server'
-        $release = Get-ReleaseToken $title
+        $release = Get-ReleaseToken $title '' $family
         $specific = if ([string]::IsNullOrEmpty($release)) { '' } else { $family + ' ' + $release }
         $broadRelease = if ($release -match '^(?:19|20)\d{2}$') { $broad + ' ' + $release } else { '' }
         return New-Classification $title $broad $family $release $specific $broadRelease 'high' 'curated-prefix' 'OFFICE_OCS'
@@ -397,7 +457,7 @@ function Classify-TitleAutomatic {
     if ($title -match '(?i)^Microsoft Office System Developer Kit\b') {
         $broad = 'Microsoft Office'
         $family = 'Microsoft Office System Developer Kit'
-        $release = Get-ReleaseToken $title
+        $release = Get-ReleaseToken $title 'Microsoft Office System Developer Kit' $family
         $specific = if ([string]::IsNullOrEmpty($release)) { '' } else { $family + ' ' + $release }
         return New-Classification $title $broad $family $release $specific '' 'high' 'curated-prefix' 'OFFICE_SDK'
     }
@@ -409,7 +469,7 @@ function Classify-TitleAutomatic {
                 if ($next -notmatch '[\s:,\-\(\[]') { continue }
             }
             $broad = 'Microsoft Office'
-            $release = Get-ReleaseToken $title
+            $release = Get-ReleaseToken $title $officePrefix $officePrefix
             $specific = if ([string]::IsNullOrEmpty($release)) { '' } else { $officePrefix + ' ' + $release }
             $broadRelease = if ($release -match '^(?:19|20)\d{2}$') { $broad + ' ' + $release } else { '' }
             return New-Classification $title $broad $officePrefix $release $specific $broadRelease 'high' 'curated-prefix' 'OFFICE_COMPONENT'
@@ -418,8 +478,8 @@ function Classify-TitleAutomatic {
 
     if ($title -match '(?i)^Microsoft Office\b') {
         $broad = 'Microsoft Office'
-        $release = Get-ReleaseToken $title
-        $broadRelease = if ($release -match '^(?:19|20)\d{2}$') { $broad + ' ' + $release } else { '' }
+        $release = Get-ReleaseToken $title 'Microsoft Office' $broad
+        $broadRelease = if ($release -match '^(?:19|20)\d{2}$' -or $release -match '^\d{1,3}$') { $broad + ' ' + $release } else { '' }
         return New-Classification $title $broad $broad $release $broadRelease $broadRelease 'high' 'curated-prefix' 'OFFICE_GENERIC'
     }
 
@@ -439,7 +499,7 @@ function Classify-TitleAutomatic {
         }
         $broad = [string]$aliasRule.broad
         $family = [string]$aliasRule.family
-        $release = Get-ReleaseToken $title
+        $release = Get-ReleaseToken $title $prefix $family
         $specific = if ([string]::IsNullOrEmpty($release)) { '' } else { $family + ' ' + $release }
         $broadRelease = if ($release -match '^(?:19|20)\d{2}$') { $broad + ' ' + $release } else { '' }
         if ([string]::IsNullOrEmpty($broadRelease) -and -not [string]::IsNullOrEmpty($release) -and $broad.Equals($family,[StringComparison]::OrdinalIgnoreCase)) {
@@ -454,7 +514,7 @@ function Classify-TitleAutomatic {
                 $next = $title.Substring($prefix.Length,1)
                 if ($next -notmatch '[\s:,\-\(\[]') { continue }
             }
-            $release = Get-ReleaseToken $title
+            $release = Get-ReleaseToken $title $prefix $prefix
             $specific = if ([string]::IsNullOrEmpty($release)) { '' } else { $prefix + ' ' + $release }
             return New-Classification $title $prefix $prefix $release $specific $specific 'high' 'curated-prefix' 'CURATED_MICROSOFT'
         }
@@ -462,7 +522,7 @@ function Classify-TitleAutomatic {
 
     if ($title -match '(?i)^Microsoft\s+(?<stem>[A-Za-z0-9][A-Za-z0-9+.#-]*)\b') {
         $family = 'Microsoft ' + [string]$Matches.stem
-        $release = Get-ReleaseToken $title
+        $release = Get-ReleaseToken $title $family $family
         $specific = if ([string]::IsNullOrEmpty($release)) { '' } else { $family + ' ' + $release }
         return New-Classification $title $family $family $release $specific $specific 'review' 'generic-leading-microsoft-stem' 'GENERIC_MICROSOFT_REVIEW' 'review'
     }

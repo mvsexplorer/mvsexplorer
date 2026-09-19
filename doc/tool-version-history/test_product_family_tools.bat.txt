@@ -1,5 +1,9 @@
 test\test_product_family_tools.bat
 
+0.1.1 - 2026-09-01
+  - Expands the dedicated product-family regression from 92 to 96 assertions.
+  - Adds real-title-shaped guards for Office Online update stamps, Windows update years, semantic versions preceding referenced years, and explicit version 1809-style tokens.
+
 0.1.0 - 2026-09-01
   - Initial 92-assertion synthetic product-family regression.
   - Covers hierarchy semantics, curated leading aliases, provenance, overrides, false-positive guards, raw notes, and all 32 query wrappers.

@@ -1,5 +1,9 @@
 build_mvs_product_family_index.bat
 
+0.1.1 - 2026-09-01
+  - Hardens analytical release-token inference after the native 0.15.0 real-index audit.
+  - Ignores Updated/Last updated metadata for release purposes, prefers earlier structural/semantic versions, supports explicit non-calendar version tokens, and suppresses dated Office Online Server update labels as release families.
+
 0.1.0 - 2026-09-01
   - Initial standalone archive-level product-family index builder.
   - Preserves concrete title/source provenance while deriving an analytical family DAG.

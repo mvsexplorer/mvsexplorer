@@ -257,6 +257,38 @@ test\build_archive_html_report.bat result-folder
 `test\archive-exclusions.tsv` is an optional non-destructive canonical
 interpretation file. Excluded snapshots remain tested and fully ingested.
 
+## 0.15.1 product-family release-token regression
+
+The dedicated product-family acceptance now performs 96 assertions. Four
+maintenance assertions specifically guard real-archive release inference:
+update timestamps do not become releases, an earlier dotted semantic version
+beats a later referenced year, leading Windows releases beat update years, and
+explicit non-calendar `version 1809`-style tokens are retained.
+
+The normal 0.15.1 `test_all.bat` matrix is 1,090 assertions. On the established
+representative dump, where the same three exact note lookups are data-dependent
+SKIPs, the expected result is:
+
+```text
+SUMMARY: passed=1087 failed=0 skipped=3
+```
+
+The matrix is:
+
+```text
+Structure:       477
+Scalar:          120
+Lookup:           24
+Diagnostic:       46
+Relationship:    151
+Single-dump:     167
+Compare:          39
+History:          65
+Family wrapper:    1
+---------------------
+Total:          1090 assertions
+```
+
 ## 0.15.0 product-family regression
 
 The product-family feature has its own archive-level synthetic acceptance:
@@ -281,14 +313,14 @@ Diagnostic:       46
 Relationship:    151
 Single-dump:     167
 Compare:          39
-History:          62
+History:          65
 Family wrapper:    1
 ---------------------
-Total:          1087 assertions
+Total:          1090 assertions
 ```
 
 The three data-dependent exact note lookup cases may still be SKIP on the
-representative real dump, so the established baseline becomes 1084 PASS /
+representative real dump, so the established baseline becomes 1087 PASS /
 0 FAIL / 3 SKIP when those same skips apply.
 
 The 33 family tools are intentionally a separate archive-level class. They do

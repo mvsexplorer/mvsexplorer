@@ -1,6 +1,6 @@
 # Product-family hierarchy and query tools
 
-MVS Explorer Toolkit 0.15.0 adds an analytical product-family layer above the
+MVS Explorer Toolkit 0.15.x provides an analytical product-family layer above the
 concrete product titles preserved by the source archive.
 
 ## Why this is a separate analytical layer
@@ -56,6 +56,33 @@ Microsoft Office System Developer Kit
 family while retaining its own `Microsoft Office Proofing Tools` product
 family. `Microsoft Office System Developer Kit 3.0 ...` retains release 3.0 but
 does not fabricate a broad `Microsoft Office 3.0` release rollup.
+
+
+## Release-token derivation
+
+Release memberships are analytical classifications, not source facts. Starting
+with 0.15.1, the builder deliberately separates product-version evidence from
+maintenance dates and referenced-product years.
+
+The precedence is conservative:
+
+1. after a curated leading product prefix, a leading small integer can be a
+   structural release (`Windows 10`, `Windows 11`, `Office 95`, `Office 365`);
+2. otherwise the left-most source-order calendar year or dotted semantic
+   version is used (`.NET Framework 4.6 ... Visual Studio 2013` therefore uses
+   `4.6`);
+3. explicitly labeled Windows-style versions such as `version 1809` are
+   recognized even though 1809 is not a calendar release year;
+4. text at and after `Updated` or `Last updated` is maintenance metadata and
+   cannot supply a release token;
+5. Office Online Server's archive labels such as `(Updated November 2018)` or
+   `(Last updated March 2017)` are update stamps, so they produce broad/product
+   family memberships but no synthetic `Microsoft Office 2018`/`2017` release
+   node.
+
+These rules do not alter product-family ownership. A title can still be a
+high-confidence member of `Microsoft Office Online Server` while having no
+release-family membership when the source title supplies only an update date.
 
 ## Build the index
 
@@ -216,7 +243,7 @@ test\test_product_family_tools.bat
 ```
 
 The synthetic regression builds a three-snapshot index (including one nested
-`mvs_dmp` snapshot) and performs 92 assertions:
+`mvs_dmp` snapshot) and performs 96 assertions:
 
 - archive fixture and builder execution;
 - all normalized output tables;

@@ -1,5 +1,9 @@
 validate_archive_sweep.py Version History
 
+0.6.1 - 2026-09-01
+  - Guards the 0.15.1 release-token hardening and its new real-title-shaped family regression cases.
+  - Requires the aggregate test harness to expect the exact 96-assertion family summary and rejects the stale 92-case success signature.
+
 0.6.0 - 2026-09-01
   - Validates the separate 33-tool product-family class and its 92-assertion synthetic regression.
   - Preserves static 34,822/1,306 legacy archive plan invariants while the root public surface grows to 476.

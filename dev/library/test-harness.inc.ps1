@@ -1354,12 +1354,12 @@ function Test-ProductFamilyFeature {
         return
     }
     $run = Invoke-PublicTool $path '' $null $false
-    if ($run.rc -eq 0 -and [string]::IsNullOrWhiteSpace($run.stderr) -and $run.stdout -match 'SUMMARY: passed=92 failed=0') {
-        Write-Pass 'product-family regression 92 assertions' '0' ([string]$run.rc) ([string]$run.elapsed_ms)
+    if ($run.rc -eq 0 -and [string]::IsNullOrWhiteSpace($run.stderr) -and $run.stdout -match 'SUMMARY: passed=96 failed=0') {
+        Write-Pass 'product-family regression 96 assertions' '0' ([string]$run.rc) ([string]$run.elapsed_ms)
     } else {
         $reason = 'rc=' + $run.rc + '; stdout=' + (Short-Text $run.stdout) + '; stderr=' + (Short-Text $run.stderr)
-        Write-Fail 'product-family regression 92 assertions' $reason '0' ([string]$run.rc) ([string]$run.elapsed_ms)
-        Save-FailureArtifacts 'product-family regression' $run 0 'SUMMARY: passed=92 failed=0' $reason
+        Write-Fail 'product-family regression 96 assertions' $reason '0' ([string]$run.rc) ([string]$run.elapsed_ms)
+        Save-FailureArtifacts 'product-family regression' $run 0 'SUMMARY: passed=96 failed=0' $reason
     }
 }
 

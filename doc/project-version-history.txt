@@ -1,5 +1,15 @@
 MVS Explorer Toolkit Project Version History
 
+
+0.15.1 - 2026-09-01
+  - Corrected analytical product-family release-token inference after auditing the native 0.15.0 real family index.
+  - Prevented Updated/Last updated timestamps and later referenced-product years from overriding earlier structural product versions.
+  - Added leading small-version handling (for example Windows 10/11 and Office 95/365), left-most year/semantic-version selection, and explicit non-calendar version handling such as Windows version 1809.
+  - Treats Office Online Server calendar labels in this archive as update stamps rather than synthetic Office release families.
+  - Expanded the dedicated family regression from 92 to 96 assertions with real-title-shaped maintenance cases.
+  - Corrected the documented full regression matrix to 1,090 assertions; native 0.15.0 acceptance established 1,087 PASS / 0 FAIL / 3 SKIP on the representative dump.
+  - Keeps all 443 legacy public tools unchanged; the 32 family query wrappers remain unchanged and only the family index builder changes publicly.
+
 0.15.0 - 2026-09-01
   - Feature release adding an analytical product-family DAG above concrete historical product titles.
   - Kept the original 443 public root tools byte-for-byte identical to 0.14.4 and added 33 standalone family/index tools, for 476 public root tools total.

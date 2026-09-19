@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validation for archive sweep, quality, reporting, and performance helpers.
 
-Version: 0.6.0
+Version: 0.6.1
 """
 from pathlib import Path
 import sys
@@ -203,7 +203,9 @@ def main():
         ":_MVSProductFamily_start","product-family-memberships.tsv","family-parent-relationships.tsv",
         "product-ids.tsv","product-dates.tsv","product-files.tsv","product-hashes.tsv",
         "product-notes.tsv","unclassified-products.tsv","overrides-applied.tsv","mvs_dmp",
-        "OFFICE_OCS","OFFICE_PROOFING","OFFICE_SDK","GENERIC_MICROSOFT_REVIEW"
+        "OFFICE_OCS","OFFICE_PROOFING","OFFICE_SDK","GENERIC_MICROSOFT_REVIEW",
+        "Get-ReleaseToken","Microsoft Office Online Server","(?:last\\s+)?updated",
+        "\\bversion\\s+"
     ))
     family_queries=[p for p in public if p.name.startswith("print_mvs_product_") or p.name.startswith("read_mvs_product_")]
     if len(family_queries)!=32:
@@ -211,12 +213,18 @@ def main():
     for p in family_queries:
         check_batch(p,(":_MVSProductFamilyQuery_start","product-family-memberships.tsv","Matches-Pattern"))
     family_test=check_batch(ROOT/"test"/"test_product_family_tools.bat",(
-        ":_MVSProductFamilyTest_start","SUMMARY: passed=","expected 92 assertions",
-        "embedded Office reference is not ownership","raw note HTML references are content-addressed"
+        ":_MVSProductFamilyTest_start","SUMMARY: passed=","expected 96 assertions",
+        "embedded Office reference is not ownership","raw note HTML references are content-addressed",
+        "Office Online update stamp is not a release",
+        ".NET semantic version beats referenced year",
+        "explicit non-year version beats update timestamp"
     ))
     test_all_text=(ROOT/"test"/"test_all.bat").read_text(encoding="utf-8")
-    if "root public .bat count = 476" not in test_all_text or "product-family regression 92 assertions" not in test_all_text:
-        fail("test_all.bat is not integrated with product-family public surface/regression")
+    if ("root public .bat count = 476" not in test_all_text or
+        "product-family regression 96 assertions" not in test_all_text or
+        "SUMMARY: passed=96 failed=0" not in test_all_text or
+        "SUMMARY: passed=92 failed=0" in test_all_text):
+        fail("test_all.bat is not integrated with the 96-assertion product-family regression")
 
     exclusions=ROOT/"test"/"archive-exclusions.tsv"
     if not exclusions.is_file(): fail("missing test/archive-exclusions.tsv")
