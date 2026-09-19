@@ -132,6 +132,25 @@ def main():
         if token not in fast_test:
             fail("fast acceptance test missing concrete evolution assertion "+token)
 
+    # PowerShell 5.1 must serialize summary/run-info metadata as one field per line.
+    # Unparenthesized array-entry concatenation can split labels from values.
+    sweep_lib=(ROOT/"dev"/"library"/"archive-sweep.inc.ps1").read_text(encoding="utf-8")
+    if sweep_lib.count("('Executor: ' + $Executor),") < 2:
+        fail("archive sweep metadata writers must parenthesize Executor concatenation in summary and run-info")
+    for bad in (
+        "\n        'Mode: ' + $Mode,",
+        "\n        'Executor: ' + $Executor,",
+        "\n    'Sweep script: ' + $Caller,",
+        "\n    'Executor: ' + $Executor,",
+    ):
+        if bad in sweep_lib:
+            fail("archive sweep metadata writer contains PowerShell-5.1-sensitive unparenthesized array concatenation")
+
+    if '"%fastout%\\run-info.txt" "Executor: fast-combined"' not in fast_test:
+        fail("fast acceptance test does not validate fast-combined run-info metadata")
+    if '"%extout%\\run-info.txt" "Executor: external-public"' not in fast_test:
+        fail("fast acceptance test does not validate external-public run-info metadata")
+
     # Synthetic history notes exercise both legacy h3+ID and newer h1 heading forms.
     fixture_notes=(
         ROOT/"test"/"test-mvs-dump-history"/"mvs_2020-01-01"/"mvs_notes.html",

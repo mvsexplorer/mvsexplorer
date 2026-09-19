@@ -91,6 +91,7 @@ doc/compare-test-fixture.md
 doc/compare-tool-matrix.tsv
 doc/compare-tools.md
 doc/comprehensive-testing.md
+doc/current-status.md
 doc/data-model.md
 doc/developer-diary.md
 doc/development-directives.md
@@ -98,6 +99,7 @@ doc/development-prompts.md
 doc/diagnostic-test-fixture.md
 doc/diagnostic-tool-matrix.tsv
 doc/diagnostic-tools.md
+doc/HANDOFF.md
 doc/history-test-fixture.md
 doc/history-tool-matrix.tsv
 doc/history-tools.md
@@ -121,6 +123,7 @@ doc/test-run-analysis-0.10.0.md
 doc/test-run-analysis-0.11.0.md
 doc/test-run-analysis-0.13.0.md
 doc/test-run-analysis-0.13.x-archive.md
+doc/test-run-analysis-0.14.0.md
 doc/test-run-analysis-0.4.0.md
 doc/test-run-analysis-0.5.0.md
 doc/test-run-analysis-0.6.0.md

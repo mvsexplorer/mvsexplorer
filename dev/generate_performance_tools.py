@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate archive-sweep high-performance workers and analyzer.
 
-Version: 0.3.0
+Version: 0.3.1
 """
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]

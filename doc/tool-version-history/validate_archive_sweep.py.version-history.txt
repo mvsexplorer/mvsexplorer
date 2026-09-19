@@ -1,5 +1,9 @@
 validate_archive_sweep.py Version History
 
+0.3.1 - 2026-08-30
+  - Rejects unparenthesized archive summary/run-info concatenation that splits metadata fields under Windows PowerShell 5.1.
+  - Requires fast acceptance assertions for executor metadata in both summary.txt and run-info.txt.
+
 0.5.0 - 2026-08-30
   - Added case-insensitive duplicate batch-label validation across delivered batch files.
   - Requires indexed fast-worker markers, source-stability/cache features, note h3/h1 acceptance, retention, quality, HTML, and performance artifacts.

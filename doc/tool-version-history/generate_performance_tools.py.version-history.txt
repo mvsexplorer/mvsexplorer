@@ -1,5 +1,8 @@
 generate_performance_tools.py Version History
 
+0.3.1 - 2026-08-30
+  - Regenerates test_fast_archive_sweep.bat 0.4.1 with summary/run-info executor metadata assertions.
+
 0.3.0 - 2026-08-30
   - Generates indexed/source-stable fast workers, strengthened fast acceptance, and public/archive performance helpers.
 

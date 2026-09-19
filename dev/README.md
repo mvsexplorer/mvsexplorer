@@ -156,3 +156,20 @@ logical plan counts.
 The synthetic archive fixture is maintained by
 `generate_history_fixture.py`. Its notes intentionally exercise both historical
 h3+ID and current h1 heading forms.
+
+## Handoff / maintenance discipline
+
+See `doc\HANDOFF.md` before changing archive execution or evolution semantics.
+
+When performance infrastructure is optimized:
+
+1. regenerate maintained artifacts;
+2. run static validators;
+3. verify no unintended public-tool byte changes;
+4. run the functional regression gate;
+5. run the fast synthetic acceptance;
+6. review performance outliers;
+7. rerun after optimization.
+
+Do not solve acceptance failures by weakening metadata/evolution assertions when
+the producer can be corrected instead.

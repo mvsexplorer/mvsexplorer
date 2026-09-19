@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone archive sweep harness embeds PowerShell.
 setlocal DisableDelayedExpansion
-set "app.version=0.4.0"
+set "app.version=0.4.1"
 set "app.name=test_all_dumps"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -1079,27 +1079,26 @@ function Write-Summary {
     $text = @(
         'MVS Explorer Toolkit archive-wide tool sweep',
         '',
-        'Mode: ' + $Mode,
-        'Executor: ' + $Executor,
+        ('Mode: ' + $Mode),
+        ('Executor: ' + $Executor),
         ('Workers: ' + $Workers),
         ('Exclusions: ' + $ExclusionsPath),
-        'Content cache: ' + $(if($UseCache){$CachePath}else{'disabled'}),
-        'Interactive report: ' + $(if($GenerateReport -and $Executor -eq 'fast-combined'){'enabled'}else{'disabled'}),
-        'Snapshots: ' + $Snapshots,
-        'Single-snapshot public tools: ' + $SingleTools,
-        'Compare public tools: ' + $CompareTools,
-        'Archive public tools: ' + $ArchiveTools,
-        'Planned invocations: ' + $Planned,
-        'Completed invocations: ' + $Completed,
-        'Remaining invocations: ' + $remaining,
-        'PASS: ' + $Counts.PASS,
-        'NO_RESULT: ' + $Counts.NO_RESULT,
-        'SOURCE_MISSING: ' + $Counts.SOURCE_MISSING,
-        'FAIL: ' + $Counts.FAIL
+        ('Content cache: ' + $(if($UseCache){$CachePath}else{'disabled'})),
+        ('Interactive report: ' + $(if($GenerateReport -and $Executor -eq 'fast-combined'){'enabled'}else{'disabled'})),
+        ('Snapshots: ' + $Snapshots),
+        ('Single-snapshot public tools: ' + $SingleTools),
+        ('Compare public tools: ' + $CompareTools),
+        ('Archive public tools: ' + $ArchiveTools),
+        ('Planned invocations: ' + $Planned),
+        ('Completed invocations: ' + $Completed),
+        ('Remaining invocations: ' + $remaining),
+        ('PASS: ' + $Counts.PASS),
+        ('NO_RESULT: ' + $Counts.NO_RESULT),
+        ('SOURCE_MISSING: ' + $Counts.SOURCE_MISSING),
+        ('FAIL: ' + $Counts.FAIL)
     ) -join [Environment]::NewLine
     Write-TextUtf8 $Path ($text + [Environment]::NewLine)
 }
-
 if (@('--help','-h','-?','/h','/?') -contains $ArchiveInput) {
     Show-Usage
     [Environment]::Exit(0)
@@ -1358,28 +1357,28 @@ if ($Resume) {
 }
 
 $runInfo = @(
-    'Sweep script: ' + $Caller,
-    'Sweep version: ' + $Version,
-    'Mode: ' + $(if ($PlanOnly) { 'plan-only' } elseif ($Resume) { 'resume' } else { 'execute' }),
-    'Executor: ' + $Executor,
-    'Workers: ' + $Workers,
-    'Content cache: ' + $(if($UseCache){$CachePath}else{'disabled'}),
-    'Exclusions: ' + $ExclusionsPath,
-    'Interactive report: ' + $GenerateReport,
-    'Archive root: ' + $ArchiveRoot,
-    'Project root: ' + $ProjectRoot,
-    'Results folder: ' + $ResultsFolder,
-    'Computer: ' + $env:COMPUTERNAME,
-    'User: ' + $env:USERNAME,
-    'OS: ' + [Environment]::OSVersion.VersionString,
-    'PowerShell: ' + $PSVersionTable.PSVersion.ToString(),
-    'CLR: ' + [Environment]::Version.ToString(),
-    'Snapshots: ' + $snapshots.Count,
-    'Single tools: ' + $singleFiles.Count,
-    'Compare tools: ' + $compareFiles.Count,
-    'Archive tools: ' + $archiveFiles.Count,
-    'Planned invocations: ' + $plan.Count,
-    'Plan SHA-256: ' + $planHash
+    ('Sweep script: ' + $Caller),
+    ('Sweep version: ' + $Version),
+    ('Mode: ' + $(if ($PlanOnly) { 'plan-only' } elseif ($Resume) { 'resume' } else { 'execute' })),
+    ('Executor: ' + $Executor),
+    ('Workers: ' + $Workers),
+    ('Content cache: ' + $(if($UseCache){$CachePath}else{'disabled'})),
+    ('Exclusions: ' + $ExclusionsPath),
+    ('Interactive report: ' + $GenerateReport),
+    ('Archive root: ' + $ArchiveRoot),
+    ('Project root: ' + $ProjectRoot),
+    ('Results folder: ' + $ResultsFolder),
+    ('Computer: ' + $env:COMPUTERNAME),
+    ('User: ' + $env:USERNAME),
+    ('OS: ' + [Environment]::OSVersion.VersionString),
+    ('PowerShell: ' + $PSVersionTable.PSVersion.ToString()),
+    ('CLR: ' + [Environment]::Version.ToString()),
+    ('Snapshots: ' + $snapshots.Count),
+    ('Single tools: ' + $singleFiles.Count),
+    ('Compare tools: ' + $compareFiles.Count),
+    ('Archive tools: ' + $archiveFiles.Count),
+    ('Planned invocations: ' + $plan.Count),
+    ('Plan SHA-256: ' + $planHash)
 ) -join [Environment]::NewLine
 Write-TextUtf8 $runInfoPath ($runInfo + [Environment]::NewLine)
 

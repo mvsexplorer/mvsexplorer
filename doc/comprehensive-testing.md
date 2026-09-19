@@ -148,3 +148,48 @@ test
 
 Cached archive runs are useful for frequent catalog validation. Fresh
 `--no-cache` runs are the authoritative performance measurement.
+
+## Acceptance definition and recurring optimization loop
+
+The user requires a complete start-to-finish real-archive run before the fast
+archive path is considered fully validated. Resume support remains essential
+for fault recovery, but an interrupted/resumed run is not the final acceptance
+artifact.
+
+The intended recurring loop is:
+
+```text
+functional regression
+    -> fast synthetic acceptance
+    -> fresh real-archive run
+    -> quality/integrity check
+    -> performance outlier review
+    -> optimization
+    -> rerun the same gates
+```
+
+A performance change is accepted only when the same functional assertions and
+return-code/output contracts remain clean afterward.
+
+`--full-archive` testing should use a no-cache/fresh execution path for the
+performance baseline. Ordinary frequent runs may use the content cache.
+
+The project goal is to make complete archive testing practical enough to run
+regularly during the week.
+
+## Current 0.14.1 continuation gate
+
+The 0.14.0 fast executor completed all 1,306 synthetic logical checks with
+FAIL=0 and generated the HTML report. The acceptance harness then rejected
+metadata serialization: `summary.txt` split `Executor:` and `fast-combined`
+onto separate physical lines.
+
+0.14.1 parenthesizes string concatenations in the metadata producer and keeps
+the acceptance assertion strict. The first native Windows continuation command
+is:
+
+```bat
+test\test_fast_archive_sweep.bat
+```
+
+Native Windows acceptance of this maintenance fix is still required.

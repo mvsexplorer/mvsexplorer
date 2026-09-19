@@ -161,6 +161,15 @@ history fixture. Its working folders are created under `%TEMP%`, not under
 them and print their exact locations together with summary/run-info/log
 contents.
 
+
+### 0.14.1 metadata serialization maintenance
+
+Windows PowerShell 5.1 requires the archive sweep summary/run-info array
+concatenations to be parenthesized so each `Key: value` field remains one
+physical line. `test_fast_archive_sweep.bat` verifies the executor metadata in
+both files before continuing with evolution, quality, and HTML assertions.
+
+
 ## 0.14.0 comprehensive archive quality/performance cycle
 
 Run the recurring development gate with:
@@ -190,3 +199,27 @@ test\build_archive_html_report.bat result-folder
 
 `test\archive-exclusions.tsv` is an optional non-destructive canonical
 interpretation file. Excluded snapshots remain tested and fully ingested.
+
+## Acceptance versus recovery
+
+`--resume` is a recovery mechanism. It is not the final acceptance standard.
+
+The project requires at least one clean fresh real-archive run that completes
+start-to-finish without interruption. After that run, use:
+
+```bat
+test\check_archive_sweep_quality.bat result-folder --strict-performance
+```
+
+and inspect/generate:
+
+```bat
+test\build_archive_html_report.bat result-folder
+```
+
+A sweep with `FAIL=0` can still be invalid if source availability changed
+mid-batch or if the ledger contains unexpected `SOURCE_MISSING`; the quality
+checker is therefore part of acceptance.
+
+For recurring development, use `test\test_everything.bat` so functional,
+quality, and performance regression remain tied together.

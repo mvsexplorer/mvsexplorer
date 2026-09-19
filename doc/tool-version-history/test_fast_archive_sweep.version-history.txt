@@ -1,5 +1,10 @@
 test_fast_archive_sweep.bat Version History
 
+0.4.1 - 2026-08-30
+  - Kept strict summary metadata assertions after fixing the producer formatting.
+  - Added executor assertions against run-info.txt for both fast-combined and external-public modes.
+  - Retains detailed artifacts on failure.
+
 0.4.0 - 2026-08-30
   - Rebuilt top-level flow so all subroutines are outside parenthesized error branches.
   - Added concrete product/variant/note evolution assertions.

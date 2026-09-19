@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
-set "app.version=0.4.0"
+set "app.version=0.4.1"
 set "root=%~dp0"
 set "fixture=%root%test-mvs-dump-history"
 set "tag=%RANDOM%%RANDOM%"
@@ -23,6 +23,12 @@ if errorlevel 1 (
 call :AssertMetadataLine "%fastout%\summary.txt" "Executor: fast-combined"
 if errorlevel 1 (
   echo [FAIL] fast-combined executor metadata
+  call :ShowFailure "%fastout%"
+  exit /b 1
+)
+call :AssertMetadataLine "%fastout%\run-info.txt" "Executor: fast-combined"
+if errorlevel 1 (
+  echo [FAIL] fast-combined run-info executor metadata
   call :ShowFailure "%fastout%"
   exit /b 1
 )
@@ -158,6 +164,12 @@ if errorlevel 1 (
 call :AssertMetadataLine "%extout%\summary.txt" "Executor: external-public"
 if errorlevel 1 (
   echo [FAIL] external-public executor metadata
+  call :ShowFailure "%extout%"
+  exit /b 1
+)
+call :AssertMetadataLine "%extout%\run-info.txt" "Executor: external-public"
+if errorlevel 1 (
+  echo [FAIL] external-public run-info executor metadata
   call :ShowFailure "%extout%"
   exit /b 1
 )

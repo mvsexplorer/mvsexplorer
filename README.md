@@ -1,4 +1,53 @@
-# MVS Explorer Toolkit 0.14.0
+# MVS Explorer Toolkit 0.14.1
+
+## Current development handoff
+
+The detailed continuation state is recorded in:
+
+```text
+doc\HANDOFF.md
+```
+
+Key current boundary:
+
+- 0.14.0 public regression is clean on Windows: 1,053 pass / 0 fail / 3 skip.
+- The 0.14.0 fast executor completed the three-snapshot 1,306-check sweep with
+  FAIL=0 and generated the interactive HTML report.
+- The 0.14.0 acceptance harness then exposed PowerShell 5.1 metadata
+  serialization: `Executor:` and its value were split onto separate physical
+  lines.
+- 0.14.1 fixes the metadata producer with parenthesized concatenations while
+  retaining the strict assertion.
+- Native Windows validation of that 0.14.1 maintenance fix is the next gate.
+
+The project requires a complete fresh start-to-finish real-archive run, followed
+by quality/integrity and performance verification, before the fast archive path
+is considered fully accepted.
+
+
+
+## 0.14.1 PowerShell 5.1 archive-metadata serialization fix
+
+Version 0.14.1 is a maintenance release over 0.14.0. All 443 public root
+tools remain byte-for-byte identical to 0.14.0 and the supplied 0.13.3
+baseline.
+
+The 0.14.0 fast executor itself completed the three-snapshot acceptance sweep
+successfully (1,306/1,306 logical checks, FAIL=0), but the acceptance harness
+then rejected its metadata. Windows PowerShell 5.1 evaluated several
+unparenthesized string-concatenation expressions inside the summary/run-info
+array literals as separate array elements, producing `Executor:` and
+`fast-combined` on separate physical lines instead of the intended
+`Executor: fast-combined`.
+
+0.14.1 parenthesizes every concatenated summary/run-info array entry, keeps the
+acceptance test strict, and additionally verifies the executor line in both
+`summary.txt` and `run-info.txt`. The static validator rejects the
+PowerShell-5.1-sensitive form.
+
+The 0.14.0 Windows public regression remains clean: 1,053 pass, 0 fail,
+3 data-dependent skips (1,056 assertions) on `mvs_2018-10-04`.
+
 
 
 ## 0.14.0 indexed archive analysis, quality, and reporting
