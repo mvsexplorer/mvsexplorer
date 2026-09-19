@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validation for archive sweep, quality, reporting, and performance helpers.
 
-Version: 0.7.2
+Version: 0.7.3
 """
 from pathlib import Path
 import sys
@@ -223,8 +223,20 @@ def main():
         ":_MVSAllPipeline_start","Project version:","ALL TESTS","BUILD ARCHIVE ANALYSIS DATABASE",
         "BUILD FULL PRODUCT-FAMILY EVIDENCE DATABASE","BUILD COMPACT ALL-EVER PRODUCT-FAMILY DATABASE",
         "test_generated_databases.bat","phase-performance.tsv","SEND-ME-","Get-StatusTokenColor",
-        "Write-ConsoleTokenized","[IO.FileShare]::ReadWrite","[Console]::ForegroundColor","'Green'","'Red'","'Yellow'"
+        "Write-ConsoleTokenized","COLLECT LOGS, CREATE DATABASE HARDLINKS, PREPARE FINAL PACKAGE",
+        "Finalizing log ZIP after active log writers are closed ...","[Console]::ForegroundColor","'Green'","'Red'","'Yellow'"
     ))
+    phase_marker="$sw=Begin-Phase 'COLLECT LOGS, CREATE DATABASE HARDLINKS, PREPARE FINAL PACKAGE'"
+    dispose_marker='if($null-ne$script:MasterWriter){$script:MasterWriter.Flush();$script:MasterWriter.Dispose();$script:MasterWriter=$null}'
+    final_marker="Write-Console 'Finalizing log ZIP after active log writers are closed ...'"
+    phase_pos=pipeline_tool.find(phase_marker)
+    dispose_pos=pipeline_tool.find(dispose_marker)
+    final_pos=pipeline_tool.find(final_marker)
+    if phase_pos < 0 or dispose_pos <= phase_pos or final_pos <= dispose_pos:
+        fail("pipeline log-ZIP ordering markers are invalid")
+    active_window=pipeline_tool[phase_pos:dispose_pos]
+    if "New-ZipFromDirectory $script:LogsRoot $script:LogZip" in active_window or "Finish-LogZip" in active_window:
+        fail("pipeline attempts to ZIP live logs before writer disposal")
     db_validator=check_batch(ROOT/"test"/"test_generated_databases.bat",(
         ":_MVSDatabaseValidation_start","DB TEST","all-family-tools-performance.tsv",
         "snapshot-set dictionary is internally consistent","same-product filename/hash disagreement ledger",
@@ -251,10 +263,10 @@ def main():
         fail("archive-exclusions.tsv header mismatch")
 
     # Test harness must capture per-invocation elapsed time.
-    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","remaining=","Project: MVS Explorer Toolkit","mvst_project_version=0.16.3"))
+    test_all=check_batch(ROOT/"test"/"test_all.bat",("elapsed_ms","Diagnostics.Stopwatch","all-results.tsv","[TEST ","remaining=","Project: MVS Explorer Toolkit","mvst_project_version=0.16.4"))
     if "expected_rc`tactual_rc`telapsed_ms" not in test_all:
         fail("test result TSV does not include elapsed_ms")
-    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","remaining=","Project version:","0.16.3"))
+    check_batch(ROOT/"test"/"test_everything.bat",("[SUITE TEST ","remaining=","Project version:","0.16.4"))
 
     maintained=(
         "dev/generate_archive_sweep.py","dev/generate_performance_tools.py","dev/generate_report_tools.py",

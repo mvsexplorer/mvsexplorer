@@ -532,7 +532,7 @@ try{
     Invoke-InternalPhase 'ZIP COMPACT PRODUCT-FAMILY DATABASE' {New-ZipFromDirectory $CompactDatabase $CompactZip} $CompactZip
     Add-DatabaseRecord 'compact_family_database' $CompactDatabase $CompactZip
 
-    $sw=Begin-Phase 'COLLECT LOGS, ZIP LOGS, CREATE CURRENT-FOLDER HARDLINKS, PRINT SUMMARY'
+    $sw=Begin-Phase 'COLLECT LOGS, CREATE DATABASE HARDLINKS, PREPARE FINAL PACKAGE'
     try{
         if(-not[string]::IsNullOrWhiteSpace($script:TestResults)-and(Test-Path -LiteralPath $script:TestResults -PathType Container)){
             $testDest=Join-Path $script:LogsRoot 'test-results'
@@ -581,18 +581,16 @@ try{
             Write-Log ($r.name+' ZIP SHA256: '+$hash)
         }
 
-        # Write a preliminary summary before the log ZIP so it is included.
-        Write-FinalFiles 'PASS' ''
-        New-ZipFromDirectory $script:LogsRoot $script:LogZip
-
+        # Do not ZIP the live log directory here. console.log and phase-performance.tsv
+        # are still open by design. Final log packaging runs only after the outer finally
+        # block has flushed and disposed both writers.
         [void](New-HardLink $ArchiveZip 'ARCHIVE-DATABASE')
         [void](New-HardLink $FamilyZip 'FAMILY-DATABASE')
         [void](New-HardLink $CompactZip 'COMPACT-DATABASE')
-        [void](New-HardLink $script:LogZip 'LOGS')
-        Record-Phase 'COLLECT LOGS, ZIP LOGS, CREATE CURRENT-FOLDER HARDLINKS, PRINT SUMMARY' 'PASS' $sw 0 $script:LogZip
+        Record-Phase 'COLLECT LOGS, CREATE DATABASE HARDLINKS, PREPARE FINAL PACKAGE' 'PASS' $sw 0 $script:LogsRoot
         $completed=$true
     } catch {
-        if($sw.IsRunning){Record-Phase 'COLLECT LOGS, ZIP LOGS, CREATE CURRENT-FOLDER HARDLINKS, PRINT SUMMARY' 'FAIL' $sw 1 $_.Exception.Message}
+        if($sw.IsRunning){Record-Phase 'COLLECT LOGS, CREATE DATABASE HARDLINKS, PREPARE FINAL PACKAGE' 'FAIL' $sw 1 $_.Exception.Message}
         throw
     }
 } catch {
@@ -604,21 +602,24 @@ try{
 }
 
 if($completed){
-    # Refresh final summary in the live log folder with the real overall status.
+    # The active log writers are closed above. Only now is it safe to read console.log
+    # and phase-performance.tsv into the sendable log ZIP on Windows.
     if($PipelineStopwatch.IsRunning){$PipelineStopwatch.Stop()}
     Write-FinalFiles 'PASS' ''
-    # Refresh log ZIP so it contains the final phase row and summary, then recreate only the log hardlink.
     try{
-        $logLinks=@($script:HardLinks|Where-Object{[IO.Path]::GetFileName($_)-like'SEND-ME-LOGS-*'})
-        foreach($l in $logLinks){if(Test-Path -LiteralPath $l){Remove-Item -LiteralPath $l -Force};[void]$script:HardLinks.Remove($l)}
+        Write-Console 'Finalizing log ZIP after active log writers are closed ...'
         Finish-LogZip
         [void](New-HardLink $script:LogZip 'LOGS')
         Write-FinalFiles 'PASS' ''
     } catch {
-        Write-Console ('WARNING: final log ZIP refresh failed: '+$_.Exception.Message)
+        $completed=$false
+        $errorMessage='FINAL LOG PACKAGING failed: '+$_.Exception.Message
+        Write-Console ('PIPELINE FAILED: '+$errorMessage)
     }
-    Print-FinalSummary 'PASS'
-    exit 0
+    if($completed){
+        Print-FinalSummary 'PASS'
+        exit 0
+    }
 }
 
 # Failure path: preserve as much logging as possible and provide a sendable log ZIP.

@@ -1,3 +1,7 @@
+0.11.7 / project 0.16.4
+- Regenerated with project 0.16.4 common harness metadata and the corrected deferred-log-packaging structure guard.
+- Subset-specific behavioral assertions are unchanged.
+
 0.11.6 / project 0.16.3
 - Regenerated with project 0.16.3 common harness metadata and the strengthened pipeline packaging/color structure guards.
 - Subset-specific behavioral assertions are unchanged.

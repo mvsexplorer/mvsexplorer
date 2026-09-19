@@ -1,3 +1,7 @@
+0.11.7 / project 0.16.4
+- Replaces the ineffective active-log read-sharing guard with an ordering guard that rejects any log ZIP attempt before writer disposal.
+- Structure scope remains 487 assertions and all mode remains 1,100.
+
 0.11.6 / project 0.16.3
 - Adds a structure guard requiring active pipeline log streams to remain readable during ZIP packaging.
 - Strengthens the color guard to require token-level PASS/FAIL/WARN styling and reject the old whole-line Get-StatusColor implementation.

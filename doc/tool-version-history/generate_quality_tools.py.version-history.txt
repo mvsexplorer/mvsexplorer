@@ -1,3 +1,6 @@
+0.1.5 / project 0.16.4
+- Regenerates test_everything.bat with project 0.16.4 metadata; quiet-plan behavior is unchanged.
+
 0.1.4 / project 0.16.3
 - Regenerates test_everything.bat with project 0.16.3 metadata; quiet-plan behavior is unchanged.
 

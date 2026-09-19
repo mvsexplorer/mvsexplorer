@@ -1,6 +1,33 @@
-# MVS Explorer Toolkit 0.16.3
+# MVS Explorer Toolkit 0.16.4
 
 
+
+## 0.16.4 deferred log-ZIP finalization
+
+The native 0.16.3 resume run confirms the data and validator path is healthy:
+the structure precheck passed 487/487, archive quality passed, and all 57
+generated-database checks passed, including all 32 real family-query tools.
+The run then reproduced the final packaging failure when the pipeline attempted
+to ZIP its own active `console.log`.
+
+`FileShare.ReadWrite` was not sufficient for the `CreateEntryFromFile` path on
+the tested Windows/PowerShell 5.1 environment. 0.16.4 therefore removes the
+live-log ZIP attempt entirely. The final collection phase copies logs and
+creates the three database hardlinks, records its result, and then the outer
+`finally` block flushes and disposes both active pipeline log writers. Only
+after those handles are closed does the success path create the log ZIP and
+`SEND-ME-LOGS-*` hardlink.
+
+The structure guard now checks this ordering directly: no log-directory ZIP
+operation may occur between the final collection phase starting and disposal of
+the active master writer, while final log packaging must occur afterward.
+Token-level semantic console coloring from 0.16.3 is retained unchanged.
+
+No archive, full-family, compact-family, or query-tool data format changes are
+made in 0.16.4. The public root remains 478 tools, the known archive plan remains
+34,822 logical checks, structure remains 487 assertions, and all-mode remains
+1,100 assertions. Existing validated databases can be resumed without
+rebuilding.
 
 ## 0.16.3 log-packaging hotfix and token-level console color
 
@@ -12,11 +39,12 @@ executions.
 
 The only remaining failure was phase-7 packaging. The pipeline attempted to
 create the log ZIP while its own `console.log` was still open for writing, and
-Windows rejected `CreateEntryFromFile` with a sharing violation. 0.16.3 opens
-both active pipeline log streams with explicit `FileShare.ReadWrite`, allowing
-the preliminary log ZIP to read them while the run is active. The normal final
-ZIP refresh still occurs after the writers are disposed, so the sendable log
-bundle contains the settled final console and phase ledger.
+Windows rejected `CreateEntryFromFile` with a sharing violation. 0.16.3
+attempted to address this by opening both active pipeline log streams with
+explicit `FileShare.ReadWrite`. A subsequent native 0.16.3 run proved that
+`CreateEntryFromFile` still could not read the live `console.log`; 0.16.4
+supersedes that approach by deferring log ZIP creation until after writer
+disposal.
 
 Console coloring is also narrowed from whole-line coloring to semantic-token
 coloring. Normal text stays at the console's existing color while `PASS` is

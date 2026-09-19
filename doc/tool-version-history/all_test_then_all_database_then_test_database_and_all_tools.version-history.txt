@@ -1,3 +1,8 @@
+1.0.4 / project 0.16.4
+- Defers log ZIP creation and the SEND-ME-LOGS hardlink until after console.log and phase-performance.tsv writers are flushed and disposed.
+- Keeps the database ZIPs/hardlinks in the final collection phase and preserves failure-log recovery.
+- Retains token-level semantic console coloring, the 57-check real database gate, and all database formats unchanged.
+
 1.0.3 / project 0.16.3
 - Fixes active-log ZIP packaging by opening console.log and phase-performance.tsv with explicit FileShare.ReadWrite.
 - Replaces whole-line status coloring with token-level semantic coloring while preserving plain-text retained logs.

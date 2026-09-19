@@ -1,3 +1,26 @@
+## 0.16.4 - defer log ZIP until writers are closed
+
+The native 0.16.3 resume run passed all 487 structure checks, archive quality,
+and the full 57-check generated-database gate including all 32 real family
+queries. The only failure remained the phase-7 attempt to ZIP the pipeline's
+own `console.log`.
+
+The uploaded SEND-ME bundle exposed the decisive ordering detail. The normal
+phase-7 ZIP attempt failed while `MasterWriter` and `PhaseWriter` were active,
+even though their underlying streams used `FileShare.ReadWrite`. The failure
+recovery path then successfully produced the SEND-ME ZIP because the outer
+`finally` block had already disposed those writers. The correct invariant is
+therefore stronger than share-mode permissiveness: the pipeline must not ZIP
+its live log directory at all.
+
+0.16.4 makes the success path follow the proven recovery ordering. The final
+collection phase copies logs and creates database hardlinks but does not call
+`New-ZipFromDirectory` or `Finish-LogZip`. It records PASS while normal logging
+is still available, then the outer `finally` block flushes/disposes both
+writers. Final log ZIP creation and the log hardlink occur afterward. A static
+structure guard now checks this ordering directly and replaces the ineffective
+read-sharing guard. Database contents and console token coloring are unchanged.
+
 ## 0.16.3 - active-log ZIP sharing and semantic-token color
 
 The native 0.16.2 resume run proved that the three 0.16.1 database-validator

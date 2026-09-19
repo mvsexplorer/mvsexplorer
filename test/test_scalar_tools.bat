@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.11.6"
+set "app.version=0.11.7"
 set "app.name=test_scalar_tools"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -10,7 +10,7 @@ set "mvst_mode=scalar"
 set "mvst_dump=%~1"
 set "mvst_caller=%~nx0"
 set "mvst_version=%app.version%"
-set "mvst_project_version=0.16.3"
+set "mvst_project_version=0.16.4"
 for %%I in ("%~dp0..") do set "mvst_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSTest"
@@ -1138,16 +1138,26 @@ function Test-Structure {
         } else {
             Write-Fail 'pipeline console colorizes semantic PASS FAIL WARN tokens without whole-line coloring' 'token-level status colorization markers missing'
         }
-        if ($pipelineText.Contains('[IO.FileShare]::ReadWrite') -and
-            $pipelineText.Contains('$masterStream=New-Object IO.FileStream') -and
-            $pipelineText.Contains('$phaseStream=New-Object IO.FileStream')) {
-            Write-Pass 'pipeline active log streams remain readable during log ZIP packaging'
+        $phaseMarker = "`$sw=Begin-Phase 'COLLECT LOGS, CREATE DATABASE HARDLINKS, PREPARE FINAL PACKAGE'"
+        $disposeMarker = 'if($null-ne$script:MasterWriter){$script:MasterWriter.Flush();$script:MasterWriter.Dispose();$script:MasterWriter=$null}'
+        $phasePos = $pipelineText.IndexOf($phaseMarker)
+        $disposePos = $pipelineText.IndexOf($disposeMarker)
+        $finalizePos = $pipelineText.IndexOf("Write-Console 'Finalizing log ZIP after active log writers are closed ...'")
+        $activeWindow = ''
+        if ($phasePos -ge 0 -and $disposePos -gt $phasePos) {
+            $activeWindow = $pipelineText.Substring($phasePos,$disposePos-$phasePos)
+        }
+        if ($phasePos -ge 0 -and $disposePos -gt $phasePos -and $finalizePos -gt $disposePos -and
+            -not $activeWindow.Contains('New-ZipFromDirectory $script:LogsRoot $script:LogZip') -and
+            -not $activeWindow.Contains('Finish-LogZip') -and
+            $pipelineText.Substring($disposePos).Contains('Finish-LogZip')) {
+            Write-Pass 'pipeline defers log ZIP until active log writers are closed'
         } else {
-            Write-Fail 'pipeline active log streams remain readable during log ZIP packaging' 'explicit readable log-stream sharing markers missing'
+            Write-Fail 'pipeline defers log ZIP until active log writers are closed' 'log ZIP still occurs while active writers may be open'
         }
     } else {
         Write-Fail 'pipeline console colorizes semantic PASS FAIL WARN tokens without whole-line coloring' 'pipeline batch missing'
-        Write-Fail 'pipeline active log streams remain readable during log ZIP packaging' 'pipeline batch missing'
+        Write-Fail 'pipeline defers log ZIP until active log writers are closed' 'pipeline batch missing'
     }
 }
 

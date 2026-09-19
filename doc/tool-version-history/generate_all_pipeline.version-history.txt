@@ -1,3 +1,7 @@
+1.0.4 / project 0.16.4
+- Generates deferred final log-ZIP creation only after the active pipeline log writers are disposed.
+- Removes the failed 0.16.3 live-log ZIP attempt while retaining token-level semantic console coloring and resume mode.
+
 1.0.3 / project 0.16.3
 - Generates the active-log sharing fix used by phase-7 log ZIP packaging.
 - Generates semantic-token console coloring instead of whole-line status coloring.

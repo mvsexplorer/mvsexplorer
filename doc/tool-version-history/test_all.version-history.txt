@@ -1,3 +1,8 @@
+0.11.7 / project 0.16.4
+- Regenerated with the corrected deferred-log-packaging structure guard.
+- Structure remains 487 assertions; all mode remains 1,100 assertions.
+- On the established representative dump the expected result remains 1,097 PASS / 0 FAIL / 3 SKIP.
+
 0.11.6 / project 0.16.3
 - Adds one structure assertion guarding active pipeline log streams during ZIP packaging.
 - Replaces the prior whole-line color marker check with a token-level semantic color guard.

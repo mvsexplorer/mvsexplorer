@@ -1,6 +1,14 @@
+0.16.4 - 2026-09-07
+- Native 0.16.3 resume acceptance confirms 487/487 structure checks, archive quality, and all 57 generated-database checks pass against the existing production databases; all 32 real family query tools pass.
+- Fixes the remaining phase-7 Windows sharing failure by eliminating log ZIP creation while `console.log` and `phase-performance.tsv` are active.
+- Final log ZIP creation and the `SEND-ME-LOGS-*` hardlink now occur only after the outer `finally` block flushes and disposes both pipeline log writers.
+- Replaces the 0.16.3 read-sharing structure guard with an ordering guard that rejects any live-log ZIP attempt before writer disposal.
+- Retains token-level semantic console coloring and plain-text retained logs.
+- Database formats, public root count (478), structure count (487), all-mode count (1,100), and the 34,822 logical archive plan are unchanged; validated databases can be resumed without rebuilding.
+
 0.16.3 - 2026-09-06
 - Native 0.16.2 resume acceptance confirms all 57 generated-database checks and all 32 real family queries pass against the existing 0.16.1 production databases.
-- Fixes phase-7 log ZIP packaging on Windows by opening active `console.log` and `phase-performance.tsv` streams with explicit FileShare.ReadWrite; the final log ZIP is still refreshed after writer disposal.
+- Attempts phase-7 live-log ZIP compatibility by opening active `console.log` and `phase-performance.tsv` streams with explicit FileShare.ReadWrite; the subsequent native 0.16.3 run showed Windows still rejected `CreateEntryFromFile`, leading to the deferred-packaging fix in 0.16.4.
 - Replaces whole-line console coloring with token-level semantic coloring: PASS green; active FAIL/FAILED/ERROR red; WARN/WARNING/nonzero Warnings/SKIP/quality-flags yellow; zero failure/warning counters remain neutral.
 - Keeps retained logs plain text and leaves archive/full-family/compact database formats unchanged.
 - Adds one structure guard for readable active log streams and strengthens the color guard; structure becomes 487 assertions and all mode 1,100 (normally 1,097 PASS / 0 FAIL / 3 SKIP).

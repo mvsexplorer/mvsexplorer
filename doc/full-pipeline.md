@@ -22,7 +22,7 @@ failures.
 
 ## Resume already-built databases
 
-0.16.3 retains the recovery path introduced in 0.16.1 for a late-stage validator/packaging failure after
+0.16.4 retains the recovery path introduced in 0.16.1 for a late-stage validator/packaging failure after
 the three reusable databases were already generated:
 
 ```bat
@@ -58,7 +58,9 @@ the available logs into a `SEND-ME-LOGS-*.zip` hardlink.
 7. ZIP archive database.
 8. ZIP full family database.
 9. ZIP compact family database.
-10. Collect logs, ZIP logs, create hardlinks and print the final summary.
+10. Collect logs and create database hardlinks, then close the active pipeline
+    log writers; final log ZIP creation, the `SEND-ME-LOGS-*` hardlink and the
+    final summary follow immediately after writer disposal.
 
 Every phase prints project version, phase number, phase total and remaining
 phases. Child test harnesses provide their own test-number/remaining counters.
@@ -70,7 +72,10 @@ phase-2 production plan remains visible once. Archive execution prints paired
 `Completed compare` lines with elapsed time. The top-level pipeline keeps ordinary text at the console's normal color and
 colors only semantic status/attention tokens: PASS green, active FAIL/error
 tokens red, and warning/SKIP/quality-flag tokens yellow. Zero-failure and
-zero-warning counters stay neutral, and logs stay plain text.
+zero-warning counters stay neutral, and logs stay plain text. The final log ZIP
+is deliberately deferred until `console.log` and `phase-performance.tsv` have
+been flushed and closed; the pipeline never attempts to ZIP its live log
+directory.
 
 ## Outputs
 
