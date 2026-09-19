@@ -1,0 +1,36 @@
+MVS Explorer Toolkit 0.2.0
+Scalar Product Tools
+
+Every .bat in the project root is standalone.
+
+USAGE
+  <tool>.bat dump-folder
+  <tool>.bat --help
+
+HUMAN OUTPUT
+  print_mvs_dump_*.bat
+
+MACHINE OUTPUT
+  read_mvs_dump_*.bat
+
+EXAMPLES
+  print_mvs_dump_id.bat mvs_2021-08-17
+  print_mvs_dump_id_title_date.bat mvs_2021-06-21-1830
+  read_mvs_dump_id_title.bat "D:\MVS\mvs_2021-08-17"
+
+MACHINE FORMAT
+  Headerless TSV, one product per physical line.
+
+REQUIRED SOURCE FILES
+  mvs_ids.txt
+  mvs_dates.txt
+
+OPTIONAL SOURCE FILE
+  mvs_notes.html
+
+RETURN CODES
+  0  success/help
+  2  invalid arguments/mode/field
+  3  dump folder not found
+  4  required source file missing
+  5  no product records parsed

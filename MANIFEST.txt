@@ -1,10 +1,51 @@
-MVS Explorer Toolkit 0.1.0
-Files: 35
+MVS Explorer Toolkit 0.2.0
+Standalone batch tools: 30
+Tool-specific version histories: 30
+Other files: 12
 
+Files:
 README.md
-doc/MVS-Explorer-Toolkit.usage.txt
+doc/Batch-File-Style-Guide-v1.8.0.txt
 doc/data-model.md
-doc/version-history.txt
+doc/developer-diary.md
+doc/development-directives.md
+doc/development-prompts.md
+doc/observation-journal.md
+doc/output-format.md
+doc/powershell-style-guide.md
+doc/project-version-history.txt
+doc/style-guide-addendum.md
+doc/tool-version-history/print_mvs_dump_date.version-history.txt
+doc/tool-version-history/print_mvs_dump_date_note.version-history.txt
+doc/tool-version-history/print_mvs_dump_id.version-history.txt
+doc/tool-version-history/print_mvs_dump_id_date.version-history.txt
+doc/tool-version-history/print_mvs_dump_id_date_note.version-history.txt
+doc/tool-version-history/print_mvs_dump_id_note.version-history.txt
+doc/tool-version-history/print_mvs_dump_id_title.version-history.txt
+doc/tool-version-history/print_mvs_dump_id_title_date.version-history.txt
+doc/tool-version-history/print_mvs_dump_id_title_date_note.version-history.txt
+doc/tool-version-history/print_mvs_dump_id_title_note.version-history.txt
+doc/tool-version-history/print_mvs_dump_note.version-history.txt
+doc/tool-version-history/print_mvs_dump_title.version-history.txt
+doc/tool-version-history/print_mvs_dump_title_date.version-history.txt
+doc/tool-version-history/print_mvs_dump_title_date_note.version-history.txt
+doc/tool-version-history/print_mvs_dump_title_note.version-history.txt
+doc/tool-version-history/read_mvs_dump_date.version-history.txt
+doc/tool-version-history/read_mvs_dump_date_note.version-history.txt
+doc/tool-version-history/read_mvs_dump_id.version-history.txt
+doc/tool-version-history/read_mvs_dump_id_date.version-history.txt
+doc/tool-version-history/read_mvs_dump_id_date_note.version-history.txt
+doc/tool-version-history/read_mvs_dump_id_note.version-history.txt
+doc/tool-version-history/read_mvs_dump_id_title.version-history.txt
+doc/tool-version-history/read_mvs_dump_id_title_date.version-history.txt
+doc/tool-version-history/read_mvs_dump_id_title_date_note.version-history.txt
+doc/tool-version-history/read_mvs_dump_id_title_note.version-history.txt
+doc/tool-version-history/read_mvs_dump_note.version-history.txt
+doc/tool-version-history/read_mvs_dump_title.version-history.txt
+doc/tool-version-history/read_mvs_dump_title_date.version-history.txt
+doc/tool-version-history/read_mvs_dump_title_date_note.version-history.txt
+doc/tool-version-history/read_mvs_dump_title_note.version-history.txt
+doc/usage.txt
 print_mvs_dump_date.bat
 print_mvs_dump_date_note.bat
 print_mvs_dump_id.bat
@@ -35,4 +76,3 @@ read_mvs_dump_title.bat
 read_mvs_dump_title_date.bat
 read_mvs_dump_title_date_note.bat
 read_mvs_dump_title_note.bat
-tools/MVS_Query.bat

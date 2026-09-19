@@ -1,0 +1,20 @@
+Tool Version History: read_mvs_dump_note.bat
+
+Current purpose
+  Projection: NOTE
+  Output mode: machine (headerless tab-separated machine output)
+  Input: one extracted MVS dump folder/path/name
+
+0.2.0 - 2026-08-27
+  - Rewritten as a fully standalone tool.
+  - Embedded all dump resolution, NOTE projection parsing/join logic,
+    output formatting, help, PowerShell bridge, and return-code handling
+    directly in this .bat file.
+  - Removed runtime dependency on tools\MVS_Query.bat.
+  - Preserved one product per output record.
+  - Preserved machine output semantics for this tool.
+
+0.1.0 - 2026-08-27
+  - Initial version.
+  - Exposed the NOTE projection as a thin front end.
+  - Called shared tools\MVS_Query.bat.

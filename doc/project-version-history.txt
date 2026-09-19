@@ -1,0 +1,21 @@
+MVS Explorer Toolkit Project Version History
+
+0.2.0 - 2026-08-27
+  - Reworked the entire scalar toolkit so every .bat is fully standalone.
+  - Removed the shared tools\MVS_Query.bat runtime architecture.
+  - Embedded each tool's PowerShell parsing implementation in that tool.
+  - Added doc\Batch-File-Style-Guide-v1.8.0.txt.
+  - Added development-prompts.md.
+  - Added development-directives.md.
+  - Added developer-diary.md.
+  - Added observation-journal.md.
+  - Added style-guide-addendum.md.
+  - Added powershell-style-guide.md.
+  - Added project and per-tool version histories.
+  - Retained 30 scalar tools: 15 projections x human/machine output.
+
+0.1.0 - 2026-08-27
+  - Initial scalar-product toolkit.
+  - Added 15 print_ and 15 read_ scalar front ends.
+  - Used a shared tools\MVS_Query.bat parser.
+  - Established ID/title/date/note scalar model and title-keyed note policy.

@@ -1,44 +1,59 @@
-# Scalar data model
+# MVS Explorer Toolkit Scalar Data Model
 
 ## Product identity
 
-For this toolkit, product `ID` is the primary key within a dump snapshot.
+For the current scalar tools, `ID` is the primary key within a dump snapshot.
 
-Validation of the supplied archive found:
+Archive review established the working structure:
 
-- 79 dump snapshots.
-- No duplicate IDs inside `mvs_ids.txt` in any snapshot.
-- Every ID in every `mvs_ids.txt` had exactly one matching `mvs_dates.txt` row.
-- Product titles are not unique; multiple IDs can share the same title.
+```text
+mvs_ids.txt:
+TITLE [ID: N]
 
-Therefore the scalar record is modeled as:
+mvs_dates.txt:
+DATE - TITLE [ID: N]
+```
+
+Within the reviewed snapshots, an ID occurs once in `mvs_ids.txt` and has one corresponding release-date entry in `mvs_dates.txt`.
+
+Titles are not unique keys. Different IDs can have the same title.
+
+## Current scalar product record
 
 ```text
 Product
-  id      required, unique within dump
-  title   required, taken from mvs_ids.txt
-  date    required in the supplied archive, joined from mvs_dates.txt by ID
-  note    optional/ambiguous, joined from mvs_notes.html by normalized title
+  id      catalog ID
+  title   title from mvs_ids.txt
+  date    release date from mvs_dates.txt, joined by ID
+  note    normalized note text, joined by normalized title
 ```
 
-## Notes are not ID-keyed
+## Notes
 
-`mvs_notes.html` uses `<h1>Product Title</h1>` sections and does not include `[ID: n]` markers.
+`mvs_notes.html` does not expose `[ID: N]` in its note headings. Notes are therefore not directly ID-keyed.
 
-That means a title shared by multiple IDs cannot be unambiguously assigned an ID-specific note from this file alone. Some note titles also occur more than once.
+Current policy:
 
-Version 0.1.0 deliberately models notes as title-level information. All distinct normalized note blocks for a title are combined with ` || ` and exposed for every ID having that title.
+1. normalize the product title;
+2. normalize each note `<h1>` heading;
+3. match exact normalized titles;
+4. normalize note HTML to one-line text;
+5. de-duplicate identical note blocks for that title;
+6. join multiple distinct blocks with ` || `;
+7. expose the resulting title-level note to each matching product ID.
 
-A future parser may expose both `product.note` (joined convenience value) and raw note-section records so callers can inspect ambiguity directly.
+This is a convenience join, not evidence that the source itself assigns the note uniquely to an ID.
 
-## Date representation
+## Variants
 
-Dates are emitted exactly as parsed from the left-hand date field in `mvs_dates.txt`. This preserves variants found in the archive, including forms ending in `Z` or `+00:00`; the toolkit does not silently convert time zones.
+`mvs_names.txt` is the expected basis of the next data-model layer:
 
-## Normalization
+```text
+Product ID
+  -> zero or more variants
+       -> variant/display name
+       -> filename
+       -> hash record
+```
 
-Titles and note headings are HTML-decoded where relevant, trimmed, and have runs of whitespace collapsed for matching/output.
-
-Notes are converted from HTML to one-line text, HTML-decoded, and have runs of whitespace collapsed.
-
-Machine output replaces literal TAB/CR/LF inside scalar values with spaces so every product remains exactly one TSV record.
+The exact SHA-1/SHA-256 and possible `.cat`/`.txt` relationships will be established and documented before those tools are implemented.

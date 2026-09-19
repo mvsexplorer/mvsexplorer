@@ -1,0 +1,1460 @@
+# Batch File Style Guide
+
+**Guide version:** 1.8.0
+
+Follow these rules when writing `.bat` files. The guide is intentionally practical: use the simple rule by default, and use the lower-level guidance only where `cmd.exe` parsing, elevation, cross-language execution, testing, or performance make it necessary.
+
+## 1. Language and syntax
+
+- Write in batch (`cmd.exe`) whenever practical.
+- Fall back to PowerShell when a task is genuinely too hard or disproportionately awkward in pure batch.
+- Use hybrid WSH JScript/ECMAScript only as a specialized option when PowerShell startup latency is materially unacceptable, when an established hybrid layer already exists, or when the JScript implementation is clearly the better fit. Do not add a hybrid layer merely because it is possible.
+- `EnableExtensions` is assumed to be on. Never enable it.
+- Avoid `setlocal` and delayed expansion by default. Use them only as a tightly scoped exception when genuinely required or when a measured hot loop makes the alternative materially too slow.
+- When `setlocal` is used, every path must unwind it. Return values with `endlocal & set "..."` when needed.
+- Keep long commands as real one-liners. Never wrap a command onto another physical line with a trailing caret `^`.
+- Carets are fine for escaping characters **inside** a command, for example `2^>nul` inside `for /f`.
+- Do not use PowerShell here-strings inside batch files.
+- Prefer compact code. Reducing line count is a valid reason to inline simple statements with `&`; when practical, group related statements together.
+- `:setup` is the main exception to aggressive inlining: frequently user-modifiable values should remain easy to find and read.
+- Function/label names are case-insensitive.
+- Environment-variable names are case-insensitive.
+- Do not reuse label names. Check duplicate labels case-insensitively.
+
+### `if` / `for` and `&`
+
+Only the command immediately controlled by an ungrouped `if` or `for` belongs to it.
+
+Wrong when all commands are intended to be conditional:
+
+```bat
+if errorlevel 1 set "result=false" & set "_fn_rc=1" & goto :Function
+```
+
+Correct:
+
+```bat
+if errorlevel 1 (set "result=false" & set "_fn_rc=1" & goto :Function)
+```
+
+The same applies to `for`:
+
+```bat
+for %%A in (one two) do (echo %%A & echo done)
+```
+
+### `ERRORLEVEL`
+
+`if errorlevel N` means:
+
+```text
+ERRORLEVEL GEQ N
+```
+
+Therefore:
+
+```bat
+if errorlevel 1 ...
+```
+
+means `ERRORLEVEL >= 1`. It does **not** mean simply "nonzero." Negative return codes do not satisfy it.
+
+Use it directly when a threshold test is what you want. Use exact comparison when a specific value matters:
+
+```bat
+if "%errorlevel%"=="0" ...
+if "%errorlevel%"=="-1" ...
+```
+
+or capture it:
+
+```bat
+call :Function
+set "fn_rc=%errorlevel%"
+```
+
+Any documented integer return value is allowed. `0` for success and positive values for failures are useful conventions, not universal requirements; negative values may be used when a function's contract benefits from them.
+
+Be aware of parse timing. This is unsafe when the branch needs the return code produced by `:Function`:
+
+```bat
+call :Function || (echo Failed & set "app.rc=%errorlevel%" & goto :end)
+```
+
+The compound command is parsed before `:Function` runs. Prefer:
+
+```bat
+call :Function
+if errorlevel 1 (set "app.rc=%errorlevel%" & goto :end)
+```
+
+The `if` line is parsed after the call has completed.
+
+### Parser-sensitive expanded data
+
+Expanded data can affect `cmd.exe` parsing. The important characters depend on context:
+
+- `&`, `|`, `<`, `>` are command / pipe / redirection characters when exposed to the command parser.
+- `^` is the escape character and becomes especially tricky across additional parse passes.
+- `%` participates in percent expansion and behaves differently from ordinary metacharacters, especially with `CALL`.
+- `!` is primarily troublesome when delayed expansion is enabled.
+- `(` and `)` are especially significant in grouped command contexts.
+- `"` changes quoting boundaries but does not universally neutralize every metacharacter.
+
+Do not claim arbitrary-text safety unless the function has been tested across the parse boundaries it actually uses.
+
+### `CALL` double expansion
+
+For one computed variable lookup:
+
+```bat
+call set "fn_value=%%%fn_array%[%fn_i%].value%%"
+```
+
+Several lookups may share one physical line, but each needs its own `CALL`:
+
+```bat
+call set "fn_path=%%%fn_array%[%fn_i%].path%%" & call set "fn_enabled=%%%fn_array%[%fn_i%].enabled%%" & call set "fn_tag=%%%fn_array%[%fn_i%].tag%%"
+```
+
+Do not try to call a whole parenthesized command group:
+
+```bat
+call (echo %%test1%% & echo %%test2%% & echo %%test3%%)
+```
+
+`CALL` does not apply the intended second expansion to every command in that group.
+
+Likewise:
+
+```bat
+call echo %%test1%% & echo %%test2%% & echo %%test3%%
+```
+
+only calls the first command.
+
+Use:
+
+```bat
+call echo %%test1%% & call echo %%test2%% & call echo %%test3%%
+```
+
+If repeated `call set` reparsing becomes a measured performance problem, redesign the access pattern or use tightly scoped delayed expansion where it is clearly the better implementation.
+
+## 2. File scaffold
+
+Every ordinary batch file starts with this top-level structure. No decorative blank lines inside the scaffold:
+
+```bat
+@echo off
+:setup
+:main
+:end
+GoTo :EOF
+```
+
+Commands are inserted under the labels:
+
+```bat
+@echo off
+:setup
+set "app.version=1.0.0"
+set "app.name=Example"
+set "app.rc=0"
+if not defined app.theme call :DarkMode
+if not defined app.IsConsole call :IsConsole app.IsConsole
+:main
+call :Run %*
+set "app.rc=%errorlevel%"
+:end
+if /i "%app.IsConsole%" NEQ "true" pause
+call :SetErrorLevel %app.rc%
+GoTo :EOF
+```
+
+Rules:
+
+- `:setup`, `:main`, and `:end` are top-level fall-through labels, not ordinary callable functions.
+- Do not define callable functions that reuse those label names in another case. `:main` and `:Main` are the same label.
+- `:setup` contains user-visible / user-modifiable values and high-level preparation calls.
+- Frequently edited settings in `:setup` should generally stay on their own lines. Two or three closely related, mostly read-only assignments may be inlined when still easy to scan.
+- `:main` contains the high-level program flow and calls high-level functions.
+- `:end` contains teardown and final return-code handling.
+- Normally execution falls through the three labels.
+- A setup/main failure may `goto :end` when teardown still needs to run. This is one of the few justified jumps to a top-level label.
+- Never `call :end`.
+- Functions live below the closing `GoTo :EOF`.
+
+Typical failure handling:
+
+```bat
+call :Initialize
+if errorlevel 1 (set "app.rc=%errorlevel%" & goto :end)
+```
+
+If teardown can change `ERRORLEVEL`, preserve the intended application code and restore it immediately before `GoTo :EOF`.
+
+A trivial helper is enough:
+
+```bat
+:SetErrorLevel
+exit /b %~1
+```
+
+## 3. Working directory and self-reference
+
+`%CD%` is the caller's working directory. `%~dp0` is the script's directory.
+
+Useful forms:
+
+```text
+%~f0    full path to this script
+%~dp0   script directory with trailing backslash
+%~nx0   filename with extension
+%~n0    filename without extension
+```
+
+Prefer `%~f0` over `%0` for self-reference.
+
+When work must run from the script directory:
+
+```bat
+pushd "%~dp0"
+call :DoWork
+popd
+```
+
+Ensure every relevant exit path reaches `popd`.
+
+## 4. Encoding and codepage
+
+- Deliver `.bat` files as ANSI/ASCII or UTF-8 without BOM.
+- Use CRLF line endings.
+- If the console codepage must change, save it in `:setup`, optionally change it there, and restore it in `:end`.
+- Prefer one helper rather than putting low-level `chcp` parsing into `:setup`.
+- Choose file/text encodings that are compatible with every language and tool used by the project.
+
+Example top-level use:
+
+```bat
+:setup
+call :CodePage save
+if /i "%app.utf8console%"=="true" call :CodePage set 65001
+:main
+...
+:end
+call :CodePage restore
+...
+```
+
+Reference helper:
+
+```bat
+:: ============================================================
+:: :CodePage
+:: Saves, changes, or restores the console codepage.
+::
+:: Version:
+::   1.0.2
+::
+:: Last Change:
+::   Capture the original codepage through an internal sublabel
+::   instead of recursively re-entering :CodePage.
+::
+:: Usage:
+::   call :CodePage save
+::   call :CodePage set codepage
+::   call :CodePage restore
+::
+:: Arguments:
+::   action    save, set, or restore
+::   codepage  target codepage for set
+::
+:: Output:
+::   _app.codepage.original
+::   _app.codepage.changed
+::
+:: Returns:
+::   0 on success
+::   2 on invalid arguments / unavailable current codepage
+::   chcp return code on change/restore failure
+:: ============================================================
+:CodePage
+for /f "tokens=1 delims==" %%v in ('set cp_ 2^>nul') do set "%%v="
+if defined _cp_rc (set "_cp_rc=" & exit /b %_cp_rc%)
+set "cp_action=%~1"
+if /i "%cp_action%"=="save" goto :_CodePage_save
+if /i "%cp_action%"=="set" goto :_CodePage_set
+if /i "%cp_action%"=="restore" goto :_CodePage_restore
+set "_cp_rc=2" & goto :CodePage
+:_CodePage_save
+if defined _app.codepage.original exit /b 0
+call :_CodePage_capture
+if not defined _app.codepage.original (set "_cp_rc=2" & goto :CodePage)
+exit /b 0
+:_CodePage_set
+set "cp_target=%~2"
+if not defined cp_target (set "_cp_rc=2" & goto :CodePage)
+if not defined _app.codepage.original call :_CodePage_capture
+if not defined _app.codepage.original (set "_cp_rc=2" & goto :CodePage)
+chcp %cp_target% >nul
+set "cp_rc=%errorlevel%"
+if not "%cp_rc%"=="0" (set "_cp_rc=%cp_rc%" & goto :CodePage)
+set "_app.codepage.changed=true"
+exit /b 0
+:_CodePage_restore
+if not defined _app.codepage.changed exit /b 0
+if not defined _app.codepage.original (set "_cp_rc=2" & goto :CodePage)
+chcp %_app.codepage.original% >nul
+set "cp_rc=%errorlevel%"
+if not "%cp_rc%"=="0" (set "_cp_rc=%cp_rc%" & goto :CodePage)
+set "_app.codepage.changed=" & set "_app.codepage.original="
+exit /b 0
+:_CodePage_capture
+for /f "tokens=2 delims=:" %%C in ('chcp') do for /f "tokens=*" %%D in ("%%C") do set "_app.codepage.original=%%D"
+exit /b 0
+```
+
+## 5. Functions — layout and documentation
+
+- One blank line between functions is the norm.
+- Do not use blank lines inside ordinary function bodies.
+- Every reusable function gets a `::` documentation block.
+- Standard fields: description, Version, Usage, Arguments, Output, Returns.
+- Include `Last Change`, Dependencies, Side Effects, Assumptions, Notes, Hooks, Examples, etc. when useful.
+- More useful documentation is better than leaving important behavior implicit.
+- Function documentation lives with the function and should be updated when the function changes.
+- Increment the function version for implementation, behavior, interface, side-effect, dependency, assumption, or function-documentation changes.
+
+Example:
+
+```bat
+:: ============================================================
+:: :Function
+:: Short description.
+::
+:: Version:
+::   1.0.0
+::
+:: Usage: call :Function argument
+::
+:: Arguments:
+::   argument  description
+::
+:: Output:
+::   description
+::
+:: Returns:
+::   0 on success
+::   other values as documented
+:: ============================================================
+```
+
+### Comments inside bodies
+
+Prefer the doc block for the contract and labels for structural signposting.
+
+Inside function bodies:
+
+- `REM` is safer than `::`, especially inside parenthesized blocks.
+- Use an adjacent comment for a batch idiom that otherwise looks like a bug: `call set` double expansion, octal stripping, `endlocal & set`, deliberate parser grouping, etc.
+- If the body needs extensive narration, consider splitting it into clearer helpers.
+
+## 6. Functions — naming and private variables
+
+Callable functions use descriptive names such as:
+
+```text
+:IsConsole
+:SelfElevate
+:GetINIsection
+:RunPowerShellFromLabel
+```
+
+Function names are case-insensitive. Do not define duplicates that differ only by case.
+
+Internal sublabels use:
+
+```text
+:_<Function>_<part>
+```
+
+Examples:
+
+```bat
+:_Backup_loop
+:_Backup_skip
+:_SelfElevate_capture
+```
+
+A leading `_` on an internal label means "not intended as an ordinary callable entry point."
+
+Private variables use a globally unique prefix derived from the function name:
+
+```text
+Backup              bak_
+IsConsole           iscon_
+SelfElevate         se_
+GetINIsection       gis_
+```
+
+Guidance:
+
+- Prefer a recognizable 3- or 4-letter prefix.
+- A 2-letter prefix is fine when you have checked that it is not already used.
+- Never reuse a private-variable prefix for another function in the same file.
+- All environment variables are process-global; the prefix is a naming discipline, not real scope.
+- Variables beginning with `_` are deliberately outside the ordinary function sweep and may be used for persistent state or the pending return carrier.
+
+Examples:
+
+```text
+_fn_rc
+_config.*
+_lib.loaded
+```
+
+## 7. Functions — standard prologue and exits
+
+Standard form:
+
+```bat
+:Function
+for /f "tokens=1 delims==" %%v in ('set fn_ 2^>nul') do set "%%v="
+if defined _fn_rc (set "_fn_rc=" & exit /b %_fn_rc%)
+... body ...
+exit /b 0
+```
+
+To bail from the body:
+
+```bat
+set "_fn_rc=1" & goto :Function
+```
+
+Why it works:
+
+- `set fn_` clears `fn_*`.
+- `_fn_rc` does not match `fn_`, so it survives the sweep.
+- `%_fn_rc%` expands before `set "_fn_rc="` executes on the same parsed line.
+
+The prologue guarantees that a new call starts without stale `fn_*` values. An error path routed back through the prologue also gets swept.
+
+A direct successful:
+
+```bat
+exit /b 0
+```
+
+does **not** clear `fn_*` before returning. Those variables remain in the process environment until the next sweep or explicit cleanup. This is normally acceptable because prefixes are globally unique.
+
+A stale `_fn_rc` is more dangerous: if a path leaves it defined without re-entering the prologue, the next call may immediately return that stale code. Do not leave a pending return carrier set.
+
+Exceptions to the standard prologue are allowed when they improve the implementation:
+
+- trivial hot helpers such as `:Print` / `:Debug`
+- tightly scoped `setlocal` functions that must exit through `endlocal`
+- thin pass-through wrappers
+- cases where re-entry would repeat expensive work unnecessarily
+
+Document significant exceptions.
+
+Use `exit /b N` when you need to set a return code. Use `goto :eof` when a thin wrapper intentionally forwards the current return code.
+
+## 8. Function interfaces — ByVal, ByRef, and function namespaces
+
+Use the interface that makes the function easiest to call safely.
+
+### ByVal
+
+```bat
+call :Function "plain value"
+```
+
+### ByRef
+
+Pass a variable name when the value is large, parser-sensitive, structured, or should be modified/returned:
+
+```bat
+set "input.value=some value"
+call :Function input.value
+```
+
+A function may support both ByVal and ByRef when the distinction is documented. A common pattern is to treat an argument as ByRef when it names a defined variable and otherwise as a literal value. Be aware that this is ambiguous when a literal value happens to equal the name of an existing variable; define how that case is handled.
+
+### Public function namespace
+
+Optional inputs and multiple outputs may use the function name as a namespace:
+
+```bat
+set "Function=my parameter"
+set "Function.var1=my other parameter"
+set "Function.options.enabled=true"
+call :Function
+echo %Function.result%
+echo %Function.items[0].name%
+```
+
+This is useful when requiring the caller to provide many ByRef output names would make the interface worse.
+
+Public function namespaces may contain pseudoarrays and pseudoobjects.
+
+## 9. Pseudoarrays, pseudoobjects, and collections
+
+Batch has no native arrays or objects; these are naming conventions.
+
+### Pseudoarray
+
+```bat
+set "items[0]=one"
+set "items[1]=two"
+set "items.ubound=1"
+```
+
+Metadata:
+
+```text
+array[N]       element N
+array.lbound   lowest index; assume 0 when undefined
+array.ubound   last index
+array.count    optional
+```
+
+For a dense array:
+
+```text
+count = ubound - lbound + 1
+```
+
+An empty zero-based array may use:
+
+```bat
+set "items.ubound=-1"
+set "items.count=0"
+```
+
+### Pseudoobject
+
+```bat
+set "person.name=Alice"
+set "person.address.city=Boston"
+```
+
+### Objects inside arrays
+
+```bat
+set "users[0].name=Alice"
+set "users[0].role=admin"
+set "users.ubound=0"
+```
+
+### Dictionary-like collections
+
+String keys may be used when keys are dynamic:
+
+```bat
+set "house[color]=blue"
+set "house[size]=large"
+set "city[home].rooms[0].size=large"
+```
+
+Keys stored in environment-variable names are case-insensitive. Keep them safe as variable-name components. If ordered iteration matters, maintain a parallel pseudoarray of keys.
+
+Prefer ordinary variables when only a few fixed values are needed.
+
+## 10. Loops and arithmetic
+
+### Flat loops
+
+Prefer flat `goto` loops for non-trivial loops where variables change between iterations and delayed expansion is not being used:
+
+```bat
+set "mf_i=0"
+:_MyFunction_loop
+call set "mf_item=%%%mf_arr%[%mf_i%]%%"
+call :ProcessItem mf_item
+set /a mf_i+=1
+if %mf_i% LEQ %mf_ubound% goto :_MyFunction_loop
+```
+
+Guard an empty array before entering a bottom-tested loop.
+
+A `for` one-liner is preferable when each iteration is independent:
+
+```bat
+for %%A in (1 2 3) do echo %%A
+```
+
+### Arithmetic
+
+`set /a` uses 32-bit signed integer arithmetic and has no floating point.
+
+Leading zeroes can trigger octal interpretation. `08` and `09` are invalid octal numbers.
+
+For a fixed-width two-digit decimal field:
+
+```bat
+REM Prepend 1 to avoid octal interpretation, then modulo 100.
+set /a value=1%raw% %% 100
+```
+
+Across additional parse passes, the `%` operator may need further escaping/doubling. Comment that idiom when the parser depth makes it non-obvious.
+
+## 11. Console-aware exit
+
+A script launched outside an existing console should normally pause so the user can read the result:
+
+```bat
+@echo off
+:setup
+if not defined app.IsConsole call :IsConsole app.IsConsole
+:main
+echo This is IsConsole test
+:end
+if /i "%app.IsConsole%" NEQ "true" pause
+GoTo :EOF
+```
+
+Reference function — sanctioned `setlocal` / delayed-expansion exception:
+
+```bat
+:: ============================================================
+:: :IsConsole
+:: Detects whether this batch appears to be running from an
+:: already-open console.
+::
+:: Version:
+::   1.0.1
+::
+:: Usage: call :IsConsole outputVariable
+::
+:: Arguments:
+::   outputVariable  variable that receives the result
+::
+:: Output:
+::   outputVariable  set to true when running from a console
+::                   or false otherwise
+::
+:: Returns:
+::   0 if running from an already-open console
+::   1 if cmd.exe appears to have been launched for this batch
+:: ============================================================
+:IsConsole
+set "iscon_out=%~1"
+set "iscon_cmdline=%CMDCMDLINE:"=%"
+setlocal EnableDelayedExpansion
+echo(!iscon_cmdline!| find /i "%~f0" >nul 2>&1
+if not errorlevel 1 (endlocal & set "%iscon_out%=false" & exit /b 1)
+echo(!iscon_cmdline!| find /i "%~nx0" >nul 2>&1
+if not errorlevel 1 (endlocal & set "%iscon_out%=false" & exit /b 1)
+endlocal
+set "%iscon_out%=true"
+exit /b 0
+```
+
+Do not rewrite `:IsConsole` merely to force the ordinary prologue onto this sanctioned special case.
+
+## 12. PowerShell integration
+
+PowerShell is the normal fallback when batch is genuinely too hard or awkward.
+
+Avoid temporary `.ps1` files and temporary external files unless the operation genuinely requires them.
+
+Do not use PowerShell here-strings inside batch files.
+
+Choose the simplest embedded form that works.
+
+### 1. Direct one-liner
+
+```bat
+powershell.exe -NoLogo -NoProfile -NonInteractive -Command "Get-Printer | Select-Object -ExpandProperty Name"
+```
+
+Long one-liners are acceptable when they remain one coherent operation.
+
+Use `-Sta` only when required. Do not add `-ExecutionPolicy Bypass` automatically to ordinary `-Command` calls.
+
+### 2. Script in an environment variable
+
+```bat
+set "PS_SCRIPT=param($Name) Write-Output ('Hello ' + $Name)"
+powershell.exe -NoLogo -NoProfile -NonInteractive -Command "& ([ScriptBlock]::Create($env:PS_SCRIPT)) 'World'"
+```
+
+This is useful for longer code and for keeping a `for /f` capture command short.
+
+### 3. Script in a pseudoarray
+
+For source too large for one practical `set` command:
+
+```bat
+set "PSCODE.ubound=2"
+set "PSCODE[0]=param([string]$Name)"
+set "PSCODE[1]=Write-Output ('Hello ' + $Name)"
+set "PSCODE[2]=exit 0"
+```
+
+PowerShell can reconstruct the lines from the environment.
+
+### 4. Multiline PowerShell between labels
+
+For substantial hand-maintained PowerShell, embed the PowerShell source between labels and use a helper that reads the current `.bat`, extracts the block, builds a `ScriptBlock`, passes arguments, and returns the PowerShell exit code.
+
+```text
+:_TaskReportJson_start
+param([string[]]$Args)
+...
+exit 0
+:_TaskReportJson_end
+```
+
+This keeps the PowerShell readable without a `.ps1` file.
+
+Use environment variables / argument arrays for data transport rather than constructing PowerShell source from arbitrary input.
+
+Reference helper:
+
+```bat
+:: ============================================================
+:: :RunPowerShellFromLabel
+:: Reads this batch file, extracts PowerShell between
+:: :_Block_start and :_Block_end, and executes it.
+::
+:: Version:
+::   1.1.0
+::
+:: Usage:
+::   call :RunPowerShellFromLabel BlockName [arguments...]
+::
+:: Alternate Usage:
+::   set "RunPowerShellFromLabel.function=BlockName"
+::   call :RunPowerShellFromLabel [arguments...]
+::
+:: Persistent Default:
+::   set "_RunPowerShellFromLabel.function=BlockName"
+::   call :RunPowerShellFromLabel [arguments...]
+::
+:: Arguments:
+::   BlockName  embedded PowerShell block name
+::   arguments  arguments forwarded to the block
+::
+:: Output:
+::   embedded PowerShell stdout/stderr
+::
+:: Returns:
+::   PowerShell exit code
+::   2 for invalid arguments
+:: ============================================================
+:RunPowerShellFromLabel
+for /f "tokens=1 delims==" %%v in ('set rps_ 2^>nul') do set "%%v="
+if defined _rps_rc (set "_rps_rc=" & exit /b %_rps_rc%)
+set "rps_self=%~f0" & set "rps_argc=0"
+if defined app.self set "rps_self=%app.self%"
+if defined RunPowerShellFromLabel.function (set "rps_label=%RunPowerShellFromLabel.function%" & set "RunPowerShellFromLabel.function=" & goto :_RunPowerShellFromLabel_capture)
+if defined _RunPowerShellFromLabel.function (set "rps_label=%_RunPowerShellFromLabel.function%" & goto :_RunPowerShellFromLabel_capture)
+set "rps_label=%~1"
+if not defined rps_label (set "_rps_rc=2" & goto :RunPowerShellFromLabel)
+shift
+:_RunPowerShellFromLabel_capture
+if "%~1"=="" goto :_RunPowerShellFromLabel_run
+set "rps_arg%rps_argc%=%~1"
+set /a rps_argc+=1
+shift
+goto :_RunPowerShellFromLabel_capture
+:_RunPowerShellFromLabel_run
+if "%rps_label:~0,1%"==":" set "rps_label=%rps_label:~1%"
+set "rps_start=:_%rps_label%_start" & set "rps_end=:_%rps_label%_end"
+powershell.exe -NoLogo -NoProfile -NonInteractive -Command "& { try { $ErrorActionPreference='Stop'; $path=$env:rps_self; $start=$env:rps_start; $end=$env:rps_end; $argc=[int]$env:rps_argc; $lines=@(Get-Content -LiteralPath $path); $s=-1; $e=-1; for($i=0;$i-lt$lines.Count;$i++){ $t=$lines[$i].Trim(); if($s-lt 0-and$t-eq$start){$s=$i;continue}; if($s-ge 0-and$t-eq$end){$e=$i;break} }; if($s-lt 0-or$e-le$s){throw ('Could not find valid PowerShell block: '+$start+' / '+$end)}; $code=if($e-gt($s+1)){$lines[($s+1)..($e-1)]-join[Environment]::NewLine}else{''}; $arguments=@(); for($n=0;$n-lt$argc;$n++){$arguments += [Environment]::GetEnvironmentVariable(('rps_arg{0}'-f$n))}; & ([ScriptBlock]::Create($code)) @arguments; if(-not $?){exit 1}; exit 0 } catch { Write-Error $_; exit 1 } }"
+set "rps_rc=%errorlevel%"
+if not "%rps_rc%"=="0" (set "_rps_rc=%rps_rc%" & goto :RunPowerShellFromLabel)
+exit /b 0
+```
+
+Example block:
+
+```text
+:_HelloFromPowerShell_start
+param(
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]]$DemoArgs
+)
+Write-Host "Hello from embedded PowerShell."
+for ($i = 0; $i -lt $DemoArgs.Count; $i++) {
+    Write-Host "[$i] $($DemoArgs[$i])"
+}
+exit 0
+:_HelloFromPowerShell_end
+```
+
+Call it with:
+
+```bat
+set "RunPowerShellFromLabel.function=HelloFromPowerShell"
+call :RunPowerShellFromLabel "first arg" "arg with spaces"
+```
+
+
+### Capturing output
+
+```bat
+for /f "usebackq delims=" %%P in (`powershell.exe -NoLogo -NoProfile -NonInteractive -Command "Get-Printer | Select-Object -ExpandProperty Name"`) do echo %%P
+```
+
+Remember that `for /f` ignores empty lines by default and tokenizes unless `delims=` is used.
+
+### PowerShell hybrid `.ps1` files
+
+A true PowerShell `-File` hybrid requires the content to be reachable under a `.ps1` name, generally through a copy or hardlink. Prefer the normal embedded strategies above unless a project has a concrete reason to maintain that hybrid form.
+
+## 13. WSH JScript / ECMAScript hybrid
+
+WSH JScript is a specialized tool, not the normal fallback after batch.
+
+Prefer PowerShell first unless PowerShell startup latency is materially unacceptable or an established JScript hybrid already exists and is clearly the better implementation.
+
+On systems using Microsoft Windows Script Host, the JScript/ECMAScript engines are hosted by `cscript.exe` or `wscript.exe`.
+
+- `cscript.exe` is the console host.
+- `wscript.exe` is the graphical/windowed host.
+- Choose the host according to whether console or graphical execution is wanted.
+
+### When to use the hybrid
+
+Use it only when there is a concrete reason, for example:
+
+- the operation is too awkward in pure batch
+- PowerShell startup cost matters enough to be a problem
+- the JScript implementation is simpler/faster enough to justify the polyglot complexity
+- the project already has an established hybrid layer
+
+Do not add it before the simpler batch and PowerShell options have been exhausted.
+
+### Single-file hybrid structure
+
+A batch/JScript hybrid can use the same `.bat` file directly:
+
+```bat
+@if (@X)==(@Y) @end /*
+@echo off
+:setup
+:main
+call :Run
+:end
+GoTo :EOF
+
+:Run
+echo Batch side
+exit /b 0
+*/
+WScript.Quit(JScriptEntry());
+
+function JScriptEntry() {
+    return 0;
+}
+```
+
+Invoke the JScript side with:
+
+```bat
+cscript.exe //E:JScript //nologo "%~f0" arguments...
+```
+
+The opening polyglot line starts a JScript block comment around the batch region. The intended `*/` closes it before the JScript region.
+
+Important:
+
+- Treat the opening/closing polyglot boilerplate as fragile infrastructure.
+- The batch region inside the JScript block comment must not accidentally contain an unintended `*/` that terminates the comment early.
+- JScript and batch have different escaping and parsing rules; test the exact hybrid file structure you use.
+- Keep an explicit JScript entry point and terminate with `WScript.Quit(rc)` so the batch caller receives a defined exit code.
+- Use `WScript.Arguments` or environment variables for data transport rather than constructing executable JScript source from data.
+- Write for the Microsoft WSH JScript engine used by the deployment environment, not modern browser/Node JavaScript.
+
+A simple entry structure:
+
+```js
+WScript.Quit(JScriptEntry());
+
+function JScriptEntry() {
+    var args = [];
+    for (var i = 0; i < WScript.Arguments.length; i++) args.push(String(WScript.Arguments(i)));
+    return Main(args);
+}
+
+function Main(args) {
+    return 0;
+}
+```
+
+### Dispatch choices
+
+A hybrid may use no dispatcher, a direct command argument, a sentinel form, filename/applet dispatch, or a more specialized path-injection technique.
+
+Choose the simplest form that the project actually needs. Advanced path-injection dispatch is valid but should not be introduced when a normal command argument is sufficient.
+
+### Separate helper file
+
+Self-contained scripts are often preferable, but a project that is already deployed as a collection of files may benefit from one shared JScript helper instead of embedding the same hybrid machinery in every `.bat`.
+
+Choose based on the project structure and deployment model, not a universal single-file rule.
+
+### Style in other languages
+
+Apply the rest of this guide **in spirit** to embedded PowerShell, JScript, or other helper languages:
+
+- clear interfaces
+- documented inputs/outputs/return values
+- version reusable functions
+- consistent naming
+- controlled side effects
+- explicit dependencies
+- testing where appropriate
+
+Do not force batch-specific idiosyncrasies onto another language.
+
+## 14. ANSI color and themes
+
+Separate low-level ANSI primitives from semantic application colors.
+
+Low-level:
+
+```text
+app.ansi.*
+```
+
+Semantic theme roles:
+
+```text
+app.color.reset
+app.color.text
+app.color.dim
+app.color.title
+app.color.header
+app.color.info
+app.color.ok
+app.color.warn
+app.color.error
+app.color.accent
+app.color.select
+```
+
+Application code should normally use semantic roles:
+
+```bat
+echo %app.color.ok%OK:%app.color.reset% Complete
+echo %app.color.error%ERROR:%app.color.reset% Failed
+```
+
+Reset immediately after the colored span.
+
+Do not put ANSI escape sequences into normal machine-readable logs.
+
+Select the theme from `:setup`:
+
+```bat
+if not defined app.theme call :DarkMode
+```
+
+This allows an inherited theme. Use a forced theme only when the application truly requires it.
+
+Standard 16-color ANSI is the safest general-purpose choice. Use 256/RGB color only where support is known.
+
+Advanced interactive UI may use raw ANSI effects/cursor sequences; restore cursor state and colors when done.
+
+Compact reference implementation:
+
+```bat
+:: ============================================================
+:: :Ansi
+:: Defines common ANSI primitives.
+::
+:: Version:
+::   1.0.0
+::
+:: Usage: call :Ansi
+::
+:: Arguments:
+::   None
+::
+:: Output:
+::   app.esc
+::   app.ansi.*
+::
+:: Returns:
+::   0
+:: ============================================================
+:Ansi
+for /f "tokens=1 delims==" %%v in ('set ansi_ 2^>nul') do set "%%v="
+if defined _ansi_rc (set "_ansi_rc=" & exit /b %_ansi_rc%)
+if not defined app.ansi.reset for /f "delims=#" %%e in ('"prompt #$E# & for %%b in (1) do rem"') do for %%C in ("reset=0" "bold=1" "dim=2" "underline=4" "fg.black=30" "fg.red=31" "fg.green=32" "fg.yellow=33" "fg.blue=34" "fg.magenta=35" "fg.cyan=36" "fg.white=37" "fg.gray=90" "fg.brightred=91" "fg.brightgreen=92" "fg.brightyellow=93" "fg.brightblue=94" "fg.brightmagenta=95" "fg.brightcyan=96" "fg.brightwhite=97" "bg.black=40" "bg.red=41" "bg.green=42" "bg.yellow=43" "bg.blue=44" "bg.magenta=45" "bg.cyan=46" "bg.white=47") do for /f "tokens=1,2 delims==" %%A in ("%%~C") do (set "app.esc=%%e" & set "app.ansi.%%A=%%e[%%Bm")
+exit /b 0
+```
+
+A theme maps those primitives into semantic roles:
+
+```bat
+:: ============================================================
+:: :DarkMode
+:: Applies the standard dark-background theme.
+::
+:: Version:
+::   1.0.0
+::
+:: Usage: call :DarkMode
+::
+:: Arguments:
+::   None
+::
+:: Output:
+::   app.theme=darkmode
+::   app.color.*
+::
+:: Returns:
+::   0
+:: ============================================================
+:DarkMode
+for /f "tokens=1 delims==" %%v in ('set dm_ 2^>nul') do set "%%v="
+if defined _dm_rc (set "_dm_rc=" & exit /b %_dm_rc%)
+if not defined app.ansi.reset call :Ansi
+set "app.color.reset=%app.ansi.reset%" & set "app.color.text=%app.ansi.fg.white%" & set "app.color.dim=%app.ansi.fg.gray%"
+set "app.color.title=%app.ansi.bold%%app.ansi.fg.brightcyan%" & set "app.color.header=%app.ansi.bold%%app.ansi.fg.brightwhite%" & set "app.color.info=%app.ansi.fg.brightcyan%"
+set "app.color.ok=%app.ansi.fg.brightgreen%" & set "app.color.warn=%app.ansi.fg.brightyellow%" & set "app.color.error=%app.ansi.fg.brightred%" & set "app.color.accent=%app.ansi.fg.brightmagenta%" & set "app.color.select=%app.ansi.fg.black%%app.ansi.bg.brightcyan%"
+set "app.theme=darkmode"
+exit /b 0
+```
+
+Other themes such as `:LightMode` or `:YellowOnBlack` should populate the same `app.color.*` roles so application code does not change when the theme changes.
+
+
+## 15. Printing without a newline
+
+Use a trivial helper:
+
+```bat
+:: ============================================================
+:: :Print
+:: Prints text without appending a newline.
+::
+:: Version:
+::   1.1.0
+::
+:: Usage: call :Print "text"
+::
+:: Arguments:
+::   text  text to print
+::
+:: Output:
+::   stdout without trailing CR/LF
+::
+:: Returns:
+::   0
+:: ============================================================
+:Print
+<nul set /p "=%~1"
+exit /b 0
+```
+
+The explicit `exit /b 0` hides the `set /p` EOF-style return state.
+
+## 16. Debug
+
+Keep basic debug support simple.
+
+```bat
+set "app.debug=1"
+```
+
+and:
+
+```bat
+:Debug
+if not defined app.debug exit /b 0
+echo %app.color.dim%[DEBUG] %~1: %~2%app.color.reset%
+exit /b 0
+```
+
+Debug output is developer-facing internal state, not normal operational output.
+
+Late in development, complex or performance-sensitive projects may add dedicated debug or instrumented variants when ordinary debug calls materially disturb the code being studied. This is optional testing/debug infrastructure, not a requirement for ordinary programming.
+
+## 17. Logging
+
+Logging is a durable record, separate from debug output and console presentation.
+
+- Choose the log format for its consumer.
+- Plain logs normally exclude ANSI.
+- A project may emit several variants: concise, verbose, debug, structured/machine-readable, etc.
+- Filenames may be automatically named, date-stamped, time-stamped, run-numbered, or otherwise organized as the project requires.
+- Human-readable and machine-readable outputs do not have to be identical.
+- If a format is claimed to be CSV/JSON/XML/etc., implement the format's escaping/encoding correctly.
+
+## 18. Verbosity
+
+Verbosity controls how much normal operational information is shown.
+
+A project may use names or numeric levels such as:
+
+```text
+quiet
+normal
+verbose
+veryverbose
+```
+
+Console, log, and machine-readable outputs may use different verbosity levels.
+
+Do not confuse verbosity with debug mode. A script can simultaneously be quiet for normal console output, verbose in a log, and have debug diagnostics enabled.
+
+## 19. Performance
+
+Keep performance work proportional to the project.
+
+- Measure before optimizing important code paths.
+- Distinguish caller-observed timing from internal instrumentation.
+- Instrumentation can change the performance being measured.
+- Very fast operations should be repeated enough that total measured time is meaningfully above timer resolution and test-harness overhead.
+- Startup cost counts when startup cost is part of the real operation.
+- This is especially relevant when comparing batch, repeated `CALL`, delayed expansion, `cscript.exe`, and PowerShell.
+
+Late-stage projects may add calibration, repeated timing, min/max/average, counters, and instrumented variants as needed. The base guide does not require a benchmarking framework.
+
+## 20. Testing
+
+Start simple.
+
+- Prefer one focused test function per public function when practical.
+- Give every test function its own globally unique private prefix.
+- Test success and failure/boundary behavior.
+- Build larger workflow/pipeline tests from small focused tests.
+- Keep a test failure distinct from a harness failure when the harness itself becomes complex.
+- Use edge-case tests for legitimate contract boundaries.
+- Use pathological tests for deliberately difficult inputs: long values, deep structures, parser-sensitive characters, repeated parse passes, unusual encodings, etc.
+- If a function claims arbitrary-text support, test the parser-sensitive characters relevant to every parse boundary it crosses.
+- File-based functions may use file-based fixtures; avoiding temporary files does not mean refusing to test a file interface realistically.
+- Testing/debug/performance infrastructure normally grows later, after the program's basic behavior is established.
+
+ByRef transport is especially useful for pathological test data because it avoids reconstructing arbitrary text directly on a command line.
+
+## 21. Dependencies, capability detection, hooks, and dispatch
+
+### Dependencies
+
+Document external tools and important internal helper dependencies.
+
+Verify required external tools near startup when absence would otherwise cause confusing failures.
+
+### Capability detection / lazy loading
+
+Detect optional capabilities only when useful.
+
+Persistent flags may use `_` because they intentionally outlive an ordinary function sweep:
+
+```bat
+if defined _lib.loaded exit /b 0
+call :LoadLibrary
+if errorlevel 1 exit /b 1
+set "_lib.loaded=1"
+```
+
+### Hooks
+
+Hooks are valid extension points:
+
+```bat
+if defined hook.before_save call :%hook.before_save%
+```
+
+Dynamic `call :%variable%` is allowed. Use `:DoesLabelExist` when a friendlier missing-label error is useful; it is not mandatory merely because the label is dynamic.
+
+Document whether a hook's return code is ignored or affects the operation.
+
+### Filename-based dispatch
+
+A single source file may expose several commands by dispatching on `%~n0`, often through hardlinks.
+
+Do not reuse labels. If code checks whether a label exists, the check must be case-insensitive because labels are case-insensitive.
+
+Keep applet/language dispatch as simple as the project needs.
+
+## 22. Elevation
+
+Only include elevation machinery when the script genuinely requires administrator rights.
+
+If elevation is not required:
+
+- do not gate execution behind an elevation check
+- do not include self-elevation helpers merely as boilerplate
+
+If elevation is required:
+
+1. `:setup` initializes theme / console state and calls `:IsElevated app.elevated`.
+2. `:setup` may print whether the process is elevated.
+3. `:main` handles help before UAC.
+4. `:main` checks `app.elevated`.
+5. If not elevated, call `:SelfElevate %*`.
+6. If elevated, run the normal application work.
+
+Help must not trigger UAC.
+
+Reference `:IsElevated`:
+
+```bat
+:: ============================================================
+:: :IsElevated
+:: Detects whether the current process has an elevated
+:: administrator token.
+::
+:: Version:
+::   1.0.1
+::
+:: Usage: call :IsElevated outputVariable
+::
+:: Arguments:
+::   outputVariable  variable that receives the result
+::
+:: Output:
+::   outputVariable  true when elevated, false otherwise
+::
+:: Returns:
+::   0 if elevated
+::   1 if not elevated
+:: ============================================================
+:IsElevated
+for /f "tokens=1 delims==" %%v in ('set isel_ 2^>nul') do set "%%v="
+if defined _isel_rc (set "_isel_rc=" & exit /b %_isel_rc%)
+set "isel_out=%~1"
+fltmc >nul 2>&1
+if errorlevel 1 (set "%isel_out%=false" & set "_isel_rc=1" & goto :IsElevated)
+set "%isel_out%=true"
+exit /b 0
+```
+
+### Self-elevation and mapped drives
+
+The elevated token lives in a different logon session, so mapped drive letters may not exist after UAC.
+
+Prefer recreating required mapped drives in the elevated session instead of relying on `EnableLinkedConnections` or changing the script's paths to UNC.
+
+Reference implementation:
+
+```bat
+:: ============================================================
+:: :SelfElevate
+:: Relaunches this batch elevated, preserving arguments and
+:: working directory, and recreating mapped drives needed for
+:: the script path / working directory.
+::
+:: Version:
+::   1.2.0
+::
+:: Usage: call :SelfElevate [arguments...]
+::
+:: Arguments:
+::   arguments  original command-line arguments
+::
+:: Output:
+::   Launches an elevated copy
+::
+:: Returns:
+::   elevated batch exit code
+::   1223 if UAC is cancelled
+::   1 if elevation otherwise fails without a native code
+:: ============================================================
+:SelfElevate
+for /f "tokens=1 delims==" %%v in ('set se_ 2^>nul') do set "%%v="
+if defined _se_rc (set "_se_rc=" & exit /b %_se_rc%)
+set "se_script=%~f0" & set "se_workingDirectory=%cd%" & set "se_count=0"
+:_SelfElevate_capture
+if "%~1"=="" goto :_SelfElevate_launch
+set /a se_count+=1
+set "se_arg_%se_count%=%~1"
+shift
+goto :_SelfElevate_capture
+:_SelfElevate_launch
+powershell.exe -NoLogo -NoProfile -NonInteractive -Command "$forward=@(); if([int]$env:se_count -gt 0){$forward=@(1..[int]$env:se_count | ForEach-Object { [Environment]::GetEnvironmentVariable(('se_arg_{0}' -f $_)) })}; function Get-Mapping($p){ if($p -match '^([A-Za-z]:)\\'){ $d=$matches[1]; $ld=Get-CimInstance Win32_LogicalDisk -Filter ('DeviceID=''' + $d + '''') -ErrorAction SilentlyContinue; if($ld -and $ld.DriveType -eq 4 -and $ld.ProviderName){ return [pscustomobject]@{Letter=$d;Root=$ld.ProviderName} } } return $null }; $maps=@(); foreach($p in @($env:se_script,$env:se_workingDirectory)){ $m=Get-Mapping $p; if($m){ $maps+=$m } }; $maps=@($maps | Sort-Object Letter -Unique); $data=[pscustomobject]@{Script=$env:se_script;WorkingDirectory=$env:se_workingDirectory;Arguments=$forward;IsConsole=[Environment]::GetEnvironmentVariable('app.IsConsole');Maps=$maps}; $payload=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes((ConvertTo-Json -Compress -Depth 4 -InputObject $data))); $command='$data=ConvertFrom-Json ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(''#PAYLOAD#''))); $arguments=@($data.Arguments); [Environment]::SetEnvironmentVariable(''app.IsConsole'',[string]$data.IsConsole,''Process''); $created=@(); foreach($m in @($data.Maps)){ net use $m.Letter $m.Root 2>&1 | Out-Null; if($LASTEXITCODE -eq 0){ $created+=$m.Letter }; $n=$m.Letter.Substring(0,1); if(-not (Get-PSDrive -Name $n -ErrorAction SilentlyContinue)){ New-PSDrive -Name $n -PSProvider FileSystem -Root $m.Root -Scope Global -ErrorAction SilentlyContinue | Out-Null } }; Set-Location -LiteralPath $data.WorkingDirectory; & $data.Script @arguments; $rc=$LASTEXITCODE; Set-Location -LiteralPath $env:SystemRoot; foreach($l in $created){ net use $l /delete /y 2>&1 | Out-Null }; exit $rc'.Replace('#PAYLOAD#',$payload); $encoded=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command)); try { $process=Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoLogo','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-EncodedCommand',$encoded) -Verb RunAs -Wait -PassThru; exit $process.ExitCode } catch { if($_.Exception.NativeErrorCode){exit $_.Exception.NativeErrorCode}; exit 1 }"
+set "se_rc=%errorlevel%"
+if not "%se_rc%"=="0" (set "_se_rc=%se_rc%" & goto :SelfElevate)
+exit /b 0
+```
+
+This implementation discovers mappings needed for the script path and current working directory. If a project also accepts arbitrary mapped-drive paths in command-line arguments, extend the mapping discovery deliberately.
+
+## 23. Help and usage
+
+Non-trivial user-facing scripts should provide help.
+
+Typical switches:
+
+```text
+--help  -h  -?  /h  /?
+```
+
+Handle help before destructive work, network access, configuration changes, or UAC.
+
+Prefer a `:Usage` function when the usage text is non-trivial.
+
+At delivery, the built-in usage and the external usage document should agree.
+
+## 24. Advanced argument parsing, trampolines, and reentrancy
+
+Use simple positional arguments while they remain clear.
+
+For functions with many flags, named positionals, mode switches, or collected lists, a schema-driven parser can be useful. Namespace parser output under the caller/function prefix so repeated use does not collide.
+
+Batch functions are not naturally reentrant because private variables are process-global. If recursive/nested use is required, use a design that creates independent namespaces rather than assuming a new `CALL` creates variable scope.
+
+A trampoline is a called internal sublabel used when a fresh call/parse frame is useful:
+
+```bat
+call :_Function_trampoline
+```
+
+A trampoline does **not** create environment-variable scope. Document why it exists when it would otherwise look unnecessary.
+
+## 25. Versioning
+
+Every reusable function has its own version.
+
+Use:
+
+```text
+MAJOR.MINOR.PATCH
+```
+
+Increment the function version whenever the function itself changes materially, including its interface, implementation, return behavior, dependencies, side effects, assumptions, or documentation.
+
+The script also has a version in `:setup`:
+
+```bat
+set "app.version=1.4.2"
+```
+
+Function versions are independent of script versions. Copying an unchanged function into another script keeps the function version unchanged.
+
+Standalone script delivery:
+
+```text
+ScriptName.bat
+ScriptName-1.4.2.bat
+```
+
+Project delivery:
+
+```text
+ProjectName-2.4.0\
+ProjectName-2.4.0.zip
+```
+
+Keep old immutable script snapshots under:
+
+```text
+archive\
+```
+
+## 26. Documentation and project organization
+
+Implementation discovers the design; documentation records it.
+
+During active development:
+
+```text
+discover -> experiment -> implement -> refine -> milestone -> document -> deliver
+```
+
+Do not let stale documentation constrain necessary code changes. At delivery, documentation and code must agree.
+
+Typical project layout:
+
+```text
+README.md
+ScriptName.bat
+archive\
+doc\
+```
+
+Useful documents:
+
+```text
+doc\ScriptName.md
+doc\ScriptName.usage.txt
+doc\ScriptName.version.history.txt
+doc\ScriptName.lessons-learned.md
+doc\ScriptName.style-guide.md
+```
+
+Add architecture, configuration, troubleshooting, examples, dependencies, output-format documentation, etc. only when useful. Do not create empty placeholder documents.
+
+Version history is newest first.
+
+Lessons learned should capture useful development discoveries such as:
+
+```text
+initial approach
+problem
+discovery
+final approach
+```
+
+### Project structure evolves
+
+There is no universal rule that every project must remain one file or become a library.
+
+A project may evolve from:
+
+```text
+small standalone scripts
+-> larger standalone tools
+-> related tools
+-> shared helper/library files
+-> larger application/project
+```
+
+or follow another direction entirely.
+
+Choose self-contained versus shared files according to:
+
+- whether files are copied individually or deployed as a project
+- how much functionality is shared
+- maintenance cost of duplication
+- project complexity and reuse goals
+- the direction the programmer wants the project to take
+
+## 27. Review checklist
+
+Before delivery, check the things that most often cause real batch failures:
+
+- scaffold is intact
+- `:setup` is readable and contains high-level setup work
+- `:main` contains high-level program flow
+- `:end` performs teardown and preserves the intended return code
+- no duplicate labels, checked case-insensitively
+- no duplicate function-private prefixes
+- changed functions have updated doc blocks and versions
+- `if` / `for` compound bodies are grouped correctly
+- `if errorlevel N` is being used as a `GEQ N` threshold intentionally
+- no stale `_fn_rc` can survive an unintended exit path
+- no command is continued with a trailing caret
+- every dynamic lookup that needs `CALL` second expansion has its own `CALL`
+- no attempt is made to `CALL` a parenthesized command group
+- delayed expansion is tightly scoped and unwound
+- parser-sensitive data has been considered at every relevant parse boundary
+- pseudoarray/object bounds and optional metadata are consistent
+- help runs before UAC / destructive work
+- elevation code exists only when required
+- PowerShell does not create unnecessary `.ps1` temp files
+- WSH hybrid code exists only when there is a concrete reason for it
+- logs / machine-readable outputs do not accidentally contain console ANSI
+- source encoding and line endings are correct
+- dependency assumptions are documented
+- built-in usage and external usage documentation agree
+- tests include important edge cases and pathological cases where the contract requires them
+
+## 28. Flexibility
+
+This guide is a strong default, not a reason to make code worse.
+
+If a rule becomes overbearing, obscures intent, forces fragile code, adds pure overhead, or makes a straightforward implementation disproportionately awkward, use a focused exception and choose the clearer, safer, more maintainable solution.
+
+Keep exceptions local. Document significant or reusable exceptions when useful.
+
+The purpose of the guide is practical consistency, robust `cmd.exe` parsing, readability, maintainability, and performance where it matters.
