@@ -104,6 +104,8 @@ archive/full/compact set is always passed through
 `test\test_generated_databases.bat`, including the 32 family query smoke
 executions, before PASS validation state is written.
 
+Stage 06 passes a non-existing `database-validation` output path to the validator; the validator itself owns creation of that directory. This is required by the validator's collision-safety contract.
+
 ## HTML output
 
 Stage 07 writes one self-contained browser in the toolkit project root:

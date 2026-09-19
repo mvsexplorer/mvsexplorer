@@ -1,3 +1,15 @@
+## 0.19.1 validation-output ownership hotfix
+
+`database-maintenance-validate.inc.ps1` must not call
+`Ensure-Directory $validationDir` before `test_generated_databases.bat`.
+The validator rejects a pre-existing output path by design and owns creation of
+that directory. Structure tests enforce this contract.
+
+The 0.19.1 maintenance hotfix intentionally does not regenerate the
+archive-sweep/family/compact processing surfaces, preserving their 0.19.0 bytes
+and therefore the toolset fingerprints needed to reuse a successful 0.19.0
+database.
+
 ## 0.19.0 layout and database-maintenance generation
 
 0.19.0 makes `tools\` the generated output directory for the 478 utility BATs

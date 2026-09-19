@@ -1,3 +1,9 @@
+0.19.1 - 2026-09-08
+- Fixes native create/update stage 06: it no longer pre-creates the database-validation output folder before invoking test_generated_databases.bat, whose contract requires owning creation of a non-existing output path.
+- Adds a structure regression asserting that validation-output directory ownership remains with the generated-database validator.
+- Intentionally leaves archive sweep, full-family builder, and compact-family builder delivery bytes unchanged from 0.19.0 so a successfully committed 0.19.0 database is reusable on retry.
+- Structure becomes 496 assertions and all mode 1,109.
+
 0.19.0 - 2026-09-07
 - Reorganizes the delivery surface: all 478 build/compare/find/lookup/print/read utility BATs are generated under tools\; the root keeps GUI, full pipeline, create/update, and summary entry points.
 - Adds create_or_update_mvs_database.bat plus eight ordered component BATs for archive discovery, incremental preparation, archive analysis, full family, compact family, validation, HTML creation, and database-state writing.

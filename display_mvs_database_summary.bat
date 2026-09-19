@@ -2,7 +2,7 @@
 :setup
 REM Displays health/completeness for the latest mvs_databases* folder in current/parent.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.0"
+set "app.version=0.1.1"
 set "app.name=display_mvs_database_summary"
 set "app.rc=0"
 set "app.self=%~f0"

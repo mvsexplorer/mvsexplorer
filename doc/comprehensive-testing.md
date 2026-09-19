@@ -58,7 +58,7 @@ does not print the 79 per-snapshot planning lines. A subsequent production
 archive build prints its own planning pass once because that plan is persisted
 with the generated database.
 
-The current 0.19.0 public regression has 1,108 assertions. The established
+The current 0.19.0 public regression has 1,109 assertions. The established
 baseline includes three data-dependent note exact-match skips on the
 2019-03-19 fixture.
 

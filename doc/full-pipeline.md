@@ -182,3 +182,7 @@ One create/update invocation retains its master and per-component logs under
 `logs\create-or-update-YYYYMMDD-HHmmss\` and creates a sibling ZIP only after
 the active log writer is closed. See `database-maintenance.md`.
 
+## 0.19.1 maintenance hotfix note
+
+The 0.19.1 project patch changes modular database-maintenance validation output ownership only; the accepted full-pipeline data semantics are unchanged.
+

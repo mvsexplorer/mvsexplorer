@@ -1,6 +1,21 @@
-# MVS Explorer Toolkit 0.19.0
+# MVS Explorer Toolkit 0.19.1
 
 
+
+## 0.19.1 validation-output ownership hotfix
+
+0.19.1 fixes the first native 0.19.0 create/update run after archive, full-family
+and compact-family databases had already committed successfully. Stage 06 was
+pre-creating its `database-validation` output directory even though
+`test\test_generated_databases.bat` deliberately owns creation of that directory
+and rejects an existing output path.
+
+Stage 06 now passes a non-existing path to the validator. The archive sweep,
+family builder and compact builder bytes are intentionally unchanged from
+0.19.0, so an unchanged successfully committed 0.19.0 database can be reused on
+the 0.19.1 retry instead of forcing another full 34,822-check rebuild.
+
+The 0.19.0 native run therefore counts as partial acceptance of discovery, staging/commit, archive analysis, family, compact, and log packaging. 0.19.1 structure has 496 assertions and all mode has 1,109.
 
 ## 0.19.0 database maintenance workflow and root cleanup
 

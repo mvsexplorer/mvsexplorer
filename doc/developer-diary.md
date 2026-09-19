@@ -1,3 +1,17 @@
+## 2026-09-08 — 0.19.1 native maintenance validation hotfix
+
+The first native 0.19.0 create/update run successfully completed and committed
+the expensive archive analysis (34,822/34,822 rows, FAIL=0), the full family
+index, and the compact family index. It then failed immediately at stage 06
+because the maintenance component created `database-validation` before invoking
+`test_generated_databases.bat`; that validator intentionally rejects an
+existing output directory.
+
+The fix removes the premature `Ensure-Directory`. This is an orchestration-only
+repair. Archive-sweep, family-builder and compact-builder bytes are deliberately
+kept unchanged so the successful 0.19.0 committed work remains reusable by the
+0.19.1 retry.
+
 ## 0.17.1 - native browser-builder parser correction
 
 ## 2026-09-07 — Native HTML acceptance and first PowerShell GUI

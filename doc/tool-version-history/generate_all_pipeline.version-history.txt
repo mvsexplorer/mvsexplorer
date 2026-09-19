@@ -1,4 +1,7 @@
 1.0.5 - 2026-09-07
+1.0.7 / project 0.19.1 - 2026-09-08
+- Regenerates the legacy full-pipeline launcher with the 0.19.1 project label; pipeline behavior is unchanged.
+
 - Sets project version 0.16.5.
 - Generates deterministic ZIP packaging that normalizes entry timestamps before hashing/package delivery.
 

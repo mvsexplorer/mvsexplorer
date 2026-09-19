@@ -2,7 +2,7 @@
 :setup
 REM Generated internal create/update component. It is standalone but orchestrated by create_or_update_mvs_database.bat.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.0"
+set "app.version=0.1.1"
 set "app.name=07_create_html_browser"
 set "app.rc=0"
 set "app.self=%~f0"

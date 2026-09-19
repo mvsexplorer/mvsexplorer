@@ -1,3 +1,20 @@
+## 2026-09-08 — first native 0.19.0 managed-database run
+
+The first `create_or_update_mvs_database.bat --workers 8` run discovered the
+79-snapshot `mvs_dumps_archive`, generated and completed the established 34,822
+logical archive plan, and committed archive analysis with 33,903 PASS,
+574 NO_RESULT, 345 expected SOURCE_MISSING, and 0 FAIL. Archive quality passed
+with the established 19 advisory flags and 0 errors.
+
+The same run then built and committed the full family database
+(products=7,609; memberships=18,805) and compact database
+(files=178,456; product-file-hashes=197,600; global-file-hashes=80,941;
+conflicts=26). Stage 06 did not execute database validation because the caller
+pre-created the validator's collision-guarded output directory. That is an
+orchestration defect, not evidence of database corruption; 0.19.1 corrects the
+directory-ownership contract while preserving the processing toolset bytes for
+reuse.
+
 # Development Observation Journal
 
 ## 2026-09-07 — native browser-builder compatibility

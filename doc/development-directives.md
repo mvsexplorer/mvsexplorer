@@ -332,3 +332,9 @@ These directives are distilled from the user's project prompts.
 230. Database summary completeness must detect source snapshots missing from the database and source snapshots whose content fingerprints changed after processing; modification dates alone are not evidence of staleness.
 231. The `tools\` relocation and maintenance applications are outside the legacy per-snapshot/adjacent-compare archive planning scope unless a later explicit directive changes that scope; the current known 79-snapshot plan therefore remains 34,822 logical checks.
 
+## 0.19.1 validation output ownership
+
+232. When a component invokes a downstream tool that owns and collision-checks its output directory, do not pre-create that directory in the caller.
+233. `06_validate_database.bat` must pass a non-existing `database-validation` path to `test_generated_databases.bat`; the generated-database validator remains responsible for creating that path.
+234. Maintenance-only hotfixes should preserve byte-identical archive/family processing toolsets when their semantics are unchanged so already committed compatible evidence can be safely reused instead of needlessly recomputed.
+

@@ -2,7 +2,7 @@
 :setup
 REM Scoped because this standalone test embeds PowerShell and must not leak state.
 setlocal DisableDelayedExpansion
-set "app.version=0.11.12"
+set "app.version=0.11.13"
 set "app.name=test_structure"
 set "app.rc=0"
 set "app.self=%~f0"
@@ -10,7 +10,7 @@ set "mvst_mode=structure"
 set "mvst_dump=%~1"
 set "mvst_caller=%~nx0"
 set "mvst_version=%app.version%"
-set "mvst_project_version=0.19.0"
+set "mvst_project_version=0.19.1"
 for %%I in ("%~dp0..") do set "mvst_root=%%~fI"
 :main
 set "RunPowerShellFromLabel.function=MVSTest"
@@ -106,7 +106,7 @@ $Caller = [string]$env:mvst_caller
 $Version = [string]$env:mvst_version
 $ProjectVersion = [string]$env:mvst_project_version
 $script:ExpectedAssertions = switch ($Mode) {
-    'structure' { 495 }
+    'structure' { 496 }
     'scalar' { 120 }
     'lookup' { 24 }
     'diagnostic' { 46 }
@@ -114,7 +114,7 @@ $script:ExpectedAssertions = switch ($Mode) {
     'single_dump' { 167 }
     'compare' { 39 }
     'history' { 65 }
-    'all' { 1108 }
+    'all' { 1109 }
     default { 0 }
 }
 
@@ -1237,6 +1237,20 @@ function Test-Structure {
         Write-Pass 'modular database maintenance uses content-safe reuse, centralized zipped logs, health summary and timestamped root HTML'
     } else {
         Write-Fail 'modular database maintenance contract' ($maintenanceProblems -join '; ')
+    }
+
+    $validateComponent = Join-Path (Join-Path $Root 'create_or_update_mvs_database') '06_validate_database.bat'
+    if (Test-Path -LiteralPath $validateComponent -PathType Leaf) {
+        $validateComponentText = [IO.File]::ReadAllText($validateComponent,[Text.Encoding]::UTF8)
+        if ($validateComponentText.Contains("'database-validation'") -and
+            $validateComponentText.Contains('Invoke-BatChecked $validator') -and
+            -not $validateComponentText.Contains('Ensure-Directory $validationDir')) {
+            Write-Pass 'maintenance validator owns creation of its database-validation output directory'
+        } else {
+            Write-Fail 'maintenance validator owns creation of its database-validation output directory' 'stage 06 must pass a non-existing output folder to test_generated_databases.bat'
+        }
+    } else {
+        Write-Fail 'maintenance validator owns creation of its database-validation output directory' '06_validate_database.bat missing'
     }
 
     if (Test-Path -LiteralPath $pipelinePath -PathType Leaf) {

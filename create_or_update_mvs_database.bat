@@ -2,7 +2,7 @@
 :setup
 REM MVS database create/update launcher. Components live in create_or_update_mvs_database\.
 setlocal DisableDelayedExpansion
-set "app.version=0.1.0"
+set "app.version=0.1.1"
 set "app.name=create_or_update_mvs_database"
 set "app.rc=0"
 set "app.self=%~f0"
