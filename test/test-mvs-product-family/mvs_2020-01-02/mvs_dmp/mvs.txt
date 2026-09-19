@@ -2,6 +2,10 @@
 6666666666666666666666666666666666666666 *ocs2007-enterprise.iso
 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb *ocs2007-enterprise.iso
 
+--- Microsoft Office Communications Server 2007 Standard Edition (English) [ID: 101] ---
+1111111111111111111111111111111111111111 *ocs2007-standard.iso
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa *ocs2007-standard.iso
+
 --- Office 2007 Proofing Tools (x86) - DVD (English) [ID: 202] ---
 2323232323232323232323232323232323232323 *office2007-proofing.iso
 

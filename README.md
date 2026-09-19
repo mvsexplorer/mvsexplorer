@@ -1,5 +1,26 @@
-# MVS Explorer Toolkit 0.15.2
+# MVS Explorer Toolkit 0.15.3
 
+
+## 0.15.3 compact synthetic-regression maintenance
+
+Version 0.15.3 is a test-fixture-only maintenance release. Native 0.15.2
+testing exposed that the compact-index assertion `compact hash rows collapse
+repeated observations` expected at least one repeated product-safe hash fact,
+but the synthetic fixture contained none once source-local product ID was
+retained as part of the compact key.
+
+The synthetic archive now repeats one identical
+`source_file + product_title + product_id + filename + algorithm + hash`
+observation in two snapshots. This makes the existing compaction assertion
+exercise the intended behavior. The compact builder, full family builder,
+all query tools, and all 443 legacy tools are unchanged from 0.15.2.
+
+Audit of the real 0.15.2 compact index confirms that this was a fixture defect,
+not a builder defect: compact `snapshot_count` totals exactly reconstruct the
+raw ID/date/file/hash/note/presence observation totals; all 967 snapshot-set
+references resolve; the 26 filename/hash conflicts, zero same-product hash
+disagreements, and 356 hash/filename aliases recompute exactly; and all 6,330
+content-addressed raw-note blobs verify by SHA-256.
 
 ## 0.15.2 compact family index
 

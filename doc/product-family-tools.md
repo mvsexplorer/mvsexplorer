@@ -168,6 +168,13 @@ metadata, collapsed IDs/dates/notes/presence facts, and the content-addressed
 distribution index while the full index remains the forensic source for
 per-snapshot row-by-row inspection.
 
+### 0.15.3 regression-fixture note
+
+The compact format and builder are unchanged from 0.15.2. Version 0.15.3 only
+corrects the synthetic regression data so the deduplication assertion includes
+at least one fact that is truly identical under the complete product-safe key,
+including source-local product ID.
+
 ## Classification confidence
 
 The automatic classifier has two tiers:

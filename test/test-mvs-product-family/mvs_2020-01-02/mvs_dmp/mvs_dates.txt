@@ -1,4 +1,5 @@
 2007-10-15T00:00:00Z - Microsoft Office Communications Server 2007 Enterprise Edition (English) [ID: 201]
+2007-10-01T00:00:00Z - Microsoft Office Communications Server 2007 Standard Edition (English) [ID: 101]
 2007-11-01T00:00:00Z - Office 2007 Proofing Tools (x86) - DVD (English) [ID: 202]
 2008-08-01T00:00:00Z - Microsoft SQL Server 2008 Standard Edition (English) [ID: 203]
 2007-01-30T00:00:00Z - Microsoft Office Professional Plus 2007 (English) [ID: 204]

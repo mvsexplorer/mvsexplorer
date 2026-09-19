@@ -530,3 +530,17 @@ source-backed identity and point to reusable snapshot sets. Filename/hash
 ambiguity is separated into three meanings: cross-product filename reuse,
 same-product hash disagreement, and same-hash/multiple-filename aliases. This
 avoids treating ordinary filename reuse as evidence corruption.
+## 2026-09-03 — Compact regression fixture correction
+
+Native 0.15.2 evidence showed the real compact index was internally consistent
+but the synthetic assertion for row collapse failed. The assertion compared raw
+product-hash row count with compact row count, while the compact identity key
+also preserves source-local product ID. Every synthetic hash observation was
+unique under that complete key, so no collapse was possible in the fixture.
+
+The fixture now repeats one exact product-safe file/hash fact across two
+snapshots. This is deliberately a test-only correction: all public tools remain
+unchanged, and the real compact index audit confirms exact snapshot-set
+reconciliation, conflict/alias derivation, and raw-note hash integrity.
+
+

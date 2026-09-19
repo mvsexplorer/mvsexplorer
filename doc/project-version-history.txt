@@ -1,6 +1,12 @@
 MVS Explorer Toolkit Project Version History
 
 
+0.15.3 - 2026-09-03
+  - Test-fixture maintenance only; no public tool behavior changes.
+  - Corrects the compact regression fixture so it contains a genuinely repeated product-safe hash fact with the same source file, title, source-local product ID, filename, algorithm, and hash across two snapshots.
+  - Fixes the 0.15.2 false failure in `compact hash rows collapse repeated observations`; the real 79-snapshot compact index was independently audited as internally lossless.
+  - Keeps all 477 public tools byte-for-byte unchanged from 0.15.2 and preserves the 34,822 legacy archive sweep plan.
+
 0.15.2 - 2026-09-01
   - Added build_mvs_product_family_compact_index.bat as a second-stage, lossless compact/all-ever family index builder.
   - Collapses repeated snapshot observations while preserving exact dump provenance through reusable snapshot_set_id records.

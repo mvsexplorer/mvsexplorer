@@ -1,5 +1,9 @@
 dev\generate_product_family_fixture.py
 
+0.1.3 - 2026-09-03
+  - Adds one deliberately repeated source/product/file/hash observation across two snapshots so the compact-index regression actually exercises row collapse with source-local product ID retained in the key.
+  - Fixes the 0.15.2 synthetic assertion that expected compaction even though every prior fixture hash observation was unique under the product-safe key.
+
 0.1.2 - 2026-09-01
   - Adds deterministic compact-index conflict fixtures: cross-product filename reuse, same-product hash change across snapshots, and same-hash/multiple-filename aliases.
 

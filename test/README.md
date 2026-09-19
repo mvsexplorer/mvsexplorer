@@ -257,6 +257,19 @@ test\build_archive_html_report.bat result-folder
 `test\archive-exclusions.tsv` is an optional non-destructive canonical
 interpretation file. Excluded snapshots remain tested and fully ingested.
 
+## 0.15.3 compact regression fixture maintenance
+
+Native 0.15.2 testing found one false synthetic failure:
+`compact hash rows collapse repeated observations`. The compact key preserves
+source-local product ID, and the original synthetic fixture happened to have no
+hash observation repeated under that complete key. The real compact index was
+correct.
+
+The 0.15.3 fixture repeats one exact product-safe hash observation in two
+snapshots, so the existing 106-assertion suite now exercises an actual collapse
+instead of assuming one exists. Public tools and expected assertion counts are
+unchanged from 0.15.2.
+
 ## 0.15.2 compact product-family index regression
 
 The dedicated product-family acceptance now performs 106 assertions. In
